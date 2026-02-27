@@ -1,0 +1,33 @@
+stages:
+  - validate
+  - build-publish
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  AWS_DEFAULT_REGION: ap-southeast-2
+
+publish:
+  stage: build-publish
+  # environment:
+  #   name: prod
+  image: 
+    name: amazon/aws-cli
+    entrypoint: [""]
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_REGISTRY: 152481835956.dkr.ecr.ap-southeast-2.amazonaws.com/mitabl
+    APP_NAME: mitabl
+  before_script:
+    - amazon-linux-extras install docker
+    - aws --version
+    - docker --version
+  script:
+    - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - docker build -t $APP_NAME .
+    - docker tag mitabl:latest 152481835956.dkr.ecr.ap-southeast-2.amazonaws.com/mitabl:latest
+    - docker push 152481835956.dkr.ecr.ap-southeast-2.amazonaws.com/mitabl:latest
+    - aws ecr list-images --repository-name mitabl
+
+

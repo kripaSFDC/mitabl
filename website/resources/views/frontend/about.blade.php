@@ -1,0 +1,161 @@
+@extends('layouts.frontendlayout')
+
+@section('content')
+
+<section class="about-section">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-6">
+            <h2>About Us</h2>
+         </div>
+      </div>
+   </div>
+</section>
+
+
+<section class="about-sec-2">
+   <div class="container">
+      <div class="row align-items-center">
+         <div class="col-md-12">
+            <div class="img-about2">
+               <!-- <img src="{{url('frontend/images/logo4.png')}}"> -->
+               <p>mitabl is where micook and mifoodi go to connect - people who create delicious food for people who enjoy delicious food!</p>
+               <p>Our mission is to build your community by creating connections through food. In doing so, we seek to generate opportunities to support new and upcoming cooks and create possibilities like never before.</p>
+               <p>We are achieving our goal of boosting and empowering local economies by creating the final link between the consumer and the local supplier. For people who are interested in embracing their path in the culinary sector, mitabl introduces the idea of home cooking and sharing. </p>
+
+               <h3>Real Life Community Connections</h3>
+               <p>mitabl celebrates the fact that everyone needs to eat, by channelling our passion for food and creating real life community connections. We do this through </p>
+               <ul>
+                  <li>Meals cooked for neighbours by neighbours: sometimes you want the comfort of a home cooked meal but don’t have the time, skills and family nearby.  micook are here to help, offering you an extension of their home through a meal or two. As a mifoodi, your also helping your micook reduce food waste, pursue their love of cooking and nurturing others through food. </li>
+                  <li> At home dining experiences: Sometimes dining at home just won’t cut it, you want to get out and reconnect with the world after lockdown. We created this opportunity to allow you to connect with you micook neighbours, grow your social circles, and enrich your life and your community. </li>
+               </ul>
+               <p><b>mitabl : cook| eat| talk| share| connect</b></p>
+            </div>
+         </div>
+         
+      </div>
+   </div>
+</section>
+
+<section class="mission-section bg-lightgray">
+   <div class="container">
+      <div class="row">
+         <div class="col-lg-6">
+            <div class="inner-content">
+               <img src="{{url('frontend/images/mission.png')}}">
+               <h4>Our Mission</h4>
+               <p>To build the world's largest home cook community.</p>
+            </div>
+         </div>
+         <div class="col-lg-6">
+            <div class="inner-content">
+               <img src="{{url('frontend/images/vision.png')}}">
+               <h4>Our Vision</h4>
+               <p>To Become the world’s largest platform for passionate home cooks and food lovers.</p>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>
+
+
+
+
+<!-- The Modal -->
+  <div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+         <img src="{{url('frontend/images/rocket.png')}}">
+          <h3>Coming Soon...</h3>
+          <p>We are preparing something amazing and exciting for you.</p>
+        </div>
+        
+        
+      </div>
+    </div>
+  </div>
+
+
+
+<!-- <section class="about-sec-3">
+   <div class="container">
+      <h2 class="value-title">Our Values</h2>
+      <div class="row">
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes">
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>
+
+<section class="about-sec-4">
+   <div class="container">
+      <h2 class="value-title">How It Works?</h2>
+      <div class="row">
+         <div class="col-md-4">
+            <div class="value-boxes value-boxes1">
+               <h1>1</h1>
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes value-boxes1">
+               <h1>2</h1>
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="value-boxes value-boxes1">
+               <h1>3</h1>
+               <h3>Lorem ipsum dolor</h3>
+               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit, sagittis eget consequat vel, porttitor a mauris. ras maximus ex id purus mattis interdum quis et dui. Duis ornare vulputate scelerisque.</p>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>
+ -->
+@endsection

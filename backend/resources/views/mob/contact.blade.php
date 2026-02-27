@@ -1,0 +1,392 @@
+@extends('layouts.moblayout')
+
+@section('content') 
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/sweetalert2@10.10.1/dist/sweetalert2.min.css'>
+<section class="contact-sec">
+   <div class="loader-outer hide" id="loader-div">
+      <img src="{{url('loader.gif')}}">
+   </div>
+   <div class="container">
+      <div class="row align-items-center">
+         <div class="col-md-6">
+            <div class="contact-data">
+               <!-- <h2>Contact us</h2> -->
+               <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p> -->
+               <form action="https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST" id="mob-contact">
+
+                  <input type=hidden name="orgid" value="00D5i000004SJla">
+                  <input type=hidden name="retURL" value="https://www.mitabl.com/">
+
+                  <div class="form-outer">
+
+                     <select style="display:none;" id="recordType" name="recordType">
+                        <option value="">--None--</option>
+                        <option value="micook">micook</option>
+                        <option value="mifoodi">mifoodi</option>
+                     </select>
+
+                     <input style="display:none;" id="00N5i000009zQqb" maxlength="80" name="00N5i000009zQqb" size="20" type="text" />
+
+                     <input style="display:none;" id="00N5i000009zQxr" maxlength="80" name="00N5i000009zQxr" size="20" type="text" />
+
+                     <select id="type" name="type" onchange="getval(this);">
+                        <option value="">Query Type</option>
+                        <option value="Registration">Registration</option>
+                        <option value="Payment">Payment</option>
+                        <option value="Complaint">Complaint</option>
+                        <option value="Inquiry">Inquiry</option>
+                        <option value="Other">Other</option>
+                     </select>
+                     
+                  </div>
+                  <div class="form-outer" id="order_id" style="display:none;">
+                     <input id="00N5i000006ubH5" maxlength="40" name="00N5i000006ubH5" size="20" type="text" placeholder="Order Id" />
+                     <span style="display:none;" class="error error-type">Please enter order id.</span>
+                  </div>
+                  <div class="form-outer">
+                     <input placeholder="Email" id="email" maxlength="80" name="email" size="20" type="text" />
+                  </div>
+                  <div class="form-outer phone-No">
+                     <input placeholder="Phone" id="phone" maxlength="9" name="phone" size="9" type="text" />
+                     <span class="add-phone-before">+61</span>
+                     <span style="display:none;" class="error error-phone">Please enter Australian phone number.</span> 
+                  </div>
+                  <div class="form-outer">
+                     <input placeholder="Subject" id="subject" maxlength="80" name="subject" size="20" type="text" /> 
+                  </div>
+                  <div class="form-outer">
+                     <textarea id="description" name="description" placeholder="Description"></textarea>
+                  </div>
+                  <div class="form-outer">
+                     <input type="submit" name="Submit">
+                     <!-- <input type="button" value="Submit" name="Submit"> -->
+                     <!-- <a href="#">Submit</a> -->
+                  </div>
+               </form>
+            </div>
+         </div>
+         <div class="col-md-6">
+            <div class="img-contact">
+               <img src="{{url('frontend/images/contact1.png')}}">
+            </div>
+         </div>
+         
+      </div>
+   </div>
+</section>
+
+@endsection
+
+@push('scripts')
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.all.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
+ 
+    <script>
+      $(document).ready(function(){
+
+         jQuery.validator.addMethod("noSpace", function(value, element) { 
+           return value.indexOf(" ") < 0 && value != ""; 
+         }, "No space please and don't leave it empty");
+
+      });
+
+      let checkVisible = false;
+
+      function getUrlParams(urlOrQueryString) {
+         var i = null
+        if (( i = urlOrQueryString.indexOf('?')) >= 0) {
+          const queryString = urlOrQueryString.substring(i+1);
+          if (queryString) {
+            return _mapUrlParams(queryString);
+          } 
+        }
+        
+        return {};
+      }
+
+      function _mapUrlParams(queryString) {
+        return queryString    
+          .split('&') 
+          .map(function(keyValueString) { return keyValueString.split('=') })
+          .reduce(function(urlParams, [key, value]) {
+            if (Number.isInteger(parseInt(value)) && parseInt(value) == value) {
+              urlParams[key] = parseInt(value);
+            } else {
+              urlParams[key] = decodeURI(value);
+            }
+            return urlParams;
+          }, {});
+      }
+
+      function getval(sel)
+      {
+         let _orderSt = 'none';
+         let _orderParEl = document.getElementById('order_id');
+         let _orderValEl = document.getElementById('00N5i000006ubH5');
+         if (sel.value == 'Payment') {
+            _orderSt = 'block';
+            checkVisible = true;
+            // _orderValEl.required = true;
+         } else if (sel.value == 'Complaint') {
+            _orderSt = 'block';
+            checkVisible = true;
+            // _orderValEl.required = true;
+         } else {
+            // _orderValEl.required = false;
+            _orderValEl.value = '';
+         }
+         _orderParEl.style.display = _orderSt;
+      }
+
+      function getUserType() {
+         let _srch = getUrlParams(location.href)
+         
+         if (_srch.access) {
+            $.ajax({
+                url: '/api/v1/mob-contact',
+                type: 'GET',
+                dataType: 'json',
+                headers: {
+                    'Authorization':'Bearer '+_srch.access,
+                    'X-CSRF-TOKEN':$("meta[name='csrf-token']").attr('content'),
+                },
+                success: function(response){
+
+                  if (response.isSuccess) {
+                     // console.log(response.data)
+                     if (response.data.role == 2) {
+                        $('#recordType option[value=micook]').attr('selected','selected');
+                        document.getElementById('00N5i000009zQqb').value = response.data.id
+                        
+                     } else {
+                        $('#recordType option[value=mifoodi]').attr('selected','selected');
+                        document.getElementById('00N5i000009zQxr').value = response.data.id
+                        
+                     }
+                     let _phnNo = response.data.phone.toString()
+                     $('#email').val(response.data.email)
+                     $('#phone').val(parseInt(_phnNo.substring(2).trim()))
+                  }
+                  
+                },
+                error: function(response){
+                  
+                  if (!response.responseJSON.isSuccess) {
+                     console.log(response)
+                     Swal.fire(
+                       'Error!',
+                       response.responseJSON.isError,
+                       'error'
+                     )
+                  }
+                    // console.log(response.responseJSON);
+                }
+            })
+         }
+         
+      }
+
+      function validate_Phone_Number() {
+          var number = $('#phone').val();
+          // console.log()
+          var filter = /^(?:\+?(61))? ?(?:\((?=.*\)))?(0?[2-57-8])\)? ?(\d\d(?:[- ](?=\d{3})|(?!\d\d[- ]?\d[- ]))\d\d[- ]?\d[- ]?\d{3})$/;
+          if (filter.test(number)) {
+              return true;
+          }
+          else {
+              return false;
+          }
+      }
+
+      function formValidateCus(){
+         
+         $("#mob-contact").validate({
+             // Specify validation rules
+             rules: {
+               type: "required",
+               subject: {
+                  required: true,
+                  noSpace: true
+               },
+               description: {
+                  required: true,
+                  noSpace: true
+               }, 
+               email: {
+                 required: true,
+                 email: true
+               },      
+               phone: {
+                 required: true,
+                 digits: true,
+                 minlength: 9,
+                 maxlength: 9,
+               }
+             },
+             messages: {
+              type: {
+               required: "Please select type",
+              },     
+              subject: {
+               required: "Please enter subject",
+              },
+              description: {
+               required: "Please enter description",
+              },     
+              phone: {
+               required: "Please enter phone number",
+               digits: "Please enter valid phone number",
+               minlength: "Phone number field accept only 9 digits",
+               maxlength: "Phone number field accept only 9 digits",
+              },     
+              email: {
+               required: "Please enter email address",
+               email: "Please enter a valid email address.",
+              }
+             },
+          
+           });
+      }
+
+      function sendAjaxReq(jsnData) {
+         let _ldr = $('#loader-div');
+         jQuery.ajax({
+                  type: 'post', 
+                  url: '/api/mobcontact',
+                  data: JSON.stringify(jsnData),
+                  contentType: 'application/json',
+                  beforeSend: function (request){
+                     _ldr.removeClass('hide');
+                     _ldr.addClass('show');
+                  }, 
+                  success: function (response) {
+                     _ldr.removeClass('show');
+                     _ldr.addClass('hide');
+                     
+                     
+                     if (response.isSuccess) {
+                        Swal.fire(
+                          'Success!',
+                          response.message,
+                          'success'
+                        ).then(function() {
+                            document.getElementById('mob-contact').reset()
+                            window.location.href = window.location.origin + "/?success=true";
+                        });
+                     }
+                     
+                     
+                  },
+                  error: function(response){
+                     _ldr.removeClass('show');
+                     _ldr.addClass('hide');
+                     // console.log(response)
+                     // debugger
+                     if (!response.responseJSON.isSuccess) {
+                        // debugger
+                        if (response.responseJSON.body) {
+                           debugger
+                           Swal.fire(
+                             'Error!',
+                             response.responseJSON.body[0].message,
+                             'error'
+                           )
+                        }else{
+                           debugger
+                           Swal.fire(
+                             'Error!',
+                             response.responseJSON.isError,
+                             'error'
+                           )
+                        }
+                        
+                     }
+                  }
+         })
+      }
+
+      function validatePhoneNo() {
+         if (validate_Phone_Number()) {
+            document.getElementsByClassName('error-phone')[0].style.display = 'none';
+         } else {
+            document.getElementsByClassName('error-phone')[0].style.display = 'block';
+         }
+      }
+
+      $(document).ready(function(){
+         $("#phone").keyup(function(){
+            validatePhoneNo()
+         })
+         $("#00N5i000006ubH5").keyup(function(){
+            document.getElementsByClassName('error-type')[0].style.display = 'none';
+         })
+         $('form').submit(function(e) {
+            e.preventDefault();
+            let succdata = 0;
+            if ($('#order_id').is(':visible')) {
+               let _ordrval = document.getElementById('00N5i000006ubH5').value;
+               
+               if (_ordrval == null) {
+                  succdata--;
+                  document.getElementsByClassName('error-type')[0].style.display = 'block';
+               } else if (_ordrval == '') {
+                  succdata--;
+                  document.getElementsByClassName('error-type')[0].style.display = 'block';
+               } else {
+                  succdata++;
+                  document.getElementsByClassName('error-type')[0].style.display = 'none';
+               }
+            } else {
+               succdata++;
+               document.getElementsByClassName('error-type')[0].style.display = 'none';
+            }
+
+            if ($('#phone').val()) {
+               if (validate_Phone_Number()) {
+                  succdata++;
+                  document.getElementsByClassName('error-phone')[0].style.display = 'none';
+               } else {
+                  succdata--;
+                  document.getElementsByClassName('error-phone')[0].style.display = 'block';
+               }
+                
+               
+            }
+            
+
+           formValidateCus()
+           
+            if (succdata) {
+               let _sndData = {
+                  mitabl_Case_For__c: document.getElementById('recordType').value,
+                  mitabl_micook_Id__c: document.getElementById('00N5i000009zQqb').value, 
+                  mitabl_Mifoodi_Id__c: document.getElementById('00N5i000009zQxr').value, 
+                  Type: document.getElementById('type').value, 
+                  mitabl_Order_Id__c: document.getElementById('00N5i000006ubH5').value, 
+                  SuppliedEmail: document.getElementById('email').value, 
+                  SuppliedPhone: document.getElementById('phone').value,
+                  Subject:document.getElementById('subject').value,
+                  Description:document.getElementById('description').value,
+               }
+               // $( "#mob-contact" ).submit();
+               setTimeout(function() {
+                  if (!$('#mob-contact').validate().errorList.length) {
+                     console.log(_sndData);
+                     sendAjaxReq(_sndData);
+                  }
+               }, 500);
+            }
+        })
+
+          
+
+        getUserType()
+        formValidateCus()
+        // validatePhoneNo()
+
+      })
+      
+
+    </script>
+@endpush
