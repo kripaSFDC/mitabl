@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SupportTicketResource\Pages;
 use App\Models\AdminUser;
 use App\Models\SupportTicket;
+use App\Models\Tag;
 use App\Services\AdminStepUpService;
 use App\Services\PiiRedactionService;
 use App\Services\SupportTicketService;
@@ -101,7 +102,7 @@ class SupportTicketResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query): Builder {
-                return $query->with(['assignee', 'user', 'mikitchn', 'order'])
+                return $query->with(['assignee', 'user', 'mikitchn', 'order', 'tags'])->withCount('watchers')
                     ->whereNull('merged_into_ticket_id')
                     ->orderByRaw(
                         "case
@@ -196,6 +197,16 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->label('Assignee')
                     ->placeholder('Unassigned'),
+                Tables\Columns\TextColumn::make('watchers_count')
+                    ->label('Watchers')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge()
+                    ->separator(', ')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('Order')
                     ->placeholder('-')
@@ -383,6 +394,42 @@ class SupportTicketResource extends Resource
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Save failed: ' . $throwable->getMessage())->danger()->send();
                         }
+                    }),
+                Action::make('manage_tags')
+                    ->label('Tags')
+                    ->icon('heroicon-o-tag')
+                    ->color('gray')
+                    ->visible(fn (): bool => static::canRespond())
+                    ->form([
+                        Forms\Components\Select::make('tags')
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                            ->default(fn (SupportTicket $record): array => $record->tags()->pluck('tags.id')->all()),
+                    ])
+                    ->action(function (SupportTicket $record, array $data): void {
+                        $record->tags()->sync(array_map('intval', (array) ($data['tags'] ?? [])));
+                        Notification::make()->title('Tags updated.')->success()->send();
+                    }),
+                Action::make('toggle_watch')
+                    ->label(fn (SupportTicket $record): string => $record->watchers()->where('admin_user_id', Filament::auth()->id())->exists() ? 'Unwatch' : 'Watch')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->visible(fn (): bool => static::canViewTickets())
+                    ->action(function (SupportTicket $record): void {
+                        $adminId = (int) Filament::auth()->id();
+                        $existing = $record->watchers()->where('admin_user_id', $adminId)->first();
+
+                        if ($existing) {
+                            $existing->delete();
+                            Notification::make()->title('Ticket removed from watch list.')->success()->send();
+
+                            return;
+                        }
+
+                        $record->watchers()->create(['admin_user_id' => $adminId]);
+                        Notification::make()->title('Ticket added to watch list.')->success()->send();
                     }),
                 Action::make('resolve')
                     ->label('Resolve')
