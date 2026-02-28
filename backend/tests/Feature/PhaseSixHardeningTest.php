@@ -62,16 +62,20 @@ class PhaseSixHardeningTest extends TestCase
         $routes = collect(app('router')->getRoutes()->getRoutes());
         $preregisterRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/preregister');
         $supportStoreRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/support/ticket');
+        $mobcontactRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/mobcontact');
         $supportShowRoute = $routes->first(fn ($route): bool => in_array('GET', $route->methods(), true) && $route->uri() === 'api/support/ticket/{id}');
         $supportReplyRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/support/ticket/{id}/reply');
 
         $this->assertNotNull($preregisterRoute);
         $this->assertNotNull($supportStoreRoute);
+        $this->assertNotNull($mobcontactRoute);
         $this->assertNotNull($supportShowRoute);
         $this->assertNotNull($supportReplyRoute);
 
         $this->assertContains('throttle:support-intake', $preregisterRoute->middleware());
         $this->assertContains('throttle:support-intake', $supportStoreRoute->middleware());
+        $this->assertContains('throttle:support-intake', $mobcontactRoute->middleware());
+        $this->assertContains('mobcontact.deprecation', $mobcontactRoute->middleware());
         $this->assertContains('throttle:support-read', $supportShowRoute->middleware());
         $this->assertContains('throttle:support-reply', $supportReplyRoute->middleware());
 
@@ -110,12 +114,19 @@ class PhaseSixHardeningTest extends TestCase
             'g-recaptcha-response' => 'bad-token',
         ])->assertStatus(422);
 
+        $this->postJson('/api/mobcontact', [
+            'requester_email' => 'phase6-mobcontact@example.com',
+            'subject' => 'Phase 6 mobcontact captcha',
+            'description' => 'Alias endpoint must enforce captcha rules.',
+            'g-recaptcha-response' => 'bad-token',
+        ])->assertStatus(422);
+
         $this->postJson('/api/preregister', [
             'email' => 'phase6-preregister@example.com',
             'captcha_token' => 'bad-token',
         ])->assertStatus(422);
 
-        Http::assertSentCount(3);
+        Http::assertSentCount(4);
     }
 
     public function test_phase_six_certificate_flow_coverage_exists_for_approve_reject_resubmit(): void

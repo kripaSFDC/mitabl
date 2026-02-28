@@ -72,5 +72,6 @@ class Kernel extends HttpKernel
         'restaurant' => 'App\Http\Middleware\Restaurant',
         'customer' => 'App\Http\Middleware\Customer',
         'api.user.active' => \App\Http\Middleware\EnsureApiUserIsActive::class,
+        'mobcontact.deprecation' => \App\Http\Middleware\AddMobcontactDeprecationHeaders::class,
     ];
 }

@@ -11,12 +11,12 @@ By: Usman Saleem
 ## Decision Summary
 
 - Keep the public marketing website public and unauthenticated. It remains focused on brand/commercial pages.
-- Replace Salesforce capabilities with first-party modules in the Laravel backend + Filament admin portal.
+- Replace Legacy CRM capabilities with first-party modules in the Laravel backend + Filament admin portal.
 - Build internal web apps using Filament PHP for:
   - Customer Service CRM
   - Operations (certification/approval)
   - Platform Administration (configuration, policies, health, controls)
-- For mitabl every feature Salesforce currently does (certificate review, user lookup, support workflows) maps to Filament primitives:
+- For mitabl every feature Legacy CRM currently does (certificate review, user lookup, support workflows) maps to Filament primitives:
   - Resource = CRUD manager for one model
   - Action = contextual operation with modal/form
   - Widget = dashboard card/chart/alert
@@ -32,7 +32,7 @@ By: Usman Saleem
 
 ## Scope, Boundaries
 
-- Salesforce replacement for:
+- Legacy CRM replacement for:
   - Certificate approvals/workflows
   - Lead/pre-registration capture
   - Support case/ticket management
@@ -53,17 +53,17 @@ By: Usman Saleem
 
 ---
 
-## Current State - What Salesforce Does (today and will be replaced)
+## Current State - What Legacy CRM Does (today and will be replaced)
 
-| SF Capability                  | Current implementation                                | Status after this plan                                                 |
+| Legacy CRM Capability          | Current implementation                                | Status after this plan                                                 |
 | ------------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| Kitchen certificate approval   | `PUT /api/kitchen/{id}/certificate` called from SF UI | Replaced by Filament `CertificateResource` with Approve/Reject actions |
-| User lookup (mifoodi details)  | `GET /api/sales/mifoodi` called from SF               | Replaced by Filament `UserResource`                                    |
-| Pre-registration lead capture  | `POST /api/preregister` -> SF Lead                    | Replaced by local `pre_registrations` + Filament                       |
-| Contact/support case creation  | `POST /api/mobcontact` -> SF Case                     | Replaced by local `support_tickets` + Filament                         |
-| Kitchen profile sync (Account) | `KitchenVerifiedToSales` listener -> SF Account       | Listener removed; data remains in mitabl DB                            |
-| SF Account CRM ID storage      | `sales_kitchens` table                                | Table dropped after cutover                                            |
-| SF OAuth token workflow        | `WebApiToCurlController::getAccToken()`               | Removed entirely                                                       |
+| Kitchen certificate approval   | `PUT /api/kitchen/{id}/certificate` called from legacy CRM UI | Replaced by Filament `CertificateResource` with Approve/Reject actions |
+| User lookup (mifoodi details)  | `GET /api/legacy/mifoodi` called from legacy CRM       | Replaced by Filament `UserResource`                                    |
+| Pre-registration lead capture  | `POST /api/preregister` -> legacy CRM lead            | Replaced by local `pre_registrations` + Filament                       |
+| Contact/support case creation  | `POST /api/mobcontact` -> legacy CRM case             | Replaced by local `support_tickets` + Filament                         |
+| Kitchen profile sync (Account) | `LegacyKitchenSyncListener` listener -> legacy CRM account | Listener removed; data remains in mitabl DB                            |
+| Legacy CRM account ID storage  | `legacy_kitchen_mappings` table                       | Table dropped after cutover                                            |
+| Legacy CRM OAuth token workflow| `WebApiToCurlController::getAccToken()`               | Removed entirely                                                       |
 
 ---
 
@@ -229,7 +229,7 @@ Widgets:
 
 ---
 
-## Module 2 - Kitchen Certificate Management (replaces SF approval flow)
+## Module 2 - Kitchen Certificate Management (replaces legacy CRM approval flow)
 
 Resource: `CertificateResource`
 
@@ -286,8 +286,8 @@ Edge cases:
 
 Replaces/removes:
 
-- Salesforce approval endpoints/middleware
-- Salesforce kitchen sync listener dependency
+- Legacy CRM approval endpoints/middleware
+- Legacy CRM kitchen sync listener dependency
 
 ---
 
@@ -389,7 +389,7 @@ Edge cases:
 
 ---
 
-## Module 6 - Support Ticket Management (replaces SF Cases)
+## Module 6 - Support Ticket Management (replaces legacy CRM cases)
 
 New tables:
 
@@ -464,7 +464,7 @@ CRM edge cases to support:
 
 ---
 
-## Module 7 - Pre-Registration / Lead Management (replaces SF Leads)
+## Module 7 - Pre-Registration / Lead Management (replaces legacy CRM leads)
 
 New table: `pre_registrations`
 
@@ -535,7 +535,7 @@ Constraints:
 
 ## Module 10 - Platform Admin: Configuration & Policies
 
-Purpose: replace Salesforce admin/process controls and centralize operational governance.
+Purpose: replace Legacy CRM admin/process controls and centralize operational governance.
 
 Resources/pages:
 
@@ -629,7 +629,7 @@ Cross-module productivity features:
 | `create_policies`                     | Versioned policy definitions                                                  |
 | `create_policy_change_log`            | Policy audit trail                                                            |
 | `create_admin_users`                  | Separate admin identity table                                                 |
-| `drop_sales_kitchens`                 | Remove SF mapping table after cutover                                         |
+| `drop_legacy_kitchen_mappings`                 | Remove legacy CRM mapping table after cutover                                 |
 
 ---
 
@@ -706,70 +706,68 @@ app/Mail/
 
 | Method | Route                           | Change                                                              |
 | ------ | ------------------------------- | ------------------------------------------------------------------- |
-| `POST` | `/api/support/ticket`           | New ticket intake (replaces SF case path)                           |
+| `POST` | `/api/support/ticket`           | New ticket intake (replaces legacy CRM case path)                    |
 | `GET`  | `/api/support/ticket/{id}`      | User-side status lookup (scoped access)                             |
 | `POST` | `/api/preregister`              | Modified to store local lead                                        |
-| `POST` | `/api/mobcontact`               | Kept as deprecated alias to `/api/support/ticket` during transition |
-| `PUT`  | `/api/kitchen/{id}/certificate` | Removed (SF inbound)                                                |
-| `GET`  | `/api/sales/mifoodi`            | Removed (SF inbound)                                                |
+| `POST` | `/api/mobcontact`               | Deprecated endpoint; responds with 410                              |
+| `PUT`  | `/api/kitchen/{id}/certificate` | Removed (legacy CRM inbound)                                        |
+| `GET`  | `/api/legacy/mifoodi`            | Removed (legacy CRM inbound)                                        |
 
 Backward compatibility:
 
-- Keep `/api/mobcontact` alias for one release window.
-- Emit deprecation headers/log warning.
-- Remove after client updates are completed.
+- No compatibility alias required for greenfield deployments.
+- `/api/mobcontact` responds with 410 and deprecation headers when called.
 
-### Code to Delete (Salesforce removal)
+### Code to Delete (Legacy CRM removal)
 
 ```text
-app/Listeners/KitchenVerifiedToSales.php
+app/Listeners/LegacyKitchenSyncListener.php
 app/Http/Controllers/Api/Sales/...
-app/Http/Middleware/SalesForce.php
-app/Models/SalesKitchen.php
-Salesforce logic inside WebApiToCurlController
-EventServiceProvider SF listener bindings
-Kernel salesforce middleware alias
-SF route group in routes/api.php
+app/Http/Middleware/LegacyCrm.php
+app/Models/LegacyKitchenMapping.php
+Legacy CRM logic inside WebApiToCurlController
+EventServiceProvider legacy CRM listener bindings
+Kernel legacy CRM middleware alias
+Legacy CRM route group in routes/api.php
 ```
 
-Note: remove `KitchenVerified` event only if no non-SF listeners remain.
+Note: remove `KitchenVerified` event only if no non-legacy CRM listeners remain.
 
 ### Env Variables to Remove
 
 ```text
-SALES_AUTH
-SF_CLIENT_ID
-SF_CLIENT_SECRET
-SF_USERNAME
-SF_PASSWORD
+LEGACY_CRM_AUTH
+LEGACY_CRM_CLIENT_ID
+LEGACY_CRM_CLIENT_SECRET
+LEGACY_CRM_USERNAME
+LEGACY_CRM_PASSWORD
 ```
 
-## Salesforce Dependency Eradication Checklist (Mandatory)
+## Legacy CRM Dependency Eradication Checklist (Mandatory)
 
-Goal: remove Salesforce completely while preserving existing mitabl behavior for cooks, foodies, ops, and support.
+Goal: remove Legacy CRM completely while preserving existing mitabl behavior for cooks, foodies, ops, and support.
 
 ### 1) Contract Parity Matrix
 
-- Define old -> new ownership for each Salesforce capability and endpoint:
-  - Certificate approval: `PUT /api/kitchen/{id}/certificate` (SF inbound) -> Filament `CertificateResource` actions.
-  - User lookup: `GET /api/sales/mifoodi` (SF inbound) -> Filament `UserResource` search.
-  - Lead intake: `POST /api/preregister` (SF outbound) -> local `pre_registrations`.
-  - Support intake: `POST /api/mobcontact` (SF outbound) -> local `support_tickets` via compatibility alias.
-  - Kitchen sync: `KitchenVerifiedToSales` listener -> removed, local DB remains source of truth.
+- Define old -> new ownership for each Legacy CRM capability and endpoint:
+  - Certificate approval: `PUT /api/kitchen/{id}/certificate` (legacy CRM inbound) -> Filament `CertificateResource` actions.
+  - User lookup: `GET /api/legacy/mifoodi` (legacy CRM inbound) -> Filament `UserResource` search.
+  - Lead intake: `POST /api/preregister` (legacy CRM outbound) -> local `pre_registrations`.
+  - Support intake: `POST /api/mobcontact` (legacy CRM outbound) -> `/api/support/ticket` only.
+  - Kitchen sync: `LegacyKitchenSyncListener` listener -> removed, local DB remains source of truth.
 - For each mapping, define acceptance tests and data invariants before deletion.
 
 ### 2) Compatibility and No-Impact Guardrails
 
 - Preserve client-facing API contracts during transition:
-  - keep request/response shape and status codes for `/api/preregister` and `/api/mobcontact`.
-  - keep `/api/mobcontact` alias until all clients are on the new ticket flow.
-- Add deprecation headers and structured logs for alias usage.
+  - keep request/response shape and status codes for `/api/preregister` and `/api/support/ticket`.
+- Add deprecation headers and structured logs for legacy endpoints if required.
 - Add idempotency protection for intake endpoints to avoid duplicate ticket/lead records.
 - Add background retries only for internal notifications; do not make intake synchronous.
 
 ### 3) Data Integrity and Migration
 
-- Backfill or map required Salesforce-originated operational fields into local tables before cutover.
+- Backfill or map required Legacy CRM-originated operational fields into local tables before cutover.
 - Create one-time reconciliation job:
   - detect duplicates in leads/tickets,
   - normalize email/phone,
@@ -778,27 +776,27 @@ Goal: remove Salesforce completely while preserving existing mitabl behavior for
 
 ### 4) Security and Secret Cleanup
 
-- Remove hardcoded Salesforce tokens/credentials from source code.
-- Remove Salesforce secrets from env and secret manager after cutover completion.
+- Remove hardcoded Legacy CRM tokens/credentials from source code.
+- Remove Legacy CRM secrets from env and secret manager after cutover completion.
 - Rotate any credentials that were previously committed.
 - Add CI secret scanning gate to block token reintroduction.
 
 ### 5) Code and Infrastructure Removal
 
 - Delete:
-  - `KitchenVerifiedToSales` listener and event binding,
-  - Salesforce middleware and middleware alias,
-  - Salesforce route group and controllers,
-  - `sales_kitchens` model/table after validation window,
-  - Salesforce helper logic from `WebApiToCurlController`.
-- Remove Salesforce-specific runbooks, dashboards, and alerts; replace with local CRM observability.
+  - `LegacyKitchenSyncListener` listener and event binding,
+  - Legacy CRM middleware and middleware alias,
+  - Legacy CRM route group and controllers,
+  - `legacy_kitchen_mappings` model/table after validation window,
+  - Legacy CRM helper logic from `WebApiToCurlController`.
+- Remove Legacy CRM-specific runbooks, dashboards, and alerts; replace with local CRM observability.
 
 ### 6) Cutover Exit Criteria (Must Pass)
 
 - 0 unresolved P1/P2 defects in certificate, support, and lead flows.
 - 100% pass rate on contract parity tests for legacy touched endpoints.
 - No increase in failed intake requests or ticket creation latency vs baseline.
-- No remaining Salesforce calls in runtime logs for 7 consecutive days.
+- No remaining Legacy CRM calls in runtime logs for 7 consecutive days.
 
 ---
 
@@ -845,7 +843,7 @@ Purpose: remove known production blockers before building Filament modules. No f
 | 0.5.9  | Add cache invalidation hooks                                   | Invalidate discovery caches on kitchen/profile/certificate/review/menu changes via events/listeners                      |
 | 0.5.10 | Extract payment logic from `StripeTrait` into `PaymentService` | Use container-injected services in controllers/listeners; remove direct SDK initialization from controllers              |
 | 0.5.11 | Introduce core service layer for large controllers             | Create `AuthService`, `KitchenService`, `OrderService`, `DiscoveryService`; thin controllers to validate + delegate      |
-| 0.5.12 | Remove Salesforce secrets and static tokens from source        | Delete hardcoded OAuth/token values; move remaining integration secrets to secure env/secret manager during transition   |
+| 0.5.12 | Remove Legacy CRM secrets and static tokens from source        | Delete hardcoded OAuth/token values; move remaining integration secrets to secure env/secret manager during transition   |
 | 0.5.13 | Add observability for async + cache behavior                   | Track queue latency, failed jobs, cache hit ratio, and p95 endpoint latency for discovery APIs                           |
 | 0.5.14 | Add regression tests for hardening work                        | Feature tests for async behavior, discovery response parity, cache invalidation, and key payment flows                   |
 | 0.5.15 | Define hardening exit criteria                                 | Gate: queue async confirmed, Redis cache live, no hardcoded secrets, discovery p95 improved, no P1 regressions           |
@@ -886,7 +884,7 @@ Purpose: remove known production blockers before building Filament modules. No f
 | 3.4  | Build spam/abuse protections for CRM intake                         | rate limits, honeypot/captcha hooks, duplicate detection                                    |
 | 3.5  | Build ticket automations                                            | SLA timers, breach escalation jobs, queue-driven notifications                              |
 | 3.6  | Build `PreRegistrationResource` with operator workflow              | triage queue, status transitions, conversion linking                                        |
-| 3.7  | Replace SF behavior inside `/api/preregister` and `/api/mobcontact` | local persistence + compatibility response contract                                         |
+| 3.7  | Replace legacy CRM behavior inside `/api/preregister` and `/api/mobcontact` | local persistence + compatibility response contract                                         |
 | 3.8  | Build CRM communications layer                                      | confirmation/reply/escalation/lead acknowledgement templates + delivery tracking            |
 | 3.9  | Build Customer Service UX flows in Filament                         | triage-first inbox, saved filters/views, one-click assignment, keyboard-first actions       |
 | 3.10 | Build Operations UX flows in Filament                               | certificate review workspace, side-by-side doc preview, bulk approve/reject with safeguards |
@@ -907,18 +905,18 @@ Purpose: remove known production blockers before building Filament modules. No f
 | 4.5 | Build dashboard widgets for SLA/health       |                                         |
 | 4.6 | Add immutable audit logs for admin actions   |                                         |
 
-## Phase 5 - Salesforce Cutover (Week 5)
+## Phase 5 - Legacy CRM Cutover (Week 5)
 
 | #   | Task                                                         | Notes                                                                      |
 | --- | ------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | 5.1 | Execute contract parity suite in staging                     | approval, lead, support, user lookup paths                                 |
-| 5.2 | Run shadow-read/dual-observe period (no SF write dependence) | compare outcomes and latency without SF as source of truth                 |
-| 5.3 | Cut traffic to internal modules only                         | freeze Salesforce integration endpoints from operational use               |
+| 5.2 | Run shadow-read/dual-observe period (no legacy CRM write dependence) | compare outcomes and latency without legacy CRM as source of truth         |
+| 5.3 | Cut traffic to internal modules only                         | freeze Legacy CRM integration endpoints from operational use               |
 | 5.4 | Keep `/api/mobcontact` as compatibility alias                | same response contract, mapped to local ticket creation                    |
-| 5.5 | Remove SF runtime dependencies from code                     | middleware, routes, controllers, listeners, helper calls                   |
-| 5.6 | Remove SF persistence artifacts                              | deprecate then drop `sales_kitchens` after verification window             |
-| 5.7 | Remove SF secrets and rotate exposed credentials             | env + secret store cleanup, key rotation evidence                          |
-| 5.8 | Verify zero Salesforce traffic in production logs            | monitor for 7 days, alert on any outbound SF call                          |
+| 5.5 | Remove legacy CRM runtime dependencies from code             | middleware, routes, controllers, listeners, helper calls                   |
+| 5.6 | Remove legacy CRM persistence artifacts                      | deprecate then drop `legacy_kitchen_mappings` after verification window    |
+| 5.7 | Remove legacy CRM secrets and rotate exposed credentials     | env + secret store cleanup, key rotation evidence                          |
+| 5.8 | Verify zero legacy CRM traffic in production logs            | monitor for 7 days, alert on any outbound legacy CRM call                  |
 | 5.9 | Sign-off on no-impact outcomes                               | no data loss, no workflow regression, SLA and response times within target |
 
 ## Phase 5.5 - Deployment and Release Tasks (parallel to cutover)
@@ -964,8 +962,8 @@ Execution rule:
 | G0   | Phase 0 foundations complete                 | All build phases          |
 | G0.5 | Platform hardening gate complete             | Phase 1+ feature delivery |
 | G1   | Admin foundation complete                    | Core resources/CRM UI     |
-| G3   | CRM functionally complete + UX accepted      | Salesforce cutover        |
-| G5   | Salesforce eradication verification complete | Production sign-off       |
+| G3   | CRM functionally complete + UX accepted      | Legacy CRM cutover        |
+| G5   | Legacy CRM eradication verification complete | Production sign-off       |
 | G6   | Hardening regression/perf gates complete     | Project closure           |
 
 ### Dependency Matrix
@@ -984,7 +982,7 @@ Execution rule:
 | 0.5.9    | Cache invalidation hooks                         | 0.5.7                        | Yes           |
 | 0.5.10   | Extract `StripeTrait` -> `PaymentService`        | 0.5.2                        | Yes           |
 | 0.5.11   | Service layer extraction                         | 0.5.2                        | Yes           |
-| 0.5.12   | Remove hardcoded SF secrets from source          | 0.5.2                        | Yes           |
+| 0.5.12   | Remove hardcoded legacy CRM secrets from source  | 0.5.2                        | Yes           |
 | 0.5.13   | Async/cache observability                        | 0.5.4, 0.5.6                 | Yes           |
 | 0.5.14   | Hardening regression tests                       | 0.5.7, 0.5.9, 0.5.10, 0.5.11 | Yes           |
 | 0.5.15   | Hardening exit criteria gate                     | 0.5.4-0.5.14                 | Yes           |
@@ -1006,7 +1004,7 @@ Execution rule:
 | 3.4      | Spam/abuse protection                            | 3.3                          | Yes           |
 | 3.5      | SLA timers/escalation jobs                       | 3.1, 0.5.5                   | Yes           |
 | 3.6      | `PreRegistrationResource` workflow               | 1.9, 1.4                     | Yes           |
-| 3.7      | Replace SF behavior in prereg/mobcontact         | 3.3, 3.6                     | Yes           |
+| 3.7      | Replace legacy CRM behavior in prereg/mobcontact | 3.3, 3.6                     | Yes           |
 | 3.8      | CRM communications layer                         | 3.2, 3.3, 0.5.5              | Yes           |
 | 3.9      | CS UX flows                                      | 3.2                          | Yes           |
 | 3.10     | Ops UX flows                                     | 2.1, 2.4, 3.2                | Yes           |
@@ -1020,10 +1018,10 @@ Execution rule:
 | 5.2      | Shadow-read/dual-observe period                  | 5.1                          | Yes           |
 | 5.3      | Cut traffic to internal modules only             | 5.2                          | Yes           |
 | 5.4      | `/api/mobcontact` compatibility alias live       | 3.7, 5.3                     | Yes           |
-| 5.5      | Remove SF runtime dependencies from code         | 5.3                          | Yes           |
-| 5.6      | Remove SF persistence artifacts                  | 5.5                          | Yes           |
-| 5.7      | Remove SF secrets + credential rotation          | 5.5                          | Yes           |
-| 5.8      | Zero SF traffic verification (7 days)            | 5.5, 5.7                     | Yes           |
+| 5.5      | Remove legacy CRM runtime dependencies from code | 5.3                          | Yes           |
+| 5.6      | Remove legacy CRM persistence artifacts          | 5.5                          | Yes           |
+| 5.7      | Remove legacy CRM secrets + credential rotation  | 5.5                          | Yes           |
+| 5.8      | Zero legacy CRM traffic verification (7 days)    | 5.5, 5.7                     | Yes           |
 | 5.9      | No-impact final sign-off                         | 5.8, 3.14                    | Yes           |
 | 6.1-6.7  | Final hardening validation                       | 5.9                          | Yes           |
 
@@ -1206,7 +1204,7 @@ No separate hosting tier is required for the internal portal.
 
 ### Cutover acceptance criteria
 
-- 100% parity for legacy SF flows used in production
+- 100% parity for legacy CRM flows used in production
 - No data loss for prereg/support submissions
 - Ticket SLA timers accurate in production timezone
 - Zero unresolved P1 security findings

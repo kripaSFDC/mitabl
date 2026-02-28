@@ -62,6 +62,16 @@ Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkRes
 
 Route::post('preregister', [WebApiToCurlController::class, 'preRegister'])->middleware('throttle:support-intake');
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
+Route::post('mobcontact', function () {
+    return response()->json([
+        'status' => 410,
+        'isSuccess' => false,
+        'isError' => 'This endpoint has been removed. Use /api/support/ticket.',
+    ], 410);
+})->middleware([
+    'throttle:support-intake',
+    'mobcontact.deprecation',
+]);
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
 

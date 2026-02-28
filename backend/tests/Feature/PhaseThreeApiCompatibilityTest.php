@@ -34,7 +34,7 @@ class PhaseThreeApiCompatibilityTest extends TestCase
         $this->assertDatabaseHas('pre_registrations', [
             'email' => 'alias-phone@example.com',
             'phone' => '0400123456',
-            'source' => 'preregister_api',
+            'source' => 'website',
         ]);
     }
 
@@ -73,6 +73,30 @@ class PhaseThreeApiCompatibilityTest extends TestCase
 
         $this->assertDatabaseMissing('pre_registrations', [
             'email' => 'bot-preregister@example.com',
+        ]);
+    }
+
+    public function test_mobcontact_alias_preserves_ticket_contract_and_sets_deprecation_headers(): void
+    {
+        $response = $this->postJson('/api/mobcontact', [
+            'requester_name' => 'Legacy Contact',
+            'requester_email' => 'mobcontact@example.com',
+            'requester_phone' => '+61 400 000 111',
+            'subject' => 'Legacy alias support intake',
+            'description' => 'Need help from legacy contact endpoint.',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('isSuccess', true)
+            ->assertJsonPath('message', 'Contact Message Sent Successfully')
+            ->assertHeader('Deprecation', 'true')
+            ->assertHeader('X-Deprecated-Endpoint', '/api/mobcontact')
+            ->assertHeader('X-Replacement-Endpoint', '/api/support/ticket');
+
+        $this->assertDatabaseHas('support_tickets', [
+            'requester_email' => 'mobcontact@example.com',
+            'subject' => 'Legacy alias support intake',
+            'source' => 'website',
         ]);
     }
 }
