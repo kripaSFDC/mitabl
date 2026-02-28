@@ -8,7 +8,9 @@ use App\Services\AdminAuditLogService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class EditPromoCode extends EditRecord
 {
@@ -24,19 +26,31 @@ class EditPromoCode extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return DB::transaction(function () use ($record, $data): Model {
-            PromoCode::query()
-                ->whereRaw('LOWER(code) = ?', [strtolower((string) ($data['code'] ?? $record->code ?? ''))])
-                ->where('status', 1)
-                ->lockForUpdate()
-                ->get(['id']);
+        $normalizedCode = strtoupper(trim((string) ($data['code'] ?? $record->code ?? '')));
 
-            PromoCodeResource::validatePromoCodeWindow($data, $record);
+        $lock = Cache::lock('promo-code-window:' . strtolower($normalizedCode), 10);
+        if (! $lock->get()) {
+            throw new RuntimeException('Another promo code update is in progress. Please retry.');
+        }
 
-            $record->update($data);
+        try {
+            return DB::transaction(function () use ($record, $data, $normalizedCode): Model {
+                PromoCode::query()
+                    ->whereRaw('LOWER(code) = ?', [strtolower($normalizedCode)])
+                    ->lockForUpdate()
+                    ->get(['id']);
 
-            return $record;
-        });
+                $lockedRecord = PromoCode::query()->lockForUpdate()->findOrFail($record->getKey());
+
+                PromoCodeResource::validatePromoCodeWindow($data, $lockedRecord);
+
+                $lockedRecord->update($data);
+
+                return $lockedRecord;
+            });
+        } finally {
+            $lock->release();
+        }
     }
 
     protected function getHeaderActions(): array

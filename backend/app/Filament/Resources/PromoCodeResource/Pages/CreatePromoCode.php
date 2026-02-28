@@ -7,7 +7,9 @@ use App\Models\PromoCode;
 use App\Services\AdminAuditLogService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class CreatePromoCode extends CreateRecord
 {
@@ -23,17 +25,28 @@ class CreatePromoCode extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        return DB::transaction(function () use ($data): Model {
-            PromoCode::query()
-                ->whereRaw('LOWER(code) = ?', [strtolower((string) ($data['code'] ?? ''))])
-                ->where('status', 1)
-                ->lockForUpdate()
-                ->get(['id']);
+        $normalizedCode = strtoupper(trim((string) ($data['code'] ?? '')));
 
-            PromoCodeResource::validatePromoCodeWindow($data, null);
+        $lock = Cache::lock('promo-code-window:' . strtolower($normalizedCode), 10);
+        if (! $lock->get()) {
+            throw new RuntimeException('Another promo code update is in progress. Please retry.');
+        }
 
-            return PromoCode::query()->create($data);
-        });
+        try {
+            return DB::transaction(function () use ($data, $normalizedCode): Model {
+                PromoCode::query()
+                    ->whereRaw('LOWER(code) = ?', [strtolower($normalizedCode)])
+                    ->where('status', 1)
+                    ->lockForUpdate()
+                    ->get(['id']);
+
+                PromoCodeResource::validatePromoCodeWindow($data, null);
+
+                return PromoCode::query()->create($data);
+            });
+        } finally {
+            $lock->release();
+        }
     }
 
     protected function afterCreate(): void
