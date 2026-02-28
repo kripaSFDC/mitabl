@@ -3,68 +3,114 @@ version: "3.9"
 services:
   marketing-web:
     build:
-      context: ./website
+      context: ../website
       dockerfile: Dockerfile
     container_name: mitabl-marketing-web
+    labels:
+      com.mitabl.service: marketing
     env_file:
-      - ./deploy/environments/marketing-web.env
+      - ./environments/marketing-web.env
     ports:
       - "8080:8080"
-
-  backend-api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: mitabl-backend-api
-    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
-    env_file:
-      - ./deploy/environments/backend-api.env
-    ports:
-      - "8000:8000"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+
+  backend-api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: mitabl-backend-api
+    labels:
+      com.mitabl.service: api
+    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+    env_file:
+      - ./environments/backend-api.env
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/api/health/startup && curl -fsS http://localhost:8000/api/health/live && curl -fsS http://localhost:8000/api/health/ready || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1.50"
+          memory: 1536M
     depends_on:
       redis:
         condition: service_healthy
 
   ops-admin:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: mitabl-ops-admin
+    labels:
+      com.mitabl.service: admin
     command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8001"]
     env_file:
-      - ./deploy/environments/ops-admin.env
+      - ./environments/ops-admin.env
     ports:
       - "8001:8001"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/api/health/startup && curl -fsS http://localhost:8001/api/health/live && curl -fsS http://localhost:8001/api/health/ready || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 40s
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1024M
     depends_on:
       redis:
         condition: service_healthy
 
   queue-worker:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: mitabl-queue-worker
-    command: ["php", "artisan", "queue:work", "redis", "--sleep=1", "--tries=3", "--max-time=3600"]
+    labels:
+      com.mitabl.service: api
+    command: ["php", "artisan", "queue:work", "redis", "--queue=crm-escalations,crm-communications,default", "--sleep=1", "--tries=3", "--max-time=3600"]
     env_file:
-      - ./deploy/environments/backend-api.env
+      - ./environments/backend-api.env
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' < /proc/1/cmdline | grep -q \"queue:work\""]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1024M
     depends_on:
       redis:
         condition: service_healthy

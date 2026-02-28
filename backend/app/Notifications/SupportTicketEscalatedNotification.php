@@ -11,6 +11,8 @@ class SupportTicketEscalatedNotification extends Notification implements ShouldQ
 {
     use Queueable;
 
+    public string $queue = 'crm-escalations';
+
     public function __construct(private readonly SupportTicket $ticket, private readonly string $reason)
     {
     }

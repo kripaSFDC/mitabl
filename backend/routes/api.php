@@ -39,6 +39,13 @@ Route::get('/health/live', function () {
         'timestamp' => now()->toISOString(),
     ]);
 });
+Route::get('/health/startup', function () {
+    return response()->json([
+        'status' => 'ok',
+        'app_env' => config('app.env'),
+        'timestamp' => now()->toISOString(),
+    ]);
+});
 Route::get('/health/ready', function (SystemHealthService $healthService) {
     $summary = $healthService->runChecks();
     $errorCount = collect($summary['checks'] ?? [])->where('status', 'error')->count();

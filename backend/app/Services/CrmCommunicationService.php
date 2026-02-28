@@ -84,7 +84,11 @@ class CrmCommunicationService
         ?PreRegistration $preRegistration = null
     ): void {
         try {
-            Mail::to($recipient)->queue($mailable->afterCommit());
+            Mail::to($recipient)->queue(
+                $mailable
+                    ->onQueue('crm-communications')
+                    ->afterCommit()
+            );
 
             CrmCommunicationLog::create([
                 'channel' => 'email',

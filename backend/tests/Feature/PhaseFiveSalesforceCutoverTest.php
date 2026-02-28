@@ -51,7 +51,10 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
         ];
 
         foreach ($deployFiles as $file) {
-            $this->assertStringNotContainsString('SALESFORCE_', (string) file_get_contents($file));
+            $content = (string) file_get_contents($file);
+            $this->assertStringNotContainsString('SALESFORCE_', $content);
+            $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT=false', $content);
+            $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT=false', $content);
         }
     }
 
@@ -62,22 +65,70 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
         $consoleKernel = (string) file_get_contents(app_path('Console/Kernel.php'));
         $reconciliationCommand = (string) file_get_contents(app_path('Console/Commands/PhaseFiveCutoverReconciliationCommand.php'));
         $ciWorkflow = (string) file_get_contents(base_path('../.github/workflows/ci-cd.yml'));
+        $releaseRunbook = (string) file_get_contents(base_path('../docs/phase5_release_runbook.md'));
+        $backendAppServiceProvider = (string) file_get_contents(app_path('Providers/AppServiceProvider.php'));
+        $websiteAppServiceProvider = (string) file_get_contents(base_path('../website/app/Providers/AppServiceProvider.php'));
+        $backendApiRoutes = (string) file_get_contents(base_path('routes/api.php'));
+        $websiteWebRoutes = (string) file_get_contents(base_path('../website/routes/web.php'));
+        $startServerScript = (string) file_get_contents(base_path('start-server.sh'));
 
         $this->assertStringContainsString('ops-admin:', $phase0Compose);
         $this->assertStringContainsString('queue-worker:', $phase0Compose);
         $this->assertStringContainsString('healthcheck:', $phase0Compose);
+        $this->assertStringContainsString('com.mitabl.service: marketing', $phase0Compose);
+        $this->assertStringContainsString('com.mitabl.service: api', $phase0Compose);
+        $this->assertStringContainsString('com.mitabl.service: admin', $phase0Compose);
+        $this->assertStringContainsString('curl -fsS http://localhost:8080/health', $phase0Compose);
+        $this->assertStringContainsString('/api/health/startup', $phase0Compose);
+        $this->assertStringContainsString('/api/health/live', $phase0Compose);
+        $this->assertStringContainsString('/api/health/ready', $phase0Compose);
+        $this->assertStringContainsString('replicas:', $phase0Compose);
+        $this->assertStringContainsString('context: ../backend', $phase0Compose);
+        $this->assertStringContainsString('context: ../website', $phase0Compose);
+        $this->assertStringContainsString('- ./environments/backend-api.env', $phase0Compose);
+        $this->assertStringContainsString('- ./environments/marketing-web.env', $phase0Compose);
+        $this->assertStringContainsString('- ./environments/ops-admin.env', $phase0Compose);
+        $this->assertStringNotContainsString('./deploy/environments/', $phase0Compose);
+        $this->assertStringContainsString('--queue=crm-escalations,crm-communications,default', $phase0Compose);
         $this->assertStringContainsString('location /admin/', $nginxConfig);
         $this->assertStringContainsString('location /api/', $nginxConfig);
         $this->assertStringContainsString('Strict-Transport-Security', $nginxConfig);
+        $this->assertStringContainsString('X-Content-Type-Options', $nginxConfig);
+        $this->assertStringContainsString('Cache-Control "no-store"', $nginxConfig);
+        $this->assertStringContainsString('return 405;', $nginxConfig);
         $this->assertStringContainsString('PhaseFiveCutoverReconciliationCommand', $consoleKernel);
         $this->assertStringContainsString('phase5:cutover:reconcile', $reconciliationCommand);
         $this->assertStringContainsString('secret-scan:', $ciWorkflow);
+        $this->assertStringContainsString('5.5.1', $releaseRunbook);
+        $this->assertStringContainsString('5.5.10', $releaseRunbook);
+        $this->assertStringContainsString('Zero-downtime DB migration steps', $releaseRunbook);
+        $this->assertStringContainsString('Define rollback runbook', $releaseRunbook);
+        $this->assertStringContainsString('Production cutover rehearsal', $releaseRunbook);
+        $this->assertStringContainsString('Log::withContext', $backendAppServiceProvider);
+        $this->assertStringContainsString("'service' =>", $backendAppServiceProvider);
+        $this->assertStringContainsString('Log::withContext', $websiteAppServiceProvider);
+        $this->assertStringContainsString("Route::get('/health/startup'", $backendApiRoutes);
+        $this->assertStringContainsString("Route::get('/health'", $websiteWebRoutes);
+        $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT', $startServerScript);
+        $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT', $startServerScript);
+        $this->assertStringNotContainsString('php artisan migrate &&', $startServerScript);
     }
 
     public function test_contract_parity_replacements_exist_in_admin_resources(): void
     {
         $this->assertFileExists(app_path('Filament/Resources/CertificateResource.php'));
         $this->assertFileExists(app_path('Filament/Resources/UserResource.php'));
+    }
+
+    public function test_crm_queue_separation_is_configured_for_escalations_and_communications(): void
+    {
+        $slaJob = (string) file_get_contents(app_path('Jobs/ProcessSupportTicketSlaEscalationJob.php'));
+        $crmService = (string) file_get_contents(app_path('Services/CrmCommunicationService.php'));
+        $supervisor = (string) file_get_contents(base_path('../deploy/supervisor/queue-worker.conf'));
+
+        $this->assertStringContainsString("public string \$queue = 'crm-escalations';", $slaJob);
+        $this->assertStringContainsString("->onQueue('crm-communications')", $crmService);
+        $this->assertStringContainsString('--queue=crm-escalations,crm-communications,default', $supervisor);
     }
 
     public function test_mobcontact_alias_includes_deprecation_headers_and_redacted_log_context(): void

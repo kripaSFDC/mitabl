@@ -18,6 +18,7 @@ use App\Models\Certificate;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url)
     {
+        $this->applyServiceLogContext();
 
         if (app()->environment('production', 'staging')) {
             $url->forceScheme('https');
@@ -72,5 +74,18 @@ class AppServiceProvider extends ServiceProvider
                 'error' => $event->exception->getMessage(),
             ]);
         });
+    }
+
+    private function applyServiceLogContext(): void
+    {
+        $service = (string) env('APP_SERVICE', 'backend-api');
+        $environment = (string) config('app.env', app()->environment());
+
+        Log::withContext([
+            'service' => $service,
+            'environment' => $environment,
+            'release_phase' => 'phase-5.5',
+            'trace_id' => (string) Str::uuid(),
+        ]);
     }
 }

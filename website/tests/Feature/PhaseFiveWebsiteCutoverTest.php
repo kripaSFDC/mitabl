@@ -49,4 +49,12 @@ class PhaseFiveWebsiteCutoverTest extends TestCase
             ->assertHeader('Sunset', 'Wed, 31 Dec 2026 00:00:00 GMT')
             ->assertHeader('Link', '</api/support/ticket>; rel="successor-version"');
     }
+
+    public function test_website_has_health_probe_endpoint(): void
+    {
+        $response = $this->get('/health');
+
+        $response->assertStatus(200);
+        $this->assertSame('ok', trim($response->getContent()));
+    }
 }
