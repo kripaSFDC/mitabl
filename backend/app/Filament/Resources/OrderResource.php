@@ -6,8 +6,8 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\CancelReason;
 use App\Models\Order;
 use App\Models\Refund;
+use App\Services\AdminPaymentRefundService;
 use App\Services\AdminStepUpService;
-use App\Services\PaymentService;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -19,8 +19,6 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use RuntimeException;
 use Throwable;
 
 class OrderResource extends Resource
@@ -298,74 +296,22 @@ class OrderResource extends Resource
                         }
 
                         try {
-                            DB::transaction(function () use ($record, $data): void {
-                                $order = Order::query()->lockForUpdate()->with('payment')->find($record->id);
+                            $order = Order::query()->with('payment')->find($record->id);
+                            if (! $order || ! $order->payment) {
+                                Notification::make()->title('Refund failed: Order payment record is missing.')->danger()->send();
+                                return;
+                            }
 
-                                if (! $order || ! $order->payment) {
-                                    throw new RuntimeException('Order payment record is missing.');
-                                }
+                            $result = app(AdminPaymentRefundService::class)->refundFull(
+                                $order->payment,
+                                (string) ($data['reason'] ?? ''),
+                                (int) Filament::auth()->id()
+                            );
 
-                                if (! $order->payment->payment_id) {
-                                    throw new RuntimeException('Payment intent is missing for this order.');
-                                }
-
-                                $alreadyRefunded = Refund::query()
-                                    ->where('order_id', $order->id)
-                                    ->exists();
-
-                                if ($alreadyRefunded) {
-                                    throw new RuntimeException('Refund already processed for this order.');
-                                }
-
-                                if ((int) $order->refund_percentage >= 100) {
-                                    throw new RuntimeException('Order is already marked as fully refunded.');
-                                }
-
-                                /** @var PaymentService $paymentService */
-                                $paymentService = app(PaymentService::class);
-                                $refundResponse = $paymentService->refundAmount(
-                                    $order->payment->payment_id,
-                                    (float) $order->total_price,
-                                    0,
-                                    'admin_full_refund_order_' . $order->id
-                                );
-
-                                Refund::create([
-                                    'order_id' => $order->id,
-                                    'user_id' => $order->user_id,
-                                    'percentage' => 100,
-                                    'amount' => (float) $order->total_price,
-                                    'balance_trans' => $refundResponse->balance_transaction ?? null,
-                                    'refund_date' => Carbon::now(),
-                                    'reciept_no' => Carbon::now(),
-                                    'status' => 1,
-                                ]);
-
-                                $order->refund_percentage = 100;
-                                $order->save();
-
-                                CancelReason::updateOrCreate(
-                                    ['order_id' => $order->id, 'subject' => 'Admin full refund'],
-                                    [
-                                        'ref_id' => Filament::auth()->id(),
-                                        'comment' => $data['reason'],
-                                        'by_user' => 'admin',
-                                    ]
-                                );
-
-                                if ($order->user?->email) {
-                                    Mail::to($order->user->email)->queue(
-                                        (new \App\Mail\RefundInvoice($order->user, $order, 1, 100))->afterCommit()
-                                    );
-                                }
-
-                                Log::info('orders.refund_full', [
-                                    'order_id' => $order->id,
-                                    'amount' => (float) $order->total_price,
-                                    'reason' => $data['reason'],
-                                    'actor_admin_id' => Filament::auth()->id(),
-                                ]);
-                            });
+                            if (($result['status'] ?? null) === 'already_refunded') {
+                                Notification::make()->title('Refund already processed for this order.')->warning()->send();
+                                return;
+                            }
 
                             Notification::make()
                                 ->title('Refund submitted successfully.')

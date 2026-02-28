@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Mail;
 
 class CrmCommunicationService
 {
+    public function __construct(private PiiRedactionService $redaction)
+    {
+    }
+
     public function sendTicketAcknowledgement(SupportTicket $ticket): void
     {
         if (! $ticket->requester_email) {
@@ -35,11 +39,13 @@ class CrmCommunicationService
             return;
         }
 
+        $safeMessage = $this->redaction->redact($message);
+
         $this->queueMail(
             recipient: $ticket->requester_email,
             template: 'support_ticket_reply',
             subject: 'Update on ticket ' . $ticket->ticket_number,
-            mailable: new SupportTicketReply($ticket, $message, false),
+            mailable: new SupportTicketReply($ticket, $safeMessage, false),
             ticket: $ticket
         );
     }
@@ -48,6 +54,9 @@ class CrmCommunicationService
     {
         $target = $assignee?->email;
         if (! $target) {
+            $target = (string) config('mail.from.address');
+        }
+        if ($target === '') {
             return;
         }
 
@@ -55,7 +64,7 @@ class CrmCommunicationService
             recipient: $target,
             template: 'support_ticket_escalated',
             subject: 'SLA escalation: ' . $ticket->ticket_number,
-            mailable: new SupportTicketEscalated($ticket, $reason),
+            mailable: new SupportTicketEscalated($ticket, $this->redaction->redact($reason)),
             ticket: $ticket
         );
     }

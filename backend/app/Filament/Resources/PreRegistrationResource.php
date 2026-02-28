@@ -37,18 +37,38 @@ class PreRegistrationResource extends Resource
                     Forms\Components\TextInput::make('email')->email()->maxLength(255),
                     Forms\Components\TextInput::make('phone')->maxLength(40),
                     Forms\Components\TextInput::make('city')->maxLength(120),
-                    Forms\Components\TextInput::make('interested_as')->required()->maxLength(80),
-                    Forms\Components\TextInput::make('source')->required()->maxLength(120),
+                    Forms\Components\Select::make('interested_as')
+                        ->required()
+                        ->options([
+                            'cook' => 'Cook',
+                            'foodie' => 'Foodie',
+                            'both' => 'Both',
+                        ]),
+                    Forms\Components\Select::make('source')
+                        ->required()
+                        ->options([
+                            'website' => 'Website',
+                            'referral' => 'Referral',
+                            'campaign' => 'Campaign',
+                            'admin' => 'Admin',
+                        ]),
                     Forms\Components\Select::make('status')
                         ->options([
                             PreRegistration::STATUS_NEW => 'New',
-                            PreRegistration::STATUS_TRIAGED => 'Triaged',
                             PreRegistration::STATUS_CONTACTED => 'Contacted',
                             PreRegistration::STATUS_CONVERTED => 'Converted',
-                            PreRegistration::STATUS_REJECTED => 'Rejected',
+                            PreRegistration::STATUS_DISQUALIFIED => 'Disqualified',
                             PreRegistration::STATUS_SPAM => 'Spam',
                         ])
                         ->required(),
+                    Forms\Components\Toggle::make('consent_to_contact'),
+                    Forms\Components\Select::make('communication_preference')
+                        ->options([
+                            'email' => 'Email',
+                            'sms' => 'SMS',
+                            'phone' => 'Phone',
+                            'none' => 'Do not contact',
+                        ]),
                     Forms\Components\Textarea::make('notes')->rows(4),
                 ])
                 ->columns(2),
@@ -70,10 +90,9 @@ class PreRegistrationResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         PreRegistration::STATUS_NEW => 'info',
-                        PreRegistration::STATUS_TRIAGED => 'warning',
                         PreRegistration::STATUS_CONTACTED => 'success',
                         PreRegistration::STATUS_CONVERTED => 'success',
-                        PreRegistration::STATUS_REJECTED => 'danger',
+                        PreRegistration::STATUS_DISQUALIFIED => 'danger',
                         PreRegistration::STATUS_SPAM => 'danger',
                         default => 'gray',
                     }),
@@ -85,10 +104,9 @@ class PreRegistrationResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         PreRegistration::STATUS_NEW => 'New',
-                        PreRegistration::STATUS_TRIAGED => 'Triaged',
                         PreRegistration::STATUS_CONTACTED => 'Contacted',
                         PreRegistration::STATUS_CONVERTED => 'Converted',
-                        PreRegistration::STATUS_REJECTED => 'Rejected',
+                        PreRegistration::STATUS_DISQUALIFIED => 'Disqualified',
                         PreRegistration::STATUS_SPAM => 'Spam',
                     ]),
                 Tables\Filters\TernaryFilter::make('unassigned')
@@ -106,7 +124,6 @@ class PreRegistrationResource extends Resource
                     ->action(function (PreRegistration $record): void {
                         $record->update([
                             'assigned_to' => Filament::auth()->id(),
-                            'status' => $record->status === PreRegistration::STATUS_NEW ? PreRegistration::STATUS_TRIAGED : $record->status,
                         ]);
 
                         Notification::make()->title('Lead assigned to you.')->success()->send();
@@ -122,7 +139,6 @@ class PreRegistrationResource extends Resource
                         Forms\Components\Select::make('status')
                             ->required()
                             ->options([
-                                PreRegistration::STATUS_TRIAGED => 'Triaged',
                                 PreRegistration::STATUS_CONTACTED => 'Contacted',
                             ]),
                     ])
@@ -168,8 +184,28 @@ class PreRegistrationResource extends Resource
                             Notification::make()->title('Conversion failed: ' . $throwable->getMessage())->danger()->send();
                         }
                     }),
+                Action::make('mark_contacted')
+                    ->label('Mark contacted')
+                    ->icon('heroicon-o-phone')
+                    ->color('info')
+                    ->visible(fn (): bool => static::canEditLeads())
+                    ->form([
+                        Forms\Components\Textarea::make('notes')
+                            ->label('Contact note')
+                            ->required(),
+                    ])
+                    ->action(function (PreRegistration $record, array $data): void {
+                        $record->update([
+                            'status' => PreRegistration::STATUS_CONTACTED,
+                            'notes' => trim((string) $record->notes . "\n" . (string) $data['notes']),
+                            'followed_up_by' => Filament::auth()->id(),
+                            'followed_up_at' => now(),
+                            'last_contacted_at' => now(),
+                        ]);
+                        Notification::make()->title('Lead marked contacted.')->success()->send();
+                    }),
                 Action::make('reject')
-                    ->label('Reject')
+                    ->label('Disqualify')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(fn (): bool => static::canEditLeads())
@@ -180,12 +216,46 @@ class PreRegistrationResource extends Resource
                     ])
                     ->action(function (PreRegistration $record, array $data): void {
                         $record->update([
-                            'status' => PreRegistration::STATUS_REJECTED,
+                            'status' => PreRegistration::STATUS_DISQUALIFIED,
                             'notes' => trim((string) $record->notes . "\n" . (string) $data['notes']),
                             'followed_up_by' => Filament::auth()->id(),
                             'followed_up_at' => now(),
+                            'last_contacted_at' => now(),
                         ]);
-                        Notification::make()->title('Lead rejected.')->success()->send();
+                        Notification::make()->title('Lead disqualified.')->success()->send();
+                    }),
+                Action::make('mark_spam')
+                    ->label('Mark spam')
+                    ->icon('heroicon-o-no-symbol')
+                    ->color('danger')
+                    ->visible(fn (): bool => static::canEditLeads())
+                    ->action(function (PreRegistration $record): void {
+                        $record->update([
+                            'status' => PreRegistration::STATUS_SPAM,
+                            'spam_score' => max((int) $record->spam_score, 100),
+                            'spam_detected_at' => now(),
+                            'followed_up_by' => Filament::auth()->id(),
+                            'followed_up_at' => now(),
+                        ]);
+                        Notification::make()->title('Lead marked as spam.')->success()->send();
+                    }),
+                Action::make('add_follow_up_note')
+                    ->label('Follow-up note')
+                    ->icon('heroicon-o-chat-bubble-left')
+                    ->visible(fn (): bool => static::canEditLeads())
+                    ->form([
+                        Forms\Components\Textarea::make('note')
+                            ->required()
+                            ->rows(4),
+                    ])
+                    ->action(function (PreRegistration $record, array $data): void {
+                        $record->update([
+                            'notes' => trim((string) $record->notes . "\n" . (string) $data['note']),
+                            'followed_up_by' => Filament::auth()->id(),
+                            'followed_up_at' => now(),
+                            'last_contacted_at' => now(),
+                        ]);
+                        Notification::make()->title('Follow-up note added.')->success()->send();
                     }),
             ])
             ->defaultSort('created_at', 'desc')

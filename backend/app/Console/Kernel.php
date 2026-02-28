@@ -17,7 +17,6 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\OrderPaymentCron',
         'App\Console\Commands\SupportTicketSlaScanCommand',
         'App\Console\Commands\PlatformSyntheticHealthCheckCommand',
-        'App\Console\Commands\PhaseFiveCutoverReconciliationCommand',
     ];
 
     /**

@@ -10,10 +10,9 @@ class PreRegistration extends Model
     use HasFactory;
 
     public const STATUS_NEW = 'new';
-    public const STATUS_TRIAGED = 'triaged';
     public const STATUS_CONTACTED = 'contacted';
     public const STATUS_CONVERTED = 'converted';
-    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_DISQUALIFIED = 'disqualified';
     public const STATUS_SPAM = 'spam';
 
     protected $fillable = [
@@ -30,6 +29,8 @@ class PreRegistration extends Model
         'followed_up_at',
         'converted_user_id',
         'consent_to_contact',
+        'consent_captured_at',
+        'communication_preference',
         'assigned_to',
         'duplicate_fingerprint',
         'spam_score',
@@ -40,6 +41,7 @@ class PreRegistration extends Model
     protected $casts = [
         'followed_up_at' => 'datetime',
         'consent_to_contact' => 'boolean',
+        'consent_captured_at' => 'datetime',
         'spam_detected_at' => 'datetime',
         'last_contacted_at' => 'datetime',
     ];
@@ -68,10 +70,9 @@ class PreRegistration extends Model
     {
         return [
             self::STATUS_NEW,
-            self::STATUS_TRIAGED,
             self::STATUS_CONTACTED,
             self::STATUS_CONVERTED,
-            self::STATUS_REJECTED,
+            self::STATUS_DISQUALIFIED,
             self::STATUS_SPAM,
         ];
     }

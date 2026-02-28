@@ -39,4 +39,8 @@ return [
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    'stripe' => [
+        'dashboard_base_url' => env('STRIPE_DASHBOARD_BASE_URL', 'https://dashboard.stripe.com/payments'),
+    ],
+
 ];

@@ -22,7 +22,7 @@ Applies to backend API, ops-admin, queue workers, and website runtime secrets.
 - Keep change ticket/audit reference for each rotation.
 
 ## Verification checklist
-- `rg -n "sk_test_|pk_test_|client_secret|Integration@|00D0w" backend website --glob '!**/tests/**'` returns no hardcoded credentials.
+- `rg -n "sk_test_|pk_test_|client_secret" backend website --glob '!**/tests/**'` returns no hardcoded credentials.
 - Production env references secrets from manager, not source-controlled files.
 - CI variables masked and protected.
 - CI secret scan gate passes in `.github/workflows/ci-cd.yml` (`secret-scan` job).

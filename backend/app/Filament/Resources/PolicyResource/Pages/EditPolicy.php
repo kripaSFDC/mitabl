@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PolicyResource\Pages;
 use App\Filament\Resources\PolicyResource;
 use App\Models\PolicyChangeLog;
 use App\Services\AdminAuditLogService;
+use App\Services\PolicyDefinitionValidator;
 use Filament\Facades\Filament;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +31,7 @@ class EditPolicy extends EditRecord
                 'definition_json' => 'Policy definition must be valid JSON.',
             ]);
         }
+        app(PolicyDefinitionValidator::class)->validateOrFail((string) $this->record->name, (array) $definition);
 
         $data['definition'] = $definition;
         $this->beforeDefinition = $this->record->definition;

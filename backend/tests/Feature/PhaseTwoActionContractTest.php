@@ -27,14 +27,12 @@ class PhaseTwoActionContractTest extends TestCase
 
         $this->assertStringContainsString("Action::make('override_status')", $orderResource);
         $this->assertStringContainsString("Action::make('refund_full')", $orderResource);
-        $this->assertStringContainsString('lockForUpdate()', $orderResource);
-        $this->assertStringContainsString('admin_full_refund_order_', $orderResource);
+        $this->assertStringContainsString('AdminPaymentRefundService::class', $orderResource);
         $this->assertStringContainsString('canOverrideStatus()', $orderResource);
         $this->assertStringContainsString('canRefundOrder()', $orderResource);
         $this->assertStringContainsString('isFullyRefunded', $orderResource);
         $this->assertStringContainsString('Refund::query()', $orderResource);
-        $this->assertStringContainsString('Payment intent is missing for this order.', $orderResource);
-        $this->assertStringContainsString('RefundInvoice($order->user, $order, 1, 100))->afterCommit()', $orderResource);
+        $this->assertStringContainsString('Order payment record is missing.', $orderResource);
         $this->assertStringContainsString("Order::STATUS_CANCELLED => 'Cancelled'", $orderResource);
         $this->assertStringContainsString("Order::STATUS_LEGACY_CANCELLED => 'Cancelled (legacy: 0)'", $orderResource);
         $this->assertStringContainsString('renderTimeline', $orderResource);

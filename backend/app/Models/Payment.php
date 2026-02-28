@@ -9,6 +9,12 @@ class Payment extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'confirm' => 'boolean',
+        'confirm_date_time' => 'datetime',
+        'amount' => 'float',
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);

@@ -38,15 +38,10 @@
                      <input id="city" maxlength="40" name="city" size="20" type="text" placeholder="City" />
                   </div>
                   <div class="form-outer">
-                     <!-- <select style="display:none;" id="00N5i000006uZtT" name="00N5i000006uZtT" title="Interested In">
-                        <option value="">Select Interest</option>
-                        <option value="micook">micook</option>
-                        <option value="mifoodi">mifoodi</option>
-                     </select> -->
                      <div class="radio-btns">
-                        <span><input type="radio" value="micook" id="radio-micook" name="00N5i000006uZtT"> micook</span>
-                        <span><input  type="radio" value="mifoodi" id="radio-mifoodi" name="00N5i000006uZtT"> mifoodi</span>
-                        <span><input  type="radio" value="mipartners" id="radio-mifoodi" name="00N5i000006uZtT"> mipartners</span>
+                        <span><input type="radio" value="cook" id="radio-micook" name="interested_as"> micook</span>
+                        <span><input type="radio" value="foodie" id="radio-mifoodi" name="interested_as"> mifoodi</span>
+                        <span><input type="radio" value="both" id="radio-mipartners" name="interested_as"> mipartners</span>
                      </div>
                      <span style="display:none;" class="error error-type">Please select user type</span>
                   </div>
@@ -216,7 +211,7 @@
             }
          })
 
-         $('input[type=radio][name=00N5i000006uZtT]').change(function() {
+         $('input[type=radio][name=interested_as]').change(function() {
             document.getElementsByClassName('error-type')[0].style.display = 'none';
          });
 
@@ -224,7 +219,7 @@
             e.preventDefault();
             let succdata = false;
 
-            if (!$("input[name='00N5i000006uZtT']").is(':checked')) {
+            if (!$("input[name='interested_as']").is(':checked')) {
                succdata = false;
                document.getElementsByClassName('error-type')[0].style.display = 'block';
             } else {
@@ -258,7 +253,7 @@
            if (succdata) {
             setTimeout(function() {
                if (!$('#registration').validate().errorList.length) {
-                  if (!$("input[name='00N5i000006uZtT']").is(':checked')) {
+                  if (!$("input[name='interested_as']").is(':checked')) {
                      succdata = false;
                      document.getElementsByClassName('error-type')[0].style.display = 'block';
                   } else if (!validate_Phone_Number()) {
@@ -270,13 +265,12 @@
                      document.getElementsByClassName('error-captcha')[0].style.display = 'block';
                   } else {
                      let payload = {
-                        FirstName: document.getElementById('first_name').value,
-                        LastName: document.getElementById('last_name').value,
-                        Email: document.getElementById('email').value,
-                        MobilePhone: document.getElementById('mobile').value,
-                        City: document.getElementById('city').value,
-                        mitabl_Interested_In__c: document.querySelector('input[name="00N5i000006uZtT"]:checked').value,
-                        Company: "Not Aplicable",
+                        first_name: document.getElementById('first_name').value,
+                        last_name: document.getElementById('last_name').value,
+                        email: document.getElementById('email').value,
+                        mobile: document.getElementById('mobile').value,
+                        city: document.getElementById('city').value,
+                        interested_as: document.querySelector('input[name="interested_as"]:checked').value,
                      };
                      sendAjaxReq(payload);
                   }

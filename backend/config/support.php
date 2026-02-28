@@ -4,8 +4,6 @@ return [
     'duplicate_window_minutes' => (int) env('SUPPORT_DUPLICATE_WINDOW_MINUTES', 10),
     'reopen_window_hours' => (int) env('SUPPORT_REOPEN_WINDOW_HOURS', 72),
     'honeypot_field' => env('SUPPORT_HONEYPOT_FIELD', 'website'),
-    'mobcontact_alias_sunset' => env('SUPPORT_MOBCONTACT_ALIAS_SUNSET', '2026-12-31'),
-    'mobcontact_alias_replacement_path' => env('SUPPORT_MOBCONTACT_ALIAS_REPLACEMENT_PATH', '/api/support/ticket'),
 
     'sla' => [
         'default' => [
@@ -30,5 +28,22 @@ return [
                 'resolution_minutes' => (int) env('SUPPORT_SLA_URGENT_RESOLUTION_MINUTES', 4 * 60),
             ],
         ],
+    ],
+
+    'attachments' => [
+        'max_files' => (int) env('SUPPORT_ATTACHMENT_MAX_FILES', 5),
+        'max_size_kb' => (int) env('SUPPORT_ATTACHMENT_MAX_SIZE_KB', 5120),
+        'allowed_mime_types' => explode(',', (string) env(
+            'SUPPORT_ATTACHMENT_ALLOWED_MIME_TYPES',
+            'image/jpeg,image/png,application/pdf,text/plain'
+        )),
+        'blocked_extensions' => explode(',', (string) env(
+            'SUPPORT_ATTACHMENT_BLOCKED_EXTENSIONS',
+            'exe,bat,cmd,com,scr,ps1,php,phar,phtml,js,vbs,jar,msi'
+        )),
+    ],
+
+    'pii_redaction' => [
+        'enabled' => (bool) env('SUPPORT_PII_REDACTION_ENABLED', true),
     ],
 ];

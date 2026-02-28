@@ -3,7 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PromoCodeResource\Pages;
+use App\Models\Order;
 use App\Models\PromoCode;
+use App\Services\AdminAuditLogService;
+use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +17,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\HtmlString;
+use Illuminate\Validation\ValidationException;
 
 class PromoCodeResource extends Resource
 {
@@ -41,6 +46,15 @@ class PromoCodeResource extends Resource
                             ->numeric()
                             ->minValue(1)
                             ->maxValue(100),
+                        Forms\Components\DateTimePicker::make('starts_at')
+                            ->label('Valid From')
+                            ->seconds(false)
+                            ->helperText('Leave empty for immediate validity.'),
+                        Forms\Components\DateTimePicker::make('ends_at')
+                            ->label('Valid Until')
+                            ->seconds(false)
+                            ->after('starts_at')
+                            ->helperText('Leave empty for no expiry.'),
                         Forms\Components\Toggle::make('status')
                             ->label('Active')
                             ->inline(false)
@@ -64,6 +78,16 @@ class PromoCodeResource extends Resource
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Usage Count')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('starts_at')
+                    ->label('Valid From')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('Immediate')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('ends_at')
+                    ->label('Valid Until')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('No expiry')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => (int) $state === 1 ? 'Active' : 'Inactive')
@@ -108,6 +132,10 @@ class PromoCodeResource extends Resource
                                 'code' => $promoCode->code,
                                 'actor_admin_id' => Filament::auth()->id(),
                             ]);
+                            app(AdminAuditLogService::class)->log('promo_codes.deactivated', request(), [
+                                'promo_code_id' => $promoCode->id,
+                                'code' => $promoCode->code,
+                            ]);
 
                             $deactivated = true;
                         });
@@ -146,6 +174,8 @@ class PromoCodeResource extends Resource
                                 return;
                             }
 
+                            static::assertNoOverlappingActiveRule($promoCode);
+
                             $promoCode->status = 1;
                             $promoCode->save();
 
@@ -153,6 +183,10 @@ class PromoCodeResource extends Resource
                                 'promo_code_id' => $promoCode->id,
                                 'code' => $promoCode->code,
                                 'actor_admin_id' => Filament::auth()->id(),
+                            ]);
+                            app(AdminAuditLogService::class)->log('promo_codes.activated', request(), [
+                                'promo_code_id' => $promoCode->id,
+                                'code' => $promoCode->code,
                             ]);
 
                             $activated = true;
@@ -166,6 +200,38 @@ class PromoCodeResource extends Resource
                             ->title('Promo code activated.')
                             ->success()
                             ->send();
+                    }),
+                Action::make('usage_history')
+                    ->label('Usage History')
+                    ->icon('heroicon-o-clock')
+                    ->color('gray')
+                    ->modalHeading(fn (PromoCode $record): string => 'Usage History: ' . $record->code)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(function (PromoCode $record): HtmlString {
+                        $orders = Order::query()
+                            ->with(['user', 'Mikitchn'])
+                            ->where('promo_code', $record->id)
+                            ->orderByDesc('created_at')
+                            ->limit(25)
+                            ->get();
+
+                        if ($orders->isEmpty()) {
+                            return new HtmlString('<p>No usage found for this promo code.</p>');
+                        }
+
+                        $rows = $orders->map(function (Order $order): string {
+                            return sprintf(
+                                '<tr><td class="px-2 py-1">#%d</td><td class="px-2 py-1">%s</td><td class="px-2 py-1">%s</td><td class="px-2 py-1">$%0.2f</td><td class="px-2 py-1">%s</td></tr>',
+                                $order->id,
+                                e((string) optional($order->user)->email ?: '-'),
+                                e((string) optional($order->Mikitchn)->name ?: '-'),
+                                (float) $order->total_price,
+                                e(optional($order->created_at)->format('Y-m-d H:i') ?? '-')
+                            );
+                        })->implode('');
+
+                        return new HtmlString('<div class="overflow-x-auto"><table class="w-full text-xs border-collapse"><thead><tr><th class="px-2 py-1 text-left">Order</th><th class="px-2 py-1 text-left">Customer</th><th class="px-2 py-1 text-left">Kitchen</th><th class="px-2 py-1 text-left">Amount</th><th class="px-2 py-1 text-left">Used At</th></tr></thead><tbody>' . $rows . '</tbody></table></div>');
                     }),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => static::canEditPromoCodes()),
@@ -210,6 +276,69 @@ class PromoCodeResource extends Resource
     private static function canEditPromoCodes(): bool
     {
         return (bool) Filament::auth()->user()?->can('promo_codes.edit');
+    }
+
+    public static function validatePromoCodeWindow(array $data, ?PromoCode $record = null): void
+    {
+        $startsAt = isset($data['starts_at']) && $data['starts_at'] !== null ? Carbon::parse((string) $data['starts_at']) : null;
+        $endsAt = isset($data['ends_at']) && $data['ends_at'] !== null ? Carbon::parse((string) $data['ends_at']) : null;
+
+        if ($startsAt && $endsAt && $startsAt->gt($endsAt)) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'Valid From must be before or equal to Valid Until.',
+            ]);
+        }
+
+        $isActive = (int) ($data['status'] ?? ($record?->status ? 1 : 0)) === 1;
+        if (! $isActive) {
+            return;
+        }
+
+        $code = trim((string) ($data['code'] ?? $record?->code ?? ''));
+        if ($code === '') {
+            return;
+        }
+
+        $query = PromoCode::query()
+            ->whereRaw('LOWER(code) = ?', [strtolower($code)])
+            ->where('status', 1);
+
+        if ($record) {
+            $query->where('id', '!=', $record->id);
+        }
+
+        $conflicts = $query->get(['id', 'starts_at', 'ends_at']);
+        foreach ($conflicts as $conflict) {
+            if (static::windowsOverlap($startsAt, $endsAt, $conflict->starts_at, $conflict->ends_at)) {
+                throw ValidationException::withMessages([
+                    'code' => 'Active promo rules overlap with another active promo code using the same code.',
+                ]);
+            }
+        }
+    }
+
+    private static function assertNoOverlappingActiveRule(PromoCode $record): void
+    {
+        static::validatePromoCodeWindow([
+            'code' => $record->code,
+            'status' => 1,
+            'starts_at' => $record->starts_at,
+            'ends_at' => $record->ends_at,
+        ], $record);
+    }
+
+    private static function windowsOverlap(
+        Carbon|string|null $leftStart,
+        Carbon|string|null $leftEnd,
+        Carbon|string|null $rightStart,
+        Carbon|string|null $rightEnd
+    ): bool {
+        $leftStartTs = $leftStart ? Carbon::parse((string) $leftStart)->getTimestamp() : PHP_INT_MIN;
+        $leftEndTs = $leftEnd ? Carbon::parse((string) $leftEnd)->getTimestamp() : PHP_INT_MAX;
+        $rightStartTs = $rightStart ? Carbon::parse((string) $rightStart)->getTimestamp() : PHP_INT_MIN;
+        $rightEndTs = $rightEnd ? Carbon::parse((string) $rightEnd)->getTimestamp() : PHP_INT_MAX;
+
+        return $leftStartTs <= $rightEndTs && $rightStartTs <= $leftEndTs;
     }
 }
 

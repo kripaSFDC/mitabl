@@ -7,6 +7,7 @@ use App\Models\Policy;
 use App\Models\PolicyChangeLog;
 use App\Services\AdminAuditLogService;
 use App\Services\AdminStepUpService;
+use App\Services\PolicyDefinitionValidator;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -31,13 +32,23 @@ class PolicyResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make('Policy')
-                ->schema([
-                    Forms\Components\TextInput::make('name')
+                Forms\Components\Section::make('Policy')
+                    ->schema([
+                    Forms\Components\Select::make('name')
                         ->required()
                         ->disabled(fn (?Policy $record): bool => $record !== null)
                         ->dehydrated(fn (?Policy $record): bool => $record === null)
-                        ->maxLength(255)
+                        ->options(function (): array {
+                            $supported = collect(PolicyDefinitionValidator::SUPPORTED_POLICY_NAMES)
+                                ->mapWithKeys(fn (string $name): array => [$name => $name]);
+                            $existing = Policy::query()
+                                ->select('name')
+                                ->distinct()
+                                ->pluck('name', 'name');
+
+                            return $supported->union($existing)->toArray();
+                        })
+                        ->searchable()
                         ->helperText('Version auto-increments per policy name.'),
                     Forms\Components\TextInput::make('schema_version')
                         ->required()
@@ -98,10 +109,29 @@ class PolicyResource extends Resource
                     ->modalHeading('Publish Policy Version')
                     ->modalDescription('Publishing will make this version active and deactivate any other active version with the same name.')
                     ->form([
+                        Forms\Components\Placeholder::make('blast_radius_warning')
+                            ->label('Blast-radius warning')
+                            ->content(function (Policy $record): string {
+                                $active = Policy::query()
+                                    ->where('name', $record->name)
+                                    ->where('active', true)
+                                    ->where('id', '!=', $record->id)
+                                    ->first();
+
+                                return app(PolicyDefinitionValidator::class)->blastRadiusWarning(
+                                    (string) $record->name,
+                                    (array) $record->definition,
+                                    $active?->definition
+                                );
+                            }),
                         Forms\Components\Textarea::make('change_summary')
                             ->label('Publish summary')
                             ->required()
                             ->maxLength(1000),
+                        Forms\Components\Toggle::make('impact_acknowledged')
+                            ->label('I acknowledge the blast-radius impact and rollback plan.')
+                            ->visible(fn (Policy $record): bool => static::requiresBlastRadiusAcknowledgement($record))
+                            ->required(fn (Policy $record): bool => static::requiresBlastRadiusAcknowledgement($record)),
                         Forms\Components\TextInput::make('current_password')
                             ->label('Confirm admin password')
                             ->password()
@@ -109,6 +139,23 @@ class PolicyResource extends Resource
                             ->required(),
                     ])
                     ->action(function (Policy $record, array $data): void {
+                        $active = Policy::query()
+                            ->where('name', $record->name)
+                            ->where('active', true)
+                            ->where('id', '!=', $record->id)
+                            ->first();
+                        $validator = app(PolicyDefinitionValidator::class);
+                        $validator->validateOrFail((string) $record->name, (array) $record->definition);
+
+                        $isHighImpact = $validator->isHighImpact((string) $record->name, (array) $record->definition, $active?->definition);
+                        if ($isHighImpact && ! (bool) ($data['impact_acknowledged'] ?? false)) {
+                            Notification::make()
+                                ->title('Blast-radius acknowledgement is required for high-impact policy changes.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         if (! app(AdminStepUpService::class)->validateCurrentPassword(
                             $data['current_password'] ?? null,
                             'Step-up authentication failed. Enter your admin password to publish this policy.'
@@ -162,6 +209,7 @@ class PolicyResource extends Resource
                                     'policy_name' => $record->name,
                                     'to_version' => $record->version,
                                     'from_version' => $previousActive?->version,
+                                    'impact_acknowledged' => (bool) ($data['impact_acknowledged'] ?? false),
                                 ]);
                             });
 
@@ -211,6 +259,7 @@ class PolicyResource extends Resource
                     ->action(function (Policy $record, array $data): void {
                         try {
                             $definition = json_decode((string) $data['definition_json'], true, 512, JSON_THROW_ON_ERROR);
+                            app(PolicyDefinitionValidator::class)->validateOrFail((string) $record->name, (array) $definition);
 
                             DB::transaction(function () use ($record, $definition, $data): void {
                                 Policy::query()
@@ -248,6 +297,7 @@ class PolicyResource extends Resource
                                     'policy_name' => $record->name,
                                     'from_version' => $record->version,
                                     'to_version' => $draft->version,
+                                    'change_summary' => (string) $data['change_summary'],
                                 ]);
                             });
 
@@ -307,6 +357,7 @@ class PolicyResource extends Resource
                                     ->where('version', (int) $data['target_version'])
                                     ->where('id', '!=', $record->id)
                                     ->firstOrFail();
+                                app(PolicyDefinitionValidator::class)->validateOrFail((string) $target->name, (array) $target->definition);
 
                                 Policy::query()
                                     ->where('name', $record->name)
@@ -397,6 +448,21 @@ class PolicyResource extends Resource
             ->where('active', true)
             ->where('id', '!=', $record->id)
             ->exists();
+    }
+
+    private static function requiresBlastRadiusAcknowledgement(Policy $record): bool
+    {
+        $active = Policy::query()
+            ->where('name', $record->name)
+            ->where('active', true)
+            ->where('id', '!=', $record->id)
+            ->first();
+
+        return app(PolicyDefinitionValidator::class)->isHighImpact(
+            (string) $record->name,
+            (array) $record->definition,
+            $active?->definition
+        );
     }
 }
 

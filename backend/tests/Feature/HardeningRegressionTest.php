@@ -46,25 +46,66 @@ class HardeningRegressionTest extends TestCase
         $this->assertSame(1, (int) Cache::get('discovery:metrics:hits'));
     }
 
-    public function test_no_plaintext_salesforce_or_stripe_tokens_in_source_templates(): void
+    public function test_no_plaintext_stripe_tokens_in_source_templates(): void
     {
         $envExample = file_get_contents(base_path('.env.example'));
-        $webApiController = file_get_contents(app_path('Http/Controllers/Api/WebApiToCurlController.php'));
-        $registrationView = file_get_contents(resource_path('views/frontend/registration.blade.php'));
-        $contactView = file_get_contents(resource_path('views/frontend/contact.blade.php'));
-        $mobileContactView = file_get_contents(resource_path('views/mob/contact.blade.php'));
 
         $this->assertStringNotContainsString('sk_test_', $envExample);
-        $this->assertStringNotContainsString('00D0w', $webApiController);
-        $this->assertStringNotContainsString('Integration@', $webApiController);
-        $this->assertStringNotContainsString('00D5i000004SJla', $registrationView);
-        $this->assertStringNotContainsString('00D5i000004SJla', $contactView);
-        $this->assertStringNotContainsString('00D5i000004SJla', $mobileContactView);
     }
 
     public function test_stripe_trait_no_longer_exists_and_payment_service_is_present(): void
     {
         $this->assertFileDoesNotExist(app_path('Traits/StripeTrait.php'));
         $this->assertFileExists(app_path('Services/PaymentService.php'));
+    }
+
+    public function test_root_compose_runs_migrations_before_backend_boot(): void
+    {
+        $compose = (string) file_get_contents(base_path('../docker-compose.yml'));
+
+        $this->assertStringContainsString('db-migrate:', $compose);
+        $this->assertStringContainsString('php artisan migrate --force', $compose);
+        $this->assertStringContainsString('condition: service_completed_successfully', $compose);
+    }
+
+    public function test_critical_crm_and_policy_migrations_define_tables_indexes_and_constraints(): void
+    {
+        $checks = [
+            '2026_02_28_000011_create_policies_table.php' => [
+                "Schema::create('policies'",
+                "->unique(['name', 'version'])",
+                "policies_name_active_idx",
+                "->constrained('admin_users')->nullOnDelete()",
+            ],
+            '2026_02_28_000012_create_policy_change_log_table.php' => [
+                "Schema::create('policy_change_log'",
+                "->constrained('policies')->cascadeOnDelete()",
+                "policy_change_log_policy_created_idx",
+            ],
+            '2026_02_28_000005_create_support_tickets_table.php' => [
+                "Schema::create('support_tickets'",
+                "->unique()",
+                "support_tickets_status_priority_assignee_idx",
+                "support_tickets_requester_email_created_idx",
+            ],
+            '2026_02_28_000014_enhance_crm_phase3_tables.php' => [
+                "Schema::create('crm_communication_logs'",
+                'crm_comm_logs_status_channel_idx',
+                'pre_registrations_assigned_status_idx',
+                'support_tickets_status_resolution_due_idx',
+            ],
+            '2026_02_28_000016_create_templates_table.php' => [
+                "Schema::create('templates'",
+                "->unique(['name', 'version'])",
+                'templates_name_active_idx',
+            ],
+        ];
+
+        foreach ($checks as $migration => $needles) {
+            $contents = (string) file_get_contents(database_path("migrations/{$migration}"));
+            foreach ($needles as $needle) {
+                $this->assertStringContainsString($needle, $contents, "Missing [{$needle}] in {$migration}");
+            }
+        }
     }
 }

@@ -41,7 +41,7 @@ class PhaseSixHardeningUnitTest extends TestCase
         $this->assertSame('crm-escalations', (new ProcessSupportTicketSlaEscalationJob(1, 'first_response'))->queue);
     }
 
-    public function test_phase_six_captcha_is_enforced_for_preregister_and_mobcontact_when_secret_is_configured(): void
+    public function test_phase_six_captcha_is_enforced_for_preregister_when_secret_is_configured(): void
     {
         config(['services.recaptcha.secret' => 'phase6-test-secret']);
         Http::fake([
@@ -49,14 +49,12 @@ class PhaseSixHardeningUnitTest extends TestCase
         ]);
 
         $preRegistrationService = Mockery::mock(PreRegistrationService::class);
-        $supportTicketService = Mockery::mock(SupportTicketService::class);
         $preRegistrationService->shouldNotReceive('create');
-        $supportTicketService->shouldNotReceive('createTicket');
 
-        $controller = new WebApiToCurlController($preRegistrationService, $supportTicketService);
+        $controller = new WebApiToCurlController($preRegistrationService);
 
         $preRegisterRequest = Request::create('/api/preregister', 'POST', [
-            'Email' => 'captcha-preregister@example.com',
+            'email' => 'captcha-preregister@example.com',
             'captcha_token' => 'invalid-token',
         ]);
 
@@ -68,22 +66,7 @@ class PhaseSixHardeningUnitTest extends TestCase
             $this->assertArrayHasKey('captcha_token', $exception->errors());
         }
 
-        $mobContactRequest = Request::create('/api/mobcontact', 'POST', [
-            'SuppliedEmail' => 'captcha-mobcontact@example.com',
-            'Subject' => 'Captcha check',
-            'Description' => 'Captcha must fail this request.',
-            'captcha_token' => 'invalid-token',
-        ]);
-
-        try {
-            $controller->mobContact($mobContactRequest);
-            $this->fail('Expected mobcontact captcha validation to fail.');
-        } catch (ValidationException $exception) {
-            $this->assertSame(422, $exception->status);
-            $this->assertArrayHasKey('captcha_token', $exception->errors());
-        }
-
-        Http::assertSentCount(2);
+        Http::assertSentCount(1);
     }
 
     public function test_phase_six_captcha_transport_failures_return_validation_errors_instead_of_500(): void
@@ -96,14 +79,13 @@ class PhaseSixHardeningUnitTest extends TestCase
         $preRegistrationService = Mockery::mock(PreRegistrationService::class);
         $supportTicketService = Mockery::mock(SupportTicketService::class);
         $preRegistrationService->shouldNotReceive('create');
-        $supportTicketService->shouldNotReceive('createTicket');
 
-        $webController = new WebApiToCurlController($preRegistrationService, $supportTicketService);
+        $webController = new WebApiToCurlController($preRegistrationService);
         $supportController = new SupportTicketController($supportTicketService);
 
         try {
             $webController->preRegister(Request::create('/api/preregister', 'POST', [
-                'Email' => 'transport-preregister@example.com',
+                'email' => 'transport-preregister@example.com',
                 'captcha_token' => 'token',
             ]));
             $this->fail('Expected preregister captcha transport failure to return validation error.');
@@ -138,8 +120,6 @@ class PhaseSixHardeningUnitTest extends TestCase
         $registration->status = 'new';
 
         $preRegistrationService = Mockery::mock(PreRegistrationService::class);
-        $supportTicketService = Mockery::mock(SupportTicketService::class);
-
         $preRegistrationService
             ->shouldReceive('create')
             ->once()
@@ -153,13 +133,13 @@ class PhaseSixHardeningUnitTest extends TestCase
                 'duplicate' => false,
             ]);
 
-        $controller = new WebApiToCurlController($preRegistrationService, $supportTicketService);
+        $controller = new WebApiToCurlController($preRegistrationService);
 
         $request = Request::create('/api/preregister', 'POST', [
-            'FirstName' => 'Alias',
-            'LastName' => 'Captcha',
-            'Email' => 'alias@example.com',
-            'mitabl_Interested_In__c' => 'cook',
+            'first_name' => 'Alias',
+            'last_name' => 'Captcha',
+            'email' => 'alias@example.com',
+            'interested_as' => 'cook',
             'g-recaptcha-response' => 'valid-token',
         ]);
 

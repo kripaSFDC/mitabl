@@ -11,9 +11,9 @@ if (-not (Test-Path $LogPath)) {
 
 $cutoff = (Get-Date).AddDays(-$Days)
 $patterns = @(
-    'salesforce',
-    'Sales-Auth',
-    'webto.salesforce.com',
+    'legacy-crm',
+    'Legacy-Auth',
+    'webto.legacy-crm.com',
     '/services/oauth2/token',
     '/services/data/v'
 )
@@ -29,12 +29,12 @@ $matches = foreach ($file in $files) {
 }
 
 if ($matches) {
-    Write-Host "Detected Salesforce traffic markers in the past $Days day(s):" -ForegroundColor Red
+    Write-Host "Detected legacy CRM traffic markers in the past $Days day(s):" -ForegroundColor Red
     $matches | Select-Object -First 200 | ForEach-Object {
         Write-Host "$($_.Path):$($_.LineNumber): $($_.Line)"
     }
     exit 1
 }
 
-Write-Host "No Salesforce traffic markers detected in logs from the past $Days day(s)." -ForegroundColor Green
+Write-Host "No legacy CRM traffic markers detected in logs from the past $Days day(s)." -ForegroundColor Green
 exit 0

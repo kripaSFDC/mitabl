@@ -6,6 +6,7 @@ use App\Filament\Resources\SupportTicketResource\Pages;
 use App\Models\AdminUser;
 use App\Models\SupportTicket;
 use App\Services\AdminStepUpService;
+use App\Services\PiiRedactionService;
 use App\Services\SupportTicketService;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -32,25 +33,39 @@ class SupportTicketResource extends Resource
         return $form->schema([
             Forms\Components\Section::make('Requester')
                 ->schema([
+                    Forms\Components\Select::make('user_id')
+                        ->label('Linked user')
+                        ->relationship('user', 'email')
+                        ->searchable()
+                        ->preload()
+                        ->nullable(),
                     Forms\Components\TextInput::make('requester_name')->maxLength(255),
                     Forms\Components\TextInput::make('requester_email')->email()->required()->maxLength(255),
                     Forms\Components\TextInput::make('requester_phone')->maxLength(40),
                 ])
-                ->columns(3),
+                ->columns(4),
             Forms\Components\Section::make('Ticket')
                 ->schema([
                     Forms\Components\TextInput::make('subject')->required()->maxLength(255),
                     Forms\Components\Textarea::make('description')->rows(4)->required(),
+                    Forms\Components\FileUpload::make('attachments')
+                        ->multiple()
+                        ->maxFiles((int) config('support.attachments.max_files', 5))
+                        ->disk('public')
+                        ->directory('tmp/support-ticket-intake')
+                        ->acceptedFileTypes(array_values(array_filter(array_map(
+                            static fn ($mime): string => strtolower(trim((string) $mime)),
+                            (array) config('support.attachments.allowed_mime_types', [])
+                        )))),
                     Forms\Components\Select::make('category')
                         ->options([
-                            'general' => 'General',
-                            'account' => 'Account',
-                            'order' => 'Order',
-                            'payment' => 'Payment',
-                            'kitchen' => 'Kitchen',
-                            'certificate' => 'Certificate',
+                            SupportTicket::CATEGORY_ORDER_DISPUTE => 'Order dispute',
+                            SupportTicket::CATEGORY_PAYMENT => 'Payment',
+                            SupportTicket::CATEGORY_ACCOUNT => 'Account',
+                            SupportTicket::CATEGORY_GENERAL => 'General',
+                            SupportTicket::CATEGORY_OTHER => 'Other',
                         ])
-                        ->default('general')
+                        ->default(SupportTicket::CATEGORY_GENERAL)
                         ->required(),
                     Forms\Components\Select::make('priority')
                         ->options([
@@ -66,8 +81,6 @@ class SupportTicketResource extends Resource
                             SupportTicket::STATUS_OPEN => 'Open',
                             SupportTicket::STATUS_IN_PROGRESS => 'In progress',
                             SupportTicket::STATUS_PENDING_USER => 'Pending user',
-                            SupportTicket::STATUS_RESOLVED => 'Resolved',
-                            SupportTicket::STATUS_CLOSED => 'Closed',
                             SupportTicket::STATUS_SPAM => 'Spam',
                         ])
                         ->default(SupportTicket::STATUS_OPEN)
@@ -88,7 +101,36 @@ class SupportTicketResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query): Builder {
-                return $query->with(['assignee', 'user', 'mikitchn', 'order'])->whereNull('merged_into_ticket_id');
+                return $query->with(['assignee', 'user', 'mikitchn', 'order'])
+                    ->whereNull('merged_into_ticket_id')
+                    ->orderByRaw(
+                        "case
+                            when status = ? then 0
+                            when first_responded_at is null and first_response_due_at <= ? then 5
+                            when resolved_at is null and resolution_due_at <= ? then 4
+                            when first_responded_at is null and first_response_due_at <= ? then 3
+                            when resolved_at is null and resolution_due_at <= ? then 2
+                            else 1
+                        end desc",
+                        [
+                            SupportTicket::STATUS_SPAM,
+                            now(),
+                            now(),
+                            now()->addMinutes(30),
+                            now()->addHour(),
+                        ]
+                    )
+                    ->orderByRaw(
+                        "case priority
+                            when 'urgent' then 4
+                            when 'high' then 3
+                            when 'normal' then 2
+                            when 'low' then 1
+                            else 0
+                        end desc"
+                    )
+                    ->orderByRaw('coalesce(first_response_due_at, resolution_due_at, created_at) asc')
+                    ->orderByDesc('created_at');
             })
             ->columns([
                 Tables\Columns\TextColumn::make('ticket_number')
@@ -103,6 +145,10 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('requester_email')
                     ->searchable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Linked user')
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('subject')
                     ->searchable()
                     ->limit(40),
@@ -150,6 +196,14 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->label('Assignee')
                     ->placeholder('Unassigned'),
+                Tables\Columns\TextColumn::make('order_id')
+                    ->label('Order')
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('mikitchn_id')
+                    ->label('Kitchen')
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d M H:i')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('last_message_at')->dateTime('d M H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -208,7 +262,7 @@ class SupportTicketResource extends Resource
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->assignTicket($record, Filament::auth()->id(), 'Self assignment from triage queue', Filament::auth()->id());
+                            $service->assignTicket($record, Filament::auth()->id(), 'Self assignment from triage queue', Filament::auth()->id(), $record->updated_at?->toISOString());
                             Notification::make()->title('Ticket assigned.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Assignment failed: ' . $throwable->getMessage())->danger()->send();
@@ -227,12 +281,20 @@ class SupportTicketResource extends Resource
                         Forms\Components\Textarea::make('reason')
                             ->required()
                             ->maxLength(300),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->assignTicket($record, (int) $data['assignee_id'], (string) $data['reason'], Filament::auth()->id());
+                            $service->assignTicket(
+                                $record,
+                                (int) $data['assignee_id'],
+                                (string) $data['reason'],
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
                             Notification::make()->title('Ticket reassigned.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Reassignment failed: ' . $throwable->getMessage())->danger()->send();
@@ -248,12 +310,33 @@ class SupportTicketResource extends Resource
                             ->required()
                             ->rows(5)
                             ->maxLength(4000),
+                        Forms\Components\FileUpload::make('attachments')
+                            ->multiple()
+                            ->maxFiles((int) config('support.attachments.max_files', 5))
+                            ->disk('public')
+                            ->directory('tmp/support-ticket-replies')
+                            ->acceptedFileTypes(array_values(array_filter(array_map(
+                                static fn ($mime): string => strtolower(trim((string) $mime)),
+                                (array) config('support.attachments.allowed_mime_types', [])
+                            )))),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->addReply($record, ['message' => $data['message'], 'is_internal_note' => false], 'admin', Filament::auth()->id());
+                            $service->addReply(
+                                $record,
+                                [
+                                    'message' => $data['message'],
+                                    'is_internal_note' => false,
+                                    'attachments' => $data['attachments'] ?? [],
+                                ],
+                                'admin',
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
                             Notification::make()->title('Reply sent.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Reply failed: ' . $throwable->getMessage())->danger()->send();
@@ -269,12 +352,33 @@ class SupportTicketResource extends Resource
                             ->required()
                             ->rows(4)
                             ->maxLength(4000),
+                        Forms\Components\FileUpload::make('attachments')
+                            ->multiple()
+                            ->maxFiles((int) config('support.attachments.max_files', 5))
+                            ->disk('public')
+                            ->directory('tmp/support-ticket-notes')
+                            ->acceptedFileTypes(array_values(array_filter(array_map(
+                                static fn ($mime): string => strtolower(trim((string) $mime)),
+                                (array) config('support.attachments.allowed_mime_types', [])
+                            )))),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->addReply($record, ['message' => $data['message'], 'is_internal_note' => true], 'admin', Filament::auth()->id());
+                            $service->addReply(
+                                $record,
+                                [
+                                    'message' => $data['message'],
+                                    'is_internal_note' => true,
+                                    'attachments' => $data['attachments'] ?? [],
+                                ],
+                                'admin',
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
                             Notification::make()->title('Internal note saved.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Save failed: ' . $throwable->getMessage())->danger()->send();
@@ -295,12 +399,14 @@ class SupportTicketResource extends Resource
                             ->label('Resolution summary')
                             ->rows(4)
                             ->maxLength(2000),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->resolveTicket($record, (string) $data['summary'], Filament::auth()->id());
+                            $service->resolveTicket($record, (string) $data['summary'], Filament::auth()->id(), $data['expected_updated_at'] ?? null);
                             Notification::make()->title('Ticket resolved.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Resolve failed: ' . $throwable->getMessage())->danger()->send();
@@ -314,14 +420,30 @@ class SupportTicketResource extends Resource
                     ->form([
                         Forms\Components\Select::make('status')
                             ->required()
-                            ->options([
-                                SupportTicket::STATUS_OPEN => 'Open',
-                                SupportTicket::STATUS_IN_PROGRESS => 'In progress',
-                                SupportTicket::STATUS_PENDING_USER => 'Pending user',
-                                SupportTicket::STATUS_RESOLVED => 'Resolved',
-                                SupportTicket::STATUS_CLOSED => 'Closed',
-                                SupportTicket::STATUS_SPAM => 'Spam',
-                            ]),
+                            ->options(function (SupportTicket $record): array {
+                                return match ($record->status) {
+                                    SupportTicket::STATUS_OPEN => [
+                                        SupportTicket::STATUS_IN_PROGRESS => 'In progress',
+                                        SupportTicket::STATUS_PENDING_USER => 'Pending user',
+                                        SupportTicket::STATUS_SPAM => 'Spam',
+                                    ],
+                                    SupportTicket::STATUS_IN_PROGRESS => [
+                                        SupportTicket::STATUS_OPEN => 'Open',
+                                        SupportTicket::STATUS_PENDING_USER => 'Pending user',
+                                        SupportTicket::STATUS_SPAM => 'Spam',
+                                    ],
+                                    SupportTicket::STATUS_PENDING_USER => [
+                                        SupportTicket::STATUS_OPEN => 'Open',
+                                        SupportTicket::STATUS_IN_PROGRESS => 'In progress',
+                                        SupportTicket::STATUS_SPAM => 'Spam',
+                                    ],
+                                    SupportTicket::STATUS_RESOLVED => [
+                                        SupportTicket::STATUS_OPEN => 'Open',
+                                        SupportTicket::STATUS_CLOSED => 'Closed',
+                                    ],
+                                    default => [],
+                                };
+                            }),
                         Forms\Components\Textarea::make('reason')
                             ->required()
                             ->label('Status change reason')
@@ -331,6 +453,8 @@ class SupportTicketResource extends Resource
                             ->password()
                             ->revealable(false)
                             ->required(),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         if (! app(AdminStepUpService::class)->validateCurrentPassword(
@@ -343,10 +467,62 @@ class SupportTicketResource extends Resource
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->transitionStatus($record, (string) $data['status'], (string) $data['reason'], Filament::auth()->id());
+                            $service->transitionStatus(
+                                $record,
+                                (string) $data['status'],
+                                (string) $data['reason'],
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
                             Notification::make()->title('Ticket status updated.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Status change failed: ' . $throwable->getMessage())->danger()->send();
+                        }
+                    }),
+                Action::make('update_classification')
+                    ->label('Change priority/category')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->color('warning')
+                    ->visible(fn (SupportTicket $record): bool => static::canAssign() && ! $record->isTerminal())
+                    ->form([
+                        Forms\Components\Select::make('priority')
+                            ->required()
+                            ->options([
+                                'low' => 'Low',
+                                'normal' => 'Normal',
+                                'high' => 'High',
+                                'urgent' => 'Urgent',
+                            ]),
+                        Forms\Components\Select::make('category')
+                            ->required()
+                            ->options([
+                                SupportTicket::CATEGORY_ORDER_DISPUTE => 'Order dispute',
+                                SupportTicket::CATEGORY_PAYMENT => 'Payment',
+                                SupportTicket::CATEGORY_ACCOUNT => 'Account',
+                                SupportTicket::CATEGORY_GENERAL => 'General',
+                                SupportTicket::CATEGORY_OTHER => 'Other',
+                            ]),
+                        Forms\Components\Textarea::make('reason')
+                            ->required()
+                            ->maxLength(300),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
+                    ])
+                    ->action(function (SupportTicket $record, array $data): void {
+                        try {
+                            /** @var SupportTicketService $service */
+                            $service = app(SupportTicketService::class);
+                            $service->updateClassification(
+                                $record,
+                                (string) $data['priority'],
+                                (string) $data['category'],
+                                (string) $data['reason'],
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
+                            Notification::make()->title('Ticket classification updated.')->success()->send();
+                        } catch (\Throwable $throwable) {
+                            Notification::make()->title('Update failed: ' . $throwable->getMessage())->danger()->send();
                         }
                     }),
                 Action::make('merge')
@@ -364,6 +540,8 @@ class SupportTicketResource extends Resource
                             ->rule('in:MERGE'),
                         Forms\Components\Textarea::make('reason')
                             ->required(),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
@@ -383,7 +561,14 @@ class SupportTicketResource extends Resource
 
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $service->mergeInto($record, $target, (string) $data['reason'], Filament::auth()->id());
+                            $service->mergeInto(
+                                $record,
+                                $target,
+                                (string) $data['reason'],
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null,
+                                $target->updated_at?->toISOString()
+                            );
                             Notification::make()->title('Ticket merged.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Merge failed: ' . $throwable->getMessage())->danger()->send();
@@ -401,12 +586,20 @@ class SupportTicketResource extends Resource
                         Forms\Components\Textarea::make('description')
                             ->required()
                             ->rows(4),
+                        Forms\Components\Hidden::make('expected_updated_at')
+                            ->default(fn (SupportTicket $record): ?string => $record->updated_at?->toISOString()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
-                            $split = $service->splitTicket($record, (string) $data['subject'], (string) $data['description'], Filament::auth()->id());
+                            $split = $service->splitTicket(
+                                $record,
+                                (string) $data['subject'],
+                                (string) $data['description'],
+                                Filament::auth()->id(),
+                                $data['expected_updated_at'] ?? null
+                            );
                             Notification::make()->title('New split ticket created: ' . $split->ticket_number)->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Split failed: ' . $throwable->getMessage())->danger()->send();
@@ -423,15 +616,70 @@ class SupportTicketResource extends Resource
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);
                             foreach ($records as $record) {
-                                $service->assignTicket($record, Filament::auth()->id(), 'Bulk assignment', Filament::auth()->id());
+                                $service->assignTicket(
+                                    $record,
+                                    Filament::auth()->id(),
+                                    'Bulk assignment',
+                                    Filament::auth()->id(),
+                                    $record->updated_at?->toISOString()
+                                );
                             }
                             Notification::make()->title('Selected tickets assigned.')->success()->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Bulk assignment failed: ' . $throwable->getMessage())->danger()->send();
                         }
                     }),
+                Tables\Actions\BulkAction::make('export_redacted_csv')
+                    ->label('Export redacted CSV')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (): bool => static::canViewTickets())
+                    ->action(function ($records): void {
+                        try {
+                            $rows = [];
+                            /** @var PiiRedactionService $redactor */
+                            $redactor = app(PiiRedactionService::class);
+                            foreach ($records as $record) {
+                                if (! $record instanceof SupportTicket) {
+                                    continue;
+                                }
+                                $rows[] = [
+                                    $record->ticket_number,
+                                    $record->status,
+                                    $record->priority,
+                                    $record->category,
+                                    $redactor->redact((string) $record->subject),
+                                    $redactor->redact((string) $record->description),
+                                    optional($record->created_at)->toDateTimeString(),
+                                ];
+                            }
+
+                            if ($rows === []) {
+                                Notification::make()->title('No records selected for export.')->warning()->send();
+                                return;
+                            }
+
+                            $filename = 'support-ticket-export-redacted-' . now()->format('Ymd-His') . '.csv';
+                            $target = storage_path('app/' . $filename);
+                            $handle = fopen($target, 'wb');
+                            if (! is_resource($handle)) {
+                                throw new \RuntimeException('Unable to create export file.');
+                            }
+                            fputcsv($handle, ['ticket_number', 'status', 'priority', 'category', 'subject', 'description', 'created_at']);
+                            foreach ($rows as $row) {
+                                fputcsv($handle, $row);
+                            }
+                            fclose($handle);
+
+                            Notification::make()
+                                ->title('Redacted export generated.')
+                                ->body('Saved to ' . $target)
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $throwable) {
+                            Notification::make()->title('Export failed: ' . $throwable->getMessage())->danger()->send();
+                        }
+                    }),
             ])
-            ->defaultSort('created_at', 'desc')
             ->recordAction(null)
             ->emptyStateHeading('No support tickets found')
             ->emptyStateDescription('Try adjusting filters or create a ticket from API intake.')

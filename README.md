@@ -2,7 +2,7 @@
 
 **mitabl** is a marketplace platform that revolutionises home cooking by connecting foodies (customers) with home cooks who operate virtual kitchens ("miKitchens"). Customers can discover nearby home-cooked meals, book time slots, order food, and pay securely while cooks manage their kitchen profile, menu, bookings, and earnings from a single app.
 
-> Note: Salesforce integration has been removed in Phase 5 cutover. Current cutover evidence and release controls are in `docs/phase5_validation_report.md` and `docs/phase5_release_runbook.md`.
+
 
 ---
 
@@ -64,7 +64,7 @@ routes/api.php
             ├── FavoriteController           # Favourite kitchens
             ├── FcmController                # Push notification retrieval
             ├── ForgotPasswordController     # Password reset flow
-            ├── WebApiToCurlController       # Pre‑registration / contact / mobcontact proxy
+            ├── WebApiToCurlController       # Pre‑registration proxy
             └── ... (other utility controllers)
 ```
 
@@ -122,7 +122,7 @@ routes/api.php
 - Public ticket API accepts enquiries from mobile/web (creates `support_tickets`, `support_ticket_messages`, attachments, events)
 - Guests can create tickets and follow up via token or authenticated user
 - Replies, categories, priorities, SLA escalation commands
-- `WebApiToCurlController` proxies legacy preregister/mobcontact forms and adds deprecation headers
+- `WebApiToCurlController` handles preregistration intake from public forms
 
 #### Health Checks
 
@@ -155,7 +155,7 @@ routes/api.php
 
 #### CRM and Admin Operations (Post‑Cutover)
 
-- Support/lead intake stays on compatibility endpoints (`/api/preregister`, `/api/mobcontact`) and persists locally with deprecation headers pointing at `/api/support/ticket`.
+- Support/lead intake uses `/api/preregister` and `/api/support/ticket` with local persistence.
 - Internal approval, SLA dashboards, user and ticket management are served through Filament 3 admin modules.
 
 ### ACCESS MATRIX
@@ -545,7 +545,7 @@ Contributing
 
 Support & runbooks
 
-- Operational runbooks, release runbooks and cutover notes are in the `docs/` folder. See `docs/phase5_release_runbook.md` for the latest Phase 5 cutover controls.
+- Operational runbooks and release notes are in the `docs/` folder.
 
 License
 
@@ -559,6 +559,5 @@ If you want, I can now:
 - Open a PR with this README change and include a short changelog entry.
 
 Would you like me to proceed with either of those follow-ups?
-
 
 

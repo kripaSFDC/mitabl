@@ -61,7 +61,6 @@ Route::post('resendotp', [UserController::class, 'resendOtp']);
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 
 Route::post('preregister', [WebApiToCurlController::class, 'preRegister'])->middleware('throttle:support-intake');
-Route::post('mobcontact', [WebApiToCurlController::class, 'mobContact'])->middleware('throttle:support-intake');
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');

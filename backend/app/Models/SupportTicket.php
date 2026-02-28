@@ -9,6 +9,16 @@ class SupportTicket extends Model
 {
     use HasFactory;
 
+    public const SOURCE_MOBILE_APP = 'mobile_app';
+    public const SOURCE_WEBSITE = 'website';
+    public const SOURCE_ADMIN = 'admin';
+
+    public const CATEGORY_ORDER_DISPUTE = 'order_dispute';
+    public const CATEGORY_PAYMENT = 'payment';
+    public const CATEGORY_ACCOUNT = 'account';
+    public const CATEGORY_GENERAL = 'general';
+    public const CATEGORY_OTHER = 'other';
+
     public const STATUS_OPEN = 'open';
     public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_PENDING_USER = 'pending_user';
@@ -135,6 +145,26 @@ class SupportTicket extends Model
             self::STATUS_RESOLVED,
             self::STATUS_CLOSED,
             self::STATUS_SPAM,
+        ];
+    }
+
+    public static function sources(): array
+    {
+        return [
+            self::SOURCE_MOBILE_APP,
+            self::SOURCE_WEBSITE,
+            self::SOURCE_ADMIN,
+        ];
+    }
+
+    public static function categories(): array
+    {
+        return [
+            self::CATEGORY_ORDER_DISPUTE,
+            self::CATEGORY_PAYMENT,
+            self::CATEGORY_ACCOUNT,
+            self::CATEGORY_GENERAL,
+            self::CATEGORY_OTHER,
         ];
     }
 

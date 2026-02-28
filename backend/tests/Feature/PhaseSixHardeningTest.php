@@ -47,23 +47,30 @@ class PhaseSixHardeningTest extends TestCase
         $this->assertStringContainsString('RECAPTCHA_SECRET=', $deployProdBackendEnv);
     }
 
+    public function test_phase_six_deployment_runs_migrations_before_services_start(): void
+    {
+        $compose = (string) file_get_contents(base_path('../deploy/docker-compose.phase0.yml'));
+
+        $this->assertStringContainsString('db-migrate:', $compose);
+        $this->assertStringContainsString('php artisan migrate --force', $compose);
+        $this->assertStringContainsString('php artisan db:seed --force', $compose);
+        $this->assertGreaterThanOrEqual(3, substr_count($compose, 'condition: service_completed_successfully'));
+    }
+
     public function test_phase_six_intake_throttles_and_abuse_controls_are_enforced(): void
     {
         $routes = collect(app('router')->getRoutes()->getRoutes());
         $preregisterRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/preregister');
-        $mobcontactRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/mobcontact');
         $supportStoreRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/support/ticket');
         $supportShowRoute = $routes->first(fn ($route): bool => in_array('GET', $route->methods(), true) && $route->uri() === 'api/support/ticket/{id}');
         $supportReplyRoute = $routes->first(fn ($route): bool => in_array('POST', $route->methods(), true) && $route->uri() === 'api/support/ticket/{id}/reply');
 
         $this->assertNotNull($preregisterRoute);
-        $this->assertNotNull($mobcontactRoute);
         $this->assertNotNull($supportStoreRoute);
         $this->assertNotNull($supportShowRoute);
         $this->assertNotNull($supportReplyRoute);
 
         $this->assertContains('throttle:support-intake', $preregisterRoute->middleware());
-        $this->assertContains('throttle:support-intake', $mobcontactRoute->middleware());
         $this->assertContains('throttle:support-intake', $supportStoreRoute->middleware());
         $this->assertContains('throttle:support-read', $supportShowRoute->middleware());
         $this->assertContains('throttle:support-reply', $supportReplyRoute->middleware());
@@ -71,12 +78,12 @@ class PhaseSixHardeningTest extends TestCase
         $limiterEmail = 'phase6-throttle-' . uniqid('', true) . '@example.com';
         for ($attempt = 1; $attempt <= 8; $attempt++) {
             $this->postJson('/api/preregister', [
-                'Email' => $limiterEmail,
+                'email' => $limiterEmail,
                 'website' => 'bot-signal',
             ])->assertStatus(200);
         }
         $this->postJson('/api/preregister', [
-            'Email' => $limiterEmail,
+            'email' => $limiterEmail,
             'website' => 'bot-signal',
         ])->assertStatus(429);
     }
@@ -104,18 +111,11 @@ class PhaseSixHardeningTest extends TestCase
         ])->assertStatus(422);
 
         $this->postJson('/api/preregister', [
-            'Email' => 'phase6-preregister@example.com',
+            'email' => 'phase6-preregister@example.com',
             'captcha_token' => 'bad-token',
         ])->assertStatus(422);
 
-        $this->postJson('/api/mobcontact', [
-            'SuppliedEmail' => 'phase6-mobcontact@example.com',
-            'Subject' => 'Phase 6 captcha',
-            'Description' => 'Captcha must reject bad token.',
-            'captcha_token' => 'bad-token',
-        ])->assertStatus(422);
-
-        Http::assertSentCount(4);
+        Http::assertSentCount(3);
     }
 
     public function test_phase_six_certificate_flow_coverage_exists_for_approve_reject_resubmit(): void

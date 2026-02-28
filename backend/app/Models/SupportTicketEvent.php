@@ -25,4 +25,15 @@ class SupportTicketEvent extends Model
     {
         return $this->belongsTo(SupportTicket::class, 'ticket_id');
     }
+
+    protected static function booted(): void
+    {
+        static::updating(function (): bool {
+            throw new \LogicException('Support ticket events are immutable.');
+        });
+
+        static::deleting(function (): bool {
+            throw new \LogicException('Support ticket events are immutable.');
+        });
+    }
 }

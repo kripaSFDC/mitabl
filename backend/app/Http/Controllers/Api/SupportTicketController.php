@@ -20,40 +20,58 @@ class SupportTicketController extends Controller
     public function store(Request $request)
     {
         $honeypotField = (string) config('support.honeypot_field', 'website');
+        $honeypotValue = $request->input($honeypotField);
+
+        if (
+            (is_string($honeypotValue) && trim($honeypotValue) !== '')
+            || (is_array($honeypotValue) && $honeypotValue !== [])
+        ) {
+            return $this->responser(['accepted' => true], 'Contact Message Sent Successfully');
+        }
+
         $validated = $request->validate([
             'requester_name' => ['nullable', 'string', 'max:255'],
             'requester_email' => ['required', 'email', 'max:255'],
             'requester_phone' => ['nullable', 'string', 'max:40'],
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'min:5'],
-            'category' => ['nullable', 'string', 'max:120'],
+            'category' => ['nullable', Rule::in(array_merge(SupportTicket::categories(), ['order', 'kitchen', 'certificate']))],
             'priority' => ['nullable', Rule::in(SupportTicket::priorities())],
             'order_id' => ['nullable', 'integer'],
             'mikitchn_id' => ['nullable', 'integer'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:' . (int) config('support.attachments.max_size_kb', 5120)],
             'captcha_token' => ['nullable', 'string'],
             'g-recaptcha-response' => ['nullable', 'string'],
-            $honeypotField => ['nullable', 'string', 'max:255'],
+            $honeypotField => ['nullable'],
         ]);
-
-        if (! empty($validated[$honeypotField] ?? null)) {
-            return $this->responser(['accepted' => true], 'Contact Message Sent Successfully');
-        }
 
         $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
 
-        $result = $this->supportTicketService->createTicket([
-            'requester_name' => $validated['requester_name'] ?? null,
-            'requester_email' => $validated['requester_email'],
-            'requester_phone' => $validated['requester_phone'] ?? null,
-            'subject' => $validated['subject'],
-            'description' => $validated['description'],
-            'category' => $validated['category'] ?? 'general',
-            'priority' => $validated['priority'] ?? SupportTicket::PRIORITY_NORMAL,
-            'order_id' => $validated['order_id'] ?? null,
-            'mikitchn_id' => $validated['mikitchn_id'] ?? null,
-            'actor_type' => 'guest',
-            'actor_id' => null,
-        ], 'public_api');
+        try {
+            $actor = $request->user();
+            $result = $this->supportTicketService->createTicket([
+                'user_id' => $actor?->id,
+                'requester_name' => $validated['requester_name'] ?? null,
+                'requester_email' => $validated['requester_email'],
+                'requester_phone' => $validated['requester_phone'] ?? null,
+                'subject' => $validated['subject'],
+                'description' => $validated['description'],
+                'category' => $validated['category'] ?? 'general',
+                'priority' => $validated['priority'] ?? SupportTicket::PRIORITY_NORMAL,
+                'order_id' => $validated['order_id'] ?? null,
+                'mikitchn_id' => $validated['mikitchn_id'] ?? null,
+                'attachments' => $request->file('attachments', []),
+                'actor_type' => 'user',
+                'actor_id' => $actor?->id,
+            ], 'public_api');
+        } catch (InvalidArgumentException $exception) {
+            return response()->json([
+                'status' => 422,
+                'isSuccess' => false,
+                'isError' => $exception->getMessage(),
+            ], 422);
+        }
 
         $ticket = $result['ticket'];
 
@@ -69,7 +87,7 @@ class SupportTicketController extends Controller
     public function show(Request $request, int $id)
     {
         $ticket = SupportTicket::query()->with(['messages' => function ($query) {
-            $query->where('is_internal_note', false)->latest();
+            $query->where('is_internal_note', false)->with('attachments')->latest();
         }])->findOrFail($id);
 
         if (! $this->canAccessTicket($request, $ticket)) {
@@ -96,6 +114,13 @@ class SupportTicketController extends Controller
                     'id' => $message->id,
                     'sender_type' => $message->sender_type,
                     'message' => $message->message,
+                    'attachments' => $message->attachments->map(fn ($attachment) => [
+                        'id' => $attachment->id,
+                        'name' => $attachment->original_name,
+                        'mime_type' => $attachment->mime_type,
+                        'size' => $attachment->size,
+                        'scan_status' => $attachment->scan_status,
+                    ])->values(),
                     'created_at' => $message->created_at,
                 ])->values(),
             ],
@@ -116,14 +141,21 @@ class SupportTicketController extends Controller
         $validated = $request->validate([
             'message' => ['required', 'string', 'min:2'],
             'reopen_reason' => ['nullable', 'string', 'max:300'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:' . (int) config('support.attachments.max_size_kb', 5120)],
         ]);
 
         $actor = $request->user();
-        $senderType = $actor ? 'user' : 'guest';
+        $senderType = 'user';
         $senderId = $actor?->id;
 
         try {
-            $reply = $this->supportTicketService->addReply($ticket, $validated, $senderType, $senderId);
+            $reply = $this->supportTicketService->addReply(
+                $ticket,
+                array_merge($validated, ['attachments' => $request->file('attachments', [])]),
+                $senderType,
+                $senderId
+            );
         } catch (InvalidArgumentException $exception) {
             return response()->json([
                 'status' => 422,

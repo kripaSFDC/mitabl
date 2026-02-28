@@ -15,7 +15,7 @@ jobs:
       - name: Run lightweight secret scan gate
         run: |
           set -euo pipefail
-          PATTERN="(sk_(live|test)_[A-Za-z0-9]+|pk_(live|test)_[A-Za-z0-9]+|mitabl--test\\.sandbox\\.my\\.salesforce\\.com|00D0w|Integration@)"
+          PATTERN="(sk_(live|test)_[A-Za-z0-9]+|pk_(live|test)_[A-Za-z0-9]+|00D0w|Integration@)"
           if command -v rg >/dev/null 2>&1; then
             if rg -n -S \
               -g '!**/vendor/**' \

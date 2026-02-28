@@ -6,6 +6,8 @@ use App\Models\SupportTicket;
 use App\Models\SupportTicketEvent;
 use App\Models\SupportTicketMessage;
 use App\Notifications\SupportTicketEscalatedNotification;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,29 +15,43 @@ use InvalidArgumentException;
 
 class SupportTicketService
 {
-    public function __construct(private CrmCommunicationService $communications)
+    public function __construct(
+        private CrmCommunicationService $communications,
+        private SupportAttachmentPolicyService $attachmentPolicy
+    )
     {
     }
 
     public function createTicket(array $payload, string $source = 'api'): array
     {
         $normalized = $this->normalizePayload($payload, $source);
-        $fingerprint = $this->fingerprint($normalized['requester_email'], $normalized['subject'], $normalized['description']);
+        if ($normalized['requester_email'] === '') {
+            throw new InvalidArgumentException('Requester email is required.');
+        }
+        if (! filter_var($normalized['requester_email'], FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Requester email is invalid.');
+        }
+        if ($normalized['description'] === '') {
+            throw new InvalidArgumentException('Ticket description is required.');
+        }
+        $fingerprint = $this->fingerprint($normalized['requester_email'], $normalized['subject']);
 
         if (! ((bool) ($payload['skip_duplicate_check'] ?? false))) {
             $existing = SupportTicket::query()
-                ->where('intake_fingerprint', $fingerprint)
+                ->where('requester_email', $normalized['requester_email'])
                 ->where('created_at', '>=', now()->subMinutes((int) config('support.duplicate_window_minutes', 10)))
-                ->first();
+                ->whereNull('merged_into_ticket_id')
+                ->get()
+                ->first(fn (SupportTicket $candidate): bool => $this->isSimilarSubject($candidate->subject, $normalized['subject']));
 
             if ($existing) {
                 return ['ticket' => $existing, 'duplicate' => true];
             }
         }
 
-        $ticket = DB::transaction(function () use ($normalized, $fingerprint): SupportTicket {
+        $ticket = DB::transaction(function () use ($normalized, $fingerprint, $payload): SupportTicket {
             $ticket = SupportTicket::create([
-                'ticket_number' => $this->nextTicketNumber(),
+                'ticket_number' => 'TKT-PENDING-' . Str::upper(Str::random(8)),
                 'user_id' => $normalized['user_id'],
                 'requester_name' => $normalized['requester_name'],
                 'requester_email' => $normalized['requester_email'],
@@ -58,13 +74,24 @@ class SupportTicketService
                 'last_message_at' => now(),
             ]);
 
-            SupportTicketMessage::create([
+            $ticket->ticket_number = $this->formatTicketNumber((int) $ticket->id);
+            $ticket->save();
+
+            $message = SupportTicketMessage::create([
                 'ticket_id' => $ticket->id,
-                'sender_type' => $ticket->user_id ? 'user' : 'guest',
+                'sender_type' => 'user',
                 'sender_id' => $ticket->user_id,
                 'message' => $normalized['description'],
                 'is_internal_note' => false,
             ]);
+
+            $this->attachmentPolicy->storeForMessage(
+                $ticket,
+                $message,
+                $this->extractUploadedFiles($payload['attachments'] ?? []),
+                $normalized['actor_type'],
+                $normalized['actor_id']
+            );
 
             $this->recordEvent($ticket, 'ticket_created', $normalized['actor_type'], $normalized['actor_id'], [
                 'source' => $normalized['source'],
@@ -82,7 +109,7 @@ class SupportTicketService
         return ['ticket' => $ticket, 'duplicate' => false];
     }
 
-    public function addReply(SupportTicket $ticket, array $payload, string $senderType, ?int $senderId = null): SupportTicketMessage
+    public function addReply(SupportTicket $ticket, array $payload, string $senderType, ?int $senderId = null, ?string $expectedUpdatedAt = null): SupportTicketMessage
     {
         $message = trim((string) ($payload['message'] ?? ''));
         if ($message === '') {
@@ -92,8 +119,9 @@ class SupportTicketService
 
         $isInternal = (bool) ($payload['is_internal_note'] ?? false);
 
-        $reply = DB::transaction(function () use ($ticket, $senderType, $senderId, $message, $isInternal, $reopenReason): SupportTicketMessage {
+        $reply = DB::transaction(function () use ($ticket, $senderType, $senderId, $message, $isInternal, $reopenReason, $expectedUpdatedAt, $payload): SupportTicketMessage {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
             if ($locked->isTerminal() && $locked->status !== SupportTicket::STATUS_RESOLVED) {
                 throw new InvalidArgumentException('Ticket is closed and cannot be updated.');
             }
@@ -105,6 +133,14 @@ class SupportTicketService
                 'message' => $message,
                 'is_internal_note' => $isInternal,
             ]);
+
+            $this->attachmentPolicy->storeForMessage(
+                $locked,
+                $reply,
+                $this->extractUploadedFiles($payload['attachments'] ?? []),
+                $senderType,
+                $senderId
+            );
 
             if (! $isInternal && $senderType === 'admin' && $locked->first_responded_at === null) {
                 $locked->first_responded_at = now();
@@ -155,18 +191,27 @@ class SupportTicketService
         return $reply;
     }
 
-    public function transitionStatus(SupportTicket $ticket, string $targetStatus, string $reason, ?int $actorAdminId): SupportTicket
+    public function transitionStatus(SupportTicket $ticket, string $targetStatus, string $reason, ?int $actorAdminId, ?string $expectedUpdatedAt = null): SupportTicket
     {
         if (! in_array($targetStatus, SupportTicket::statuses(), true)) {
             throw new InvalidArgumentException('Invalid support ticket status.');
         }
 
-        return DB::transaction(function () use ($ticket, $targetStatus, $reason, $actorAdminId): SupportTicket {
+        return DB::transaction(function () use ($ticket, $targetStatus, $reason, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
             $current = $locked->status;
 
             if (! $this->canTransition($current, $targetStatus, $locked)) {
                 throw new InvalidArgumentException("Cannot transition from {$current} to {$targetStatus}.");
+            }
+
+            if ($targetStatus === SupportTicket::STATUS_RESOLVED) {
+                throw new InvalidArgumentException('Use resolve action and provide a resolution summary.');
+            }
+
+            if ($targetStatus === SupportTicket::STATUS_CLOSED && trim((string) $locked->resolution_summary) === '') {
+                throw new InvalidArgumentException('A resolution summary is required before closing a ticket.');
             }
 
             if ($current === SupportTicket::STATUS_RESOLVED && $targetStatus === SupportTicket::STATUS_OPEN) {
@@ -174,10 +219,6 @@ class SupportTicketService
                 $locked->resolved_at = null;
                 $locked->resolution_summary = null;
                 $locked->resolution_breached_at = null;
-            }
-
-            if ($targetStatus === SupportTicket::STATUS_RESOLVED) {
-                $locked->resolved_at = now();
             }
 
             if ($targetStatus === SupportTicket::STATUS_CLOSED) {
@@ -202,10 +243,11 @@ class SupportTicketService
         });
     }
 
-    public function assignTicket(SupportTicket $ticket, ?int $assigneeId, string $reason, ?int $actorAdminId): SupportTicket
+    public function assignTicket(SupportTicket $ticket, ?int $assigneeId, string $reason, ?int $actorAdminId, ?string $expectedUpdatedAt = null): SupportTicket
     {
-        return DB::transaction(function () use ($ticket, $assigneeId, $reason, $actorAdminId): SupportTicket {
+        return DB::transaction(function () use ($ticket, $assigneeId, $reason, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
             if ($locked->isTerminal()) {
                 throw new InvalidArgumentException('Terminal tickets cannot be reassigned.');
             }
@@ -226,16 +268,21 @@ class SupportTicketService
         });
     }
 
-    public function resolveTicket(SupportTicket $ticket, string $summary, ?int $actorAdminId): SupportTicket
+    public function resolveTicket(SupportTicket $ticket, string $summary, ?int $actorAdminId, ?string $expectedUpdatedAt = null): SupportTicket
     {
-        return DB::transaction(function () use ($ticket, $summary, $actorAdminId): SupportTicket {
+        return DB::transaction(function () use ($ticket, $summary, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
             if (! in_array($locked->status, [
                 SupportTicket::STATUS_OPEN,
                 SupportTicket::STATUS_IN_PROGRESS,
                 SupportTicket::STATUS_PENDING_USER,
             ], true)) {
                 throw new InvalidArgumentException('Only active tickets can be resolved.');
+            }
+            $summary = trim($summary);
+            if ($summary === '') {
+                throw new InvalidArgumentException('Resolution summary is required.');
             }
             $locked->status = SupportTicket::STATUS_RESOLVED;
             $locked->resolved_at = now();
@@ -261,20 +308,31 @@ class SupportTicketService
 
             if ($locked->assignee) {
                 $locked->assignee->notify((new SupportTicketEscalatedNotification($locked, $reason))->afterCommit());
-                $this->communications->sendTicketEscalation($locked, $reason, $locked->assignee);
             }
+
+            // Always route escalation mail; service will fall back to configured operations mailbox.
+            $this->communications->sendTicketEscalation($locked, $reason, $locked->assignee);
         });
     }
 
-    public function mergeInto(SupportTicket $source, SupportTicket $target, string $reason, ?int $actorAdminId): void
+    public function mergeInto(
+        SupportTicket $source,
+        SupportTicket $target,
+        string $reason,
+        ?int $actorAdminId,
+        ?string $expectedSourceUpdatedAt = null,
+        ?string $expectedTargetUpdatedAt = null
+    ): void
     {
         if ($source->id === $target->id) {
             throw new InvalidArgumentException('Cannot merge a ticket into itself.');
         }
 
-        DB::transaction(function () use ($source, $target, $reason, $actorAdminId): void {
+        DB::transaction(function () use ($source, $target, $reason, $actorAdminId, $expectedSourceUpdatedAt, $expectedTargetUpdatedAt): void {
             $sourceLocked = SupportTicket::query()->lockForUpdate()->findOrFail($source->id);
             $targetLocked = SupportTicket::query()->lockForUpdate()->findOrFail($target->id);
+            $this->guardAgainstCollision($sourceLocked, $expectedSourceUpdatedAt);
+            $this->guardAgainstCollision($targetLocked, $expectedTargetUpdatedAt);
 
             if ($sourceLocked->isTerminal()) {
                 throw new InvalidArgumentException('Terminal tickets cannot be merged.');
@@ -286,6 +344,9 @@ class SupportTicketService
                 throw new InvalidArgumentException('Source ticket is already merged.');
             }
 
+            $sourceLocked->messages()->update(['ticket_id' => $targetLocked->id]);
+            $sourceLocked->attachments()->update(['ticket_id' => $targetLocked->id]);
+
             $sourceLocked->merged_into_ticket_id = $targetLocked->id;
             $sourceLocked->status = SupportTicket::STATUS_CLOSED;
             $sourceLocked->closed_at = now();
@@ -295,13 +356,24 @@ class SupportTicketService
                 'target_ticket_id' => $targetLocked->id,
                 'reason' => $reason,
             ]);
+            $this->recordEvent($targetLocked, 'merge_received', 'admin', $actorAdminId, [
+                'source_ticket_id' => $sourceLocked->id,
+                'reason' => $reason,
+            ]);
         });
     }
 
-    public function splitTicket(SupportTicket $ticket, string $subject, string $description, ?int $actorAdminId): SupportTicket
+    public function splitTicket(
+        SupportTicket $ticket,
+        string $subject,
+        string $description,
+        ?int $actorAdminId,
+        ?string $expectedUpdatedAt = null
+    ): SupportTicket
     {
-        return DB::transaction(function () use ($ticket, $subject, $description, $actorAdminId): SupportTicket {
+        return DB::transaction(function () use ($ticket, $subject, $description, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
             if ($locked->isTerminal()) {
                 throw new InvalidArgumentException('Terminal tickets cannot be split.');
             }
@@ -310,7 +382,7 @@ class SupportTicketService
             }
 
             $split = SupportTicket::create([
-                'ticket_number' => $this->nextTicketNumber(),
+                'ticket_number' => 'TKT-PENDING-' . Str::upper(Str::random(8)),
                 'user_id' => $locked->user_id,
                 'requester_name' => $locked->requester_name,
                 'requester_email' => $locked->requester_email,
@@ -330,6 +402,9 @@ class SupportTicketService
                 'split_from_ticket_id' => $locked->id,
                 'last_message_at' => now(),
             ]);
+
+            $split->ticket_number = $this->formatTicketNumber((int) $split->id);
+            $split->save();
 
             SupportTicketMessage::create([
                 'ticket_id' => $split->id,
@@ -380,12 +455,57 @@ class SupportTicketService
         return min($score, 100);
     }
 
+    public function updateClassification(
+        SupportTicket $ticket,
+        ?string $priority,
+        ?string $category,
+        string $reason,
+        ?int $actorAdminId,
+        ?string $expectedUpdatedAt = null
+    ): SupportTicket {
+        return DB::transaction(function () use ($ticket, $priority, $category, $reason, $actorAdminId, $expectedUpdatedAt): SupportTicket {
+            $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
+            if ($locked->isTerminal()) {
+                throw new InvalidArgumentException('Terminal tickets cannot be reclassified.');
+            }
+
+            $newPriority = $this->normalizePriority($priority ?? $locked->priority);
+            $newCategory = $this->normalizeCategory($category ?? $locked->category);
+
+            $before = [
+                'priority' => $locked->priority,
+                'category' => $locked->category,
+            ];
+
+            $locked->priority = $newPriority;
+            $locked->category = $newCategory;
+
+            if ($locked->first_responded_at === null) {
+                $locked->first_response_due_at = $this->firstResponseDueAt($newPriority);
+            }
+            if ($locked->resolved_at === null) {
+                $locked->resolution_due_at = $this->resolutionDueAt($newPriority);
+            }
+
+            $locked->save();
+
+            $this->recordEvent($locked, 'classification_changed', 'admin', $actorAdminId, [
+                'from' => $before,
+                'to' => [
+                    'priority' => $newPriority,
+                    'category' => $newCategory,
+                ],
+                'reason' => $reason,
+            ]);
+
+            return $locked;
+        });
+    }
+
     private function normalizePayload(array $payload, string $source): array
     {
-        $priority = Str::lower((string) ($payload['priority'] ?? SupportTicket::PRIORITY_NORMAL));
-        if (! in_array($priority, SupportTicket::priorities(), true)) {
-            $priority = SupportTicket::PRIORITY_NORMAL;
-        }
+        $priority = $this->normalizePriority((string) ($payload['priority'] ?? SupportTicket::PRIORITY_NORMAL));
 
         $spamScore = $this->detectSpamScore($payload);
         $status = $spamScore >= 90 ? SupportTicket::STATUS_SPAM : SupportTicket::STATUS_OPEN;
@@ -394,11 +514,11 @@ class SupportTicketService
             'user_id' => Arr::get($payload, 'user_id'),
             'requester_name' => Arr::get($payload, 'requester_name'),
             'requester_email' => Str::lower(trim((string) Arr::get($payload, 'requester_email', ''))),
-            'requester_phone' => Arr::get($payload, 'requester_phone'),
+            'requester_phone' => $this->normalizePhone(Arr::get($payload, 'requester_phone')),
             'subject' => trim((string) Arr::get($payload, 'subject', 'General enquiry')),
             'description' => trim((string) Arr::get($payload, 'description', '')),
-            'source' => $source,
-            'category' => Str::lower((string) Arr::get($payload, 'category', 'general')),
+            'source' => $this->normalizeSource($source),
+            'category' => $this->normalizeCategory((string) Arr::get($payload, 'category', SupportTicket::CATEGORY_GENERAL)),
             'priority' => $priority,
             'status' => $status,
             'assigned_to' => Arr::get($payload, 'assigned_to'),
@@ -413,14 +533,9 @@ class SupportTicketService
         ];
     }
 
-    private function fingerprint(string $email, string $subject, string $description): string
+    private function fingerprint(string $email, string $subject): string
     {
-        return hash('sha256', Str::lower($email) . '|' . Str::lower($subject) . '|' . Str::lower(trim($description)));
-    }
-
-    private function nextTicketNumber(): string
-    {
-        return 'TCK-' . now()->format('Ymd') . '-' . Str::upper(Str::random(6));
+        return hash('sha256', Str::lower($email) . '|' . Str::lower(trim($subject)));
     }
 
     private function recordEvent(SupportTicket $ticket, string $type, ?string $actorType, ?int $actorId, ?array $metadata = null): void
@@ -472,5 +587,121 @@ class SupportTicketService
 
         $priorityOverride = (array) config("support.sla.priority_overrides.{$priority}", []);
         return array_merge($default, $priorityOverride);
+    }
+
+    private function normalizePriority(string $priority): string
+    {
+        $normalized = Str::lower(trim($priority));
+        if (! in_array($normalized, SupportTicket::priorities(), true)) {
+            return SupportTicket::PRIORITY_NORMAL;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeCategory(string $category): string
+    {
+        $normalized = Str::lower(trim($category));
+        $map = [
+            'order' => SupportTicket::CATEGORY_ORDER_DISPUTE,
+            'order_dispute' => SupportTicket::CATEGORY_ORDER_DISPUTE,
+            'payment' => SupportTicket::CATEGORY_PAYMENT,
+            'account' => SupportTicket::CATEGORY_ACCOUNT,
+            'general' => SupportTicket::CATEGORY_GENERAL,
+            'kitchen' => SupportTicket::CATEGORY_OTHER,
+            'certificate' => SupportTicket::CATEGORY_OTHER,
+            'other' => SupportTicket::CATEGORY_OTHER,
+        ];
+
+        $mapped = $map[$normalized] ?? SupportTicket::CATEGORY_GENERAL;
+        if (! in_array($mapped, SupportTicket::categories(), true)) {
+            return SupportTicket::CATEGORY_GENERAL;
+        }
+
+        return $mapped;
+    }
+
+    private function normalizeSource(string $source): string
+    {
+        $normalized = Str::lower(trim($source));
+        $map = [
+            'public_api' => SupportTicket::SOURCE_WEBSITE,
+            'admin_panel' => SupportTicket::SOURCE_ADMIN,
+            SupportTicket::SOURCE_WEBSITE => SupportTicket::SOURCE_WEBSITE,
+            SupportTicket::SOURCE_MOBILE_APP => SupportTicket::SOURCE_MOBILE_APP,
+            SupportTicket::SOURCE_ADMIN => SupportTicket::SOURCE_ADMIN,
+        ];
+
+        return $map[$normalized] ?? SupportTicket::SOURCE_WEBSITE;
+    }
+
+    private function normalizePhone(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_numeric($value)) {
+            return null;
+        }
+
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            return null;
+        }
+
+        $hasPlus = str_starts_with($raw, '+');
+        $digits = preg_replace('/\D+/', '', $raw) ?? '';
+        if ($digits === '') {
+            return null;
+        }
+
+        return $hasPlus ? '+' . $digits : $digits;
+    }
+
+    private function guardAgainstCollision(SupportTicket $locked, ?string $expectedUpdatedAt): void
+    {
+        if ($expectedUpdatedAt === null || $expectedUpdatedAt === '') {
+            return;
+        }
+
+        try {
+            $expected = Carbon::parse($expectedUpdatedAt);
+        } catch (\Throwable) {
+            throw new InvalidArgumentException('Invalid ticket version received.');
+        }
+
+        if ($locked->updated_at instanceof CarbonInterface && $locked->updated_at->gt($expected)) {
+            throw new InvalidArgumentException('Ticket was updated by another agent. Refresh and retry.');
+        }
+    }
+
+    private function formatTicketNumber(int $ticketId): string
+    {
+        return 'TKT-' . str_pad((string) $ticketId, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function isSimilarSubject(string $existingSubject, string $incomingSubject): bool
+    {
+        $left = $this->normalizeSubject($existingSubject);
+        $right = $this->normalizeSubject($incomingSubject);
+        if ($left === '' || $right === '') {
+            return false;
+        }
+
+        similar_text($left, $right, $percent);
+        return $percent >= 85.0;
+    }
+
+    private function normalizeSubject(string $subject): string
+    {
+        $subject = Str::lower(trim($subject));
+        $subject = (string) preg_replace('/\s+/', ' ', $subject);
+        return (string) preg_replace('/[^a-z0-9 ]/', '', $subject);
+    }
+
+    private function extractUploadedFiles(mixed $attachments): array
+    {
+        if (! is_array($attachments)) {
+            return [];
+        }
+
+        return array_values(array_filter($attachments, static fn ($file): bool => $file instanceof \Illuminate\Http\UploadedFile || is_string($file)));
     }
 }

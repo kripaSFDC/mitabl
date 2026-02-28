@@ -19,6 +19,7 @@ class CreateSupportTicket extends CreateRecord
         $service = app(SupportTicketService::class);
 
         $result = $service->createTicket([
+            'user_id' => $data['user_id'] ?? null,
             'requester_name' => $data['requester_name'] ?? null,
             'requester_email' => $data['requester_email'] ?? '',
             'requester_phone' => $data['requester_phone'] ?? null,
@@ -28,6 +29,7 @@ class CreateSupportTicket extends CreateRecord
             'priority' => $data['priority'] ?? SupportTicket::PRIORITY_NORMAL,
             'order_id' => $data['order_id'] ?? null,
             'mikitchn_id' => $data['mikitchn_id'] ?? null,
+            'attachments' => $data['attachments'] ?? [],
             'assigned_to' => $data['assigned_to'] ?? null,
             'actor_type' => 'admin',
             'actor_id' => Filament::auth()->id(),

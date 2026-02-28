@@ -19,6 +19,15 @@ class SupportTicketAttachment extends Model
         'size',
         'uploaded_by_type',
         'uploaded_by_id',
+        'sha256',
+        'scan_status',
+        'scanned_at',
+        'malware_detected_at',
+    ];
+
+    protected $casts = [
+        'scanned_at' => 'datetime',
+        'malware_detected_at' => 'datetime',
     ];
 
     public function ticket()

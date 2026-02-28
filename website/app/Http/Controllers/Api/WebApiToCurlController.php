@@ -14,9 +14,9 @@ class WebApiToCurlController extends Controller
         return $this->forwardToBackend('/api/preregister', $request->all());
     }
 
-    public function mobContact(Request $request)
+    public function supportTicket(Request $request)
     {
-        return $this->forwardToBackend('/api/mobcontact', $request->all());
+        return $this->forwardToBackend('/api/support/ticket', $request->all());
     }
 
     private function forwardToBackend(string $path, array $payload)

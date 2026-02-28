@@ -6,7 +6,10 @@ use App\Filament\Resources\PolicyResource;
 use App\Models\Policy;
 use App\Models\PolicyChangeLog;
 use App\Services\AdminAuditLogService;
+use App\Services\PolicyDefinitionValidator;
 use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
@@ -23,11 +26,9 @@ class CreatePolicy extends CreateRecord
                 'definition_json' => 'Policy definition must be valid JSON.',
             ]);
         }
+        app(PolicyDefinitionValidator::class)->validateOrFail((string) ($data['name'] ?? ''), (array) $definition);
 
-        $name = trim((string) ($data['name'] ?? ''));
-        $nextVersion = (int) Policy::query()->where('name', $name)->max('version') + 1;
-
-        $data['version'] = $nextVersion;
+        $data['name'] = trim((string) ($data['name'] ?? ''));
         $data['definition'] = $definition;
         $data['created_by'] = Filament::auth()->id();
         $data['active'] = false;
@@ -35,6 +36,23 @@ class CreatePolicy extends CreateRecord
         unset($data['definition_json']);
 
         return $data;
+    }
+
+    protected function handleRecordCreation(array $data): Model
+    {
+        return DB::transaction(function () use ($data): Model {
+            Policy::query()
+                ->where('name', (string) $data['name'])
+                ->lockForUpdate()
+                ->get(['id', 'version']);
+
+            $nextVersion = (int) Policy::query()
+                ->where('name', (string) $data['name'])
+                ->max('version') + 1;
+            $data['version'] = $nextVersion;
+
+            return Policy::query()->create($data);
+        });
     }
 
     protected function afterCreate(): void

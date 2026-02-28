@@ -9,38 +9,27 @@
             <div class="contact-data">
                <!-- <h2>Contact us</h2> -->
                <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p> -->
-               <form action="/api/mobcontact" method="POST">
+               <form action="/api/support/ticket" method="POST">
 
                   <div class="form-outer">
-
-                     <select style="display:none;" id="recordType" name="recordType">
-                        <option value="">--None--</option>
-                        <option value="0125i00000097ZW">micook</option>
-                        <option value="0125i00000097Zb">mifoodi</option>
-                     </select>
-
-                     <input style="display:none;" id="00N5i000009zQqb" maxlength="80" name="00N5i000009zQqb" size="20" type="text" />
-
-                     <input style="display:none;" id="00N5i000009zQxr" maxlength="80" name="00N5i000009zQxr" size="20" type="text" />
-
-                     <select  id="type" name="type" onchange="getval(this);">
+                     <select id="category" name="category" onchange="getval(this);">
                         <option value="">Type</option>
-                        <option value="Registration">Registration</option>
-                        <option value="Payment">Payment</option>
-                        <option value="Complaint">Complaint</option>
-                        <option value="Inquiry">Inquiry</option>
-                        <option value="Other">Other</option>
+                        <option value="account">Registration</option>
+                        <option value="payment">Payment</option>
+                        <option value="order">Complaint</option>
+                        <option value="general">Inquiry</option>
+                        <option value="other">Other</option>
                      </select>
                      
                   </div>
                   <div class="form-outer" id="order_id" style="display:none;">
-                     <input id="00N5i000006ubH5" maxlength="40" name="00N5i000006ubH5" size="20" type="text" placeholder="Order Id" />
+                     <input id="order_id_input" maxlength="40" name="order_id" size="20" type="text" placeholder="Order Id" />
                   </div>
                   <div class="form-outer">
-                     <input placeholder="Email" id="email" maxlength="80" name="email" size="20" type="text" />
+                     <input placeholder="Email" id="email" maxlength="80" name="requester_email" size="20" type="text" />
                   </div>
                   <div class="form-outer">
-                     <input placeholder="Phone" id="phone" maxlength="40" name="phone" size="20" type="text" />
+                     <input placeholder="Phone" id="phone" maxlength="40" name="requester_phone" size="20" type="text" />
                   </div>
                   <div class="form-outer">
                      <input placeholder="Subject" id="subject" maxlength="80" name="subject" size="20" type="text" /> 
@@ -74,12 +63,12 @@
          let _orderSt = 'none';
          let _orderParEl = document.getElementById('order_id');
 
-         if (sel.value == 'Payment') {
+         if (sel.value == 'payment') {
             _orderSt = 'block';
-         } else if (sel.value == 'Complaint') {
+         } else if (sel.value == 'order') {
             _orderSt = 'block';
          } else {
-            document.getElementById('00N5i000006ubH5').value = '';
+            document.getElementById('order_id_input').value = '';
          }
 
          _orderParEl.style.display = _orderSt;

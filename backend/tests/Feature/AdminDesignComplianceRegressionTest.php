@@ -112,8 +112,10 @@ class AdminDesignComplianceRegressionTest extends TestCase
         $resource = (string) file_get_contents(app_path('Filament/Resources/PaymentResource.php'));
 
         $this->assertStringContainsString("can('payments.view')", $resource);
+        $this->assertStringContainsString("can('payments.refund')", $resource);
         $this->assertStringContainsString('public static function canCreate(): bool', $resource);
         $this->assertStringContainsString('return false;', $resource);
-        $this->assertStringContainsString('->actions([])', $resource);
+        $this->assertStringContainsString("Action::make('open_in_stripe')", $resource);
+        $this->assertStringContainsString("Action::make('refund_full')", $resource);
     }
 }

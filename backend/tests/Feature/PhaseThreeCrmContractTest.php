@@ -27,22 +27,6 @@ class PhaseThreeCrmContractTest extends TestCase
         $this->assertStringContainsString('SupportTicketService', $createPage);
         $this->assertStringContainsString("'skip_duplicate_check' => true", $createPage);
     }
-
-    public function test_salesforce_replacement_for_preregister_and_mobcontact_is_local(): void
-    {
-        $controller = (string) file_get_contents(app_path('Http/Controllers/Api/WebApiToCurlController.php'));
-
-        $this->assertStringContainsString('PreRegistrationService', $controller);
-        $this->assertStringContainsString('SupportTicketService', $controller);
-        $this->assertStringNotContainsString('/services/oauth2/token', $controller);
-        $this->assertStringNotContainsString('/sobjects/Lead', $controller);
-        $this->assertStringNotContainsString('/sobjects/Case', $controller);
-        $this->assertStringContainsString("SuppliedEmail", $controller);
-        $this->assertStringContainsString("FirstName", $controller);
-        $this->assertStringContainsString('Your Registration Created Successfully', $controller);
-        $this->assertStringContainsString('Contact Message Sent Successfully', $controller);
-    }
-
     public function test_phase_three_abuse_controls_and_sla_automation_are_present(): void
     {
         $supportController = (string) file_get_contents(app_path('Http/Controllers/Api/SupportTicketController.php'));

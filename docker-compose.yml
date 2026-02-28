@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  db-migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mitabl-db-migrate
+    env_file:
+      - ./backend/.env
+    command:
+      - sh
+      - -c
+      - |
+        php artisan migrate --force
+        if [ "${RUN_SEEDERS_ON_BOOT:-false}" = "true" ]; then
+          php artisan db:seed --force
+        fi
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
@@ -13,6 +33,8 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
+      db-migrate:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
     restart: unless-stopped

@@ -194,10 +194,8 @@ class SystemHealthService
         $routes = app('router')->getRoutes();
 
         $hasSupportTicketRoute = false;
-        $hasMobContactRoute = false;
         $hasPreRegisterRoute = false;
         $supportHasThrottle = false;
-        $mobContactHasThrottle = false;
         $preRegisterHasThrottle = false;
 
         foreach ($routes as $route) {
@@ -211,12 +209,6 @@ class SystemHealthService
                     ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
             }
 
-            if (in_array('POST', $methods, true) && $uri === 'api/mobcontact') {
-                $hasMobContactRoute = true;
-                $mobContactHasThrottle = collect($middleware)
-                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
-            }
-
             if (in_array('POST', $methods, true) && $uri === 'api/preregister') {
                 $hasPreRegisterRoute = true;
                 $preRegisterHasThrottle = collect($middleware)
@@ -224,16 +216,16 @@ class SystemHealthService
             }
         }
 
-        if (! $hasSupportTicketRoute || ! $hasMobContactRoute || ! $hasPreRegisterRoute) {
+        if (! $hasSupportTicketRoute || ! $hasPreRegisterRoute) {
             return [
                 'key' => 'ticket_intake',
                 'label' => 'Ticket Intake',
                 'status' => 'error',
-                'message' => 'Support intake routes are incomplete. Expected POST /api/support/ticket, /api/mobcontact, and /api/preregister.',
+                'message' => 'Support intake routes are incomplete. Expected POST /api/support/ticket and /api/preregister.',
             ];
         }
 
-        if (! $supportHasThrottle || ! $mobContactHasThrottle || ! $preRegisterHasThrottle) {
+        if (! $supportHasThrottle || ! $preRegisterHasThrottle) {
             return [
                 'key' => 'ticket_intake',
                 'label' => 'Ticket Intake',

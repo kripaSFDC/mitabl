@@ -12,39 +12,28 @@
             <div class="contact-data">
                <!-- <h2>Contact us</h2> -->
                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p>
-               <form action="/api/mobcontact" method="POST" id="mob-contact">
+               <form action="/api/support/ticket" method="POST" id="mob-contact">
 
                   <div class="form-outer">
-
-                     <select style="display:none;" id="recordType" name="recordType">
-                        <option value="">--None--</option>
-                        <option value="micook">micook</option>
-                        <option value="mifoodi">mifoodi</option>
-                     </select>
-
-                     <input style="display:none;" id="00N5i000009zQqb" maxlength="80" name="00N5i000009zQqb" size="20" type="text" />
-
-                     <input style="display:none;" id="00N5i000009zQxr" maxlength="80" name="00N5i000009zQxr" size="20" type="text" />
-
-                     <select id="type" name="type" onchange="getval(this);">
+                     <select id="category" name="category" onchange="getval(this);">
                         <option value="">Type</option>
-                        <option value="Registration">Registration</option>
-                        <option value="Payment">Payment</option>
-                        <option value="Complaint">Complaint</option>
-                        <option value="Inquiry">Inquiry</option>
-                        <option value="Other">Other</option>
+                        <option value="account">Registration</option>
+                        <option value="payment">Payment</option>
+                        <option value="order">Complaint</option>
+                        <option value="general">Inquiry</option>
+                        <option value="other">Other</option>
                      </select>
                      
                   </div>
                   <div class="form-outer" id="order_id" style="display:none;">
-                     <input id="00N5i000006ubH5" maxlength="40" name="00N5i000006ubH5" size="20" type="text" placeholder="Order Id" />
+                     <input id="order_id_input" maxlength="40" name="order_id" size="20" type="text" placeholder="Order Id" />
                      <span style="display:none;" class="error error-type">Please enter order id.</span>
                   </div>
                   <div class="form-outer">
-                     <input placeholder="Email" id="email" maxlength="80" name="email" size="20" type="text" />
+                     <input placeholder="Email" id="email" maxlength="80" name="requester_email" size="20" type="text" />
                   </div>
                   <div class="form-outer phone-No">
-                     <input placeholder="Phone" id="phone" maxlength="9" name="phone" size="9" type="text" />
+                     <input placeholder="Phone" id="phone" maxlength="9" name="requester_phone" size="9" type="text" />
                      <span class="add-phone-before">+61</span>
                      <span style="display:none;" class="error error-phone">Please enter Australian phone number.</span> 
                   </div>
@@ -112,12 +101,12 @@
       {
          let _orderSt = 'none';
          let _orderParEl = document.getElementById('order_id');
-         let _orderValEl = document.getElementById('00N5i000006ubH5');
-         if (sel.value == 'Payment') {
+         let _orderValEl = document.getElementById('order_id_input');
+         if (sel.value == 'payment') {
             _orderSt = 'block';
             checkVisible = true;
             // _orderValEl.required = true;
-         } else if (sel.value == 'Complaint') {
+         } else if (sel.value == 'order') {
             _orderSt = 'block';
             checkVisible = true;
             // _orderValEl.required = true;
@@ -143,16 +132,6 @@
                 success: function(response){
 
                   if (response.isSuccess) {
-                     // console.log(response.data)
-                     if (response.data.role == 2) {
-                        $('#recordType option[value=micook]').attr('selected','selected');
-                        document.getElementById('00N5i000009zQqb').value = response.data.id
-                        
-                     } else {
-                        $('#recordType option[value=mifoodi]').attr('selected','selected');
-                        document.getElementById('00N5i000009zQxr').value = response.data.id
-                        
-                     }
                      let _phnNo = response.data.phone.toString()
                      $('#email').val(response.data.email)
                      $('#phone').val(parseInt(_phnNo.substring(2).trim()))
@@ -192,14 +171,14 @@
          $("#mob-contact").validate({
              // Specify validation rules
              rules: {
-               type: "required",
+               category: "required",
                subject: "required",
                description: "required", 
-               email: {
+               requester_email: {
                  required: true,
                  email: true
                },      
-               phone: {
+              requester_phone: {
                  required: true,
                  digits: true,
                  minlength: 9,
@@ -207,7 +186,7 @@
                }
              },
              messages: {
-              type: {
+              category: {
                required: "Please select type",
               },     
               subject: {
@@ -216,13 +195,13 @@
               description: {
                required: "Please enter description",
               },     
-              phone: {
+              requester_phone: {
                required: "Please enter phone number",
                digits: "Please enter valid phone number",
                minlength: "Phone number field accept only 9 digits",
                maxlength: "Phone number field accept only 9 digits",
               },     
-              email: {
+              requester_email: {
                required: "Please enter email address",
                email: "Please enter a valid email address.",
               }
@@ -235,7 +214,7 @@
          let _ldr = $('#loader-div');
          jQuery.ajax({
                   type: 'post', 
-                  url: '/api/mobcontact',
+                 url: '/api/support/ticket',
                   data: JSON.stringify(jsnData),
                   contentType: 'application/json',
                   beforeSend: function (request){
@@ -297,14 +276,14 @@
          $("#phone").keyup(function(){
             validatePhoneNo()
          })
-         $("#00N5i000006ubH5").keyup(function(){
+         $("#order_id_input").keyup(function(){
             document.getElementsByClassName('error-type')[0].style.display = 'none';
          })
          $('form').submit(function(e) {
             e.preventDefault();
             let succdata = 0;
             if ($('#order_id').is(':visible')) {
-               let _ordrval = document.getElementById('00N5i000006ubH5').value;
+               let _ordrval = document.getElementById('order_id_input').value;
                
                if (_ordrval == null) {
                   succdata--;
@@ -338,15 +317,12 @@
            
             if (succdata) {
                let _sndData = {
-                  mitabl_Case_For__c: document.getElementById('recordType').value,
-                  mitabl_micook_Id__c: document.getElementById('00N5i000009zQqb').value, 
-                  mitabl_Mifoodi_Id__c: document.getElementById('00N5i000009zQxr').value, 
-                  Type: document.getElementById('type').value, 
-                  mitabl_Order_Id__c: document.getElementById('00N5i000006ubH5').value, 
-                  SuppliedEmail: document.getElementById('email').value, 
-                  SuppliedPhone: document.getElementById('phone').value,
-                  Subject:document.getElementById('subject').value,
-                  Description:document.getElementById('description').value,
+                  category: document.getElementById('category').value,
+                  order_id: document.getElementById('order_id_input').value,
+                  requester_email: document.getElementById('email').value,
+                  requester_phone: document.getElementById('phone').value,
+                  subject: document.getElementById('subject').value,
+                  description: document.getElementById('description').value,
                }
                // $( "#mob-contact" ).submit();
                setTimeout(function() {

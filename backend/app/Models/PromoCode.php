@@ -13,10 +13,14 @@ class PromoCode extends Model
         'code',
         'percentage_value',
         'status',
+        'starts_at',
+        'ends_at',
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
     public function orders()

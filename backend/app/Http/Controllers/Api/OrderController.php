@@ -208,10 +208,20 @@ class OrderController extends Controller
 
     public function checkPromoCode(Request $request)
     {
-        $promocode = PromoCode::where('code',$request->code)->first();
+        $now = Carbon::now();
+        $promocode = PromoCode::query()
+            ->whereRaw('LOWER(code) = ?', [strtolower((string) $request->code)])
+            ->where('status', 1)
+            ->where(function ($query) use ($now) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function ($query) use ($now) {
+                $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
+            })
+            ->first();
 
         if (!$promocode) {
-            return $this->responser($this->data,'Promo code Not Found.');
+            return $this->responser($this->data,'Promo code is invalid, inactive, or expired.');
         }
 
         // $this->data = new OrderResource($promocode);

@@ -4,12 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Models\Payment;
+use App\Services\AdminPaymentRefundService;
+use App\Services\AdminStepUpService;
 use Filament\Facades\Filament;
+use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Throwable;
 
 class PaymentResource extends Resource
 {
@@ -29,17 +35,27 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['order.user']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['order.user', 'order.Mikitchn', 'order.refunds']))
             ->defaultSort('id', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->sortable(),
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('Order ID')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->url(fn (Payment $record): ?string => static::safeFilamentRoute('filament.admin.resources.orders.edit', ['record' => $record->order_id]))
+                    ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('order.user.email')
                     ->label('Customer')
                     ->searchable()
+                    ->url(fn (Payment $record): ?string => static::safeFilamentRoute('filament.admin.resources.users.edit', ['record' => $record->order?->user_id]))
+                    ->openUrlInNewTab()
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('order.Mikitchn.name')
+                    ->label('Kitchen')
+                    ->searchable()
+                    ->url(fn (Payment $record): ?string => static::safeFilamentRoute('filament.admin.resources.mikitchns.edit', ['record' => $record->order?->mikitchn_id]))
+                    ->openUrlInNewTab()
                     ->placeholder('-'),
                 Tables\Columns\TextColumn::make('payment_id')
                     ->label('Payment Intent')
@@ -64,6 +80,38 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('refund_state')
+                    ->label('Refund State')
+                    ->badge()
+                    ->state(function (Payment $record): string {
+                        $percentage = (int) ($record->order?->refund_percentage ?? 0);
+
+                        if ($percentage >= 100) {
+                            return 'Full Refunded';
+                        }
+
+                        if ($percentage > 0) {
+                            return 'Partial Refunded';
+                        }
+
+                        return 'Not Refunded';
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'Full Refunded' => 'success',
+                        'Partial Refunded' => 'warning',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('latest_refund')
+                    ->label('Latest Refund')
+                    ->state(function (Payment $record): string {
+                        $latest = $record->order?->refunds?->sortByDesc('refund_date')->first();
+                        if (! $latest) {
+                            return '-';
+                        }
+
+                        return '$' . number_format((float) $latest->amount, 2) . ' @ ' . optional($latest->refund_date)->format('Y-m-d H:i');
+                    })
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('confirm_date_time')
                     ->label('Confirmed At')
                     ->dateTime('d M Y H:i')
@@ -87,7 +135,71 @@ class PaymentResource extends Resource
                             ->toArray();
                     }),
             ])
-            ->actions([])
+            ->actions([
+                Action::make('open_in_stripe')
+                    ->label('Open in Stripe')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->url(fn (Payment $record): ?string => static::stripePaymentUrl($record))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Payment $record): bool => (string) $record->payment_id !== ''),
+                Action::make('refund_full')
+                    ->label('Refund Full')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('danger')
+                    ->visible(fn (Payment $record): bool => static::canRefundPayments() && static::isRefundable($record))
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\TextInput::make('confirm_text')
+                            ->label('Type REFUND to confirm')
+                            ->required()
+                            ->rule('in:REFUND'),
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Refund reason')
+                            ->required()
+                            ->minLength(5)
+                            ->maxLength(500),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
+                    ])
+                    ->action(function (Payment $record, array $data): void {
+                        if (! static::canRefundPayments()) {
+                            Notification::make()->title('You are not authorized to issue refunds.')->danger()->send();
+                            return;
+                        }
+
+                        if (($data['confirm_text'] ?? null) !== 'REFUND') {
+                            Notification::make()->title('Refund confirmation text mismatch.')->danger()->send();
+                            return;
+                        }
+
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to issue a manual refund.'
+                        )) {
+                            return;
+                        }
+
+                        try {
+                            $result = app(AdminPaymentRefundService::class)->refundFull(
+                                $record,
+                                (string) ($data['reason'] ?? ''),
+                                (int) Filament::auth()->id()
+                            );
+
+                            if (($result['status'] ?? null) === 'already_refunded') {
+                                Notification::make()->title('Refund already processed for this order.')->warning()->send();
+                                return;
+                            }
+
+                            Notification::make()->title('Refund submitted successfully.')->success()->send();
+                        } catch (Throwable $throwable) {
+                            Notification::make()->title('Refund failed: ' . $throwable->getMessage())->danger()->send();
+                        }
+                    }),
+            ])
             ->bulkActions([]);
     }
 
@@ -116,5 +228,44 @@ class PaymentResource extends Resource
     public static function canDelete($record): bool
     {
         return false;
+    }
+
+    private static function canRefundPayments(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('payments.refund');
+    }
+
+    private static function isRefundable(Payment $payment): bool
+    {
+        if (! $payment->order || ! $payment->payment_id) {
+            return false;
+        }
+
+        return ((bool) $payment->confirm || (bool) $payment->order->paid) && (int) ($payment->order->refund_percentage ?? 0) < 100;
+    }
+
+    private static function stripePaymentUrl(Payment $payment): ?string
+    {
+        $intentId = trim((string) $payment->payment_id);
+        if ($intentId === '') {
+            return null;
+        }
+
+        $baseUrl = rtrim((string) config('services.stripe.dashboard_base_url', 'https://dashboard.stripe.com/payments'), '/');
+
+        return $baseUrl . '/' . rawurlencode($intentId);
+    }
+
+    private static function safeFilamentRoute(string $name, array $parameters = []): ?string
+    {
+        try {
+            if (! app('router')->has($name)) {
+                return null;
+            }
+
+            return route($name, array_filter($parameters, fn ($value) => $value !== null));
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

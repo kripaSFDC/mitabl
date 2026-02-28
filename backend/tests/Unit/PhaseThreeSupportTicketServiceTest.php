@@ -49,7 +49,7 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
 
         $this->assertFalse($result['duplicate']);
         $this->assertSame(SupportTicket::STATUS_OPEN, $ticket->status);
-        $this->assertStringStartsWith('TCK-', $ticket->ticket_number);
+        $this->assertStringStartsWith('TKT-', $ticket->ticket_number);
         $this->assertNotNull($ticket->first_response_due_at);
         $this->assertNotNull($ticket->resolution_due_at);
         $this->assertNotNull($ticket->requester_token);
