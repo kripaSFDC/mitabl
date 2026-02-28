@@ -89,6 +89,40 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
         $this->assertNotSame($first['ticket']->id, $third['ticket']->id);
     }
 
+
+    public function test_create_ticket_applies_auto_routing_rules_when_no_explicit_assignee(): void
+    {
+        $priorityAdmin = $this->createAdmin();
+        $categoryAdmin = $this->createAdmin();
+
+        config([
+            'support.routing.rules.priority.urgent' => $priorityAdmin->id,
+            'support.routing.rules.category.payment' => $categoryAdmin->id,
+            'support.routing.default_assignee_id' => null,
+        ]);
+
+        $urgent = $this->service->createTicket([
+            'requester_email' => 'urgent-routing@example.com',
+            'subject' => 'Urgent payout issue',
+            'description' => 'Payment failed and needs urgent review.',
+            'category' => 'payment',
+            'priority' => 'urgent',
+        ])['ticket'];
+
+        $paymentNormal = $this->service->createTicket([
+            'requester_email' => 'payment-routing@example.com',
+            'subject' => 'Payment status check',
+            'description' => 'Need help with card verification.',
+            'category' => 'payment',
+            'priority' => 'normal',
+        ])['ticket'];
+
+        $this->assertSame($priorityAdmin->id, $urgent->assigned_to);
+        $this->assertSame(SupportTicket::STATUS_IN_PROGRESS, $urgent->status);
+        $this->assertSame($categoryAdmin->id, $paymentNormal->assigned_to);
+        $this->assertSame(SupportTicket::STATUS_IN_PROGRESS, $paymentNormal->status);
+    }
+
     public function test_reply_and_transition_rules_including_reopen_window(): void
     {
         $admin = $this->createAdmin();
@@ -119,6 +153,39 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
         $this->assertSame(1, (int) $reopened->reopened_count);
         $this->assertNull($reopened->resolved_at);
         $this->assertNull($reopened->resolution_summary);
+    }
+
+
+    public function test_transition_reopen_requires_reason(): void
+    {
+        $admin = $this->createAdmin();
+        $ticket = $this->service->createTicket([
+            'requester_email' => 'reopen-reason-required@example.com',
+            'subject' => 'Resolved and reopen',
+            'description' => 'Need reopen validation',
+        ])['ticket'];
+
+        $resolved = $this->service->resolveTicket($ticket, 'Resolved summary', $admin->id);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Reopen reason is required');
+
+        $this->service->transitionStatus($resolved, SupportTicket::STATUS_OPEN, '   ', $admin->id);
+    }
+
+    public function test_assign_ticket_requires_non_empty_reason(): void
+    {
+        $admin = $this->createAdmin();
+        $ticket = $this->service->createTicket([
+            'requester_email' => 'assign-reason-required@example.com',
+            'subject' => 'Assignment reason validation',
+            'description' => 'Need assignment reason validation',
+        ])['ticket'];
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Assignment reason is required');
+
+        $this->service->assignTicket($ticket, $admin->id, ' ', $admin->id);
     }
 
     public function test_reopen_after_window_is_rejected(): void

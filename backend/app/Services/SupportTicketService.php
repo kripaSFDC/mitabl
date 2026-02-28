@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AdminUser;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketEvent;
 use App\Models\SupportTicketMessage;
@@ -197,6 +198,8 @@ class SupportTicketService
             throw new InvalidArgumentException('Invalid support ticket status.');
         }
 
+        $reason = trim($reason);
+
         return DB::transaction(function () use ($ticket, $targetStatus, $reason, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
             $this->guardAgainstCollision($locked, $expectedUpdatedAt);
@@ -215,6 +218,10 @@ class SupportTicketService
             }
 
             if ($current === SupportTicket::STATUS_RESOLVED && $targetStatus === SupportTicket::STATUS_OPEN) {
+                if ($reason === '') {
+                    throw new InvalidArgumentException('Reopen reason is required.');
+                }
+
                 $locked->reopened_count = (int) $locked->reopened_count + 1;
                 $locked->resolved_at = null;
                 $locked->resolution_summary = null;
@@ -245,6 +252,11 @@ class SupportTicketService
 
     public function assignTicket(SupportTicket $ticket, ?int $assigneeId, string $reason, ?int $actorAdminId, ?string $expectedUpdatedAt = null): SupportTicket
     {
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new InvalidArgumentException('Assignment reason is required.');
+        }
+
         return DB::transaction(function () use ($ticket, $assigneeId, $reason, $actorAdminId, $expectedUpdatedAt): SupportTicket {
             $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
             $this->guardAgainstCollision($locked, $expectedUpdatedAt);
@@ -506,9 +518,13 @@ class SupportTicketService
     private function normalizePayload(array $payload, string $source): array
     {
         $priority = $this->normalizePriority((string) ($payload['priority'] ?? SupportTicket::PRIORITY_NORMAL));
+        $category = $this->normalizeCategory((string) Arr::get($payload, 'category', SupportTicket::CATEGORY_GENERAL));
+        $assignedTo = $this->resolveAutoAssignee($category, $priority, Arr::get($payload, 'assigned_to'));
 
         $spamScore = $this->detectSpamScore($payload);
-        $status = $spamScore >= 90 ? SupportTicket::STATUS_SPAM : SupportTicket::STATUS_OPEN;
+        $status = $spamScore >= 90
+            ? SupportTicket::STATUS_SPAM
+            : ($assignedTo !== null ? SupportTicket::STATUS_IN_PROGRESS : SupportTicket::STATUS_OPEN);
 
         return [
             'user_id' => Arr::get($payload, 'user_id'),
@@ -518,10 +534,10 @@ class SupportTicketService
             'subject' => trim((string) Arr::get($payload, 'subject', 'General enquiry')),
             'description' => trim((string) Arr::get($payload, 'description', '')),
             'source' => $this->normalizeSource($source),
-            'category' => $this->normalizeCategory((string) Arr::get($payload, 'category', SupportTicket::CATEGORY_GENERAL)),
+            'category' => $category,
             'priority' => $priority,
             'status' => $status,
-            'assigned_to' => Arr::get($payload, 'assigned_to'),
+            'assigned_to' => $assignedTo,
             'order_id' => Arr::get($payload, 'order_id'),
             'mikitchn_id' => Arr::get($payload, 'mikitchn_id'),
             'first_response_due_at' => $this->firstResponseDueAt($priority),
@@ -531,6 +547,34 @@ class SupportTicketService
             'actor_type' => Arr::get($payload, 'actor_type', 'system'),
             'actor_id' => Arr::get($payload, 'actor_id'),
         ];
+    }
+
+
+    private function resolveAutoAssignee(string $category, string $priority, mixed $explicitAssignee): ?int
+    {
+        if ($explicitAssignee !== null && $explicitAssignee !== '') {
+            return (int) $explicitAssignee;
+        }
+
+        $candidate = config("support.routing.rules.priority.{$priority}")
+            ?? config("support.routing.rules.category.{$category}")
+            ?? config('support.routing.default_assignee_id');
+
+        if ($candidate === null || $candidate === '') {
+            return null;
+        }
+
+        $assigneeId = (int) $candidate;
+        if ($assigneeId <= 0) {
+            return null;
+        }
+
+        $isActive = AdminUser::query()
+            ->whereKey($assigneeId)
+            ->where('is_active', true)
+            ->exists();
+
+        return $isActive ? $assigneeId : null;
     }
 
     private function fingerprint(string $email, string $subject): string

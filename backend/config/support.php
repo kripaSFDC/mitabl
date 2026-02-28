@@ -48,4 +48,21 @@ return [
     'pii_redaction' => [
         'enabled' => (bool) env('SUPPORT_PII_REDACTION_ENABLED', true),
     ],
+
+    'routing' => [
+        'default_assignee_id' => env('SUPPORT_ROUTING_DEFAULT_ASSIGNEE_ID'),
+        'rules' => [
+            'category' => [
+                'payment' => env('SUPPORT_ROUTING_PAYMENT_ASSIGNEE_ID'),
+                'order_dispute' => env('SUPPORT_ROUTING_ORDER_ASSIGNEE_ID'),
+                'account' => env('SUPPORT_ROUTING_ACCOUNT_ASSIGNEE_ID'),
+                'general' => env('SUPPORT_ROUTING_GENERAL_ASSIGNEE_ID'),
+                'other' => env('SUPPORT_ROUTING_OTHER_ASSIGNEE_ID'),
+            ],
+            'priority' => [
+                'urgent' => env('SUPPORT_ROUTING_URGENT_ASSIGNEE_ID'),
+                'high' => env('SUPPORT_ROUTING_HIGH_ASSIGNEE_ID'),
+            ],
+        ],
+    ],
 ];
