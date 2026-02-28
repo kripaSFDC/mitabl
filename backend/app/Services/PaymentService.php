@@ -6,30 +6,30 @@ use App\Models\Mikitchn;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use RuntimeException;
 use Stripe\Stripe as StripeBase;
 use Stripe\StripeClient;
-use RuntimeException;
 use Throwable;
 
 class PaymentService
 {
-    private StripeClient $stripe;
+    private ?StripeClient $stripe = null;
+
+    private string $secretKey;
 
     public function __construct()
     {
-        $secret = (string) config('stripe.api_keys.secret_key');
-        $this->stripe = new StripeClient($secret);
-        StripeBase::setApiKey($secret);
+        $this->secretKey = trim((string) config('stripe.api_keys.secret_key'));
     }
 
     public function getMerchantAccountClient(): StripeClient
     {
-        return $this->stripe;
+        return $this->stripe();
     }
 
     public function createCustomer(array $data)
     {
-        return $this->stripe->customers->create([
+        return $this->stripe()->customers->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'description' => 'mitabl customer',
@@ -38,20 +38,20 @@ class PaymentService
 
     public function getAllCards(User $user)
     {
-        if (!$user->customer || !$user->customer->account_id) {
+        if (! $user->customer || ! $user->customer->account_id) {
             return [];
         }
 
-        return $this->stripe->customers->allPaymentMethods($user->customer->account_id, ['type' => 'card']);
+        return $this->stripe()->customers->allPaymentMethods($user->customer->account_id, ['type' => 'card']);
     }
 
     public function createCheckoutSession(User $user)
     {
-        if (!$user->customer || !$user->customer->account_id) {
+        if (! $user->customer || ! $user->customer->account_id) {
             throw new RuntimeException('Customer Stripe account not found.');
         }
 
-        return $this->stripe->checkout->sessions->create([
+        return $this->stripe()->checkout->sessions->create([
             'success_url' => config('app.url') . '/?success=true',
             'cancel_url' => config('app.url') . '/',
             'payment_method_types' => ['card'],
@@ -62,13 +62,13 @@ class PaymentService
 
     public function createAndAddCard(User $user, array $data)
     {
-        if (!$user->customer || !$user->customer->account_id) {
+        if (! $user->customer || ! $user->customer->account_id) {
             throw new RuntimeException('Customer Stripe account not found.');
         }
 
         $expDate = explode('/', $data['exp_date']);
 
-        $card = $this->stripe->paymentMethods->create([
+        $card = $this->stripe()->paymentMethods->create([
             'type' => 'card',
             'card' => [
                 'number' => $data['card_number'],
@@ -78,12 +78,12 @@ class PaymentService
             ],
         ]);
 
-        return $this->stripe->paymentMethods->attach($card->id, ['customer' => $user->customer->account_id]);
+        return $this->stripe()->paymentMethods->attach($card->id, ['customer' => $user->customer->account_id]);
     }
 
     public function createVendor(User $user)
     {
-        return $this->stripe->accounts->create([
+        return $this->stripe()->accounts->create([
             'type' => 'express',
             'country' => 'AU',
             'email' => $user->email,
@@ -106,11 +106,11 @@ class PaymentService
 
     public function createAndAddBankToVendor(User $user, array $data)
     {
-        if (!$user->vendor || !$user->vendor->account_id) {
+        if (! $user->vendor || ! $user->vendor->account_id) {
             throw new RuntimeException('Vendor Stripe account not found.');
         }
 
-        return $this->stripe->accounts->createExternalAccount(
+        return $this->stripe()->accounts->createExternalAccount(
             $user->vendor->account_id,
             [
                 'external_account' => [
@@ -128,11 +128,11 @@ class PaymentService
     public function createPaymentIntent(Order $order)
     {
         $customerId = optional(optional(User::find($order->user_id))->customer)->account_id;
-        if (!$customerId) {
+        if (! $customerId) {
             throw new RuntimeException('Order customer Stripe account not found.');
         }
 
-        return $this->stripe->paymentIntents->create([
+        return $this->stripe()->paymentIntents->create([
             'amount' => (int) round(((float) $order->total_price) * 100),
             'currency' => 'aud',
             'payment_method_types' => ['card'],
@@ -148,12 +148,12 @@ class PaymentService
 
     public function confirmPaymentIntent(Payment $payment)
     {
-        return $this->stripe->paymentIntents->confirm($payment->payment_id, ['payment_method' => $payment->card_id]);
+        return $this->stripe()->paymentIntents->confirm($payment->payment_id, ['payment_method' => $payment->card_id]);
     }
 
     public function updateConnectedAccount(string $accountId)
     {
-        return $this->stripe->accounts->update($accountId, [
+        return $this->stripe()->accounts->update($accountId, [
             'business_profile' => ['mcc' => 5814],
         ]);
     }
@@ -170,35 +170,35 @@ class PaymentService
         ];
 
         if ($idempotencyKey) {
-            return $this->stripe->refunds->create($params, ['idempotency_key' => $idempotencyKey]);
+            return $this->stripe()->refunds->create($params, ['idempotency_key' => $idempotencyKey]);
         }
 
-        return $this->stripe->refunds->create($params);
+        return $this->stripe()->refunds->create($params);
     }
 
     public function getVendorLifetimeAmount(User $user)
     {
-        if (!$user->vendor || !$user->vendor->account_id) {
+        if (! $user->vendor || ! $user->vendor->account_id) {
             throw new RuntimeException('Vendor Stripe account not found.');
         }
 
-        return $this->stripe->transfers->all(['destination' => $user->vendor->account_id]);
+        return $this->stripe()->transfers->all(['destination' => $user->vendor->account_id]);
     }
 
     public function retrieveAccount(User $user)
     {
-        if (!$user->vendor || !$user->vendor->account_id) {
+        if (! $user->vendor || ! $user->vendor->account_id) {
             throw new RuntimeException('Vendor Stripe account not found.');
         }
 
-        return $this->stripe->accounts->retrieve($user->vendor->account_id, []);
+        return $this->stripe()->accounts->retrieve($user->vendor->account_id, []);
     }
 
     public function getVendorBankAccount(User $user)
     {
         $account = $this->retrieveAccount($user);
 
-        return $this->stripe->accounts->retrieveExternalAccount(
+        return $this->stripe()->accounts->retrieveExternalAccount(
             $account->id,
             $account->external_accounts->data[0]->id,
             []
@@ -223,20 +223,20 @@ class PaymentService
     {
         $account = $this->retrieveAccount($user);
 
-        return $this->stripe->accounts->createLoginLink($account->id, []);
+        return $this->stripe()->accounts->createLoginLink($account->id, []);
     }
 
     public function transferToVendor(Mikitchn $vendor, float $totalAmount, int $orderId, float $percentToGet, string $description)
     {
         $accountId = optional(optional($vendor->user)->vendor)->account_id;
-        if (!$accountId) {
+        if (! $accountId) {
             throw new RuntimeException('Vendor Stripe account not found.');
         }
         $percentInDecimal = $percentToGet / 100;
         $transferAmount = $totalAmount - ($percentInDecimal * $totalAmount);
         $amountInCents = (int) round(max($transferAmount, 0) * 100);
 
-        return $this->stripe->transfers->create([
+        return $this->stripe()->transfers->create([
             'amount' => $amountInCents,
             'currency' => 'aud',
             'destination' => $accountId,
@@ -247,7 +247,7 @@ class PaymentService
 
     public function topups()
     {
-        return $this->stripe->topups->create([
+        return $this->stripe()->topups->create([
             'amount' => 2000,
             'currency' => 'aud',
             'description' => 'Top-up for operations',
@@ -257,7 +257,7 @@ class PaymentService
 
     public function onboardingLink(User $user)
     {
-        return $this->stripe->accountLinks->create([
+        return $this->stripe()->accountLinks->create([
             'account' => $user->vendor->account_id,
             'refresh_url' => config('app.url') . '/',
             'return_url' => config('app.url') . '/?success=true',
@@ -272,5 +272,21 @@ class PaymentService
         } catch (Throwable $exception) {
             return $exception->getMessage();
         }
+    }
+
+    private function stripe(): StripeClient
+    {
+        if ($this->stripe instanceof StripeClient) {
+            return $this->stripe;
+        }
+
+        if ($this->secretKey === '') {
+            throw new RuntimeException('Stripe secret key is not configured.');
+        }
+
+        $this->stripe = new StripeClient($this->secretKey);
+        StripeBase::setApiKey($this->secretKey);
+
+        return $this->stripe;
     }
 }

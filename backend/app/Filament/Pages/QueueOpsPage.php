@@ -13,7 +13,7 @@ class QueueOpsPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-server-stack';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Platform';
 
     protected static ?int $navigationSort = 40;
 
@@ -151,3 +151,4 @@ class QueueOpsPage extends Page
         return (bool) Filament::auth()->user()?->can('queue_ops.view');
     }
 }
+

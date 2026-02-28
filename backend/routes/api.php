@@ -3,7 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserController;
-use App\Http\Controllers\Api\Sales\SalesForceController;
 use App\Http\Controllers\Api\MikitchnController;
 use App\Http\Controllers\Api\ResetPasswordController;
 use App\Http\Controllers\Api\FoodsController;
@@ -211,9 +210,4 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api']], function ($router
 
 	// Route::get('mob-contact', [UserController::class, 'mobileContact']);
 
-});
-
-Route::group(['middleware' => ['salesforce']], function () {
-	Route::put('/kitchen/{kitchen_id}/certificate', [SalesForceController::class, 'changecertificateStatus']);
-	Route::get('sales/mifoodi', [SalesForceController::class, 'mifoodiDetails']);
 });

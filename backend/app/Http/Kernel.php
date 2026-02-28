@@ -71,6 +71,5 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'restaurant' => 'App\Http\Middleware\Restaurant',
         'customer' => 'App\Http\Middleware\Customer',
-        'salesforce' => 'App\Http\Middleware\SalesForce',
     ];
 }

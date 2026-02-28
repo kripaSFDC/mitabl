@@ -19,9 +19,9 @@ class PromoCodeResource extends Resource
 {
     protected static ?string $model = PromoCode::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
+    protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Operations';
+    protected static ?string $navigationGroup = 'Operations';
 
     protected static ?int $navigationSort = 50;
 
@@ -212,3 +212,4 @@ class PromoCodeResource extends Resource
         return (bool) Filament::auth()->user()?->can('promo_codes.edit');
     }
 }
+

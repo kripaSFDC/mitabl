@@ -25,9 +25,9 @@ class CertificateResource extends Resource
 {
     protected static ?string $model = Certificate::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
+    protected static ?string $navigationIcon = 'heroicon-o-document-check';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Operations';
+    protected static ?string $navigationGroup = 'Operations';
 
     protected static ?int $navigationSort = 10;
 
@@ -414,7 +414,7 @@ class CertificateResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return static::canView();
+        return static::canViewCertificates();
     }
 
     public static function canCreate(): bool
@@ -432,7 +432,7 @@ class CertificateResource extends Resource
         return false;
     }
 
-    private static function canView(): bool
+    private static function canViewCertificates(): bool
     {
         return (bool) Filament::auth()->user()?->can('certificates.view');
     }
@@ -467,3 +467,4 @@ class CertificateResource extends Resource
         return $certificate->updated_at->toISOString() === $lastKnownUpdateAt;
     }
 }
+

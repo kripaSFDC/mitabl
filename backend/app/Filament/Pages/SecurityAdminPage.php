@@ -11,7 +11,7 @@ class SecurityAdminPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-shield-check';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Platform';
 
     protected static ?int $navigationSort = 60;
 
@@ -75,4 +75,5 @@ class SecurityAdminPage extends Page
         return (bool) Filament::auth()->user()?->can('iam.manage');
     }
 }
+
 

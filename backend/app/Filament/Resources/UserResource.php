@@ -20,9 +20,9 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Customer Support';
+    protected static ?string $navigationGroup = 'Customer Support';
 
     protected static ?int $navigationSort = 20;
 
@@ -263,3 +263,4 @@ class UserResource extends Resource
         return (bool) Filament::auth()->user()?->can('users.suspend');
     }
 }
+

@@ -1,6 +1,8 @@
 # mitabl
 
-**mitabl** is a marketplace platform that revolutionises home cooking by connecting foodies (customers) with home cooks who operate virtual kitchens ("miKitchens"). Customers can discover nearby home-cooked meals, book time slots, order food, and pay securely  while cooks manage their kitchen profile, menu, bookings, and earnings from a single app.
+**mitabl** is a marketplace platform that revolutionises home cooking by connecting foodies (customers) with home cooks who operate virtual kitchens ("miKitchens"). Customers can discover nearby home-cooked meals, book time slots, order food, and pay securely while cooks manage their kitchen profile, menu, bookings, and earnings from a single app.
+
+> Note: Salesforce integration has been removed in Phase 5 cutover. Current cutover evidence and release controls are in `docs/phase5_validation_report.md` and `docs/phase5_release_runbook.md`.
 
 ---
 
@@ -19,7 +21,7 @@ mitabl/
 
 ### Functional Overview
 
-The backend is the central engine of the mitabl platform. It exposes a JSON REST API consumed by the mobile app. It handles all business logic including user registration and authentication (with OTP verification), kitchen (miKitchen) profile management, food menu CRUD, order lifecycle management (request → accept → complete → pay out), Stripe payment processing, review and rating collection, push notifications, and a SalesForce-gated certificate approval flow for kitchen operators.
+The backend is the central engine of the mitabl platform. It exposes a JSON REST API consumed by the mobile app. It handles all business logic including user registration and authentication (with OTP verification), kitchen (miKitchen) profile management, food menu CRUD, order lifecycle management (request → accept → complete → pay out), Stripe payment processing, review and rating collection, push notifications, and internal CRM intake workflows plus Filament-based operations/admin modules.
 
 ### Tech Stack
 
@@ -46,7 +48,7 @@ The backend follows the standard **Laravel MVC** pattern with an additional Reso
 
 ```
 routes/api.php
-    └── Middleware (JwtMiddleware, Customer, Restaurant, SalesForce)
+    └── Middleware (JwtMiddleware, Customer, Restaurant)
         └── Http/Controllers/Api/
             ├── User/UserController          # Auth, profile, Stripe account
             ├── MikitchnController           # Kitchen profile, dashboard, search
@@ -57,7 +59,6 @@ routes/api.php
             ├── FavoriteController           # Favourite kitchens
             ├── FcmController                # Push notification retrieval
             ├── ForgotPasswordController     # Password reset flow
-            ├── Sales/SalesForceController   # Certificate approval (SalesForce role)
             └── WebApiToCurlController       # Pre-registration / contact proxy
 ```
 
@@ -66,7 +67,6 @@ routes/api.php
 - `JwtMiddleware`  validates JWT token on every authenticated route
 - `Customer`  gates routes to foodie users only
 - `Restaurant`  gates routes to kitchen operator users only
-- `SalesForce`  gates routes to the internal SalesForce verification team
 
 **API response shaping** uses Laravel API Resources (`Http/Resources/`) split into `User/`, `Restaurant/`, `Order/`, and `Reviews/` namespaces to keep response contracts clean.
 
@@ -84,7 +84,7 @@ routes/api.php
 
 - Cooks create a kitchen profile with name, address, images, cooking styles, special diets, opening hours (`Timing` model), and dine-in availability
 - Kitchen availability toggle (`updateopenmikitchen`)
-- Certificate upload & ABN/GST fields; approval is gated via the SalesForce role
+- Certificate upload & ABN/GST fields with local approval workflows
 - Dashboard data endpoint aggregating revenue, order counts, and ratings
 
 #### Food Menu (`Foods` model, `FoodsController`)
@@ -132,14 +132,15 @@ routes/api.php
 - `recommendedRestaurant`  personalised recommendation feed
 - `filterRestaurant`  filter by cooking style, special diet, etc.
 
-#### SalesForce Integration (`SalesForceController`, `SalesForce` middleware)
+#### CRM and Admin Operations (Post-Cutover)
 
-- Internal API for the verification team to approve/reject kitchen certificates
-- Separate `salesforce`-role middleware protects these endpoints
+- Salesforce dependencies were removed.
+- Support/lead intake stays on compatibility endpoints (/api/preregister, /api/mobcontact) and persists locally.
+- Internal approval and operations workflows are served through the Filament admin modules.
 
 ### Database Schema Highlights
 
-50+ migrations covering: `users`, `roles`, `verify_otps`, `mikitchns`, `foods`, `cooking_styles`, `special_diets`, `timings`, `images`, `certificates`, `orders`, `order_data`, `completed_orders`, `promo_codes`, `payments`, `transfers`, `refunds`, `cards`, `stripe_accounts`, `stripe_bank_accounts`, `reviews`, `favorites`, `notifications`, `cancel_reasons`, `partners`, `sales_kitchens`, `user_auth_tokens`.
+50+ migrations covering: `users`, `roles`, `verify_otps`, `mikitchns`, `foods`, `cooking_styles`, `special_diets`, `timings`, `images`, `certificates`, `orders`, `order_data`, `completed_orders`, `promo_codes`, `payments`, `transfers`, `refunds`, `cards`, `stripe_accounts`, `stripe_bank_accounts`, `reviews`, `favorites`, `notifications`, `cancel_reasons`, `partners`, `user_auth_tokens`.
 
 ### Setup
 
@@ -413,209 +414,28 @@ php artisan serve   # localhost:8000
        External Services used by backend/
        ├── Stripe  payments & Connect payouts
        ├── Firebase FCM  push notifications
-       └── SalesForce  kitchen certificate vetoing
+       └── Filament Admin Portal  internal operations workflows
 ```
 
 ---
 
 ---
 
-## 4. Salesforce Integration
+## 4. Salesforce Cutover Status
 
-Salesforce (SF) is used as a CRM and external admin portal. There is **no internal web admin UI** in this codebase  the Salesforce org (`mitabl--test.sandbox.my.salesforce.com`) fills that role for the operations team, specifically for kitchen certificate verification and lead/support management.
+Salesforce has been fully removed from runtime integration paths.
 
-Authentication to the SF API is obtained fresh on every call via the **OAuth 2.0 Password Grant** flow (`WebApiToCurlController::getAccToken`), using a dedicated integration user (`int_user@mitabl.com`). The resulting Bearer token is attached to all outbound SF REST API requests.
+Current state:
+- No Salesforce-protected API routes remain in backend runtime.
+- `/api/preregister` and `/api/mobcontact` are compatibility aliases to local persistence.
+- Legacy Salesforce middleware/controller/listener/model artifacts are removed.
+- `sales_kitchens` is dropped via cutover migration.
+- Environment templates no longer include `SALESFORCE_*` secrets.
 
----
-
-### 4.1 Outbound Calls  mitabl Backend → Salesforce
-
-These are calls the backend makes **to** Salesforce.
-
-#### A. OAuth Token Acquisition
-
-**Where:** `WebApiToCurlController::getAccToken()`  
-**Called by:** Every outbound SF integration before its request  
-**SF endpoint:** `POST /services/oauth2/token`  
-**Method:** OAuth 2.0 Password Grant  
-**Payload:**
-
-```
-grant_type=password
-client_id=<Connected App Client ID>
-client_secret=<Connected App Client Secret>
-username=int_user@mitabl.com
-password=<SALESFORCE_PASSWORD_AND_TOKEN>
-```
-
-**Returns:** `access_token` (Bearer token used for all subsequent SF API calls)
-
----
-
-#### B. Pre-Registration  Create SF Lead
-
-**Where:** `WebApiToCurlController::preRegister()`  
-**Trigger:** `POST /api/preregister`  called from the marketing website's interest/registration form (and the website's mobile contact page)  
-**SF endpoint:** `POST /services/data/v53.0/sobjects/Lead`  
-**Purpose:** Creates a Salesforce `Lead` record for every person who fills in the pre-registration form, so the sales/marketing team can follow up via the SF CRM pipeline.  
-**Payload:** All fields from the incoming HTTP request body (name, email, phone, etc.) passed through directly.  
-**Error handling:** 200/201 → success; 400 → surfaces SF error message to caller; other codes → raw SF response returned.
-
----
-
-#### C. Mobile Contact Form  Create SF Case
-
-**Where:** `WebApiToCurlController::mobContact()`  
-**Trigger:** `POST /api/mobcontact`  called from the in-app (Flutter) and mobile web contact form  
-**SF endpoint:** `POST /services/data/v53.0/sobjects/Case`  
-**Purpose:** Creates a Salesforce `Case` (support ticket) for every inbound contact/support message submitted through the mobile or mobile-web contact form, routing it into the SF Service Cloud queue.  
-**Payload:** All fields from the incoming HTTP request body passed through directly.  
-**Error handling:** 200/201 → success; 400 → surfaces SF error message; other → raw response.
-
----
-
-#### D. Kitchen Profile Sync  Create / Update SF Account
-
-**Where:** `KitchenVerifiedToSales` (queued listener, implements `ShouldQueue`)  
-**Trigger:** The `KitchenVerified` Laravel event, dispatched in three places:
-
-| Dispatch location                            | Context                                            |
-| -------------------------------------------- | -------------------------------------------------- |
-| `MikitchnController::store()`  update branch | Cook edits their existing kitchen profile          |
-| `MikitchnController::store()`  create branch | Cook creates a new kitchen profile (first time)    |
-| `MikitchnController::addCertificate()`       | Cook uploads/updates their food-safety certificate |
-
-**SF endpoint (create):** `POST /services/data/v55.0/sobjects/Account`  
-**SF endpoint (update):** `PATCH /services/data/v55.0/sobjects/Account/{sf_account_id}`  
-**Logic:** If a `sales_kitchens` record exists for the kitchen (meaning it was previously synced), a `PATCH` is issued. Otherwise a `POST` creates a new SF `Account` and the returned SF `id` is stored locally in the `sales_kitchens` table, creating the permanent link.
-
-**Payload fields pushed to SF Account:**
-
-| SF Field                                       | Source                                                                                   |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `Name`                                         | `user.first_name + last_name`                                                            |
-| `Type`                                         | `"New Customer"` (static)                                                                |
-| `mitabl_MiKitchen_Id__c`                       | `mikitchn.id`                                                                            |
-| `ShippingStreet/City/State/Country/PostalCode` | Reverse-geocoded from `mikitchn.latitude/longitude` via Google Maps API                  |
-| `Phone`                                        | `mikitchn.phone`                                                                         |
-| `mitabl_No_of_Seats__c`                        | `mikitchn.no_of_seats`                                                                   |
-| `mitabl_Dine_In__c`                            | `mikitchn.dine_in`                                                                       |
-| `mitabl_Take_Away__c`                          | `mikitchn.take_away`                                                                     |
-| `Description`                                  | `mikitchn.description`                                                                   |
-| `mitabl_ABN__c`                                | `certificate.abn`                                                                        |
-| `mitabl_Certificate_No__c`                     | `certificate.certificate_no`                                                             |
-| `mitabl_Document_URL__c`                       | `certificate.certificate_doc` (file path/URL)                                            |
-| `mitabl_Status__c`                             | `"Active"` if certificate already approved; `"Activation Pending"` otherwise             |
-| `mitabl_Micook_Id__c`                          | `user.id` (only on first create; hardcoded to `10022` in code  likely a bug/placeholder) |
-
-**Local side-effect (first create only):** A `SalesKitchen` record is inserted mapping `mikitchn.id` ↔ `sf_account_id`.
-
----
-
-### 4.2 Inbound Calls  Salesforce → mitabl Backend
-
-These are calls Salesforce makes **into** the backend API. They are authenticated via a static shared-secret header (`Sales-Auth`) checked by the `SalesForce` middleware. The header value must match the `SALES_AUTH` environment variable  no JWT is required.
-
-**All inbound SF routes:**
-
-```
-Route::group(['middleware' => ['salesforce']], function () {
-    PUT  /api/kitchen/{kitchen_id}/certificate   → SalesForceController::changecertificateStatus
-    GET  /api/sales/mifoodi                      → SalesForceController::mifoodiDetails
-});
-```
-
----
-
-#### E. Approve / Reject Kitchen Certificate
-
-**Where:** `SalesForceController::changecertificateStatus()`  
-**Trigger:** Salesforce operator reviews the certificate documents (uploaded via the mobile app) inside the SF Account record and calls this endpoint to approve or reject  
-**HTTP method:** `PUT /api/kitchen/{kitchen_id}/certificate`  
-**Auth:** `Sales-Auth` header (static secret, env `SALES_AUTH`)  
-**Payload:** `{ "status": 1 }` (1 = approved, 0 = rejected)  
-**Effect:**
-
-1. Finds the `Certificate` record belonging to the given `mikitchn.id`
-2. Sets `certificate.status = <value>`
-3. Saves the record → this triggers the `MikitchnObserver` (if `mikitchn.status` also changes  the observer watches for dirty `status` on the `Mikitchn` model), which:
-   - Sends a **FCM push notification** to the cook's device ("your kitchen account is active")
-   - Sends a **`KitchenActivation` email** to the cook's registered email address
-
-**Returns:** Updated certificate object + `"Certificate Updated"` message.
-
----
-
-#### F. Look Up User (mifoodi) Details
-
-**Where:** `SalesForceController::mifoodiDetails()`  
-**Trigger:** Called by SF when an operator needs to look up a platform user from within the Salesforce UI (e.g., cross-referencing a Lead or Case with a registered user)  
-**HTTP method:** `GET /api/sales/mifoodi?id=<id>` OR `?email=<email>` OR `?phone=<phone>`  
-**Auth:** `Sales-Auth` header  
-**Logic:** Looks up a `User` with `role_id = 3` (Foodie role) matching the provided identifier  
-**Returns:** Full user record or `"mifoodi Not found"`
-
----
-
-### 4.3 Integration Data Flow Diagram
-
-```
-                   ┌──────────────────────────────────────────┐
-                   │          Salesforce CRM                   │
-                   │  (mitabl--test.sandbox.my.salesforce.com) │
-                   └───────┬───────────────────────┬──────────┘
-                           │                       │
-          ──── Inbound ────┘                       └──── Outbound ────
-          (SF calls backend)                       (backend calls SF)
-                           │                       │
-          ┌────────────────▼──────────────────────▼──────────────────┐
-          │                    mitabl Backend API                     │
-          │                                                           │
-          │  [E] PUT /kitchen/{id}/certificate                        │
-          │      → Approve/reject certificate                         │
-          │      → Triggers email + FCM push to cook                  │
-          │                                                           │
-          │  [F] GET /sales/mifoodi                                   │
-          │      → Lookup user by id / email / phone                  │
-          │                                                           │
-          │  [A] getAccToken() ─────────────────► SF OAuth2 /token    │
-          │                                                           │
-          │  [B] POST /preregister ─────────────► SF Lead (v53)       │
-          │      (website registration form)                          │
-          │                                                           │
-          │  [C] POST /mobcontact ──────────────► SF Case (v53)       │
-          │      (mobile/web contact form)                            │
-          │                                                           │
-          │  [D] KitchenVerified event ─────────► SF Account (v55)    │
-          │      (queued, on kitchen create /                         │
-          │       update / certificate upload)                        │
-          │      ← stores SF Account ID locally                       │
-          │        in sales_kitchens table                            │
-          └───────────────────────────────────────────────────────────┘
-```
-
----
-
-### 4.4 Removing Salesforce
-
-Salesforce is the **only admin/operator interface**  there is no internal web admin portal or dashboard in this codebase. Removing it requires building a replacement for each integration point:
-
-| Integration                      | Removal action                                                                                        | Replacement needed                                                                                   |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `SalesForce` middleware          | Delete `Http/Middleware/SalesForce.php`; remove from `Kernel.php`                                     |                                                                                                      |
-| Inbound certificate approval (E) | Delete `SalesForceController` + routes                                                                | Build an admin UI with certificate review and a status-update action                                 |
-| Inbound user lookup (F)          | Delete `SalesForceController` + routes                                                                | Covered by any admin panel                                                                           |
-| Pre-registration lead (B)        | Remove `preRegister` method + route                                                                   | Store leads in local DB table + send team an email notification                                      |
-| Contact form case (C)            | Remove `mobContact` method + route                                                                    | Store messages in local DB, send to support email, or integrate a helpdesk (e.g. Freshdesk, Zendesk) |
-| Kitchen profile sync (D)         | Delete `KitchenVerified` event, `KitchenVerifiedToSales` listener, remove from `EventServiceProvider` | No replacement needed unless using a different CRM                                                   |
-| SF token helper                  | Remove `WebApiToCurlController::getAccToken()`                                                        | Unused after above                                                                                   |
-| Data model                       | Drop `sales_kitchens` table; delete `SalesKitchen` model                                              |                                                                                                      |
-| Env vars                         | Remove `SALES_AUTH`, SF OAuth credentials                                                             |                                                                                                      |
-
-The `MikitchnObserver` (email + FCM push on kitchen activation) is **independent of Salesforce** and should be retained.
-
----
-
+Operational evidence and release controls:
+- `docs/phase5_validation_report.md`
+- `docs/phase5_release_runbook.md`
+- `deploy/scripts/verify-no-salesforce-traffic.ps1`
 ## Key Concepts Glossary
 
 | Term                  | Meaning                                                        |
@@ -623,9 +443,12 @@ The `MikitchnObserver` (email + FCM push on kitchen activation) is **independent
 | **miKitchen**         | A home cook's registered kitchen profile on the platform       |
 | **Foodie**            | A customer who orders home-cooked meals                        |
 | **Cook / Restaurant** | A miKitchen operator (same user, different role)               |
-| **SalesForce**        | Internal verification team that approves kitchen certificates  |
+| **Ops Admin**         | Internal operations/admin users working in Filament portal     |
 | **Booking**           | A time-slot reservation attached to an order                   |
 | **Cooking Style**     | Cuisine category tag (e.g., Italian, Indian) set on a kitchen  |
 | **Special Diet**      | Dietary tag (e.g., Vegan, Gluten-free) set on a kitchen        |
 | **Promo Code**        | Discount code applicable at order checkout                     |
 | **Stripe Connect**    | Split-payment mechanism that routes funds to kitchen operators |
+
+
+

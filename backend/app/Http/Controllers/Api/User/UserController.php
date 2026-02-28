@@ -27,7 +27,6 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\UserAuthToken;
 use App\Traits\GoogleAddress;
-use App\Events\KitchenVerified;
 use App\Services\AuthService;
 use App\Services\PaymentService;
 use JWTAuth;

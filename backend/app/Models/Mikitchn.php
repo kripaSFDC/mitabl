@@ -38,10 +38,6 @@ class Mikitchn extends Model
         return $this->hasOne('App\Models\Certificate');
     }
 
-    public function saleskitchen(){
-        return $this->hasOne('App\Models\SalesKitchen');
-    }
-
     public function getCertificateNoAttribute()
     {
         if ($this->certificate) {

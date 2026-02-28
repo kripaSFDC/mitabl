@@ -7,11 +7,9 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
-use App\Events\KitchenVerified;
 use App\Events\UserMobileNotification;
 use App\Events\MakeOrderPaymentToVendor;
 use App\Events\CancelOrderRefund;
-use App\Listeners\KitchenVerifiedToSales;
 use App\Listeners\MakeOrderPaymentToVendorListener;
 use App\Listeners\CancelOrderRefundListener;
 use App\Listeners\MarkCrmCommunicationDelivered;
@@ -36,9 +34,6 @@ class EventServiceProvider extends ServiceProvider
         // UserMobileNotification::class => [
         //     'App\Listeners\LogNotification',
         // ],
-        KitchenVerified::class => [
-            KitchenVerifiedToSales::class,
-        ],
         MakeOrderPaymentToVendor::class => [
             MakeOrderPaymentToVendorListener::class,
         ],

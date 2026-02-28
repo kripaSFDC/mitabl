@@ -12,7 +12,7 @@ class SystemHealthPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-heart';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Platform';
 
     protected static ?int $navigationSort = 30;
 
@@ -44,3 +44,4 @@ class SystemHealthPage extends Page
         return (bool) Filament::auth()->user()?->can('health.view');
     }
 }
+

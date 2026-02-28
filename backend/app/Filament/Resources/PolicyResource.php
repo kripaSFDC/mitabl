@@ -21,9 +21,9 @@ class PolicyResource extends Resource
 {
     protected static ?string $model = Policy::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Platform';
 
     protected static ?int $navigationSort = 20;
 
@@ -374,3 +374,4 @@ class PolicyResource extends Resource
             ->exists();
     }
 }
+

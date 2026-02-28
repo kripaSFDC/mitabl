@@ -11,7 +11,6 @@
          <div class="col-md-6">
             <div class="contact-data">
                <h2>Registration</h2>
-               <!-- <form action="https://mitabl.lightning.force.com/services/data/v53.0/sobjects/Lead" method="POST" id="registration"> -->
                <form action="/api/preregister" method="POST" id="registration">
 
                   <!--  ----------------------------------------------------------------------  -->
@@ -162,7 +161,6 @@
          let _ldr = $('#loader-div');
          jQuery.ajax({
                   type: 'post', 
-                  // url: 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v53.0/sobjects/Lead',
                   url: '/api/preregister',
                   data: JSON.stringify(jsnData),
                   contentType: 'application/json',

@@ -6,8 +6,11 @@ use App\Models\PreRegistration;
 use App\Models\SupportTicket;
 use App\Services\PreRegistrationService;
 use App\Services\SupportTicketService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class WebApiToCurlController extends Controller
 {
@@ -98,7 +101,11 @@ class WebApiToCurlController extends Controller
         ]);
 
         if (! empty($validated[$honeypotField] ?? null)) {
-            return $this->responser(['accepted' => true], 'Contact Message Sent Successfully');
+            return $this->withMobContactDeprecationHeaders(
+                $this->responser(['accepted' => true], 'Contact Message Sent Successfully'),
+                $request,
+                true
+            );
         }
 
         $category = $normalized['Type'] ?? ($normalized['mitabl_Case_For__c'] ?? 'general');
@@ -122,12 +129,49 @@ class WebApiToCurlController extends Controller
         /** @var SupportTicket $ticket */
         $ticket = $result['ticket'];
 
-        return $this->responser([
-            'id' => $ticket->id,
-            'ticket_number' => $ticket->ticket_number,
-            'status' => $ticket->status,
-            'duplicate' => $result['duplicate'],
-        ], 'Contact Message Sent Successfully');
+        return $this->withMobContactDeprecationHeaders(
+            $this->responser([
+                'id' => $ticket->id,
+                'ticket_number' => $ticket->ticket_number,
+                'status' => $ticket->status,
+                'duplicate' => $result['duplicate'],
+            ], 'Contact Message Sent Successfully'),
+            $request
+        );
+    }
+
+    private function withMobContactDeprecationHeaders(JsonResponse $response, Request $request, bool $honeypotAccepted = false): JsonResponse
+    {
+        try {
+            $sunset = Carbon::parse((string) config('support.mobcontact_alias_sunset', '2026-12-31'))->toRfc7231String();
+        } catch (\Throwable) {
+            $sunset = Carbon::parse('2026-12-31')->toRfc7231String();
+        }
+        $replacementPath = (string) config('support.mobcontact_alias_replacement_path', '/api/support/ticket');
+        $replacementUrl = url($replacementPath);
+
+        Log::info('support.mobcontact.alias_used', [
+            'path' => $request->path(),
+            'ip' => $request->ip(),
+            'user_agent' => (string) $request->userAgent(),
+            'email_hash' => $this->normalizeAndHashEmail((string) ($request->input('email') ?? $request->input('SuppliedEmail') ?? '')),
+            'honeypot_accepted' => $honeypotAccepted,
+        ]);
+
+        return $response
+            ->header('Deprecation', 'true')
+            ->header('Sunset', $sunset)
+            ->header('Link', '<' . $replacementUrl . '>; rel="successor-version"');
+    }
+
+    private function normalizeAndHashEmail(string $email): ?string
+    {
+        $normalized = strtolower(trim($email));
+        if ($normalized === '') {
+            return null;
+        }
+
+        return hash('sha256', $normalized);
     }
 
     private function normalizePreRegisterPayload(array $payload): array

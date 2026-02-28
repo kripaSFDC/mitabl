@@ -20,9 +20,9 @@ class SupportTicketResource extends Resource
 {
     protected static ?string $model = SupportTicket::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-inbox-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-inbox-stack';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Customer Support';
+    protected static ?string $navigationGroup = 'Customer Support';
 
     protected static ?int $navigationSort = 10;
 
@@ -436,7 +436,7 @@ class SupportTicketResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return static::canView();
+        return static::canViewTickets();
     }
 
     public static function canCreate(): bool
@@ -454,7 +454,7 @@ class SupportTicketResource extends Resource
         return false;
     }
 
-    private static function canView(): bool
+    private static function canViewTickets(): bool
     {
         return (bool) Filament::auth()->user()?->can('support_tickets.view');
     }
@@ -474,3 +474,4 @@ class SupportTicketResource extends Resource
         return (bool) Filament::auth()->user()?->can('support_tickets.resolve');
     }
 }
+

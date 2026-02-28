@@ -22,7 +22,6 @@ use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 use App\Http\Resources\User\User as UserResource;
 use App\Traits\GoogleAddress;
-use App\Events\KitchenVerified;
 use App\Services\DiscoveryService;
 use App\Services\KitchenService;
 use App\Services\PaymentService;
@@ -253,14 +252,6 @@ class MikitchnController extends Controller
             }
             $msg = 'Kitchecn Updated succesfully.';
 
-            $kitchen = Auth::guard('api')->user()->restaurant;
-            $salesStatus = 'Activation Pending';
-            if ($kitchen->certificate && $kitchen->certificate->status) {
-                $salesStatus = 'Active';
-            }
-
-            $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
-            event(new KitchenVerified(Auth::guard('api')->user(),$kitchen,$kitchnAddress,$salesStatus));
             $this->kitchenService->invalidateDiscoveryCaches();
 
             if (!empty($delete_files)) {
@@ -333,10 +324,6 @@ class MikitchnController extends Controller
 
             $msg = 'Kitchen created succesfully.';
 
-            $kitchen = Mikitchn::find($mikitchn->id);
-
-            $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
-            event(new KitchenVerified(Auth::user(),$kitchen,$kitchnAddress,'Activation Pending'));
             $this->kitchenService->invalidateDiscoveryCaches();
 
         }
@@ -478,11 +465,9 @@ class MikitchnController extends Controller
         $response = Http::get($endpoint, $query);
         // print_r($response->failed()); die();
         $status = 1;
-        $salesStatus = 'Active';
         $msg = 'Certificate Added';
         if ($response->failed()) {
             $status = 0;
-            $salesStatus = 'Not Verified';
             $msg = 'Hold tight! We are reviewing your request';
         }
 
@@ -514,8 +499,6 @@ class MikitchnController extends Controller
 
             
 
-            $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
-            event(new KitchenVerified(Auth::user(),$kitchen,$kitchnAddress,$salesStatus));
             $this->kitchenService->invalidateDiscoveryCaches();
 
         } else {

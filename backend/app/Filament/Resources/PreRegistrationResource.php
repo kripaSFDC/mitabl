@@ -21,9 +21,9 @@ class PreRegistrationResource extends Resource
 {
     protected static ?string $model = PreRegistration::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-plus';
+    protected static ?string $navigationIcon = 'heroicon-o-user-plus';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Customer Support';
+    protected static ?string $navigationGroup = 'Customer Support';
 
     protected static ?int $navigationSort = 20;
 
@@ -228,3 +228,4 @@ class PreRegistrationResource extends Resource
         return (bool) Filament::auth()->user()?->can('pre_registrations.edit');
     }
 }
+

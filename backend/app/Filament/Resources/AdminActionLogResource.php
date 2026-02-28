@@ -15,9 +15,9 @@ class AdminActionLogResource extends Resource
 {
     protected static ?string $model = AdminActionLog::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Platform';
 
     protected static ?int $navigationSort = 50;
 
@@ -80,3 +80,4 @@ class AdminActionLogResource extends Resource
         return false;
     }
 }
+
