@@ -52,7 +52,17 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'role_id','first_name', 'last_name', 'email', 'password', 'phone','address',
+        'role_id',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'phone',
+        'address',
+        'suspended',
+        'suspension_reason',
+        'suspended_at',
+        'suspended_by',
     ];
 
     /**
@@ -62,6 +72,11 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password', 'remember_token',
+    ];
+
+    protected $casts = [
+        'suspended' => 'boolean',
+        'suspended_at' => 'datetime',
     ];
 
     public function getJWTIdentifier()
@@ -132,6 +147,11 @@ class User extends Authenticatable implements JWTSubject
 
     public function Token(){
         return $this->hasOne('App\Models\UserAuthToken');
+    }
+
+    public function suspendedBy()
+    {
+        return $this->belongsTo(AdminUser::class, 'suspended_by');
     }
 
     

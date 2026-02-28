@@ -8,6 +8,7 @@
         "php": "^8.2",
         "darkaonline/l5-swagger": "^10.1",
         "doctrine/dbal": "^3.3",
+        "filament/filament": "^3.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^12.1",
         "laravel/horizon": "^5.45",
@@ -15,6 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "owen-it/laravel-auditing": "^14.0",
         "overtrue/laravel-favorite": "^5.3",
+        "spatie/laravel-permission": "^6.7",
         "stripe/stripe-php": "^8.1",
         "tymon/jwt-auth": "^2.2"
     },
