@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Services\SupportTicketService;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class SupportTicketController extends Controller
@@ -29,6 +31,7 @@ class SupportTicketController extends Controller
             'order_id' => ['nullable', 'integer'],
             'mikitchn_id' => ['nullable', 'integer'],
             'captcha_token' => ['nullable', 'string'],
+            'g-recaptcha-response' => ['nullable', 'string'],
             $honeypotField => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -36,7 +39,7 @@ class SupportTicketController extends Controller
             return $this->responser(['accepted' => true], 'Contact Message Sent Successfully');
         }
 
-        $this->validateCaptchaToken($validated['captcha_token'] ?? null);
+        $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
 
         $result = $this->supportTicketService->createTicket([
             'requester_name' => $validated['requester_name'] ?? null,
@@ -164,16 +167,24 @@ class SupportTicketController extends Controller
             return;
         }
 
-        $response = \Illuminate\Support\Facades\Http::asForm()->post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            [
-                'secret' => $secret,
-                'response' => $captchaToken,
-            ]
-        )->json();
+        try {
+            $response = \Illuminate\Support\Facades\Http::asForm()->post(
+                'https://www.google.com/recaptcha/api/siteverify',
+                [
+                    'secret' => $secret,
+                    'response' => $captchaToken,
+                ]
+            )->json();
+        } catch (ConnectionException|\Throwable) {
+            throw ValidationException::withMessages([
+                'captcha_token' => [
+                    'Captcha verification is temporarily unavailable.',
+                ],
+            ])->status(422);
+        }
 
         if (! is_array($response) || ! ($response['success'] ?? false)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'captcha_token' => [
                     'Captcha verification failed.',
                 ],

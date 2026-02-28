@@ -6,10 +6,13 @@ use App\Models\PreRegistration;
 use App\Models\SupportTicket;
 use App\Services\PreRegistrationService;
 use App\Services\SupportTicketService;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WebApiToCurlController extends Controller
@@ -43,12 +46,16 @@ class WebApiToCurlController extends Controller
             'city' => ['nullable', 'string', 'max:120'],
             '00N5i000006uZtT' => ['nullable', 'string', 'max:120'],
             'consent_to_contact' => ['nullable', 'boolean'],
+            'captcha_token' => ['nullable', 'string'],
+            'g-recaptcha-response' => ['nullable', 'string'],
             $honeypotField => ['nullable', 'string', 'max:255'],
         ]);
 
         if (! empty($validated[$honeypotField] ?? null)) {
             return $this->responser(['accepted' => true], 'Your Registration Created Successfully');
         }
+
+        $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
 
         $result = $this->preRegistrationService->create([
             'first_name' => $normalized['FirstName'] ?? null,
@@ -97,6 +104,8 @@ class WebApiToCurlController extends Controller
             '00N5i000009zQqb' => ['nullable', 'integer'],
             '00N5i000009zQxr' => ['nullable', 'integer'],
             '00N5i000006ubH5' => ['nullable', 'integer'],
+            'captcha_token' => ['nullable', 'string'],
+            'g-recaptcha-response' => ['nullable', 'string'],
             $honeypotField => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -107,6 +116,8 @@ class WebApiToCurlController extends Controller
                 true
             );
         }
+
+        $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
 
         $category = $normalized['Type'] ?? ($normalized['mitabl_Case_For__c'] ?? 'general');
         $source = 'mobcontact_api';
@@ -172,6 +183,35 @@ class WebApiToCurlController extends Controller
         }
 
         return hash('sha256', $normalized);
+    }
+
+    private function validateCaptchaToken(?string $captchaToken): void
+    {
+        $secret = (string) config('services.recaptcha.secret');
+        if ($secret === '' || ! $captchaToken) {
+            return;
+        }
+
+        try {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $secret,
+                'response' => $captchaToken,
+            ])->json();
+        } catch (ConnectionException|\Throwable) {
+            throw ValidationException::withMessages([
+                'captcha_token' => [
+                    'Captcha verification is temporarily unavailable.',
+                ],
+            ])->status(422);
+        }
+
+        if (! is_array($response) || ! ($response['success'] ?? false)) {
+            throw ValidationException::withMessages([
+                'captcha_token' => [
+                    'Captcha verification failed.',
+                ],
+            ])->status(422);
+        }
     }
 
     private function normalizePreRegisterPayload(array $payload): array

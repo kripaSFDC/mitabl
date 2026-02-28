@@ -101,7 +101,7 @@ Run deployment in 3 stages:
 
 1. Pre-deploy:
    - run additive-safe migrations only
-   - verify `queue:work` active and no failed migration lock
+   - verify Horizon workers are active and no failed migration lock
    - keep `RUN_MIGRATIONS_ON_BOOT=false` and `RUN_SEEDERS_ON_BOOT=false` in runtime env
 2. Deploy:
    - roll API/admin first, keep workers running

@@ -90,7 +90,7 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
         $this->assertStringContainsString('- ./environments/marketing-web.env', $phase0Compose);
         $this->assertStringContainsString('- ./environments/ops-admin.env', $phase0Compose);
         $this->assertStringNotContainsString('./deploy/environments/', $phase0Compose);
-        $this->assertStringContainsString('--queue=crm-escalations,crm-communications,default', $phase0Compose);
+        $this->assertStringContainsString('"php", "artisan", "horizon"', $phase0Compose);
         $this->assertStringContainsString('location /admin/', $nginxConfig);
         $this->assertStringContainsString('location /api/', $nginxConfig);
         $this->assertStringContainsString('Strict-Transport-Security', $nginxConfig);
@@ -132,7 +132,7 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
 
         $this->assertStringContainsString("public string \$queue = 'crm-escalations';", $slaJob);
         $this->assertStringContainsString("->onQueue('crm-communications')", $crmService);
-        $this->assertStringContainsString('--queue=crm-escalations,crm-communications,default', $supervisor);
+        $this->assertStringContainsString('command=php /app/artisan horizon', $supervisor);
     }
 
     public function test_mobcontact_alias_includes_deprecation_headers_and_redacted_log_context(): void

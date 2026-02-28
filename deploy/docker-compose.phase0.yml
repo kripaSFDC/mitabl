@@ -88,17 +88,17 @@ services:
       dockerfile: Dockerfile
     labels:
       com.mitabl.service: api
-    command: ["php", "artisan", "queue:work", "redis", "--queue=crm-escalations,crm-communications,default", "--sleep=1", "--tries=3", "--max-time=3600"]
+    command: ["php", "artisan", "horizon"]
     env_file:
       - ./environments/backend-api.env
     healthcheck:
-      test: ["CMD-SHELL", "tr '\\0' ' ' < /proc/1/cmdline | grep -q \"queue:work\""]
+      test: ["CMD-SHELL", "tr '\\0' ' ' < /proc/1/cmdline | grep -q \"artisan horizon\""]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
     deploy:
-      replicas: 1
+      replicas: 2
       restart_policy:
         condition: on-failure
       resources:
