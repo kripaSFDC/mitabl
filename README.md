@@ -1,563 +1,453 @@
 # mitabl
 
-**mitabl** is a marketplace platform that revolutionises home cooking by connecting foodies (customers) with home cooks who operate virtual kitchens ("miKitchens"). Customers can discover nearby home-cooked meals, book time slots, order food, and pay securely while cooks manage their kitchen profile, menu, bookings, and earnings from a single app.
+**mitabl** is a home-cooked food marketplace platform that connects **Foodies** (customers) with **Cooks** operating virtual kitchens (**miKitchens**). The codebase is a mono-repo containing:
 
+- A Laravel backend API and operations console.
+- A Flutter mobile app serving both Foodie and Cook journeys.
+- A Laravel marketing website and intake proxy endpoints.
+- Deployment manifests, operational scripts, and runbooks.
 
+This document is intentionally detailed and aligned to the **current codebase state**.
 
 ---
 
-## Repository Structure
+## Table of Contents
 
-```
+1. [Platform Summary](#1-platform-summary)
+2. [Mono-Repo Structure](#2-mono-repo-structure)
+3. [Backend (`backend/`) Deep Dive](#3-backend-backend-deep-dive)
+4. [Mobile App (`mobile-app/`) Deep Dive](#4-mobile-app-mobile-app-deep-dive)
+5. [Marketing Website (`website/`) Deep Dive](#5-marketing-website-website-deep-dive)
+6. [CRM + Support Operations](#6-crm--support-operations)
+7. [Platform Admin (Filament) Features](#7-platform-admin-filament-features)
+8. [Personas and RBAC Profiles](#8-personas-and-rbac-profiles)
+9. [ACCESS MATRIX (Current State)](#9-access-matrix-current-state)
+10. [Data Model and Domain Highlights](#10-data-model-and-domain-highlights)
+11. [Local Development Setup](#11-local-development-setup)
+12. [CI/CD and Quality Gates](#12-cicd-and-quality-gates)
+13. [Security, Secrets and Operational Notes](#13-security-secrets-and-operational-notes)
+
+---
+
+## 1) Platform Summary
+
+### What mitabl enables
+
+- **Foodies** can discover kitchens, browse menu items, place orders, manage payments/cards, and leave reviews.
+- **Cooks** can onboard as miKitchen operators, manage profiles and menu, receive bookings/orders, and handle fulfillment status updates.
+- **Operations/Admin teams** can use a Filament admin console for certificate review, customer support, pre-registrations, order interventions, payments visibility, policy governance, queue/health operations, and IAM controls.
+- **CRM intake** supports pre-registration and support-ticket workflows with event/message tracking.
+
+### High-level runtime topology
+
+- Mobile app -> Backend API (`backend/routes/api.php`)
+- Website public forms -> Website API proxy -> Backend intake APIs
+- Admin operators -> Filament panel in backend (`/admin` by default)
+- MySQL datastore + queue/Horizon-backed async operations
+
+---
+
+## 2) Mono-Repo Structure
+
+```text
 mitabl/
-├── backend/        # Laravel REST API :  core business logic and mobile API
-├── mobile-app/     # Flutter cross-platform app : iOS & Android for foodies and cooks
-└── website/        # Laravel marketing website : public-facing web presence
+├── backend/                      # Laravel API + Filament admin + business services
+├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
+├── website/                      # Laravel marketing web and intake forwarding APIs
+├── deploy/                       # Docker, env templates, nginx/supervisor, load tests
+├── docs/                         # SOPs, validation reports, secrets management docs
+├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
+└── docker-compose.yml            # Full-stack local orchestration
 ```
+
+### Additional important folders
+
+- `deploy/environments/{dev,staging,prod}`: app-specific environment templates.
+- `deploy/load-tests`: k6 performance scripts for support intake and admin list pages.
+- `deploy/nginx`: reverse-proxy configuration.
+- `deploy/supervisor`: queue worker supervision config.
+- `docs/`: CRM playbook, legacy cutover validation, and secret-handling guidance.
 
 ---
 
-## 1. `backend/`  REST API Server
+## 3) Backend (`backend/`) Deep Dive
 
-### Functional Overview
+### Core stack
 
-The backend is the central engine of the mitabl platform. It exposes a JSON REST API consumed by the mobile app (and proxies used by the marketing site). It handles all business logic including user registration and authentication (with OTP verification), kitchen (miKitchen) profile management, food menu CRUD, order lifecycle management (request → accept → complete → pay out), Stripe payment processing, review and rating collection, push notifications, support ticket intake and SLA workflows, and internal CRM operations/admin modules. Health‑check endpoints (`/api/health*`) and a SystemHealthService are provided for container liveness/readiness.
+| Layer | Current stack |
+|---|---|
+| Language | PHP 8.2 |
+| Framework | Laravel 12 |
+| API Auth | JWT (`tymon/jwt-auth`) + Sanctum package present |
+| Admin Console | Filament 3 |
+| Authorization | `spatie/laravel-permission` |
+| Auditing | `owen-it/laravel-auditing` |
+| Payments | Stripe (`stripe/stripe-php`) |
+| API docs | L5 Swagger |
+| Queue monitoring | Horizon |
+| Tests | PHPUnit 11 |
 
-### Tech Stack
+### API surface overview
 
-| Layer              | Technology                                           |
-| ------------------ | ---------------------------------------------------- |
-| Language           | PHP 8.2+                                             |
-| Framework          | Laravel 12                                           |
-| Authentication     | JWT (`tymon/jwt-auth` v2.2) & optional Sanctum      |
-| Payments           | Stripe SDK (`stripe/stripe-php` v16) + Stripe Connect |
-| API Documentation  | Swagger / OpenAPI (`darkaonline/l5-swagger` v10)     |
-| CORS               | `fruitcake/laravel-cors`                             |
-| Favourites         | `overtrue/laravel-favorite` v5                      |
-| Authorization      | `spatie/laravel-permission`                         |
-| Auditing           | `owen-it/laravel-auditing`                          |
-| ORM                | Laravel Eloquent                                     |
-| Database           | MySQL (via `pdo_mysql`), Doctrine DBAL for migrations |
-| HTTP Client        | Guzzle 7                                             |
-| Queue / Events     | Laravel Queues/Horizon, Events, Listeners            |
-| Job Monitoring     | Laravel Horizon                                      |
-| Push Notifications | Firebase Cloud Messaging (FCM)                       |
-| Container          | Docker (PHP 8.2‑FPM image)                           |
-| Testing            | PHPUnit 11                                           |
+`backend/routes/api.php` includes:
 
-### Architecture
+- **Health endpoints**: `/health`, `/health/live`, `/health/startup`, `/health/ready`.
+- **Public endpoints**: login/register/OTP/password-reset, preregistration, support ticket create/reply/read.
+- **Authenticated v1 group** with middleware: `auth:api` + `api.user.active`.
+- **Role-gated route groups**:
+  - `customer` middleware: discovery, favorites, ordering, customer payments, customer reviews.
+  - `restaurant` middleware: kitchen/profile/menu management, incoming order handling, cook-side operations.
 
-The backend follows the standard **Laravel MVC** pattern with an additional Resource layer for API response shaping.  Health routes and a `SystemHealthService` provide liveness/readiness probes used by Kubernetes/containers.
+### Key backend modules
 
-```
-routes/api.php
-    ├── health*                  # /health, /health/live, /health/ready, /health/startup
-    └── Middleware (JwtMiddleware, Customer, Restaurant, api.user.active)
-        └── Http/Controllers/Api/
-            ├── User/UserController          # Auth, profile, Stripe account
-            ├── MikitchnController           # Kitchen profile, dashboard, search
-            ├── FoodsController              # Menu item CRUD
-            ├── OrderController              # Full order lifecycle
-            ├── PaymentController            # Stripe payment helpers
-            ├── SupportTicketController      # Public support ticket API
-            ├── ReviewController             # Reviews ↔ foodies & cooks
-            ├── FavoriteController           # Favourite kitchens
-            ├── FcmController                # Push notification retrieval
-            ├── ForgotPasswordController     # Password reset flow
-            ├── WebApiToCurlController       # Pre‑registration proxy
-            └── ... (other utility controllers)
-```
+1. **Identity & account lifecycle**
+   - User auth, OTP verification, password reset, profile updates, device token updates.
+2. **Kitchen management**
+   - miKitchen profile creation/editing, certificates, timings, open/close toggles, dashboard data.
+3. **Menu and discovery**
+   - Food CRUD, availability toggles, nearest/top-rated/recommended/filter endpoints.
+4. **Orders**
+   - Order creation, status updates, booked date/time validation, order detail retrieval, customer/cook order views.
+5. **Payments and payout flows**
+   - Card add/list, payment intents, checkout session support, transfer/refund admin actions.
+6. **Support/CRM intake**
+   - Pre-registration and support ticket API endpoints and associated domain models.
+7. **Notifications and reviews**
+   - Notification feed retrieval and bi-directional review flows.
 
-**Middleware roles:**
+### Admin/API boundary hardening
 
-- `JwtMiddleware`  validates JWT token on every authenticated route
-- `Customer`  gates routes to foodie users only
-- `Restaurant`  gates routes to kitchen operator users only
-- `api.user.active`  blocks disabled users
-
-**API response shaping** uses Laravel API Resources (`Http/Resources/`) split into `User/`, `Restaurant/`, `Order/`, and `Reviews/` namespaces to keep response contracts clean.
-
-### Key Functional Components
-
-#### Authentication & Users (`User` model, `UserController`)
-
-- OTP-based phone/email verification at registration (`verify_otps` table)
-- JWT token issuance/refresh/logout, optional Laravel Sanctum support
-- Dual-role accounts: a user can be both a **Foodie** (customer) and a **Cook** (kitchen operator) and switch between roles (`becomecook` / `becomefoodie` endpoints)
-- Device token management for FCM push messages
-- Password reset via email link
-- Role/permission management via Spatie package
-
-#### miKitchen Profiles (`Mikitchn` model, `MikitchnController`)
-
-- Cooks create a kitchen profile with name, address, images, cooking styles, special diets, opening hours (`Timing` model), and dine‑in availability
-- Kitchen availability toggle (`updateopenmikitchen`)
-- Certificate upload & ABN/GST fields with local approval workflows
-- Dashboard data endpoint aggregating revenue, order counts, and ratings
-
-#### Food Menu (`Foods` model, `FoodsController`)
-
-- Cooks add/edit/delete menu items with images, price, and availability status
-- Customers retrieve paginated menus per kitchen
-
-#### Order Lifecycle (`Order`, `OrderData`, `CompletedOrder` models, `OrderController`)
-
-- Foodies create an order with a selected date/time slot
-- `getBookedDates` / `checkBookedTimeByDate` prevent double‑booking
-- Status machine: `requested → accepted/rejected → completed`
-- Promo code validation (`PromoCode` model) with discounted‑user tracking
-- Completed orders archived to `completed_orders` table
-
-#### Payments (`Payment`, `Transfer`, `Refund`, `Card`, `StripeAccount`, `StripeBankAccount` models)
-
-- Stripe Connect: cooks onboard via the Connect OAuth flow (`onboardingLink`)
-- Customers pay via Stripe Payment Intents or Checkout sessions
-- Funds held on platform; payout to cook via `transfertovendor`
-- Full refund endpoint with `Refund` tracking
-- Top‑up capability for platform wallet
-- Card management (add/list cards per customer)
-
-#### Support & Contact (`SupportTicket` models, `SupportTicketController`)
-
-- Public ticket API accepts enquiries from mobile/web (creates `support_tickets`, `support_ticket_messages`, attachments, events)
-- Guests can create tickets and follow up via token or authenticated user
-- Replies, categories, priorities, SLA escalation commands
-- `WebApiToCurlController` handles preregistration intake from public forms
-
-#### Health Checks
-
-- Simple `/api/health` plaintext ping
-- `/api/health/live`, `/api/health/startup` for container probes
-- `/api/health/ready` runs `SystemHealthService` checks (DB, cache, queue, external integrations) and returns 503 on failures
-
-#### Notifications (`FcmController`, `Mail/`, `Notifications/`)
-
-- Firebase FCM push notifications for new orders, kitchen verification, and order status changes
-- Email notifications: OTP, registration welcome, password reset, invoice, refund invoice, kitchen activation, account deletion confirmation, support ticket replies/escalations
-- In‑app notification feed (stored in `notifications` table)
-
-#### Reviews & Ratings (`Review` model, `ReviewController`)
-
-- Foodies leave reviews on kitchens (linked to a completed order)
-- Cooks leave reviews on foodies
-- Reviews stored with `by_user` flag to distinguish direction
-
-#### Favourites (`Favorite` model, `FavoriteController`)
-
-- Toggle and list favourite kitchens per user (polymorphic via `overtrue/laravel-favorite`)
-
-#### Discovery & Search (`MikitchnController`)
-
-- `nearestRestaurant`  geo‑proximity search
-- `topRatedRestaurant`  sorted by aggregated review scores
-- `recommendedRestaurant`  personalised recommendation feed
-- `filterRestaurant`  filter by cooking style, special diet, etc.
-
-#### CRM and Admin Operations (Post‑Cutover)
-
-- Support/lead intake uses `/api/preregister` and `/api/support/ticket` with local persistence.
-- Internal approval, SLA dashboards, user and ticket management are served through Filament 3 admin modules.
-
-### ACCESS MATRIX
-Strict Permission Matrix (Role Table)
-Legend: SA=super_admin, PA=platform_admin, OP=operations, CS=customer_service, FR=finance_readonly
-
-Permission	SA	PA	OP	CS	FR
-dashboard.view	✓	✓	✓	✓	✓
-certificates.view	✓	—	✓	—	—
-certificates.review	✓	—	✓	—	—
-users.view	✓	—	✓	✓	—
-users.edit	✓	—	—	—	—
-users.suspend	✓	—	—	—	—
-kitchens.view	✓	—	✓	—	—
-kitchens.edit	✓	—	✓	—	—
-orders.view	✓	—	✓	✓	✓
-orders.override_status	✓	—	✓	✓	—
-orders.refund	✓	—	—	—	—
-support_tickets.view	✓	—	✓	✓	—
-support_tickets.create	✓	—	—	✓	—
-support_tickets.assign	✓	—	✓	✓	—
-support_tickets.respond	✓	—	✓	✓	—
-support_tickets.resolve	✓	—	✓	✓	—
-pre_registrations.view	✓	—	✓	✓	—
-pre_registrations.edit	✓	—	✓	✓	—
-promo_codes.view	✓	—	✓	—	—
-promo_codes.edit	✓	—	✓	—	—
-payments.view	✓	—	—	—	✓
-platform_settings.view	✓	✓	—	—	—
-platform_settings.edit	✓	✓	—	—	—
-policies.view	✓	✓	—	—	—
-policies.edit	✓	✓	—	—	—
-policy_changes.publish	✓	✓	—	—	—
-queue_ops.view	✓	✓	—	—	—
-queue_ops.manage	✓	✓	—	—	—
-health.view	✓	✓	—	—	—
-audit_logs.view	✓	✓	—	—	✓
-iam.manage	✓	—	—	—	—
-
-#### Permission-to-Filament surface mapping
-
-dashboard.view: dashboard widgets including CRM/live/integration/SLA/charts.
-certificates.view/review: CertificateResource.php
-users.view/edit/suspend: UserResource.php
-kitchens.view/edit: MikitchnResource.php
-orders.view/override_status/refund: OrderResource.php
-support_tickets.*: SupportTicketResource.php
-pre_registrations.*: PreRegistrationResource.php
-promo_codes.*: PromoCodeResource.php
-payments.view: PaymentResource.php
-platform_settings.*: PlatformSettingsPage.php
-policies.* + policy_changes.publish: PolicyResource.php
-queue_ops.*: QueueOpsPage.php
-health.view: SystemHealthPage.php, SystemHealthSummaryWidget.php
-audit_logs.view: AdminActionLogResource.php
-iam.manage: SecurityAdminPage.php
-
-### Database Schema Highlights
-
-60+ migrations covering: `users`, `roles`, `verify_otps`, `mikitchns`, `foods`, `cooking_styles`, `special_diets`, `timings`, `images`, `certificates`, `orders`, `order_data`, `completed_orders`, `promo_codes`, `payments`, `transfers`, `refunds`, `cards`, `stripe_accounts`, `stripe_bank_accounts`, `reviews`, `favorites`, `notifications`, `cancel_reasons`, `partners`, `user_auth_tokens`, plus support ticket tables (`support_tickets`, `support_ticket_messages`, `support_ticket_events`, `support_ticket_attachments`).
-
-### Setup
-
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret        # or configure sanctum cookies
-php artisan migrate --force
-php artisan db:seed
-php artisan optimize:clear
-composer dump-autoload
-# Permissions
-chmod -R 777 storage bootstrap public
-# Run locally
-php artisan serve   # localhost:8000
-# or start workers/horizon in background
-php artisan horizon
-php artisan queue:work
-```
-
-**Docker:**
-
-```bash
-docker build -t mitabl-backend .
-docker run -p 8000:8000 \
-    --health-cmd="curl --fail http://localhost/health || exit 1" \
-    mitabl-backend
-```
+`EnsureApiUserIsActive` enforces:
+- Suspended API users are denied.
+- Admin identities (role_id 1 path) are denied on API guard and instructed to use web admin login.
 
 ---
+
+## 4) Mobile App (`mobile-app/`) Deep Dive
+
+The Flutter app is a **single binary** with dual marketplace experiences.
+
+### Architecture and module layout
+
+```text
+mobile-app/lib/
+├── main.dart                     # entrypoint
+├── app.dart                      # app setup, theme, providers
+├── route_generator.dart          # named route wiring
+├── auth_bloc/authentication/     # authentication state machine
+├── repos/                        # repository abstraction for API calls
+├── model/                        # data models/DTOs
+├── pages/                        # Foodie-facing feature set
+└── pages_cook/                   # Cook-facing feature set
+```
+
+### Foodie feature areas (`lib/pages`)
+
+- Landing and role selection UX.
+- Login, signup, OTP, forgot-password flows.
+- Home/discovery views and kitchen exploration.
+- Foodie profile and profile editing.
+- Cook onboarding handoff entry (`profile_signup_cook`) for users converting to Cook flow.
+
+### Cook feature areas (`lib/pages_cook`)
+
+- Dashboard with business/booking context.
+- Kitchen profile editing and public profile management.
+- Menu management (list, add/edit item, detail pages).
+- Incoming requests and bookings (current + upcoming).
+- Customer detail view and received review context.
+- Settings and account-level controls.
+
+### Mobile dependency highlights
+
+- State: `flutter_bloc`, `equatable`, `formz`.
+- Storage/config: `shared_preferences`, `global_configuration`, `path_provider`.
+- UI/media: `flutter_svg`, `google_fonts`, `cached_network_image`, `carousel_slider`, `image_picker`.
+- Input/UX helpers: `pinput`, `fluttertoast`, `flutter_switch`, `flutter_rating_bar`.
+- Integrations: `url_launcher`, `intl`.
+
+### Mobile capabilities summary
+
+- Supports both personas (Foodie/Cook) without app switching.
+- Centralized auth lifecycle and API repository layer simplify feature additions.
+- Structured pages split keeps customer and operator experiences independently evolvable.
+
 ---
 
-## 2. `mobile-app/`  Flutter Mobile App
+## 5) Marketing Website (`website/`) Deep Dive
 
-### Functional Overview
+### Responsibilities
 
-A cross-platform Flutter application (iOS + Android) that serves both **Foodies** (customers discovering and ordering home-cooked meals) and **Cooks** (home kitchen operators managing their business). The app provides two distinct UX flows within a single binary, switchable at the account level.
+- Serves public marketing pages and legal pages (`home/about/register/contact/privacy/terms`).
+- Exposes a simple health endpoint (`/health`).
+- Provides intake API forwarding endpoints:
+  - `POST /api/preregister`
+  - `POST /api/support/ticket`
 
-### Tech Stack
+### Intake forwarding behavior
 
-| Layer            | Technology                        |
-| ---------------- | --------------------------------- |
-| Language         | Dart (SDK ≥3.3)                   |
-| Framework        | Flutter 3.x                       |
-| State Management | BLoC / Cubit (`flutter_bloc` v8+) |
-| Value Equality   | `equatable` v2                   |
-| Config           | `global_configuration`           |
-| Local Storage    | `shared_preferences` v2          |
-| File Access      | `path_provider` v2               |
-| Fonts            | `google_fonts` v2.3.2            |
-| Form Validation  | `formz` v0.4                     |
-| SVG Rendering    | `flutter_svg` v1                 |
-| Toast Messages   | `fluttertoast` v8                |
-| Image Picking    | `image_picker` v0.8              |
-| Network Images   | `cached_network_image` v3        |
-| OTP Input        | `pinput` v2                      |
-| Rating Widget    | `flutter_rating_bar` v4          |
-| Carousel         | `carousel_slider` v4             |
-| Toggles          | `flutter_switch` v0.3            |
-| Date/Time        | `intl` v0.17                     |
-| URL Handling     | `url_launcher` v6                |
-| Target Platforms | iOS, Android                     |
+`App\Http\Controllers\Api\WebApiToCurlController`:
+- Reads backend API base URL from config.
+- Forwards payloads to backend intake endpoints.
+- Handles upstream timeout/unavailability with a graceful 503 JSON envelope.
+- Forwards selected deprecation/sunset headers when present.
 
-### Architecture
+### Website role in platform architecture
 
-The app follows a **BLoC (Business Logic Component)** pattern with a clean separation of layers:
+- Public acquisition surface (landing/contact/register).
+- Thin proxy facade for intake continuity and endpoint abstraction.
 
-```
-lib/
-├── main.dart                  # App entry point, global config injection
-├── app.dart                   # MaterialApp, theme, BLoC providers
-├── splash.dart                # Splash screen
-├── route_generator.dart       # Centralised named-route factory
-│
-├── auth_bloc/                 # Global authentication BLoC (token lifecycle)
-│   └── authentication/
-│
-├── model/                     # Pure Dart data models (API response DTOs)
-│
-├── repos/                     # Repository layer  all API calls abstracted
-│   ├── authentication_repository.dart
-│   ├── home_repository.dart
-│   ├── cook_repository.dart
-│   ├── bookings_repository.dart
-│   └── user_repository.dart
-│
-├── helper/                    # Shared utilities (route args, etc.)
-│
-├── pages/                     # Foodie (customer) screens
-│   ├── landing_page/          # App entry / role selector
-│   ├── login/                 # Login with JWT
-│   ├── signup/                # Registration
-│   ├── otp/                   # OTP verification
-│   ├── forgot/                # Forgot password
-│   ├── home/                  # Main discovery feed
-│   ├── profile_foodie/        # Foodie public profile
-│   ├── edit_profile_foodie/   # Edit foodie profile
-│   └── profile_signup_cook/   # Cook profile onboarding
-│
-└── pages_cook/                # Cook (kitchen operator) screens
-    ├── dashboard_cook/        # Revenue & stats dashboard
-    ├── home_page/             # Cook home
-    ├── menu/                  # Full menu list
-    ├── menu_detail/           # Single item detail
-    ├── add_menu_item/         # Add / edit menu item
-    ├── edit_kitchen_profile/  # Edit miKitchen profile
-    ├── edit_profile_cook/     # Edit cook personal profile
-    ├── profile_cook/          # Cook public profile
-    ├── requests/              # Incoming order requests
-    ├── bookings/              # All bookings history
-    ├── upcoming_bookings/     # Upcoming confirmed bookings
-    ├── customer_reviews/      # Reviews left by foodies
-    ├── user_details_page/     # Customer detail for a booking
-    └── settings_page/         # Notification toggles, logout, etc.
-```
+---
 
-### Key Functional Components
+## 6) CRM + Support Operations
 
-#### Global Auth BLoC (`auth_bloc/`)
+The current CRM footprint is fully represented in this repository via backend models/resources, plus runbooks in `docs/`.
 
-Manages the JWT authentication state across the entire app. Persists tokens via `shared_preferences` and drives navigation between authenticated and unauthenticated states.
+### CRM capabilities implemented
 
-#### Repository Layer (`repos/`)
+- **Lead intake**: pre-registration records with admin triage/edit workflows.
+- **Support intake**: support tickets with threaded messages/events/attachments.
+- **Ops workflows**: assignment, response, resolution status progression.
+- **SLA/operations visibility**: dashboard widgets and list views in admin.
+- **Auditability**: action logs and auditable resources.
 
-Explanation: Replace root README with a consolidated, enterprise-style README that matches the current repository contents and developer workflows.
+### Operational documentation present
 
-# mitabl — Enterprise Overview
+- `docs/crm_playbook_and_training.md`: SOPs for customer service and operations.
+- `docs/legacy_crm_eradication_validation.md`: cutover parity, compatibility, and validation guardrails.
+- `docs/secrets-management.md`: secrets handling and verification checklist.
 
-This repository contains the mitabl platform: a production-grade marketplace connecting home cooks (miKitchens) and customers (Foodies). It comprises three primary projects maintained in a single mono-repo:
+---
 
-- `backend/` — Laravel 12 REST API (core business logic, admin, and mobile API).
-- `mobile-app/` — Flutter cross-platform mobile application (iOS & Android).
-- `website/` — Laravel marketing/landing site used for acquisition and public content.
+## 7) Platform Admin (Filament) Features
 
-Additional folders include deployment, documentation, Nginx configs, and automation scripts.
+Backend ships a dedicated Filament panel provider with grouped navigation and permission-gated resources/pages/widgets.
 
-This README is an up-to-date enterprise-level reference for developers, SREs, and integrators. It documents architecture, technology choices, developer workflows, common environment variables, deployment notes, and troubleshooting tips. It does not attempt to list removed or deprecated features except when necessary for context.
+### Admin resources
 
---
+- `UserResource`
+- `MikitchnResource`
+- `OrderResource`
+- `SupportTicketResource`
+- `PreRegistrationResource`
+- `CertificateResource`
+- `PromoCodeResource`
+- `PaymentResource`
+- `PolicyResource`
+- `TemplateResource`
+- `AdminActionLogResource`
+- `AuditLogResource`
 
-**Repository layout (top-level)**
+### Admin pages
 
-```
-mitabl/
-├── backend/        # Laravel API + Filament admin
-├── mobile-app/     # Flutter app (Foodie + Cook flows)
-├── website/        # Marketing/landing Laravel app
-├── deploy/         # Compose files, environment and deployment helpers
-├── docs/           # Operational runbooks, playbooks, release artifacts
-├── load-tests/     # Load testing scripts and scenarios
-├── nginx/          # Nginx configurations used in deployments
-└── docker-compose.yml
-```
+- `PlatformSettingsPage`
+- `SystemHealthPage`
+- `QueueOpsPage`
+- `IntegrationLogsPage`
+- `SecurityAdminPage`
 
-**Primary contacts & governance**
-- Platform owner: see `docs/` for contact and runbook ownership.
-- Security: report to the security contact in `docs/secrets-management.md`.
+### Dashboard/ops widgets
 
---
+- Live operations and operational snapshot widgets.
+- SLA health, CRM queue stats, aging buckets.
+- Integration health and system health summary.
+- Order and registration trend charts.
 
-**High-level architecture**
+### Governance and risk controls
 
-- Backend: Laravel 12 REST API (PHP 8.2+) — business logic, auth, payments, notifications, admin (Filament).
-- Mobile App: Flutter (Dart >=3.3) — single binary handling both Foodie and Cook experiences via role switch.
-- Website: Laravel-based marketing site — form capture, legal pages, and light integrations to backend API.
-- Data: MySQL (migrations in backend/database/migrations).
-- External services: Stripe (Payments & Connect), Firebase FCM (push notifications), optional Filament admin UI for operations.
+- Permission-enforced access checks via role/permission mapping.
+- Step-up confirmation patterns for high-risk actions (status overrides/refunds/publishing policies).
+- IAM management constrained to super-admin permission path.
 
---
+---
 
-**Quick links**
-- API routes: [backend/routes/api.php](backend/routes/api.php)
-- Website routes: [website/routes/web.php](website/routes/web.php)
-- Mobile entry: [mobile-app/lib/main.dart](mobile-app/lib/main.dart)
-- Docker compose: [docker-compose.yml](docker-compose.yml)
-- Docs folder: [docs](docs)
+## 8) Personas and RBAC Profiles
 
---
+### Product personas
 
-**Technology summary**
+1. **Guest**
+   - Unauthenticated public website access.
+   - Can invoke public API endpoints such as login/register/preregister/support create.
+2. **Foodie (customer)**
+   - Authorized through `customer` middleware.
+   - Discovery, favorites, order placement, payment, and customer-side reviews.
+3. **Cook (restaurant operator)**
+   - Authorized through `restaurant` middleware.
+   - Kitchen/menu management, incoming orders, onboarding and fulfillment operations.
+4. **Suspended API user**
+   - Blocked by `api.user.active` middleware.
+5. **Admin identity on API**
+   - Blocked from API operations and directed to web admin panel.
 
-- Backend: PHP 8.2, Laravel 12, JWT auth (`tymon/jwt-auth`), Filament admin, Horizon, Doctrine DBAL, L5-Swagger.
-- Website: Laravel 12, Blade views, `laravel/cashier` for Stripe-related flows.
-- Mobile: Flutter 3.x (Dart 3.3+), BLoC pattern, commonly used packages listed in `mobile-app/pubspec.yaml`.
-- Containers: Docker, a multi-service compose is provided at repository root.
+### Admin personas (`admin` guard roles)
 
---
+1. **super_admin**
+   - Full platform permissions across operations, finance actions, platform governance, IAM.
+2. **platform_admin**
+   - Platform governance and control-plane permissions (settings, policy/template governance, queue/health/integration/audit visibility).
+3. **operations**
+   - Operational management of kitchens/certificates/orders/promo/pre-registration/support.
+4. **customer_service**
+   - Customer and support ticket handling with order/user visibility and ticket operations.
+5. **finance_readonly**
+   - Read-only finance/order observability and audit visibility.
 
-**What’s in `backend/` (developer summary)**
+---
 
-- API surface for mobile and website integrations. Implements authentication (OTP + JWT), dual-role user model (Foodie / Cook), miKitchen profile management, menu CRUD, booking/order lifecycle, promo codes, Stripe Connect payouts, refunds, support ticketing, reviews, favourites, and health endpoints.
-- Admin UX built with Filament (resources and pages for managing users, kitchens, orders, support tickets, certificates, and policy changes).
-- Health endpoints for readiness/liveness: `/api/health`, `/api/health/live`, `/api/health/ready`, `/api/health/startup`.
+## 9) ACCESS MATRIX (Current State)
 
-See `backend/composer.json` for the dependency list and `backend/README.md` for any module-specific notes.
+Source of truth: `backend/database/seeders/AdminRolePermissionSeeder.php`.
 
---
+Legend: ✅ assigned, — not assigned.
 
-Getting started — Development (local)
+| Permission | super_admin | platform_admin | operations | customer_service | finance_readonly |
+|---|---:|---:|---:|---:|---:|
+| dashboard.view | ✅ | ✅ | ✅ | ✅ | ✅ |
+| certificates.view | ✅ | — | ✅ | — | — |
+| certificates.review | ✅ | — | ✅ | — | — |
+| users.view | ✅ | — | ✅ | ✅ | — |
+| users.edit | ✅ | — | — | — | — |
+| users.suspend | ✅ | — | — | — | — |
+| kitchens.view | ✅ | — | ✅ | — | — |
+| kitchens.edit | ✅ | — | ✅ | — | — |
+| orders.view | ✅ | — | ✅ | ✅ | ✅ |
+| orders.override_status | ✅ | — | ✅ | ✅ | — |
+| orders.refund | ✅ | — | — | — | — |
+| support_tickets.view | ✅ | — | ✅ | ✅ | — |
+| support_tickets.create | ✅ | — | — | ✅ | — |
+| support_tickets.assign | ✅ | — | ✅ | ✅ | — |
+| support_tickets.respond | ✅ | — | ✅ | ✅ | — |
+| support_tickets.resolve | ✅ | — | ✅ | ✅ | — |
+| pre_registrations.view | ✅ | — | ✅ | ✅ | — |
+| pre_registrations.edit | ✅ | — | ✅ | ✅ | — |
+| promo_codes.view | ✅ | — | ✅ | — | — |
+| promo_codes.edit | ✅ | — | ✅ | — | — |
+| payments.view | ✅ | — | — | — | ✅ |
+| payments.refund | ✅ | — | — | — | — |
+| platform_settings.view | ✅ | ✅ | — | — | — |
+| platform_settings.edit | ✅ | ✅ | — | — | — |
+| policies.view | ✅ | ✅ | — | — | — |
+| policies.edit | ✅ | ✅ | — | — | — |
+| templates.view | ✅ | ✅ | — | — | — |
+| templates.edit | ✅ | ✅ | — | — | — |
+| policy_changes.publish | ✅ | ✅ | — | — | — |
+| queue_ops.view | ✅ | ✅ | — | — | — |
+| queue_ops.manage | ✅ | ✅ | — | — | — |
+| health.view | ✅ | ✅ | — | — | — |
+| integration_logs.view | ✅ | ✅ | — | — | — |
+| audit_logs.view | ✅ | ✅ | — | — | ✅ |
+| iam.manage | ✅ | — | — | — | — |
 
-Prerequisites: PHP 8.2+, Composer, Node.js & npm (for assets), Docker (optional), Flutter SDK (for mobile).
+### Permission -> Filament surface mapping
 
-Backend (local dev)
+- `support_tickets.*` -> SupportTicketResource
+- `pre_registrations.*` -> PreRegistrationResource
+- `certificates.*` -> CertificateResource
+- `users.*` -> UserResource
+- `kitchens.*` -> MikitchnResource
+- `orders.*` -> OrderResource
+- `promo_codes.*` -> PromoCodeResource
+- `payments.*` -> PaymentResource
+- `policies.*`, `policy_changes.publish` -> PolicyResource
+- `templates.*` -> TemplateResource
+- `platform_settings.*` -> PlatformSettingsPage
+- `queue_ops.*` -> QueueOpsPage
+- `health.view` -> SystemHealthPage and health widgets
+- `integration_logs.view` -> IntegrationLogsPage
+- `audit_logs.view` -> AdminActionLogResource / AuditLogResource
+- `iam.manage` -> SecurityAdminPage
 
-1. Copy environment and install deps:
+---
 
-```bash
-cd backend
-cp .env.example .env
-composer install
-npm install
-```
+## 10) Data Model and Domain Highlights
 
-2. Generate keys and run migrations:
+Representative backend model groups:
 
-```bash
-php artisan key:generate
-php artisan jwt:secret
-php artisan migrate --force
-php artisan db:seed
-```
+- **Core marketplace**: `User`, `Role`, `Mikitchn`, `Foods`, `Order`, `OrderData`, `CompletedOrder`, `Timing`, `Image`, `Review`, `Favorite`, `PromoCode`, `Partner`.
+- **Payments/settlement**: `Payment`, `Refund`, `Transfer`, `Card`, `StripeAccount`, `StripeBankAccount`.
+- **CRM/support**: `PreRegistration`, `SupportTicket`, `SupportTicketMessage`, `SupportTicketEvent`, `SupportTicketAttachment`, `Template`, `Tag`.
+- **Platform governance/admin**: `AdminUser`, `AdminActionLog`, `Policy`, `PolicyChangeLog`, `PlatformSetting`, `WatchSubscription`.
 
-3. Start the app:
+---
 
-```bash
-php artisan serve --host=0.0.0.0 --port=8000
-php artisan horizon       # in another terminal for queues
-```
+## 11) Local Development Setup
 
-Or use Docker Compose (recommended for parity):
+### Option A: full stack with Docker
 
 ```bash
 docker compose up --build
 ```
 
-Notes:
-- Filament admin UI is available when the `admin` user is created by seeding or via artisan commands.
-- Check `backend/.env` for Stripe keys, FCM credentials, and DB connection strings before running.
+Compose includes:
+- `db` (MySQL)
+- `db-migrate` + `website-db-migrate`
+- `backend` on `:8000`
+- `website` on `:8080`
+- `mobile-app` build container
 
-Mobile app (local dev)
-
-1. Install dependencies:
-
-```bash
-cd mobile-app
-flutter pub get
-```
-
-2. Run on an emulator/device:
+### Option B: backend local run
 
 ```bash
-flutter run
+cd backend
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan jwt:secret
+php artisan migrate --force
+php artisan db:seed
+php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-3. Build releases:
+Optional workers:
 
 ```bash
-flutter build apk
-flutter build ios
+php artisan horizon
+php artisan queue:work
 ```
 
-Website (local dev)
+### Option C: website local run
 
 ```bash
 cd website
 cp .env.example .env
 composer install
-npm install
 php artisan key:generate
 php artisan serve --host=0.0.0.0 --port=8080
 ```
 
---
+### Option D: mobile local run
 
-Testing
+```bash
+cd mobile-app
+flutter pub get
+flutter run
+```
 
-- Backend PHPUnit tests: `cd backend && ./vendor/bin/phpunit`
-- Mobile widget/unit tests: `cd mobile-app && flutter test`
-- Website PHPUnit: `cd website && ./vendor/bin/phpunit`
+---
 
-CI pipelines (where present) should run linting, unit tests, and build artifact steps for each project.
+## 12) CI/CD and Quality Gates
 
---
+The monorepo GitHub workflow performs:
 
-Deployment notes
+1. Secret scan gate.
+2. Backend setup + tests.
+3. Website setup + tests.
+4. Flutter dependency install + tests.
 
-- Production deployments rely on the container images (Dockerfiles are present in `backend/`, `website/`, and `mobile-app/`).
-- Use the `deploy/` folder and the provided Compose/phase files for environment-specific orchestration.
-- Health checks must be configured by the orchestrator against `/api/health/ready` and `/api/health/live`.
-- Migrations should be run as part of the release pipeline with explicit migration-run steps (avoid running migrations automatically in entrypoint for safety).
+Primary local checks:
 
-Stripe & Payments
+```bash
+cd backend && php artisan test
+cd website && php artisan test
+cd mobile-app && flutter test
+```
 
-- The backend implements Stripe Connect onboarding for cooks. Configure `STRIPE_SECRET`, `STRIPE_CLIENT_ID` and the platform account keys in `backend/.env`.
-- Cashier is included in `website/` for any web-initiated billing flows.
+---
 
-Notifications
+## 13) Security, Secrets and Operational Notes
 
-- FCM configuration is required to send push notifications. Add `FCM_SERVER_KEY` / `FCM_SENDER_ID` to `backend/.env`.
-
-API Documentation
-
-- OpenAPI/Swagger docs are generated via `darkaonline/l5-swagger`. Visit the generated documentation endpoint in the running backend (commonly `/api/documentation` or `/api/docs`) after publishing assets.
-
-Operational considerations
-
-- Queue processing: use Horizon for real-time monitoring. Ensure worker counts and supervisor config match expected throughput.
-- Audit logs: `owen-it/laravel-auditing` records model changes — retention and access controls must be determined by platform policy.
-- Sensitive data: card and bank details are handled through Stripe or stored in truncated form. Follow PCI rules — do not store raw card numbers.
-
-Security & Secrets
-
-- Secrets must be stored in a secure store (Key Vault / AWS Secrets Manager / Vault). The repository contains `.env.example` only.
-- Rotate Stripe secrets and webhook signing secrets periodically and after key personnel changes.
-
-Troubleshooting
-
-- Database connection issues: check `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` in `backend/.env`.
-- Queue backlog: inspect `php artisan horizon:status` and `php artisan queue:failed`.
-- Migrations do not apply: inspect `doctrine/dbal` version and any schema edge-cases; run `php artisan migrate:status`.
-
-Contributing
-
-- Follow the repo coding standards. Open PRs against `main`/`master` depending on branch policy. Include tests for feature changes and update API docs when adding endpoints.
-- Add migration files for schema changes under `backend/database/migrations` and model factories under `backend/database/factories`.
-
-Support & runbooks
-
-- Operational runbooks and release notes are in the `docs/` folder.
-
-License
-
-- See top-level `LICENSE` if present. Most backend and website code follow MIT-style dependencies but confirm licensing for third-party assets before release.
-
---
-
-If you want, I can now:
-
-- Run a dependency scan across `backend/composer.json`, `website/composer.json`, and `mobile-app/pubspec.yaml` and produce a consolidated dependency report.
-- Open a PR with this README change and include a short changelog entry.
-
-Would you like me to proceed with either of those follow-ups?
-
-
+- Keep credentials outside source control; use env injection and secret managers.
+- Follow `docs/secrets-management.md` for rotation and verification expectations.
+- Use `/api/health/live` and `/api/health/ready` for orchestrator probes.
+- Use `deploy/load-tests` scripts for support/admin performance verification.
+- Use CRM runbook docs for response/assignment/escalation SOP alignment.
