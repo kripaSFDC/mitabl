@@ -25,4 +25,9 @@ class SupportTicketMessage extends Model
     {
         return $this->belongsTo(SupportTicket::class, 'ticket_id');
     }
+
+    public function attachments()
+    {
+        return $this->hasMany(SupportTicketAttachment::class, 'message_id');
+    }
 }

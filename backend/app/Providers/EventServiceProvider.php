@@ -14,6 +14,7 @@ use App\Events\CancelOrderRefund;
 use App\Listeners\KitchenVerifiedToSales;
 use App\Listeners\MakeOrderPaymentToVendorListener;
 use App\Listeners\CancelOrderRefundListener;
+use App\Listeners\MarkCrmCommunicationDelivered;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         // ],
         'Illuminate\Notifications\Events\NotificationSent' => [
             'App\Listeners\LogNotification',
+        ],
+        'Illuminate\Mail\Events\MessageSent' => [
+            MarkCrmCommunicationDelivered::class,
         ],
         // UserMobileNotification::class => [
         //     'App\Listeners\LogNotification',

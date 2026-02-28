@@ -9,6 +9,13 @@ class PreRegistration extends Model
 {
     use HasFactory;
 
+    public const STATUS_NEW = 'new';
+    public const STATUS_TRIAGED = 'triaged';
+    public const STATUS_CONTACTED = 'contacted';
+    public const STATUS_CONVERTED = 'converted';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_SPAM = 'spam';
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -23,11 +30,18 @@ class PreRegistration extends Model
         'followed_up_at',
         'converted_user_id',
         'consent_to_contact',
+        'assigned_to',
+        'duplicate_fingerprint',
+        'spam_score',
+        'spam_detected_at',
+        'last_contacted_at',
     ];
 
     protected $casts = [
         'followed_up_at' => 'datetime',
         'consent_to_contact' => 'boolean',
+        'spam_detected_at' => 'datetime',
+        'last_contacted_at' => 'datetime',
     ];
 
     public function followedUpBy()
@@ -38,5 +52,27 @@ class PreRegistration extends Model
     public function convertedUser()
     {
         return $this->belongsTo(User::class, 'converted_user_id');
+    }
+
+    public function assignedTo()
+    {
+        return $this->belongsTo(AdminUser::class, 'assigned_to');
+    }
+
+    public function communicationLogs()
+    {
+        return $this->hasMany(CrmCommunicationLog::class, 'pre_registration_id');
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_NEW,
+            self::STATUS_TRIAGED,
+            self::STATUS_CONTACTED,
+            self::STATUS_CONVERTED,
+            self::STATUS_REJECTED,
+            self::STATUS_SPAM,
+        ];
     }
 }

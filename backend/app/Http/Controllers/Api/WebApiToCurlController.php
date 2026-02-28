@@ -1,176 +1,133 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Validator;
-use Storage;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
+use App\Models\PreRegistration;
+use App\Models\SupportTicket;
+use App\Services\PreRegistrationService;
+use App\Services\SupportTicketService;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class WebApiToCurlController extends Controller
 {
-    public $data=[];
+    public $data = [];
+
+    public function __construct(
+        private PreRegistrationService $preRegistrationService,
+        private SupportTicketService $supportTicketService
+    ) {
+    }
 
     public function preRegister(Request $request)
     {
-        $postInputSen = $this->normalizePreRegisterPayload($request->all());
-        $apiURL = rtrim((string) config('services.salesforce.base_url'), '/') .
-            '/services/data/' . config('services.salesforce.api_version', 'v55.0') . '/sobjects/Lead';
+        $normalized = $this->normalizePreRegisterPayload($request->all());
+        $request->merge([
+            'first_name' => $normalized['FirstName'] ?? ($normalized['first_name'] ?? null),
+            'last_name' => $normalized['LastName'] ?? ($normalized['last_name'] ?? null),
+            'email' => $normalized['Email'] ?? ($normalized['email'] ?? null),
+            'mobile' => $normalized['MobilePhone'] ?? ($normalized['mobile'] ?? null),
+            'city' => $normalized['City'] ?? ($normalized['city'] ?? null),
+            '00N5i000006uZtT' => $normalized['mitabl_Interested_In__c'] ?? ($normalized['00N5i000006uZtT'] ?? null),
+        ]);
 
-        $accessTkn = $this->getAccToken();
-        if ($accessTkn) {
-            // token resolved
-        } else {
-            return $this->responser([],'Pre Registration Not Available');
+        $honeypotField = (string) config('support.honeypot_field', 'website');
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'mobile' => ['nullable', 'string', 'max:40'],
+            'city' => ['nullable', 'string', 'max:120'],
+            '00N5i000006uZtT' => ['nullable', 'string', 'max:120'],
+            'consent_to_contact' => ['nullable', 'boolean'],
+            $honeypotField => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (! empty($validated[$honeypotField] ?? null)) {
+            return $this->responser(['accepted' => true], 'Your Registration Created Successfully');
         }
 
-        // print_r($accessTkn); die();
+        $result = $this->preRegistrationService->create([
+            'first_name' => $normalized['FirstName'] ?? null,
+            'last_name' => $normalized['LastName'] ?? null,
+            'email' => $normalized['Email'] ?? null,
+            'phone' => $normalized['MobilePhone'] ?? null,
+            'city' => $normalized['City'] ?? null,
+            'interested_as' => $normalized['mitabl_Interested_In__c'] ?? 'foodie',
+            'consent_to_contact' => (bool) ($normalized['consent_to_contact'] ?? true),
+        ], 'preregister_api');
 
-        $headers = [
+        /** @var PreRegistration $registration */
+        $registration = $result['registration'];
 
-            'Access-Control-Allow-Origin' => '*',
-            'Authorization' => 'Bearer '.$accessTkn, 
-
-        ];
-
-  
-
-        try {
-            $response = Http::withHeaders($headers)
-                ->connectTimeout(10)
-                ->timeout(20)
-                ->post($apiURL, $postInputSen);
-        } catch (\Throwable $e) {
-            return $this->responser([], 'Pre Registration Not Available');
-        }
-
-  
-
-        $statusCode = $response->status();
-
-        $responseBody = $response->json();
-
-        if ($statusCode == 200) {
-            return $this->responser($responseBody,"Your Registration Created Successfully");
-        } elseif ($statusCode == 400) {
-            $message = is_array($responseBody) && isset($responseBody[0]['message'])
-                ? (string) $responseBody[0]['message']
-                : 'Pre Registration Not Available';
-            return $this->responser([], $message);
-        } elseif ($statusCode == 201) {
-            return $this->responser($responseBody,"Your Registration Created Successfully");
-        } else {
-            return $this->responser($responseBody,$statusCode);
-        }
-
-        // echo "<pre>";
-        // print_r($statusCode);
-        // print_r($responseBody[0]['message']);
-        // die();
-        // dd($responseBody);
-
-        
-
+        return $this->responser([
+            'id' => $registration->id,
+            'status' => $registration->status,
+            'duplicate' => $result['duplicate'],
+        ], 'Your Registration Created Successfully');
     }
 
     public function mobContact(Request $request)
     {
-        $postInputSen = $this->normalizeMobContactPayload($request->all());
-        $apiURL = rtrim((string) config('services.salesforce.base_url'), '/') .
-            '/services/data/' . config('services.salesforce.api_version', 'v55.0') . '/sobjects/Case';
+        $normalized = $this->normalizeMobContactPayload($request->all());
+        $request->merge([
+            'email' => $normalized['SuppliedEmail'] ?? ($normalized['email'] ?? null),
+            'subject' => $normalized['Subject'] ?? ($normalized['subject'] ?? null),
+            'description' => $normalized['Description'] ?? ($normalized['description'] ?? null),
+            'type' => $normalized['Type'] ?? ($normalized['type'] ?? null),
+            'phone' => $normalized['SuppliedPhone'] ?? ($normalized['phone'] ?? null),
+            'recordType' => $normalized['mitabl_Case_For__c'] ?? ($normalized['recordType'] ?? null),
+            '00N5i000009zQqb' => $normalized['mitabl_micook_Id__c'] ?? ($normalized['00N5i000009zQqb'] ?? null),
+            '00N5i000009zQxr' => $normalized['mitabl_Mifoodi_Id__c'] ?? ($normalized['00N5i000009zQxr'] ?? null),
+            '00N5i000006ubH5' => $normalized['mitabl_Order_Id__c'] ?? ($normalized['00N5i000006ubH5'] ?? null),
+        ]);
 
-        $accessTkn = $this->getAccToken();
-        if ($accessTkn) {
-            // token resolved
-        } else {
-            return $this->responser([],'Contact Not Available');
+        $honeypotField = (string) config('support.honeypot_field', 'website');
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'subject' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string', 'min:5'],
+            'type' => ['nullable', 'string', 'max:120'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'recordType' => ['nullable', 'string', 'max:120'],
+            'priority' => ['nullable', Rule::in(SupportTicket::priorities())],
+            '00N5i000009zQqb' => ['nullable', 'integer'],
+            '00N5i000009zQxr' => ['nullable', 'integer'],
+            '00N5i000006ubH5' => ['nullable', 'integer'],
+            $honeypotField => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (! empty($validated[$honeypotField] ?? null)) {
+            return $this->responser(['accepted' => true], 'Contact Message Sent Successfully');
         }
 
-        // print_r($accessTkn); die();
+        $category = $normalized['Type'] ?? ($normalized['mitabl_Case_For__c'] ?? 'general');
+        $source = 'mobcontact_api';
 
-        $headers = [
+        $result = $this->supportTicketService->createTicket([
+            'requester_name' => null,
+            'requester_email' => $normalized['SuppliedEmail'] ?? '',
+            'requester_phone' => $normalized['SuppliedPhone'] ?? null,
+            'subject' => $normalized['Subject'] ?? 'Support request',
+            'description' => $normalized['Description'] ?? '',
+            'category' => $category,
+            'priority' => $validated['priority'] ?? SupportTicket::PRIORITY_NORMAL,
+            'order_id' => $normalized['mitabl_Order_Id__c'] ?? null,
+            'mikitchn_id' => $normalized['mitabl_micook_Id__c'] ?? null,
+            'user_id' => $normalized['mitabl_Mifoodi_Id__c'] ?? null,
+            'actor_type' => 'guest',
+            'actor_id' => null,
+        ], $source);
 
-            'Access-Control-Allow-Origin' => '*',
-            'Authorization' => 'Bearer '.$accessTkn, 
+        /** @var SupportTicket $ticket */
+        $ticket = $result['ticket'];
 
-        ];
-
-  
-
-        try {
-            $response = Http::withHeaders($headers)
-                ->connectTimeout(10)
-                ->timeout(20)
-                ->post($apiURL, $postInputSen);
-        } catch (\Throwable $e) {
-            return $this->responser([], 'Contact Not Available');
-        }
-
-  
-
-        $statusCode = $response->status();
-
-        $responseBody = $response->json();
-
-        if ($statusCode == 200) {
-            return $this->responser($responseBody,"Contact Message Sent Successfully");
-        } elseif ($statusCode == 400) {
-            $message = is_array($responseBody) && isset($responseBody[0]['message'])
-                ? (string) $responseBody[0]['message']
-                : 'Contact Not Available';
-            return $this->responser([], $message);
-        } elseif ($statusCode == 201) {
-            return $this->responser($responseBody,"Contact Message Sent Successfully");
-        } else {
-            return response()->json(['body'=>$responseBody],$statusCode);
-        }
-
-        
-
-    }
-
-    public function getAccToken()
-    {
-        $baseUrl = rtrim((string) config('services.salesforce.base_url'), '/');
-        if ($baseUrl === '') {
-            return null;
-        }
-        $apiUrl = $baseUrl . '/services/oauth2/token';
-
-        $postInput = [
-                'grant_type' => 'password',
-                'client_id' => config('services.salesforce.client_id'),
-                'client_secret' => config('services.salesforce.client_secret'),
-                'username' => config('services.salesforce.username'),
-                'password' => (string) config('services.salesforce.password') . (string) config('services.salesforce.security_token'),
-            ];
-
-        if (empty($postInput['client_id']) || empty($postInput['client_secret']) || empty($postInput['username']) || empty($postInput['password'])) {
-            return null;
-        }
-
-        $headers = [
-            'Access-Control-Allow-Origin' => '*',
-        ];
-
-        try {
-            $response = Http::withHeaders($headers)
-                ->asForm()
-                ->connectTimeout(10)
-                ->timeout(20)
-                ->post($apiUrl, $postInput);
-        } catch (\Throwable $e) {
-            return null;
-        }
-        $responseBody = $response->json();
-
-        if (is_array($responseBody) && array_key_exists('access_token', $responseBody)) {
-            return $responseBody['access_token'];
-        }
-
-        return null;
+        return $this->responser([
+            'id' => $ticket->id,
+            'ticket_number' => $ticket->ticket_number,
+            'status' => $ticket->status,
+            'duplicate' => $result['duplicate'],
+        ], 'Contact Message Sent Successfully');
     }
 
     private function normalizePreRegisterPayload(array $payload): array
@@ -192,6 +149,15 @@ class WebApiToCurlController extends Controller
         }
         if (!isset($payload['mitabl_Interested_In__c']) && isset($payload['00N5i000006uZtT'])) {
             $payload['mitabl_Interested_In__c'] = $payload['00N5i000006uZtT'];
+        }
+        if (! isset($payload['mobile']) && isset($payload['phone'])) {
+            $payload['mobile'] = $payload['phone'];
+        }
+        if (! isset($payload['MobilePhone']) && isset($payload['phone'])) {
+            $payload['MobilePhone'] = $payload['phone'];
+        }
+        if (! isset($payload['consent_to_contact'])) {
+            $payload['consent_to_contact'] = true;
         }
 
         return $payload;

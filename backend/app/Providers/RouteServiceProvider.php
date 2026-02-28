@@ -57,5 +57,25 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
+
+        RateLimiter::for('support-intake', function (Request $request) {
+            $email = (string) (
+                $request->input('requester_email')
+                ?? $request->input('email')
+                ?? $request->input('SuppliedEmail')
+                ?? $request->input('Email')
+                ?? ''
+            );
+            $key = $email !== '' ? 'support-intake:' . strtolower($email) : 'support-intake-ip:' . $request->ip();
+            return Limit::perMinute(8)->by($key);
+        });
+
+        RateLimiter::for('support-read', function (Request $request) {
+            return Limit::perMinute(30)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        RateLimiter::for('support-reply', function (Request $request) {
+            return Limit::perMinute(12)->by(optional($request->user())->id ?: $request->ip());
+        });
     }
 }

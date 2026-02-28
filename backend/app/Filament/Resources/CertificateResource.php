@@ -149,6 +149,37 @@ class CertificateResource extends Resource
                     }),
             ])
             ->actions([
+                Action::make('review_workspace')
+                    ->label('Review Workspace')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->modalHeading(fn (Certificate $record): string => 'Certificate Review: ' . (string) ($record->certificate_no ?: '#'.$record->id))
+                    ->modalSubmitAction(false)
+                    ->form([
+                        Forms\Components\Placeholder::make('kitchen')
+                            ->label('Kitchen')
+                            ->content(fn (Certificate $record): string => (string) ($record->mikitchn->name ?? '-')),
+                        Forms\Components\Placeholder::make('cook')
+                            ->label('Cook')
+                            ->content(fn (Certificate $record): string => trim($record->first_name . ' ' . $record->last_name)),
+                        Forms\Components\Placeholder::make('abn')
+                            ->label('ABN')
+                            ->content(fn (Certificate $record): string => (string) ($record->abn ?? '-')),
+                        Forms\Components\Placeholder::make('status')
+                            ->label('Current status')
+                            ->content(fn (Certificate $record): string => match ((int) $record->status) {
+                                0 => 'Pending',
+                                1 => 'Approved',
+                                2 => 'Rejected',
+                                default => 'Unknown',
+                            }),
+                        Forms\Components\Placeholder::make('document')
+                            ->label('Document preview')
+                            ->content(fn (Certificate $record): string => $record->certificate_doc
+                                ? 'Open document: ' . asset($record->certificate_doc)
+                                : 'No document uploaded'),
+                    ])
+                    ->columns(2),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
@@ -291,6 +322,82 @@ class CertificateResource extends Resource
                             ->title('Certificate rejected successfully.')
                             ->success()
                             ->send();
+                    }),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('bulk_approve')
+                    ->label('Bulk approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->visible(fn (): bool => static::canReview())
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\TextInput::make('confirm_text')
+                            ->label('Type APPROVE to confirm')
+                            ->required()
+                            ->rule('in:APPROVE'),
+                    ])
+                    ->action(function ($records, array $data): void {
+                        if (($data['confirm_text'] ?? '') !== 'APPROVE') {
+                            Notification::make()->title('Bulk approve confirmation mismatch.')->danger()->send();
+                            return;
+                        }
+
+                        $approved = 0;
+                        foreach ($records as $record) {
+                            DB::transaction(function () use ($record, &$approved): void {
+                                $certificate = Certificate::query()->lockForUpdate()->find($record->id);
+                                if (! $certificate || (int) $certificate->status !== 0 || ! static::hasValidCertificateDocument($certificate)) {
+                                    return;
+                                }
+                                $certificate->status = 1;
+                                $certificate->rejection_reason = null;
+                                $certificate->reviewed_by = Filament::auth()->id();
+                                $certificate->reviewed_at = Carbon::now();
+                                $certificate->save();
+                                $approved++;
+                            });
+                        }
+
+                        Notification::make()->title("Bulk approve complete: {$approved} approved.")->success()->send();
+                    }),
+                Tables\Actions\BulkAction::make('bulk_reject')
+                    ->label('Bulk reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (): bool => static::canReview())
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\TextInput::make('confirm_text')
+                            ->label('Type REJECT to confirm')
+                            ->required()
+                            ->rule('in:REJECT'),
+                        Forms\Components\Textarea::make('rejection_reason')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->action(function ($records, array $data): void {
+                        if (($data['confirm_text'] ?? '') !== 'REJECT') {
+                            Notification::make()->title('Bulk reject confirmation mismatch.')->danger()->send();
+                            return;
+                        }
+
+                        $rejected = 0;
+                        foreach ($records as $record) {
+                            DB::transaction(function () use ($record, $data, &$rejected): void {
+                                $certificate = Certificate::query()->lockForUpdate()->find($record->id);
+                                if (! $certificate || (int) $certificate->status !== 0) {
+                                    return;
+                                }
+                                $certificate->status = 2;
+                                $certificate->rejection_reason = (string) $data['rejection_reason'];
+                                $certificate->reviewed_by = Filament::auth()->id();
+                                $certificate->reviewed_at = Carbon::now();
+                                $certificate->save();
+                                $rejected++;
+                            });
+                        }
+
+                        Notification::make()->title("Bulk reject complete: {$rejected} rejected.")->success()->send();
                     }),
             ])
             ->defaultSort('created_at', 'desc');
