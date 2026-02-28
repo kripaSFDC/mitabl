@@ -428,7 +428,7 @@ class SupportTicketResource extends Resource
                             return;
                         }
 
-                        $record->watchers()->create(['admin_user_id' => $adminId]);
+                        $record->watchers()->firstOrCreate(['admin_user_id' => $adminId]);
                         Notification::make()->title('Ticket added to watch list.')->success()->send();
                     }),
                 Action::make('resolve')

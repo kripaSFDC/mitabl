@@ -37,24 +37,30 @@ class IntegrationLogsPage extends Page
 
     private function loadLogs(): void
     {
-        $this->logs = CrmCommunicationLog::query()
-            ->latest('id')
-            ->limit(200)
-            ->get()
-            ->map(function (CrmCommunicationLog $log): array {
-                return [
-                    'id' => $log->id,
-                    'channel' => (string) $log->channel,
-                    'template' => (string) $log->template,
-                    'recipient' => (string) $log->recipient,
-                    'status' => (string) $log->status,
-                    'response_status' => data_get($log->metadata, 'response_status'),
-                    'error_body' => (string) data_get($log->metadata, 'error_body', ''),
-                    'retry_attempts' => (int) data_get($log->metadata, 'retry_attempts', 0),
-                    'created_at' => optional($log->created_at)?->toDateTimeString(),
-                ];
-            })
-            ->all();
+        try {
+            $this->logs = CrmCommunicationLog::query()
+                ->latest('id')
+                ->limit(200)
+                ->get()
+                ->map(function (CrmCommunicationLog $log): array {
+                    $metadata = is_array($log->metadata) ? $log->metadata : [];
+
+                    return [
+                        'id' => $log->id,
+                        'channel' => (string) $log->channel,
+                        'template' => (string) $log->template,
+                        'recipient' => (string) $log->recipient,
+                        'status' => (string) $log->status,
+                        'response_status' => data_get($metadata, 'response_status'),
+                        'error_body' => (string) data_get($metadata, 'error_body', ''),
+                        'retry_attempts' => (int) data_get($metadata, 'retry_attempts', 0),
+                        'created_at' => optional($log->created_at)?->toDateTimeString(),
+                    ];
+                })
+                ->all();
+        } catch (\Throwable $throwable) {
+            $this->logs = [];
+        }
     }
 
     public static function canAccess(): bool

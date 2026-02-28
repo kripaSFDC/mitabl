@@ -224,8 +224,9 @@ class SystemHealthService
     {
         try {
             $setting = PlatformSetting::query()->where('key', 'incident.degraded_mode')->first();
-            $enabled = filter_var(data_get($setting?->value, 'enabled', false), FILTER_VALIDATE_BOOL);
-            $postmortem = (string) data_get($setting?->value, 'postmortem_url', '');
+            $value = $this->normalizeSettingValue($setting?->value);
+            $enabled = filter_var(data_get($value, 'enabled', false), FILTER_VALIDATE_BOOL);
+            $postmortem = (string) data_get($value, 'postmortem_url', '');
 
             if (! $enabled) {
                 return [
@@ -423,6 +424,23 @@ class SystemHealthService
             'status' => 'ok',
             'message' => 'Stripe credentials are configured.',
         ];
+    }
+
+
+    private function normalizeSettingValue(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '') {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [];
     }
 
     private function isProductionLike(): bool

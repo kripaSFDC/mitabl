@@ -27,6 +27,7 @@ class ModuleTwelveCollaborationContractTest extends TestCase
         $this->assertStringContainsString("Schema::create('watch_subscriptions'", $migration);
         $this->assertStringContainsString("Action::make('manage_tags')", $supportResource);
         $this->assertStringContainsString("Action::make('toggle_watch')", $supportResource);
+        $this->assertStringContainsString("firstOrCreate(['admin_user_id' => $adminId])", $supportResource);
         $this->assertStringContainsString('fraud_risk', $tagSeeder);
         $this->assertStringContainsString('repeat_issue', $tagSeeder);
     }
