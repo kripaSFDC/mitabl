@@ -145,10 +145,13 @@ class SupportTicketResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('requester_email')
                     ->searchable()
+                    ->formatStateUsing(fn (?string $state): string => app(PiiRedactionService::class)->redact((string) $state))
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('user.email')
                     ->label('Linked user')
                     ->placeholder('-')
+                    ->url(fn (SupportTicket $record): ?string => $record->user_id ? '/admin/users/' . $record->user_id . '/edit' : null)
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('subject')
                     ->searchable()
@@ -210,10 +213,14 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('Order')
                     ->placeholder('-')
+                    ->url(fn (SupportTicket $record): ?string => $record->order_id ? '/admin/orders/' . $record->order_id . '/edit' : null)
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('mikitchn_id')
                     ->label('Kitchen')
                     ->placeholder('-')
+                    ->url(fn (SupportTicket $record): ?string => $record->mikitchn_id ? '/admin/mikitchns/' . $record->mikitchn_id . '/edit' : null)
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d M H:i')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('last_message_at')->dateTime('d M H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
@@ -246,6 +253,25 @@ class SupportTicketResource extends Resource
                         false: fn (Builder $query): Builder => $query,
                         blank: fn (Builder $query): Builder => $query,
                     ),
+
+                Tables\Filters\TernaryFilter::make('ops_certificates_pending')
+                    ->label('Ops Certificates Pending')
+                    ->queries(
+                        true: fn (Builder $query): Builder => $query
+                            ->whereNotNull('mikitchn_id')
+                            ->where(function (Builder $builder): void {
+                                $builder->where('category', SupportTicket::CATEGORY_OTHER)
+                                    ->orWhereRaw('LOWER(subject) like ?', ['%certificate%'])
+                                    ->orWhereRaw('LOWER(description) like ?', ['%certificate%']);
+                            })
+                            ->whereIn('status', [
+                                SupportTicket::STATUS_OPEN,
+                                SupportTicket::STATUS_IN_PROGRESS,
+                                SupportTicket::STATUS_PENDING_USER,
+                            ]),
+                        false: fn (Builder $query): Builder => $query,
+                        blank: fn (Builder $query): Builder => $query,
+                    ),
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         SupportTicket::STATUS_OPEN => 'Open',
@@ -268,6 +294,7 @@ class SupportTicketResource extends Resource
                     ->label('Assign to me')
                     ->icon('heroicon-o-user-plus')
                     ->color('info')
+                    ->keyBindings(['mod+a'])
                     ->visible(fn (SupportTicket $record): bool => static::canAssign() && ! $record->isTerminal())
                     ->action(function (SupportTicket $record): void {
                         try {
@@ -315,6 +342,7 @@ class SupportTicketResource extends Resource
                     ->label('Reply')
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
+                    ->keyBindings(['mod+r'])
                     ->visible(fn (SupportTicket $record): bool => static::canRespond() && ! $record->isTerminal())
                     ->form([
                         Forms\Components\Textarea::make('message')
@@ -435,6 +463,7 @@ class SupportTicketResource extends Resource
                     ->label('Resolve')
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
+                    ->keyBindings(['mod+shift+r'])
                     ->visible(fn (SupportTicket $record): bool => static::canResolve() && in_array($record->status, [
                         SupportTicket::STATUS_OPEN,
                         SupportTicket::STATUS_IN_PROGRESS,
@@ -657,6 +686,7 @@ class SupportTicketResource extends Resource
                 Tables\Actions\BulkAction::make('assign_to_me_bulk')
                     ->label('Assign selected to me')
                     ->icon('heroicon-o-user-plus')
+                    ->requiresConfirmation()
                     ->visible(fn (): bool => static::canAssign())
                     ->action(function ($records): void {
                         try {
