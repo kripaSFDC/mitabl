@@ -86,8 +86,11 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('class IntegrationLogsPage', $integrationPage);
         $this->assertStringContainsString('class SecurityAdminPage', $securityPage);
         $this->assertStringContainsString('dormantAdmins', $securityPage);
+        $this->assertStringContainsString('step_up_reauth_minutes', $securityPage);
         $this->assertStringContainsString("iam.manage", $securityPage);
         $this->assertStringContainsString('Dormant Admins', $securityView);
+        $this->assertStringContainsString('Sensitive-action re-auth', $securityView);
+        $this->assertStringContainsString('api-key-secret-rotation-runbook.md', $securityPage);
         $this->assertStringContainsString('/health/live', $apiRoutes);
         $this->assertStringContainsString('/health/ready', $apiRoutes);
     }

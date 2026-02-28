@@ -32,6 +32,7 @@ class SecurityAdminPage extends Page
         $this->sessionPolicy = [
             'lifetime_minutes' => (int) config('session.lifetime', 120),
             'expire_on_close' => (bool) config('session.expire_on_close', false),
+            'step_up_reauth_minutes' => (int) config('admin_security.reauth_minutes', 15),
             'dormant_threshold_days' => $dormantThresholdDays,
         ];
 
@@ -66,7 +67,7 @@ class SecurityAdminPage extends Page
             'iam_manager_candidates' => $iamManagers,
             'dormant_active_admins' => count($this->dormantAdmins),
             'defined_roles' => $definedRoles,
-            'rotation_runbook' => 'docs/secrets-management.md',
+            'rotation_runbook' => 'docs/api-key-secret-rotation-runbook.md',
         ];
     }
 
@@ -75,5 +76,4 @@ class SecurityAdminPage extends Page
         return (bool) Filament::auth()->user()?->can('iam.manage');
     }
 }
-
 
