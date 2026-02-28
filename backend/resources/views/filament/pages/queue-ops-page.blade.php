@@ -10,6 +10,31 @@
         @endif
     </div>
 
+    <div class="mb-4 grid gap-3 md:grid-cols-5">
+        <x-filament::section>
+            <x-slot name="heading">Queue depth</x-slot>
+            <p class="text-xl font-semibold">{{ $queueMetrics['pending_jobs'] ?? 0 }}</p>
+        </x-filament::section>
+        <x-filament::section>
+            <x-slot name="heading">Failed jobs</x-slot>
+            <p class="text-xl font-semibold">{{ $queueMetrics['failed_jobs'] ?? 0 }}</p>
+        </x-filament::section>
+        <x-filament::section>
+            <x-slot name="heading">Oldest age (min)</x-slot>
+            <p class="text-xl font-semibold">{{ $queueMetrics['oldest_pending_age_minutes'] ?? '-' }}</p>
+        </x-filament::section>
+        <x-filament::section>
+            <x-slot name="heading">Poison retries</x-slot>
+            <p class="text-xl font-semibold">{{ $queueMetrics['poison_jobs'] ?? 0 }}</p>
+        </x-filament::section>
+        <x-filament::section>
+            <x-slot name="heading">Dead-letter risk</x-slot>
+            <x-filament::badge :color="($queueMetrics['dead_letter_risk'] ?? false) ? 'danger' : 'success'">
+                {{ ($queueMetrics['dead_letter_risk'] ?? false) ? 'High' : 'Normal' }}
+            </x-filament::badge>
+        </x-filament::section>
+    </div>
+
     <x-filament::section>
         <x-slot name="heading">
             Failed Jobs (Latest 100)
@@ -25,6 +50,7 @@
                         <th class="px-3 py-2">ID</th>
                         <th class="px-3 py-2">Connection</th>
                         <th class="px-3 py-2">Queue</th>
+                        <th class="px-3 py-2">Attempts</th>
                         <th class="px-3 py-2">Failed At</th>
                         <th class="px-3 py-2">Exception</th>
                         <th class="px-3 py-2">Actions</th>
@@ -36,6 +62,7 @@
                             <td class="px-3 py-2">{{ $job['id'] }}</td>
                             <td class="px-3 py-2">{{ $job['connection'] }}</td>
                             <td class="px-3 py-2">{{ $job['queue'] }}</td>
+                            <td class="px-3 py-2">{{ $job['attempts'] }}</td>
                             <td class="px-3 py-2">{{ $job['failed_at'] }}</td>
                             <td class="px-3 py-2">{{ $job['exception'] }}</td>
                             <td class="px-3 py-2">
@@ -58,7 +85,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-3 py-4 text-center text-gray-600 dark:text-gray-300">
+                            <td colspan="7" class="px-3 py-4 text-center text-gray-600 dark:text-gray-300">
                                 No failed jobs found.
                             </td>
                         </tr>

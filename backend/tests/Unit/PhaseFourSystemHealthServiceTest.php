@@ -29,7 +29,7 @@ class PhaseFourSystemHealthServiceTest extends TestCase
 
         $keys = collect($summary['checks'])->pluck('key')->all();
         $this->assertEqualsCanonicalizing(
-            ['database', 'queue', 'queue_processing', 'mail', 'ticket_intake', 'storage', 'fcm', 'stripe'],
+            ['database', 'redis', 'queue', 'queue_processing', 'mail', 'ticket_intake', 'storage', 'fcm', 'stripe', 'scheduler', 'degraded_mode'],
             $keys
         );
     }
