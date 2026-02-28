@@ -717,6 +717,56 @@ SF_USERNAME
 SF_PASSWORD
 ```
 
+## Salesforce Dependency Eradication Checklist (Mandatory)
+
+Goal: remove Salesforce completely while preserving existing mitabl behavior for cooks, foodies, ops, and support.
+
+### 1) Contract Parity Matrix
+- Define old -> new ownership for each Salesforce capability and endpoint:
+  - Certificate approval: `PUT /api/kitchen/{id}/certificate` (SF inbound) -> Filament `CertificateResource` actions.
+  - User lookup: `GET /api/sales/mifoodi` (SF inbound) -> Filament `UserResource` search.
+  - Lead intake: `POST /api/preregister` (SF outbound) -> local `pre_registrations`.
+  - Support intake: `POST /api/mobcontact` (SF outbound) -> local `support_tickets` via compatibility alias.
+  - Kitchen sync: `KitchenVerifiedToSales` listener -> removed, local DB remains source of truth.
+- For each mapping, define acceptance tests and data invariants before deletion.
+
+### 2) Compatibility and No-Impact Guardrails
+- Preserve client-facing API contracts during transition:
+  - keep request/response shape and status codes for `/api/preregister` and `/api/mobcontact`.
+  - keep `/api/mobcontact` alias until all clients are on the new ticket flow.
+- Add deprecation headers and structured logs for alias usage.
+- Add idempotency protection for intake endpoints to avoid duplicate ticket/lead records.
+- Add background retries only for internal notifications; do not make intake synchronous.
+
+### 3) Data Integrity and Migration
+- Backfill or map required Salesforce-originated operational fields into local tables before cutover.
+- Create one-time reconciliation job:
+  - detect duplicates in leads/tickets,
+  - normalize email/phone,
+  - enforce foreign key consistency for ticket links (`user_id`, `order_id`, `mikitchn_id`).
+- Produce pre/post cutover record counts and mismatch reports for sign-off.
+
+### 4) Security and Secret Cleanup
+- Remove hardcoded Salesforce tokens/credentials from source code.
+- Remove Salesforce secrets from env and secret manager after cutover completion.
+- Rotate any credentials that were previously committed.
+- Add CI secret scanning gate to block token reintroduction.
+
+### 5) Code and Infrastructure Removal
+- Delete:
+  - `KitchenVerifiedToSales` listener and event binding,
+  - Salesforce middleware and middleware alias,
+  - Salesforce route group and controllers,
+  - `sales_kitchens` model/table after validation window,
+  - Salesforce helper logic from `WebApiToCurlController`.
+- Remove Salesforce-specific runbooks, dashboards, and alerts; replace with local CRM observability.
+
+### 6) Cutover Exit Criteria (Must Pass)
+- 0 unresolved P1/P2 defects in certificate, support, and lead flows.
+- 100% pass rate on contract parity tests for legacy touched endpoints.
+- No increase in failed intake requests or ticket creation latency vs baseline.
+- No remaining Salesforce calls in runtime logs for 7 consecutive days.
+
 ---
 
 ## Implementation Tasks
@@ -731,6 +781,27 @@ SF_PASSWORD
 | 0.5 | Configure admin network controls | IP allowlist/VPN and MFA policy |
 | 0.6 | Add deployment environments | dev, staging, prod parity for all 3 services |
 | 0.7 | Add secrets management plan | remove hardcoded secrets, use vault/secret store |
+
+## Phase 0.5 - Platform Hardening Baseline (Week 0-1, Mandatory Gate)
+Purpose: remove known production blockers before building Filament modules. No feature/module work should start until this phase is complete.
+
+| # | Task | Notes |
+|---|---|---|
+| 0.5.1 | Upgrade PHP runtime baseline to 8.2+ | Update runtime images/hosts and composer platform settings; validate all environments use the same minor line |
+| 0.5.2 | Upgrade Laravel from 8 to 11 | Execute incremental framework upgrade path with dependency compatibility checks and smoke tests after each major step |
+| 0.5.3 | Upgrade mobile toolchain to Dart 3+ | Update Flutter/Dart SDK constraints, refresh locked dependencies, and resolve null-safety/type breakages |
+| 0.5.4 | Enforce asynchronous queue in non-test environments | Set `QUEUE_CONNECTION=redis` for dev/staging/prod; keep `sync` only for selected local/test cases |
+| 0.5.5 | Deploy dedicated queue workers | Run managed workers (`queue:work`/Horizon) with restart/health checks, retry policy, and dead-letter handling |
+| 0.5.6 | Switch cache backend to Redis | Set `CACHE_DRIVER=redis` (or `CACHE_STORE=redis` on newer Laravel config style) and validate Redis connectivity/failover |
+| 0.5.7 | Add cache wrappers for discovery endpoints | Add `Cache::remember` to nearest/top-rated/recommended discovery queries with scoped cache keys and short TTL |
+| 0.5.8 | Remove wasteful double-fetch pagination patterns | Replace `get()->count()` on full result sets with query-level counts/pagination metadata |
+| 0.5.9 | Add cache invalidation hooks | Invalidate discovery caches on kitchen/profile/certificate/review/menu changes via events/listeners |
+| 0.5.10 | Extract payment logic from `StripeTrait` into `PaymentService` | Use container-injected services in controllers/listeners; remove direct SDK initialization from controllers |
+| 0.5.11 | Introduce core service layer for large controllers | Create `AuthService`, `KitchenService`, `OrderService`, `DiscoveryService`; thin controllers to validate + delegate |
+| 0.5.12 | Remove Salesforce secrets and static tokens from source | Delete hardcoded OAuth/token values; move remaining integration secrets to secure env/secret manager during transition |
+| 0.5.13 | Add observability for async + cache behavior | Track queue latency, failed jobs, cache hit ratio, and p95 endpoint latency for discovery APIs |
+| 0.5.14 | Add regression tests for hardening work | Feature tests for async behavior, discovery response parity, cache invalidation, and key payment flows |
+| 0.5.15 | Define hardening exit criteria | Gate: queue async confirmed, Redis cache live, no hardcoded secrets, discovery p95 improved, no P1 regressions |
 
 ## Phase 1 - Foundation (Week 1)
 | # | Task | Notes |
@@ -759,15 +830,21 @@ SF_PASSWORD
 ## Phase 3 - CRM (Weeks 3-4)
 | # | Task | Notes |
 |---|---|---|
-| 3.1 | Build ticket models + relationships | |
-| 3.2 | Build `SupportTicketResource` thread/assignment/SLA | |
-| 3.3 | Build ticket mailables | confirmation/reply/escalation |
-| 3.4 | Build `/api/support/ticket` endpoint | spam-safe + rate limit |
-| 3.5 | Build `/api/support/ticket/{id}` endpoint | scoped visibility |
-| 3.6 | Build `PreRegistrationResource` | |
-| 3.7 | Modify `/api/preregister` storage path | remove SF call |
-| 3.8 | Add lead acknowledgment mailable | |
-| 3.9 | Update marketing forms to backend intake APIs | no direct SF forms |
+| 3.1 | Build ticket models + relationships + indexes | include SLA fields, assignment, linkage to user/order/kitchen |
+| 3.2 | Build `SupportTicketResource` with full agent workflow | inbox, assignment, priority, status machine, merge/split, resolution summary |
+| 3.3 | Build intake and conversation APIs | `POST /api/support/ticket`, `GET /api/support/ticket/{id}`, reply endpoints, scoped auth |
+| 3.4 | Build spam/abuse protections for CRM intake | rate limits, honeypot/captcha hooks, duplicate detection |
+| 3.5 | Build ticket automations | SLA timers, breach escalation jobs, queue-driven notifications |
+| 3.6 | Build `PreRegistrationResource` with operator workflow | triage queue, status transitions, conversion linking |
+| 3.7 | Replace SF behavior inside `/api/preregister` and `/api/mobcontact` | local persistence + compatibility response contract |
+| 3.8 | Build CRM communications layer | confirmation/reply/escalation/lead acknowledgement templates + delivery tracking |
+| 3.9 | Build Customer Service UX flows in Filament | triage-first inbox, saved filters/views, one-click assignment, keyboard-first actions |
+| 3.10 | Build Operations UX flows in Filament | certificate review workspace, side-by-side doc preview, bulk approve/reject with safeguards |
+| 3.11 | Build user-friendly data presentation | clear status badges, SLA countdown chips, sticky context panels, empty/error states |
+| 3.12 | Add accessibility and usability standards | WCAG AA contrast, visible focus states, responsive layout, low-click-path interaction |
+| 3.13 | Build CRM analytics widgets | queue depth, aging buckets, first-response SLA, resolution SLA, reopened ticket rate |
+| 3.14 | UAT with CS/Ops and iterate UX | task-based usability tests, record friction points, apply prioritized fixes |
+| 3.15 | Finalize CRM playbooks and training assets | SOPs, macro templates, escalation ladder, handoff guidelines |
 
 ## Phase 4 - Platform Admin and Health (Week 4)
 | # | Task | Notes |
@@ -782,13 +859,15 @@ SF_PASSWORD
 ## Phase 5 - Salesforce Cutover (Week 5)
 | # | Task | Notes |
 |---|---|---|
-| 5.1 | Staging parity tests vs current SF workflows | approval, lead, support |
-| 5.2 | Enable dual-write/read shadow period (optional, 1 week) | validate confidence |
-| 5.3 | Switch traffic to internal modules | |
-| 5.4 | Keep `/api/mobcontact` compatibility alias | temporary |
-| 5.5 | Remove SF middleware/routes/controllers/listeners | |
-| 5.6 | Drop `sales_kitchens` table | post-validation |
-| 5.7 | Remove SF secrets/env vars | |
+| 5.1 | Execute contract parity suite in staging | approval, lead, support, user lookup paths |
+| 5.2 | Run shadow-read/dual-observe period (no SF write dependence) | compare outcomes and latency without SF as source of truth |
+| 5.3 | Cut traffic to internal modules only | freeze Salesforce integration endpoints from operational use |
+| 5.4 | Keep `/api/mobcontact` as compatibility alias | same response contract, mapped to local ticket creation |
+| 5.5 | Remove SF runtime dependencies from code | middleware, routes, controllers, listeners, helper calls |
+| 5.6 | Remove SF persistence artifacts | deprecate then drop `sales_kitchens` after verification window |
+| 5.7 | Remove SF secrets and rotate exposed credentials | env + secret store cleanup, key rotation evidence |
+| 5.8 | Verify zero Salesforce traffic in production logs | monitor for 7 days, alert on any outbound SF call |
+| 5.9 | Sign-off on no-impact outcomes | no data loss, no workflow regression, SLA and response times within target |
 
 ## Phase 5.5 - Deployment and Release Tasks (parallel to cutover)
 | # | Task | Notes |
@@ -817,7 +896,124 @@ SF_PASSWORD
 
 ---
 
+## Strict Dependency Timeline (Predecessors + Critical Path)
+
+Execution rule:
+- A task cannot start until all listed predecessors are completed.
+- Any task marked `Critical Path = Yes` blocks production cutover if incomplete.
+
+### Milestone Gates
+| Gate | Definition | Blocks |
+|---|---|---|
+| G0 | Phase 0 foundations complete | All build phases |
+| G0.5 | Platform hardening gate complete | Phase 1+ feature delivery |
+| G1 | Admin foundation complete | Core resources/CRM UI |
+| G3 | CRM functionally complete + UX accepted | Salesforce cutover |
+| G5 | Salesforce eradication verification complete | Production sign-off |
+| G6 | Hardening regression/perf gates complete | Project closure |
+
+### Dependency Matrix
+| ID | Task | Predecessors | Critical Path |
+|---|---|---|---|
+| 0.1-0.7 | Repository/deployment foundations | none | Yes |
+| 0.5.1 | PHP 8.2+ baseline | 0.1-0.7 | Yes |
+| 0.5.2 | Laravel 8 -> 11 | 0.5.1 | Yes |
+| 0.5.3 | Dart 3+ upgrade | 0.1-0.7 | No |
+| 0.5.4 | Enforce `QUEUE_CONNECTION=redis` | 0.5.2 | Yes |
+| 0.5.5 | Deploy queue workers/Horizon | 0.5.4 | Yes |
+| 0.5.6 | Switch cache backend to Redis | 0.5.2 | Yes |
+| 0.5.7 | Add discovery caching | 0.5.6 | Yes |
+| 0.5.8 | Remove double-fetch pagination patterns | 0.5.2 | Yes |
+| 0.5.9 | Cache invalidation hooks | 0.5.7 | Yes |
+| 0.5.10 | Extract `StripeTrait` -> `PaymentService` | 0.5.2 | Yes |
+| 0.5.11 | Service layer extraction | 0.5.2 | Yes |
+| 0.5.12 | Remove hardcoded SF secrets from source | 0.5.2 | Yes |
+| 0.5.13 | Async/cache observability | 0.5.4, 0.5.6 | Yes |
+| 0.5.14 | Hardening regression tests | 0.5.7, 0.5.9, 0.5.10, 0.5.11 | Yes |
+| 0.5.15 | Hardening exit criteria gate | 0.5.4-0.5.14 | Yes |
+| 1.1 | Install Filament | 0.5.15 | Yes |
+| 1.2 | Scaffold panel | 1.1 | Yes |
+| 1.3 | `AdminUser` model/migration/seeder | 1.2 | Yes |
+| 1.4 | Spatie permission + role matrix | 1.3 | Yes |
+| 1.5 | Panel branding | 1.2 | No |
+| 1.6-1.10 | Core migrations (cert/user/ticket/lead/settings) | 1.3 | Yes |
+| 2.1 | `CertificateResource` | 1.4, 1.6 | Yes |
+| 2.2 | Certificate notifications | 2.1, 0.5.5 | Yes |
+| 2.3 | `UserResource` | 1.4, 1.7 | Yes |
+| 2.4 | `MikitchnResource` | 1.4, 2.1 | Yes |
+| 2.5 | `OrderResource` + refund controls | 1.4, 0.5.10 | Yes |
+| 2.6 | `PromoCodeResource` | 1.4 | No |
+| 3.1 | Ticket schema/index readiness | 1.8 | Yes |
+| 3.2 | `SupportTicketResource` workflow | 3.1, 1.4 | Yes |
+| 3.3 | Support APIs (create/get/reply) | 3.1, 0.5.11 | Yes |
+| 3.4 | Spam/abuse protection | 3.3 | Yes |
+| 3.5 | SLA timers/escalation jobs | 3.1, 0.5.5 | Yes |
+| 3.6 | `PreRegistrationResource` workflow | 1.9, 1.4 | Yes |
+| 3.7 | Replace SF behavior in prereg/mobcontact | 3.3, 3.6 | Yes |
+| 3.8 | CRM communications layer | 3.2, 3.3, 0.5.5 | Yes |
+| 3.9 | CS UX flows | 3.2 | Yes |
+| 3.10 | Ops UX flows | 2.1, 2.4, 3.2 | Yes |
+| 3.11 | User-friendly UI states/components | 3.9, 3.10 | Yes |
+| 3.12 | Accessibility/usability standards | 3.11 | Yes |
+| 3.13 | CRM analytics widgets | 3.1, 3.5 | No |
+| 3.14 | UAT for CS/Ops workflows | 3.8, 3.11, 3.12 | Yes |
+| 3.15 | SOPs/training/playbooks | 3.14 | Yes |
+| 4.1-4.6 | Platform admin/health modules | 1.10, 1.4, 0.5.13 | No |
+| 5.1 | Staging contract parity suite | 2.1-2.5, 3.1-3.15 | Yes |
+| 5.2 | Shadow-read/dual-observe period | 5.1 | Yes |
+| 5.3 | Cut traffic to internal modules only | 5.2 | Yes |
+| 5.4 | `/api/mobcontact` compatibility alias live | 3.7, 5.3 | Yes |
+| 5.5 | Remove SF runtime dependencies from code | 5.3 | Yes |
+| 5.6 | Remove SF persistence artifacts | 5.5 | Yes |
+| 5.7 | Remove SF secrets + credential rotation | 5.5 | Yes |
+| 5.8 | Zero SF traffic verification (7 days) | 5.5, 5.7 | Yes |
+| 5.9 | No-impact final sign-off | 5.8, 3.14 | Yes |
+| 6.1-6.7 | Final hardening validation | 5.9 | Yes |
+
+### Critical Path Sequence
+1. `0.1-0.7` -> `0.5.1` -> `0.5.2` -> `0.5.4` -> `0.5.5` -> `0.5.6` -> `0.5.7` -> `0.5.9` -> `0.5.10` -> `0.5.11` -> `0.5.14` -> `0.5.15`
+2. `1.1` -> `1.2` -> `1.3` -> `1.4` -> `1.6-1.10`
+3. `2.1` -> `2.2` and `2.3` -> `2.4` -> `2.5`
+4. `3.1` -> `3.2` and `3.3` -> `3.4` and `3.5` -> `3.7` -> `3.8` -> `3.9` and `3.10` -> `3.11` -> `3.12` -> `3.14` -> `3.15`
+5. `5.1` -> `5.2` -> `5.3` -> `5.5` -> `5.6` and `5.7` -> `5.8` -> `5.9`
+6. `6.1-6.7`
+
+### Parallel Workstreams (Allowed)
+| Workstream | Can run in parallel after |
+|---|---|
+| Mobile Dart 3 migration (`0.5.3`) | `0.1-0.7` |
+| Panel branding (`1.5`) | `1.2` |
+| PromoCode resource (`2.6`) | `1.4` |
+| Platform admin health pages (`4.1-4.6`) | `1.10`, `1.4`, `0.5.13` |
+| CRM analytics widgets (`3.13`) | `3.1`, `3.5` |
+
 ## CRM Functional Specification (Detailed)
+
+### CRM Agent UX Requirements (Customer Service + Operations)
+- Single-screen triage layout:
+  - left: queue/inbox with fast filters,
+  - center: conversation/ticket timeline,
+  - right: contextual profile (user, kitchen, orders, payment summary).
+- Productivity-first interactions:
+  - keyboard shortcuts for assign/status/reply,
+  - saved views (`My Queue`, `Unassigned`, `SLA Risk`, `Ops Certificates Pending`),
+  - bulk actions with confirmation for high-risk changes.
+- Clear visual hierarchy:
+  - color-safe status badges,
+  - SLA countdown chips (`on track`, `at risk`, `breached`),
+  - unread/new indicators and sticky action bar.
+- Friction reduction:
+  - canned macros/templates with variables,
+  - auto-suggest related tickets and similar past resolutions,
+  - one-click jump links to user/order/kitchen resources.
+- Safe operations UX:
+  - irreversible actions require typed confirmation,
+  - optimistic UI only where idempotent; otherwise explicit completion feedback,
+  - collision detection with "updated by another agent" conflict resolution modal.
+- Accessibility and device support:
+  - WCAG AA contrast baseline,
+  - full keyboard navigability and visible focus,
+  - usable 1280px desktop baseline with responsive fallback for tablet.
 
 ### Ticket Lifecycle
 - `open` -> `in_progress` -> `pending_user` -> `resolved` -> `closed`
@@ -954,7 +1150,7 @@ No separate hosting tier is required for the internal portal.
 
 ### Rollback strategy
 - Keep compatibility alias routes temporarily.
-- Keep Salesforce code path disabled but recoverable for a short fallback window.
+- Do not re-enable Salesforce dependencies; rollback uses previous internal release only.
 - DB migrations designed with reversible steps where possible.
 
 ### Deployment rollback specifics
