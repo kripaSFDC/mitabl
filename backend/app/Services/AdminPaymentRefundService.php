@@ -47,15 +47,25 @@ class AdminPaymentRefundService
                     throw new RuntimeException('Only confirmed/paid payments can be refunded.');
                 }
 
-                $existingRefund = Refund::query()->where('order_id', $order->id)->first();
-                if ($existingRefund || (int) $order->refund_percentage >= 100) {
+                $existingFullRefund = Refund::query()
+                    ->where('order_id', $order->id)
+                    ->where('percentage', '>=', 100)
+                    ->where('status', 1)
+                    ->first();
+
+                if ($existingFullRefund || (int) $order->refund_percentage >= 100) {
                     return [
                         'status' => 'already_refunded',
                         'order_id' => $order->id,
                         'payment_id' => $payment->id,
-                        'refund_id' => $existingRefund?->id,
+                        'refund_id' => $existingFullRefund?->id,
                         'amount' => (float) $order->total_price,
                     ];
+                }
+
+                $hasAnyRefund = Refund::query()->where('order_id', $order->id)->exists();
+                if ($hasAnyRefund || (int) ($order->refund_percentage ?? 0) > 0) {
+                    throw new RuntimeException('Order already has a partial refund. Use the partial refund workflow instead.');
                 }
 
                 $refundResponse = $this->paymentService->refundAmount(
