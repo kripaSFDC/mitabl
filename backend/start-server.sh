@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 if [ "${RUN_MIGRATIONS_ON_BOOT:-false}" = "true" ]; then
   php artisan migrate --force

@@ -85,7 +85,8 @@ class AppServiceProvider extends ServiceProvider
             'service' => $service,
             'environment' => $environment,
             'release_phase' => 'phase-5.5',
-            'trace_id' => (string) Str::uuid(),
+            // Boot-scoped correlation for infra/runtime logs.
+            'boot_id' => (string) Str::uuid(),
         ]);
     }
 }

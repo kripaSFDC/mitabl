@@ -1,11 +1,8 @@
-version: "3.9"
-
 services:
   marketing-web:
     build:
       context: ../website
       dockerfile: Dockerfile
-    container_name: mitabl-marketing-web
     labels:
       com.mitabl.service: marketing
     env_file:
@@ -31,7 +28,6 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: mitabl-backend-api
     labels:
       com.mitabl.service: api
     command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
@@ -61,7 +57,6 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: mitabl-ops-admin
     labels:
       com.mitabl.service: admin
     command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8001"]
@@ -91,7 +86,6 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: mitabl-queue-worker
     labels:
       com.mitabl.service: api
     command: ["php", "artisan", "queue:work", "redis", "--queue=crm-escalations,crm-communications,default", "--sleep=1", "--tries=3", "--max-time=3600"]
@@ -117,7 +111,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: mitabl-redis
     ports:
       - "6379:6379"
     healthcheck:

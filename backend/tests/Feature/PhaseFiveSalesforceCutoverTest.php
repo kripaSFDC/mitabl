@@ -71,6 +71,7 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
         $backendApiRoutes = (string) file_get_contents(base_path('routes/api.php'));
         $websiteWebRoutes = (string) file_get_contents(base_path('../website/routes/web.php'));
         $startServerScript = (string) file_get_contents(base_path('start-server.sh'));
+        $horizonConfig = (string) file_get_contents(config_path('horizon.php'));
 
         $this->assertStringContainsString('ops-admin:', $phase0Compose);
         $this->assertStringContainsString('queue-worker:', $phase0Compose);
@@ -112,6 +113,9 @@ class PhaseFiveSalesforceCutoverTest extends TestCase
         $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT', $startServerScript);
         $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT', $startServerScript);
         $this->assertStringNotContainsString('php artisan migrate &&', $startServerScript);
+        $this->assertStringContainsString("'queue' => ['crm-escalations', 'crm-communications', 'default']", $horizonConfig);
+        $this->assertStringContainsString("'redis:crm-escalations' => 30", $horizonConfig);
+        $this->assertStringContainsString("'redis:crm-communications' => 30", $horizonConfig);
     }
 
     public function test_contract_parity_replacements_exist_in_admin_resources(): void

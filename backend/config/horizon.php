@@ -8,6 +8,8 @@ return [
     'middleware' => ['web'],
     'waits' => [
         'redis:default' => 60,
+        'redis:crm-escalations' => 30,
+        'redis:crm-communications' => 30,
     ],
     'trim' => [
         'recent' => 60,
@@ -22,7 +24,7 @@ return [
     'defaults' => [
         'supervisor-1' => [
             'connection' => 'redis',
-            'queue' => ['default'],
+            'queue' => ['crm-escalations', 'crm-communications', 'default'],
             'balance' => 'auto',
             'maxProcesses' => 4,
             'maxTime' => 0,
@@ -38,10 +40,42 @@ return [
             'supervisor-1' => [
                 'maxProcesses' => 10,
             ],
+            'supervisor-crm-escalations' => [
+                'connection' => 'redis',
+                'queue' => ['crm-escalations'],
+                'balance' => 'auto',
+                'maxProcesses' => 4,
+                'tries' => 3,
+                'timeout' => 120,
+            ],
+            'supervisor-crm-communications' => [
+                'connection' => 'redis',
+                'queue' => ['crm-communications'],
+                'balance' => 'auto',
+                'maxProcesses' => 4,
+                'tries' => 3,
+                'timeout' => 120,
+            ],
         ],
         'staging' => [
             'supervisor-1' => [
                 'maxProcesses' => 6,
+            ],
+            'supervisor-crm-escalations' => [
+                'connection' => 'redis',
+                'queue' => ['crm-escalations'],
+                'balance' => 'auto',
+                'maxProcesses' => 3,
+                'tries' => 3,
+                'timeout' => 120,
+            ],
+            'supervisor-crm-communications' => [
+                'connection' => 'redis',
+                'queue' => ['crm-communications'],
+                'balance' => 'auto',
+                'maxProcesses' => 3,
+                'tries' => 3,
+                'timeout' => 120,
             ],
         ],
         'local' => [
