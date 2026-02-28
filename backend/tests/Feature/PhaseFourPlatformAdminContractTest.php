@@ -35,8 +35,10 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $queueView = (string) file_get_contents(resource_path('views/filament/pages/queue-ops-page.blade.php'));
         $integrationPage = (string) file_get_contents(app_path('Filament/Pages/IntegrationLogsPage.php'));
         $healthService = (string) file_get_contents(app_path('Services/SystemHealthService.php'));
+        $settingRegistry = (string) file_get_contents(app_path('Services/PlatformSettingRegistry.php'));
         $kernel = (string) file_get_contents(app_path('Console/Kernel.php'));
         $syntheticCommand = (string) file_get_contents(app_path('Console/Commands/PlatformSyntheticHealthCheckCommand.php'));
+        $activateDuePolicyCommand = (string) file_get_contents(app_path('Console/Commands/ActivateDuePoliciesCommand.php'));
         $apiRoutes = (string) file_get_contents(base_path('routes/api.php'));
 
         $this->assertStringContainsString('class PlatformSettingsPage', $settingsPage);
@@ -52,6 +54,10 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('strtolower', $settingsPage);
         $this->assertStringContainsString('catch (ValidationException', $settingsPage);
         $this->assertStringContainsString('isNewRecord', $settingsPage);
+        $this->assertStringContainsString('PlatformSettingRegistry', $settingsPage);
+        $this->assertStringContainsString("'onboarding.enabled'", $settingRegistry);
+        $this->assertStringContainsString("'maintenance.read_only_mode'", $settingRegistry);
+        $this->assertStringContainsString("'incident.degraded_mode'", $settingRegistry);
         $this->assertStringContainsString('refreshChecks', $healthPage);
         $this->assertStringContainsString('runChecks', $healthService);
         $this->assertStringContainsString('checkDatabase', $healthService);
@@ -66,7 +72,9 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('checkSchedulerHeartbeat', $healthService);
         $this->assertStringContainsString('checkDegradedMode', $healthService);
         $this->assertStringContainsString('platform:health:synthetic', $kernel);
+        $this->assertStringContainsString('platform:policies:activate-due', $kernel);
         $this->assertStringContainsString('class PlatformSyntheticHealthCheckCommand', $syntheticCommand);
+        $this->assertStringContainsString('class ActivateDuePoliciesCommand', $activateDuePolicyCommand);
         $this->assertStringContainsString('retryJob', $queuePage);
         $this->assertStringContainsString('requeueJob', $queuePage);
         $this->assertStringContainsString('discardJob', $queuePage);

@@ -181,21 +181,26 @@ class PolicyResource extends Resource
                                     ->where('id', '!=', $record->id)
                                     ->first();
 
-                                Policy::query()
-                                    ->where('name', $record->name)
-                                    ->where('id', '!=', $record->id)
-                                    ->where('active', true)
-                                    ->update(['active' => false]);
+                                $effectiveAt = $record->effective_at ?: now();
+                                $shouldActivateNow = $effectiveAt->lessThanOrEqualTo(now());
 
-                                $record->active = true;
+                                if ($shouldActivateNow) {
+                                    Policy::query()
+                                        ->where('name', $record->name)
+                                        ->where('id', '!=', $record->id)
+                                        ->where('active', true)
+                                        ->update(['active' => false]);
+                                }
+
+                                $record->active = $shouldActivateNow;
                                 $record->published_by = Filament::auth()->id();
                                 $record->published_at = now();
-                                $record->effective_at = $record->effective_at ?: now();
+                                $record->effective_at = $effectiveAt;
                                 $record->save();
 
                                 PolicyChangeLog::create([
                                     'policy_id' => $record->id,
-                                    'action' => 'published',
+                                    'action' => $shouldActivateNow ? 'published' : 'scheduled',
                                     'changed_by' => Filament::auth()->id(),
                                     'from_version' => $previousActive?->version,
                                     'to_version' => $record->version,
@@ -208,12 +213,20 @@ class PolicyResource extends Resource
                                 app(AdminAuditLogService::class)->log('policy.publish', request(), [
                                     'policy_name' => $record->name,
                                     'to_version' => $record->version,
+                                    'effective_at' => $effectiveAt->toIso8601String(),
+                                    'activated_immediately' => $shouldActivateNow,
                                     'from_version' => $previousActive?->version,
                                     'impact_acknowledged' => (bool) ($data['impact_acknowledged'] ?? false),
                                 ]);
                             });
 
-                            Notification::make()->title('Policy published.')->success()->send();
+                            Notification::make()
+                                ->title('Policy published.')
+                                ->body($record->active
+                                    ? 'This version is now active.'
+                                    : 'This version is scheduled and will activate at its effective date.')
+                                ->success()
+                                ->send();
                         } catch (\Throwable $throwable) {
                             Notification::make()->title('Publish failed: ' . $throwable->getMessage())->danger()->send();
                         }
@@ -465,4 +478,3 @@ class PolicyResource extends Resource
         );
     }
 }
-

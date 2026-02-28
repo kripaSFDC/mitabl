@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\PlatformSetting;
 use App\Services\AdminAuditLogService;
 use App\Services\AdminStepUpService;
+use App\Services\PlatformSettingRegistry;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -34,22 +35,7 @@ class PlatformSettingsPage extends Page implements HasForms
     public function mount(): void
     {
         $this->form->fill([
-            'settings' => PlatformSetting::query()
-                ->orderBy('key')
-                ->get()
-                ->map(fn (PlatformSetting $setting): array => [
-                    'id' => $setting->id,
-                    'key' => $setting->key,
-                    'value_type' => $setting->value_type,
-                    'description' => $setting->description,
-                    'value_string' => $setting->value_type === 'string' ? (string) data_get($setting->value, 'value', '') : null,
-                    'value_integer' => $setting->value_type === 'integer' ? (int) data_get($setting->value, 'value', 0) : null,
-                    'value_boolean' => $setting->value_type === 'boolean' ? (bool) data_get($setting->value, 'value', false) : false,
-                    'value_json' => $setting->value_type === 'json'
-                        ? (json_encode($setting->value ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}')
-                        : '{}',
-                ])
-                ->toArray(),
+            'settings' => app(PlatformSettingRegistry::class)->forAdminForm(),
             'change_reason' => '',
         ]);
     }
