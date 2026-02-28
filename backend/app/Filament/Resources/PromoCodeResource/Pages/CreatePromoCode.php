@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\PromoCodeResource\Pages;
 
 use App\Filament\Resources\PromoCodeResource;
+use App\Models\PromoCode;
 use App\Services\AdminAuditLogService;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreatePromoCode extends CreateRecord
 {
@@ -16,6 +19,21 @@ class CreatePromoCode extends CreateRecord
         PromoCodeResource::validatePromoCodeWindow($data, null);
 
         return $data;
+    }
+
+    protected function handleRecordCreation(array $data): Model
+    {
+        return DB::transaction(function () use ($data): Model {
+            PromoCode::query()
+                ->whereRaw('LOWER(code) = ?', [strtolower((string) ($data['code'] ?? ''))])
+                ->where('status', 1)
+                ->lockForUpdate()
+                ->get(['id']);
+
+            PromoCodeResource::validatePromoCodeWindow($data, null);
+
+            return PromoCode::query()->create($data);
+        });
     }
 
     protected function afterCreate(): void

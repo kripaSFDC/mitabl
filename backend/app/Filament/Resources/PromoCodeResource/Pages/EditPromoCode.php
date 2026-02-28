@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\PromoCodeResource\Pages;
 
 use App\Filament\Resources\PromoCodeResource;
+use App\Models\PromoCode;
 use App\Services\AdminAuditLogService;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EditPromoCode extends EditRecord
 {
@@ -17,6 +20,23 @@ class EditPromoCode extends EditRecord
         PromoCodeResource::validatePromoCodeWindow($data, $this->record);
 
         return $data;
+    }
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        return DB::transaction(function () use ($record, $data): Model {
+            PromoCode::query()
+                ->whereRaw('LOWER(code) = ?', [strtolower((string) ($data['code'] ?? $record->code ?? ''))])
+                ->where('status', 1)
+                ->lockForUpdate()
+                ->get(['id']);
+
+            PromoCodeResource::validatePromoCodeWindow($data, $record);
+
+            $record->update($data);
+
+            return $record;
+        });
     }
 
     protected function getHeaderActions(): array
