@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         // Commands\OrderPaymentCron::class,
         'App\Console\Commands\OrderPaymentCron',
         'App\Console\Commands\SupportTicketSlaScanCommand',
+        'App\Console\Commands\PlatformSyntheticHealthCheckCommand',
     ];
 
     /**
@@ -31,6 +32,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('orderpayment:cron')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('orderpayment:cron')->hourly()->withoutOverlapping();
         $schedule->command('support:sla:scan')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('platform:health:synthetic')->everyFiveMinutes()->withoutOverlapping();
     }
 
     /**

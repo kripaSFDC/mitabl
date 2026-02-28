@@ -4,6 +4,9 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\CrmAgingBucketsChart;
 use App\Filament\Widgets\CrmQueueStatsWidget;
+use App\Filament\Widgets\SlaHealthWidget;
+use App\Filament\Widgets\SystemHealthSummaryWidget;
+use App\Http\Middleware\RecordAdminAction;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -55,6 +58,8 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
                 CrmQueueStatsWidget::class,
                 CrmAgingBucketsChart::class,
+                SlaHealthWidget::class,
+                SystemHealthSummaryWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -69,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                RecordAdminAction::class,
             ]);
     }
 }

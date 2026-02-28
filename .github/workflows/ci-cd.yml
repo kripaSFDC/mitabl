@@ -1,0 +1,82 @@
+# GitHub Actions CI/CD for monorepo
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+      - name: Copy backend env template
+        run: |
+          cp .env.example .env
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+      - name: Finalize backend test environment
+        run: |
+          php artisan key:generate --force
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Run backend tests
+        run: php artisan test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+  website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./website
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+      - name: Copy website env template
+        run: |
+          cp .env.example .env
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+      - name: Finalize website test environment
+        run: |
+          php artisan key:generate --force
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Run website tests
+        run: php artisan test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
+  mobile-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run mobile tests
+        run: flutter test

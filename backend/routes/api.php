@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\WebApiToCurlController;
 use App\Http\Controllers\Api\SupportTicketController;
 use App\Http\Controllers\Controller;
+use App\Services\SystemHealthService;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,6 +33,19 @@ use App\Http\Controllers\Controller;
 Route::get('/health', function () {
     return response('ok', 200)
                   ->header('Content-Type', 'text/plain');
+});
+Route::get('/health/live', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toISOString(),
+    ]);
+});
+Route::get('/health/ready', function (SystemHealthService $healthService) {
+    $summary = $healthService->runChecks();
+    $errorCount = collect($summary['checks'] ?? [])->where('status', 'error')->count();
+    $isReady = $errorCount === 0;
+
+    return response()->json($summary, $isReady ? 200 : 503);
 });
 Route::post('login', [UserController::class, 'login']);
 Route::post('register', [UserController::class, 'register']);

@@ -1,0 +1,37 @@
+# Root .gitignore
+# Node
+node_modules/
+# Composer
+vendor/
+# Python
+__pycache__/
+*.pyc
+# Flutter/Dart
+.dart_tool/
+build/
+# IDEs
+.vscode/
+.idea/
+# OS
+.DS_Store
+Thumbs.db
+# Logs
+*.log
+# Env
+.env
+.env.*
+# Misc
+*.swp
+*.swo
+# Coverage
+coverage/
+# Laravel
+storage/
+bootstrap/cache/
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/css/app.css
+/public/js/app.js
+# Docker
+*.pid
