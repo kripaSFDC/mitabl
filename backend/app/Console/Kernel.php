@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\SupportTicketSlaScanCommand',
         'App\Console\Commands\PlatformSyntheticHealthCheckCommand',
         'App\Console\Commands\ReconcileIntakeDataCommand',
+        'App\Console\Commands\ActivateDuePoliciesCommand',
     ];
 
     /**
@@ -34,6 +35,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('orderpayment:cron')->hourly()->withoutOverlapping();
         $schedule->command('support:sla:scan')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('platform:health:synthetic')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('platform:policies:activate-due')->everyMinute()->withoutOverlapping();
     }
 
     /**
