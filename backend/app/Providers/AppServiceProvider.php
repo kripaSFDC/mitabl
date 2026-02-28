@@ -39,7 +39,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(UrlGenerator $url)
     {
 
-        $url->forceScheme('https');
+        if (app()->environment('production', 'staging')) {
+            $url->forceScheme('https');
+        }
 
 
         Order::observe(OrderObserver::class);
