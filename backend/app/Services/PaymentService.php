@@ -158,16 +158,22 @@ class PaymentService
         ]);
     }
 
-    public function refundAmount(string $intentId, float $amount, float $percent)
+    public function refundAmount(string $intentId, float $amount, float $percent, ?string $idempotencyKey = null)
     {
         $percentInDecimal = $percent / 100;
         $transferAmount = $amount - ($percentInDecimal * $amount);
         $amountInCents = (int) round(max($transferAmount, 0) * 100);
 
-        return $this->stripe->refunds->create([
+        $params = [
             'payment_intent' => $intentId,
             'amount' => $amountInCents,
-        ]);
+        ];
+
+        if ($idempotencyKey) {
+            return $this->stripe->refunds->create($params, ['idempotency_key' => $idempotencyKey]);
+        }
+
+        return $this->stripe->refunds->create($params);
     }
 
     public function getVendorLifetimeAmount(User $user)

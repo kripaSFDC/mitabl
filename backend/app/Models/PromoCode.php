@@ -8,4 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class PromoCode extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'code',
+        'percentage_value',
+        'status',
+    ];
+
+    protected $casts = [
+        'status' => 'boolean',
+    ];
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'promo_code');
+    }
 }
