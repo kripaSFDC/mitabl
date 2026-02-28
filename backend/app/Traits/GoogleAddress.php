@@ -1,10 +1,6 @@
 <?php 
 	namespace App\Traits;
 
-	use Auth, Exception, Validator;;
-	use App\Http\Controllers\Controller;
-	use Carbon\Carbon;
-
 	/**
 	 * This trait for stripe connect and procedure functions.
 	 */
@@ -12,8 +8,11 @@
 	{
 		public static function geolocationaddress($lat, $long)
 		{
-		    // $geocode = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&sensor=false&key=AIzaSyCJyDp4TLGUigRfo4YN46dXcWOPRqLD0gQ";
-		    $geocode = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&sensor=false&key=AIzaSyAsZwc4NHo2JhjvtoFmv5N89u7Ta042KtE";
+		    $apiKey = (string) config('services.google_maps.api_key');
+		    if ($apiKey === '') {
+		    	return 'Not Found';
+		    }
+		    $geocode = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&sensor=false&key=$apiKey";
 		    $ch = curl_init();
 		    curl_setopt($ch, CURLOPT_URL, $geocode);
 		    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -41,7 +40,11 @@
 		}
 		function Get_Address_From_Google_Maps($lat, $lon) {
 
-			$url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&sensor=false&key=AIzaSyAsZwc4NHo2JhjvtoFmv5N89u7Ta042KtE";
+			$apiKey = (string) config('services.google_maps.api_key');
+			if ($apiKey === '') {
+				return array();
+			}
+			$url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&sensor=false&key=$apiKey";
 
 			// Make the HTTP request
 			$data = @file_get_contents($url);

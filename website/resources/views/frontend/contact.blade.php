@@ -9,10 +9,7 @@
             <div class="contact-data">
                <h2>Contact us</h2>
                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p>
-               <form action="https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST">
-
-                  <input type=hidden name="orgid" value="00D5i000004SJla">
-                  <input type=hidden name="retURL" value="https://www.mitabl.com/">
+               <form action="/api/mobcontact" method="POST">
 
                   <div class="form-outer">
 
@@ -52,8 +49,7 @@
                      <textarea name="description" placeholder="Description"></textarea>
                   </div>
                   <div class="form-outer">
-                     <!-- <input type="submit" name="Submit"> -->
-                     <a href="#">Submit</a>
+                     <button type="submit">Submit</button>
                   </div>
                </form>
             </div>

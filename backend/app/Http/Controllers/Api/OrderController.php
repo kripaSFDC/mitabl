@@ -19,14 +19,22 @@ use Validator,DB,Auth;
 use Storage, DateTime;
 use Carbon\Carbon;
 use App\Http\Resources\Order\Order as OrderResource;
-use App\Traits\StripeTrait;
 use App\Events\MakeOrderPaymentToVendor;
 use App\Events\CancelOrderRefund;
+use App\Services\OrderService;
+use App\Services\PaymentService;
 
 class OrderController extends Controller
 {
-    use StripeTrait;
     public $data=[];
+    private PaymentService $paymentService;
+    private OrderService $orderService;
+
+    public function __construct(PaymentService $paymentService, OrderService $orderService)
+    {
+        $this->paymentService = $paymentService;
+        $this->orderService = $orderService;
+    }
 
     public function myUpcomingOrderss(Request $request)
     {
@@ -86,10 +94,16 @@ class OrderController extends Controller
     public function statusUpdate(Request $request)
     {
         $order = Order::find($request->order_id);
+        if (!$order) {
+            return $this->responser([], 'Order not found.');
+        }
 
         
         if ((int) $request->status == 3) {
-            $confirmPayment = $this->confirmPaymentIntent($order->payment);
+            if (!$order->payment) {
+                return $this->responser([], 'Payment record not found for this order.');
+            }
+            $confirmPayment = $this->paymentService->safely(fn () => $this->paymentService->confirmPaymentIntent($order->payment));
 
             if (is_object($confirmPayment)) {
                
@@ -133,7 +147,7 @@ class OrderController extends Controller
     {
         $user = Auth::user();
 
-        $oCount = Order::where('user_id',$user->id)->where('status',1)->get()->count();
+        $oCount = Order::where('user_id',$user->id)->where('status',1)->count();
         $distcounted = false;
         if ($oCount <= 5) {
             $distcounted = true;
@@ -212,10 +226,13 @@ class OrderController extends Controller
     {
         
         $restaurant = Mikitchn::find($restaurantId);
+        if (!$restaurant) {
+            return $this->responser([], 'restaurant not found.');
+        }
 
         $statusArry = array(3);
 
-        $timings = Mikitchn::find($restaurantId)->weektimings->makeHidden(['created_at','updated_at','id','mikitchn_id'])->toArray();
+        $timings = $restaurant->weektimings->makeHidden(['created_at','updated_at','id','mikitchn_id'])->toArray();
         $TotalSeats = $restaurant->no_of_seats;
 
         // print_r($timings); 
@@ -264,6 +281,9 @@ class OrderController extends Controller
         $time_to = Carbon::parse($request->time_to)->format('H:i:s');
 
         $restaurant = Mikitchn::find($request->kitchen);
+        if (!$restaurant) {
+            return $this->responser([], 'restaurant not found.');
+        }
         $TotalSeats = $restaurant->no_of_seats;
 
         $orders = Order::where('dine_in',1)->whereIn('status',$statusArry)
@@ -400,7 +420,7 @@ class OrderController extends Controller
 
         // $diffInHrs = $this->getPendingHoursInOrderD($order);
 
-        $paymentIntent = $this->createPaymentIntent($order);
+        $paymentIntent = $this->paymentService->safely(fn () => $this->paymentService->createPaymentIntent($order));
 
         if (is_object($paymentIntent)) {
             // print_r($paymentIntent); die();
@@ -440,44 +460,9 @@ class OrderController extends Controller
     {
 
         $user = Auth::guard('api')->user();
-        $fromTime = Carbon::parse($request->delivery_time_from)->format('H:i:s');
-        $toTime = Carbon::parse($request->delivery_time_to)->format('H:i:s');
-
-        $oCount = Order::where('user_id',$user->id)->where('status',1)->get()->count();
-
-        $order = new Order;
-        $order->mikitchn_id = $request->kitchen_id;
-        $order->user_id = $user->id;
-        $order->delivery_date = $request->delivery_date;
-        $order->delivery_time_from = $fromTime;
-        $order->delivery_time_to = $toTime;
-        $order->message = $request->message;
-        $order->item_total_price = $request->item_total_price;
-        $order->promo_code = $request->promo_code;
-
-        if ($oCount <= 5) {
-            $order->discounted_amount = 50;
-        }
-
-        $order->taxes = $request->taxes;
-        $order->total_price = $request->total_price;
-        // $order->paid = $request->paid;
-        $order->dine_in = $request->dine_in;
-        $order->take_away = $request->take_away;
-        
-        if ($request->has('dine_in') && $request->dine_in == 1) {
-            $order->persons = $request->persons;
-        }
-        
-        $order->save();
-
-        $itemsData = json_decode($request->item_data,true);
-        $addItem = $this->addOrderData($order->id,$itemsData);
-        $Order = Order::find($order->id);
-        if ($addItem) {
-            $createdOrder = new OrderResource($Order);
-            return $this->responser($createdOrder, 'Food Ordered Created.');
-        }
+        $order = $this->orderService->createOrder($user, $request->all());
+        $createdOrder = new OrderResource(Order::find($order->id));
+        return $this->responser($createdOrder, 'Food Ordered Created.');
     }
 
     public function addOrderData($orderId,$itemsData)

@@ -21,14 +21,29 @@ use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 // use App\Http\Resources\Order\Order as OrderResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 use App\Http\Resources\User\User as UserResource;
-use App\Traits\StripeTrait;
 use App\Traits\GoogleAddress;
 use App\Events\KitchenVerified;
+use App\Services\DiscoveryService;
+use App\Services\KitchenService;
+use App\Services\PaymentService;
 
 class MikitchnController extends Controller
 {
-    use StripeTrait,GoogleAddress;
+    use GoogleAddress;
     public $data=[];
+    private DiscoveryService $discoveryService;
+    private KitchenService $kitchenService;
+    private PaymentService $paymentService;
+
+    public function __construct(
+        DiscoveryService $discoveryService,
+        KitchenService $kitchenService,
+        PaymentService $paymentService
+    ) {
+        $this->discoveryService = $discoveryService;
+        $this->kitchenService = $kitchenService;
+        $this->paymentService = $paymentService;
+    }
 
     /**
      * Display a listing of the resource.
@@ -39,191 +54,28 @@ class MikitchnController extends Controller
 
     public function recommendedRestaurant(Request $request)
     {
-        $restaurant = (new Mikitchn)->newQuery(); 
-        $queryparams = $request->query();
-
-        $restaurant = $restaurant->join('reviews', 'reviews.mikitchn_id', '=', 'mikitchns.id');
-
-        if($request->has('lat') && $request->has('lon')){
-            $closest = Mikitchn::closest($request->lat, $request->lon);
-            $restaurant = $restaurant->select('mikitchns.*',
-                        DB::raw('AVG(reviews.rating) as rating_count'),
-                        DB::raw('(SELECT COUNT(b.id) FROM orders as b WHERE mikitchns.id = b.mikitchn_id) as orders_count'),
-                        DB::raw("{$closest}")
-                        ); 
-
-        }else{
-            $restaurant = $restaurant->select('mikitchns.*',
-                        DB::raw('AVG(reviews.rating) as rating_count'),
-                        DB::raw('(SELECT COUNT(b.id) FROM orders as b WHERE mikitchns.id = b.mikitchn_id) as orders_count')
-                        );
-        }
-        
-                
-            $restaurant->having( 'orders_count', '>', 0 )
-                ->where('mikitchns.status',1)
-                ->orderByRaw("orders_count DESC, rating_count DESC")
-                ->groupBy('mikitchns.id');
-
-        if($request->has('cooking_styles')){
-            $cStylesAry = explode(',', $request->cooking_styles);
-            $kitchenIds = Foods::whereIn('cookingstyle',$cStylesAry)
-                            ->get()->pluck('restaurant_id');
-            $restaurant->whereIn('mikitchns.id',$kitchenIds);
-            // print_r($kitchenIds); die();
-        }
-        // if($request->has('dine_in') && $request->dine_in != 0){
-        if($request->has('dine_in')){
-            $restaurant->where('mikitchns.dine_in',$request->dine_in);
-        }
-
-        // if($request->has('take_away') && $request->take_away != 0){
-        if($request->has('take_away')){
-            $restaurant->where('mikitchns.take_away',$request->take_away);
-        }
-
-        // $this->data['total_count'] = $restaurant->count();
-
-        $data = $restaurant
-                ->get()
-                // ->paginate($queryparams['limit'])
-                ->makeHidden(['reviews','addedimage','certificate']);
-        // echo $data->toSql(); die();
-        $data->each->append(
-            'is_favourited'
-        );
-        $this->data = RestaurantResource::collection($data);
-
+        $this->data = $this->discoveryService->recommended($request)['data'];
         return $this->responser($this->data,'restaurants by recommeded.');
 
     }
 
     public function nearestRestaurant(Request $request)
     {
-        $restaurant = (new Mikitchn)->newQuery(); 
-
-        $searchQuerey = $request->query();
-        $page = 0;
-        if($searchQuerey['page']) { $page = (int) $searchQuerey['page'] - 1; }
-
-        $latitude = $request->input('lat');
-        $longitude = $request->input('lon');
-        $max_distance = $request->input('max_distance');
-
-        if($request->has('lat') && $request->has('lon')){
-
-            
-            $closest = Mikitchn::closest($latitude, $longitude);
-                                                       
-            
-        }
-        $restaurant->select('mikitchns.*',
-                        DB::raw("{$closest}")
-                        );
-
-        if($request->has('cooking_styles')){
-            $cStylesAry = explode(',', $request->cooking_styles);
-            $kitchenIds = Foods::whereIn('cookingstyle',$cStylesAry)
-                            ->get()->pluck('restaurant_id');
-            $restaurant->whereIn('id',$kitchenIds);
-            // print_r($kitchenIds); die();
-        }
-        // if($request->has('dine_in') && $request->dine_in != 0){
-        if($request->has('dine_in')){
-            $restaurant->where('dine_in',$request->dine_in);
-        }
-
-        // if($request->has('take_away') && $request->take_away != 0){
-        if($request->has('take_away')){
-            $restaurant->where('take_away',$request->take_away);
-        }
-
-        $restaurant = $restaurant->having('distance', '<', $max_distance)
-                        ->where('mikitchns.status',1)
-                        ->orderBy( 'distance', 'ASC' );
-
-        $this->data['total_count'] = $restaurant->get()->count();
-                        // die();
-        $restaurant->offset($page*$searchQuerey['limit'])
-                    ->limit($searchQuerey['limit']);
-
-        // echo $restaurant->toSql(); die;
-
-        $restaurant = $restaurant->get()->makeHidden(['reviews','addedimage','certificate']);
-
-        // print_r($data); die();
-        $restaurant->each->append(
-            'is_favourited'
-        );
-        $this->data['kitchens'] = RestaurantResource::collection($restaurant);
-
+        $this->data = $this->discoveryService->nearest($request)['data'];
         return $this->responser($this->data,'Nearest Restaurants');
     }
 
 
     public function topRatedRestaurant(Request $request)
     {
-       
-        $restaurant = (new Mikitchn)->newQuery(); 
-        $searchQuerey = $request->query();
-        $page = 0;
-        if($searchQuerey['page']) { $page = (int) $searchQuerey['page'] - 1; }
-
-        $restaurant = $restaurant->join('reviews', 'reviews.mikitchn_id', '=', 'mikitchns.id');
-
-        if($request->has('lat') && $request->has('lon')){
-            $closest = Mikitchn::closest($request->lat, $request->lon);
-            $restaurant = $restaurant->select('mikitchns.*',
-                            DB::raw('AVG(reviews.rating) as rating_count'),
-                            DB::raw("{$closest}")
-                            ); 
-        }else{
-            $restaurant = $restaurant->select('mikitchns.*',
-                            DB::raw('AVG(reviews.rating) as rating_count'),
-                            );
-        }
-
-        if($request->has('cooking_styles')){
-            $cStylesAry = explode(',', $request->cooking_styles);
-            $kitchenIds = Foods::whereIn('cookingstyle',$cStylesAry)
-                            ->get()->pluck('restaurant_id');
-            $restaurant->whereIn('mikitchns.id',$kitchenIds);
-            // print_r($kitchenIds); die();
-        }
-        // if($request->has('dine_in') && $request->dine_in != 0){
-        if($request->has('dine_in')){
-            $restaurant->where('mikitchns.dine_in',$request->dine_in);
-        }
-
-        // if($request->has('take_away') && $request->take_away != 0){
-        if($request->has('take_away')){
-            $restaurant->where('mikitchns.take_away',$request->take_away);
-        }
-
-        // $restaurant = $restaurant->having( 'distance', '<', $max_distance )
-        //                         ->where('mikitchns.status',1)
-        //                         ->orderByRaw("distance , rating_count DESC")
-        //                         ->groupBy('mikitchns.id')
-        //                         ->offset($page*$searchQuerey['limit'])
-        //                         ->limit($searchQuerey['limit'])
-        //                         ->get()->makeHidden(['reviews','addedimage']);
-        // echo $restaurant->where('mikitchns.status',1)->orderByRaw("rating_count DESC")->groupBy('mikitchns.id')->count();
-        // die();
-        $restaurant = $restaurant->where('mikitchns.status',1)
-                                ->orderByRaw("rating_count DESC")
-                                ->groupBy('mikitchns.id');
-
-        $this->data['total_count'] = $restaurant->get()->count();
-
-        $data = $restaurant->offset($page*$searchQuerey['limit'])
-                                ->limit($searchQuerey['limit'])
-                                ->get()->makeHidden(['reviews','addedimage','certificate']);
-        $data->each->append(
-            'is_favourited'
-        );
-        $this->data['kitchens'] = RestaurantResource::collection($data);
-
+        $this->data = $this->discoveryService->topRated($request)['data'];
         return $this->responser($this->data,'restaurants by rating');
+    }
+
+    public function filterRestaurant(Request $request)
+    {
+        $this->data = $this->discoveryService->filtered($request)['data'];
+        return $this->responser($this->data, 'restaurants filtered.');
     }
 
     public function index()
@@ -409,6 +261,7 @@ class MikitchnController extends Controller
 
             $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
             event(new KitchenVerified(Auth::guard('api')->user(),$kitchen,$kitchnAddress,$salesStatus));
+            $this->kitchenService->invalidateDiscoveryCaches();
 
             if (!empty($delete_files)) {
                 foreach ($delete_files as $key => $delete_file) {
@@ -484,6 +337,7 @@ class MikitchnController extends Controller
 
             $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
             event(new KitchenVerified(Auth::user(),$kitchen,$kitchnAddress,'Activation Pending'));
+            $this->kitchenService->invalidateDiscoveryCaches();
 
         }
 
@@ -521,8 +375,14 @@ class MikitchnController extends Controller
         } 
 
         $restaurant = $getRestaurant->where('id', $id )->get()->makeHidden(['addedimage','reviews','certificate'])->first();
+        if (!$restaurant) {
+            return $this->responser([], 'restaurant not found.');
+        }
         // echo "<pre>"; print_r(expression)
         $cock = User::find($restaurant->user_id);
+        if (!$cock) {
+            return $this->responser([], 'cook profile not found.');
+        }
 
         $restaurant['weektimings'] = $restaurant->weektimings;
 
@@ -534,7 +394,7 @@ class MikitchnController extends Controller
                         'description' => $cock->description,
                     ];
         $restaurant['gst'] = [
-                        'gst_enable' => $restaurant->certificate->abn_gst,
+                        'gst_enable' => optional($restaurant->certificate)->abn_gst,
                         'gst_amount' => 10
                     ];
                     
@@ -656,6 +516,7 @@ class MikitchnController extends Controller
 
             $kitchnAddress = $this->Get_Address_From_Google_Maps($kitchen->latitude,$kitchen->longitude);
             event(new KitchenVerified(Auth::user(),$kitchen,$kitchnAddress,$salesStatus));
+            $this->kitchenService->invalidateDiscoveryCaches();
 
         } else {
 
@@ -698,8 +559,8 @@ class MikitchnController extends Controller
 
     public function getVendorEarnings()
     {
-        $response = $this->getVendorLifetimeAmount();
-        $transfers = $response->data;
+        $response = $this->paymentService->safely(fn () => $this->paymentService->getVendorLifetimeAmount(Auth::user()));
+        $transfers = is_object($response) && isset($response->data) ? $response->data : [];
         $earning = 0;
         foreach ($transfers as $key => $transfer) {
             // echo $transfer->amount / 100; die();

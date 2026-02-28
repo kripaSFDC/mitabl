@@ -12,11 +12,7 @@
             <div class="contact-data">
                <h2>Registration</h2>
                <!-- <form action="https://mitabl.lightning.force.com/services/data/v53.0/sobjects/Lead" method="POST" id="registration"> -->
-               <form action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8" method="POST" id="registration">
-
-                  <input type=hidden name='captcha_settings' value='{"keyname":"New_recaptcha","fallback":"true","orgId":"00D5i000004SJla","ts":""}'>
-                  <input type=hidden name="oid" value="00D5i000004SJla">
-                  <input type=hidden name="retURL" value="https://www.mitabl.com/thankyou.html">
+               <form action="/api/preregister" method="POST" id="registration">
 
                   <!--  ----------------------------------------------------------------------  -->
                   <!--  NOTE: These fields are optional debugging elements. Please uncomment    -->
@@ -58,7 +54,7 @@
                   <!-- <div class="form-outer">
                      <input id="company" maxlength="40" name="Company" size="20" type="text" placeholder="Company" />
                   </div> -->
-                  <div class="g-recaptcha" data-callback="recaptchaCallback" data-sitekey="6LfGFQUhAAAAABeRRbRwoR7pY489uvnKlyAlSwfj"></div>
+                  <div class="g-recaptcha" data-callback="recaptchaCallback" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
                   <span style="display:none;" class="error error-captcha">Please complete reCAPTCHA before submit</span><br>
                   <div class="form-outer">
                      <input type="submit" id="submit" name="submit">
@@ -99,9 +95,6 @@
 @endsection
 @push('scripts')
    <script src="https://www.google.com/recaptcha/api.js"></script>
-   <script>
-    function timestamp() { var response = document.getElementById("g-recaptcha-response"); if (response == null || response.value.trim() == "") {var elems = JSON.parse(document.getElementsByName("captcha_settings")[0].value);elems["ts"] = JSON.stringify(new Date().getTime());document.getElementsByName("captcha_settings")[0].value = JSON.stringify(elems); } } setInterval(timestamp, 500); 
-   </script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.all.min.js"></script>
    <script>
@@ -172,6 +165,47 @@
          document.getElementsByClassName('error-captcha')[0].style.display = 'none';
       }
 
+      function sendAjaxReq(jsnData) {
+         let _ldr = $('#loader-div');
+         jQuery.ajax({
+                  type: 'post',
+                  url: '/api/preregister',
+                  data: JSON.stringify(jsnData),
+                  contentType: 'application/json',
+                  beforeSend: function () {
+                     _ldr.removeClass('hide');
+                     _ldr.addClass('show');
+                  },
+                  success: function (response) {
+                     _ldr.removeClass('show');
+                     _ldr.addClass('hide');
+                     if (response.isSuccess) {
+                        Swal.fire(
+                          'Success!',
+                          response.message,
+                          'success'
+                        ).then(function() {
+                            document.getElementById('registration').reset();
+                            if (typeof grecaptcha !== 'undefined') {
+                                grecaptcha.reset();
+                            }
+                        });
+                     }
+                  },
+                  error: function(response){
+                     _ldr.removeClass('show');
+                     _ldr.addClass('hide');
+                     if (response.responseJSON && !response.responseJSON.isSuccess) {
+                        Swal.fire(
+                          'Error!',
+                          response.responseJSON.isError,
+                          'error'
+                        );
+                     }
+                  }
+         });
+      }
+
       $(document).ready(function(){
          $('#loader-div').addClass('hide')
 
@@ -187,17 +221,8 @@
             document.getElementsByClassName('error-type')[0].style.display = 'none';
          });
 
-       
-         let _submit = true;
         $("form").submit(function(e){
-            // e.preventDefault();
-            if (_submit) {
-               e.preventDefault();
-            }
-            // else {
-            //    e.returnValue = true;
-            // }
-            
+            e.preventDefault();
             let succdata = false;
 
             if (!$("input[name='00N5i000006uZtT']").is(':checked')) {
@@ -231,13 +256,9 @@
             }
             const _formValid = formValidateCus();
 
-            console.log(succdata);
            if (succdata) {
-            
-
             setTimeout(function() {
                if (!$('#registration').validate().errorList.length) {
-
                   if (!$("input[name='00N5i000006uZtT']").is(':checked')) {
                      succdata = false;
                      document.getElementsByClassName('error-type')[0].style.display = 'block';
@@ -249,11 +270,17 @@
                      succdata = false;
                      document.getElementsByClassName('error-captcha')[0].style.display = 'block';
                   } else {
-                     _submit = false
-                     $(this).unbind('submit').submit()
-                     $("#submit").click(); 
+                     let payload = {
+                        FirstName: document.getElementById('first_name').value,
+                        LastName: document.getElementById('last_name').value,
+                        Email: document.getElementById('email').value,
+                        MobilePhone: document.getElementById('mobile').value,
+                        City: document.getElementById('city').value,
+                        mitabl_Interested_In__c: document.querySelector('input[name="00N5i000006uZtT"]:checked').value,
+                        Company: "Not Aplicable",
+                     };
+                     sendAjaxReq(payload);
                   }
-                  
                }
             }, 500);
            }

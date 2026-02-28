@@ -1,7 +1,7 @@
 
 // import stripe from '../../stripe';
 
-// stripe('pk_test_51L2OHmJ5D9KpYwZ5UFER372wd2X03IKofT9qbLFcNYRd3zf4pd2tXRiagNxV7H8y1oUVxQKQm19syOJ2jzTzXBlu00lMZKfs0g');
+// stripe(window.STRIPE_PUBLISHABLE_KEY);
 
 	// var elements = stripe.elements();
 	// var cardElement = elements.create('card');
@@ -170,4 +170,3 @@
 		}
 		
 	}
-

@@ -8,6 +8,7 @@ use App\Models\Mikitchn;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushReviewNotification;
 use Auth;
+use App\Services\KitchenService;
 
 class ReviewObserver
 {
@@ -19,6 +20,7 @@ class ReviewObserver
      */
     public function created(Review $review)
     {
+        app(KitchenService::class)->invalidateDiscoveryCaches();
         $type = null;
         if ($review->by_user == 'customer') {
             $type = 7;
@@ -44,7 +46,7 @@ class ReviewObserver
      */
     public function updated(Review $review)
     {
-        //
+        app(KitchenService::class)->invalidateDiscoveryCaches();
     }
 
     /**
@@ -55,7 +57,7 @@ class ReviewObserver
      */
     public function deleted(Review $review)
     {
-        //
+        app(KitchenService::class)->invalidateDiscoveryCaches();
     }
 
     /**

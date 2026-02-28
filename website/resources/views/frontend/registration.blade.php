@@ -12,11 +12,7 @@
             <div class="contact-data">
                <h2>Registration</h2>
                <!-- <form action="https://mitabl.lightning.force.com/services/data/v53.0/sobjects/Lead" method="POST" id="registration"> -->
-               <form action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8" method="POST" id="registration">
-
-                  <input type=hidden name='captcha_settings' value='{"keyname":"reCaptcha","fallback":"true","orgId":"00D5i000004SJla","ts":""}'>
-                  <input type=hidden name="oid" value="00D5i000004SJla">
-                  <input type=hidden name="retURL" value="http://www.mitabl.com">
+               <form action="/api/preregister" method="POST" id="registration">
 
                   <!--  ----------------------------------------------------------------------  -->
                   <!--  NOTE: These fields are optional debugging elements. Please uncomment    -->
@@ -57,7 +53,7 @@
                   <!-- <div class="form-outer">
                      <input id="company" maxlength="40" name="Company" size="20" type="text" placeholder="Company" />
                   </div> -->
-                  <div class="g-recaptcha" data-sitekey="6Lc3DKAgAAAAAC2zMUyzH2_UtpedV4T-t53Ntf1F"></div><br>
+                  <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div><br>
                   <div class="form-outer">
                      <input type="submit" name="submit">
                      <!-- <input type="button" value="Submit" name="sfubmit"> -->
@@ -97,9 +93,6 @@
 @endsection
 @push('scripts')
    <script src="https://www.google.com/recaptcha/api.js"></script>
-   <script>
-    function timestamp() { var response = document.getElementById("g-recaptcha-response"); if (response == null || response.value.trim() == "") {var elems = JSON.parse(document.getElementsByName("captcha_settings")[0].value);elems["ts"] = JSON.stringify(new Date().getTime());document.getElementsByName("captcha_settings")[0].value = JSON.stringify(elems); } } setInterval(timestamp, 500); 
-   </script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.all.min.js"></script>
    <script>
@@ -167,7 +160,6 @@
          // $("#registration").validate().settings.ignore = "*";
          // debugger
          let _ldr = $('#loader-div');
-         let accessTkn = '00D0w0000000VGf!ARgAQFzMElnkNvdJ5KIbX7Mkg2yiCqrbPGQWULGV5gOgUsMtPBIu4OsZYjXM1.48O_vNLmhEs.oHJTzFSzVhBoIthLrSt2lU';
          jQuery.ajax({
                   type: 'post', 
                   // url: 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v53.0/sobjects/Lead',
@@ -189,8 +181,6 @@
                   success: function (response) {
                      _ldr.removeClass('show');
                      _ldr.addClass('hide');
-                     console.log(response)
-                     debugger
                      if (response.isSuccess) {
                         Swal.fire(
                           'Success!',
@@ -248,11 +238,9 @@ $(document).ready(function(){
 
       if ($('#mobile').val()) {
          if (validate_Phone_Number()) {
-            console.log(succdata+"if")
             succdata = true;
             document.getElementsByClassName('error-phone')[0].style.display = 'none';
          } else {
-            console.log(succdata+"else")
             succdata = false;
             document.getElementsByClassName('error-phone')[0].style.display = 'block';
          }
@@ -275,7 +263,6 @@ $(document).ready(function(){
 
       setTimeout(function() {
          if (!$('#registration').validate().errorList.length) {
-            console.log(_sndData);
             sendAjaxReq(_sndData);
          }
       }, 500);

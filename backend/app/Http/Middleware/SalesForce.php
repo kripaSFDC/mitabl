@@ -16,14 +16,12 @@ class SalesForce
      */
     public function handle(Request $request, Closure $next)
     {
-        $sales_auth = env('SALES_AUTH');
-        // echo $request->header('Authorization'); 
-        // die();
+        $salesAuth = (string) config('services.salesforce.auth_header', '');
+        $incoming = (string) $request->header('Sales-Auth', '');
 
-        if ($sales_auth == $request->header('Sales-Auth')) {
+        if ($salesAuth !== '' && hash_equals($salesAuth, $incoming)) {
             return $next($request);
-            
-        } 
+        }
 
         return response()->json('Unauthorized', 401);
         

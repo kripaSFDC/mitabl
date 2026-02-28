@@ -290,7 +290,7 @@ class FoodsController extends Controller
      */
     public function update(Request $request, Foods $foods)
     {
-        die('fhfghg');
+        return $this->responser([], 'Not implemented.');
     }
 
     /**

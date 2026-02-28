@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Mail\KitchenActivation;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushUserNotification;
+use App\Services\KitchenService;
 class MikitchnObserver
 {
     /**
@@ -17,7 +18,7 @@ class MikitchnObserver
      */
     public function created(Mikitchn $mikitchn)
     {
-        //
+        app(KitchenService::class)->invalidateDiscoveryCaches();
     }
 
      public function updating(Mikitchn $mikitchn)
@@ -60,7 +61,7 @@ class MikitchnObserver
      */
     public function updated(Mikitchn $mikitchn)
     {
-        
+        app(KitchenService::class)->invalidateDiscoveryCaches();
     }
 
     /**
@@ -71,7 +72,7 @@ class MikitchnObserver
      */
     public function deleted(Mikitchn $mikitchn)
     {
-        //
+        app(KitchenService::class)->invalidateDiscoveryCaches();
     }
 
     /**

@@ -12,10 +12,7 @@
             <div class="contact-data">
                <!-- <h2>Contact us</h2> -->
                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p>
-               <form action="https://webto.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST" id="mob-contact">
-
-                  <input type=hidden name="orgid" value="00D5i000004SJla">
-                  <input type=hidden name="retURL" value="https://www.mitabl.com/">
+               <form action="/api/mobcontact" method="POST" id="mob-contact">
 
                   <div class="form-outer">
 
@@ -165,7 +162,6 @@
                 error: function(response){
                   
                   if (!response.responseJSON.isSuccess) {
-                     console.log(response)
                      Swal.fire(
                        'Error!',
                        response.responseJSON.isError,
@@ -270,16 +266,13 @@
                      // console.log(response)
                      // debugger
                      if (!response.responseJSON.isSuccess) {
-                        // debugger
                         if (response.responseJSON.body) {
-                           debugger
                            Swal.fire(
                              'Error!',
                              response.responseJSON.body[0].message,
                              'error'
                            )
                         }else{
-                           debugger
                            Swal.fire(
                              'Error!',
                              response.responseJSON.isError,
@@ -358,7 +351,6 @@
                // $( "#mob-contact" ).submit();
                setTimeout(function() {
                   if (!$('#mob-contact').validate().errorList.length) {
-                     console.log(_sndData);
                      sendAjaxReq(_sndData);
                   }
                }, 500);

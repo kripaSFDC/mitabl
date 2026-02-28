@@ -30,4 +30,22 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'salesforce' => [
+        'base_url' => env('SALESFORCE_BASE_URL'),
+        'api_version' => env('SALESFORCE_API_VERSION', 'v55.0'),
+        'client_id' => env('SALESFORCE_CLIENT_ID'),
+        'client_secret' => env('SALESFORCE_CLIENT_SECRET'),
+        'username' => env('SALESFORCE_USERNAME'),
+        'password' => env('SALESFORCE_PASSWORD'),
+        'security_token' => env('SALESFORCE_SECURITY_TOKEN'),
+    ],
+
+    'stripe' => [
+        'publishable_key' => env('STRIPE_PUBLISHABLE_KEY'),
+    ],
+
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+    ],
+
 ];

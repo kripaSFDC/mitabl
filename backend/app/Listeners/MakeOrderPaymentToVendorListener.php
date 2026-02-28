@@ -5,22 +5,22 @@ namespace App\Listeners;
 use App\Events\MakeOrderPaymentToVendor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use App\Http\Controllers\Controller;
-use App\Traits\StripeTrait;
 use App\Models\Order;
+use App\Services\PaymentService;
 
 class MakeOrderPaymentToVendorListener implements ShouldQueue
 {
-    use InteractsWithQueue,StripeTrait;
+    use InteractsWithQueue;
+    private PaymentService $paymentService;
 
     /**
      * Create the event listener.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(PaymentService $paymentService)
     {
-        //
+        $this->paymentService = $paymentService;
     }
 
     /**
@@ -35,7 +35,7 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
 
         $order = $cOrder->order;
 
-        $kOrderCount = Order::where('mikitchn_id',$order->mikitchn_id)->where('status',1)->get()->count();
+        $kOrderCount = Order::where('mikitchn_id',$order->mikitchn_id)->where('status',1)->count();
 
         // print_r($order->mikitchn->reviews->avg('rating')); die('listener');
         // $kOrderCount = 301;
@@ -62,7 +62,9 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
         // if ($diffInHrs < 24) {
         //     $payment = ;
         // $order->Mikitchn,$order->total_price,$order->id
-          $trnsfr =  $this->transferToVendor($order->Mikitchn,$order->total_price,$order->id,$dPercent,'Order Payment');
+          $trnsfr =  $this->paymentService->safely(
+              fn () => $this->paymentService->transferToVendor($order->Mikitchn,$order->total_price,$order->id,$dPercent,'Order Payment')
+          );
           if (is_object($trnsfr)) {
               $cOrder->completed = 1;
               $cOrder->save();

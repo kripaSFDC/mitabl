@@ -84,8 +84,7 @@
     $(document).ready(function(){
 
         // Create a Stripe client
-        var stripe = Stripe('pk_test_51L2OHmJ5D9KpYwZ5UFER372wd2X03IKofT9qbLFcNYRd3zf4pd2tXRiagNxV7H8y1oUVxQKQm19syOJ2jzTzXBlu00lMZKfs0g');
-        // var stripe = Stripe('pk_live_51L2OHmJ5D9KpYwZ5rEuO6c2YEb7p29n0uoWnWMpofgP89Sphn08V40f0DukzXoWQMVOMXNHIS06y6h7PdtT9AglL00h7nOid5b');
+        var stripe = Stripe('{{ config('stripe.api_keys.publishable_key') }}');
 
         // Create an instance of Elements
         var elements = stripe.elements();

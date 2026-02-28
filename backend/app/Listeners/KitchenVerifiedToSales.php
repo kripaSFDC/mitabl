@@ -36,17 +36,20 @@ class KitchenVerifiedToSales implements ShouldQueue
         $kitcheninfo = $event->kitchen;
         $kitchnAddress = $event->kitchnAddress;
         $status = $event->status;
-        // $status = 'Not Verified';
-        // echo "<pre>";
-        // print_r($kitcheninfo); die();
-        $apiURL = 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Account';
+        $baseUrl = rtrim((string) config('services.salesforce.base_url'), '/');
+        if ($baseUrl === '') {
+            return;
+        }
 
-        $apiUrlForUpdate = 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Account/';
-        
-        $accessTkn = '00D0w0000000VGf!ARgAQE92IOKKjemBf1EECUijTrCOoD.fKTOMdTF.JsTdpNSYuBIN6jVQ2mHdeK.BhodrZGGNDTJUNiggH1Xe2nDSaI1nVQBA';
+        $apiVersion = config('services.salesforce.api_version', 'v55.0');
+        $apiURL = $baseUrl . '/services/data/' . $apiVersion . '/sobjects/Account';
+        $apiUrlForUpdate = $baseUrl . '/services/data/' . $apiVersion . '/sobjects/Account/';
 
         $ob = new WebApiToCurlController;
         $accessTkn = $ob->getAccToken();
+        if (!$accessTkn) {
+            return;
+        }
 
 
         $headers = [
@@ -66,11 +69,11 @@ class KitchenVerifiedToSales implements ShouldQueue
             "Name" => $userinfo->first_name.' '.$userinfo->last_name,
             "Type" => "New Customer",
             "mitabl_MiKitchen_Id__c" => $kitcheninfo->id,
-            "ShippingStreet" => $kitchnAddress['formatted_address'],
-            "ShippingCity" => $kitchnAddress['city'],
-            "ShippingState" => $kitchnAddress['province'],
-            "ShippingCountry" => $kitchnAddress['country'],
-            "ShippingPostalCode" => $kitchnAddress['postal_code'],
+            "ShippingStreet" => $kitchnAddress['formatted_address'] ?? '',
+            "ShippingCity" => $kitchnAddress['city'] ?? '',
+            "ShippingState" => $kitchnAddress['province'] ?? '',
+            "ShippingCountry" => $kitchnAddress['country'] ?? '',
+            "ShippingPostalCode" => $kitchnAddress['postal_code'] ?? '',
             "Phone" => $kitcheninfo->phone,
             "mitabl_No_of_Seats__c" => $kitcheninfo->no_of_seats,
             "mitabl_Dine_In__c" => $kitcheninfo->dine_in ? 'true' : 'false',
@@ -91,8 +94,7 @@ class KitchenVerifiedToSales implements ShouldQueue
             $apiURL = $apiUrlForUpdate.$kitcheninfo->saleskitchen->sales_mikitchn_id;
             $response = Http::withHeaders($headers)->patch($apiURL, $postInputSen);
         }else{
-            // $postInputSen["mitabl_Micook_Id__c"] = $userinfo->id;
-            $postInputSen["mitabl_Micook_Id__c"] = 10022;
+            $postInputSen["mitabl_Micook_Id__c"] = $userinfo->id;
             $response = Http::withHeaders($headers)->post($apiURL, $postInputSen);
         }
         

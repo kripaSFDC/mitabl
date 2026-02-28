@@ -12,15 +12,16 @@ class FcmController extends Controller
     public function getAllNotifications(Request $request)
     {
         $queryparams = $request->query();
-        $page = 0;
-        if($queryparams['page']) { $page = (int) $queryparams['page'] - 1; }
+        $limit = max((int) ($queryparams['limit'] ?? 10), 1);
+        $page = max(((int) ($queryparams['page'] ?? 1)) - 1, 0);
+
         $notifications = Auth::user()->notifications()
                         ->select('data','created_at');
-        $data['total_count'] = $notifications->get()->count();
+        $data['total_count'] = $notifications->count();
 
         $data['notifications'] = $notifications
-                                ->offset($page*$queryparams['limit'])
-                                ->limit($queryparams['limit'])
+                                ->offset($page * $limit)
+                                ->limit($limit)
                                 ->get();
         return $this->responser($data, 'notifications history.');
     }

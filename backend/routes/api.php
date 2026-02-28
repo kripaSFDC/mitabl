@@ -47,7 +47,7 @@ Route::post('mobcontact', [WebApiToCurlController::class, 'mobContact']);
 // add card to customer
 	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
-Route::group(['prefix' => 'v1', 'namespace' => 'Api','middleware' => ['auth:api']], function ($router){
+Route::group(['prefix' => 'v1', 'middleware' => ['auth:api']], function ($router){
 
 	Route::post('changepassword', [UserController::class, 'changePassword']);
 
@@ -60,8 +60,6 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api','middleware' => ['auth:api'
 	Route::post('editprofile', [UserController::class, 'update']);
 
 	Route::post('updatedevicetoken', [UserController::class, 'updateDeviceToken']);
-
-	Route::post('transfertovendor', [UserController::class, 'transferToVendor']);
 
 	Route::post('cancelorder', [OrderController::class, 'orderCancelWithReason']);
 
@@ -124,11 +122,18 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api','middleware' => ['auth:api'
 
 		Route::put('completedonboarding', [UserController::class, 'completedOnBoarding']);
 		
-		Route::put('testcompletedOnBoarding', [UserController::class, 'testcompletedOnBoarding']);
-
 		Route::get('getvendorbankacc', [UserController::class, 'getVendorBankAcc']);
 
 		Route::get('becomefoodie', [UserController::class, 'becomeFoodie']);
+
+		Route::post('transfertovendor', [UserController::class, 'transferToVendor']);
+
+		Route::get('checkaccountcompleted', [UserController::class, 'checkaccountComplted']);
+		Route::get('getbankaccfromconect', [UserController::class, 'getBankAccFromConect']);
+		Route::get('onboardingLink', [UserController::class, 'onboardingLink']);
+		Route::get('editvendorbankaccount', [UserController::class, 'createAccLoginLink']);
+		Route::get('retrieveaccount', [UserController::class, 'retrieveAccount']);
+		Route::post('updateconnectedaccount', [UserController::class, 'updateConnectedAccount']);
 
 	});
 
@@ -175,25 +180,13 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api','middleware' => ['auth:api'
 		Route::post('confirmpaymentintent', [UserController::class, 'confirmPaymentIntent']);
 
 		Route::get('createCheckoutsession', [UserController::class, 'createCheckoutsession']);
+		Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
 		Route::get('becomecook', [UserController::class, 'becomeCook']);
 
 		Route::get('checkdiscounteduser', [OrderController::class, 'checkDiscountedUser']);
 
 	});
-	// add card to customer
-	Route::post('addcard', [UserController::class, 'addCardToCustomer']);
-
-
-	Route::get('checkaccountcompleted', [UserController::class, 'checkaccountComplted']);
-	Route::get('getbankaccfromconect', [UserController::class, 'getBankAccFromConect']);
-	
-	Route::get('onboardingLink', [UserController::class, 'onboardingLink']);
-
-	Route::get('editvendorbankaccount', [UserController::class, 'createAccLoginLink']);
-
-	Route::get('retrieveaccount', [UserController::class, 'retrieveAccount']);
-	Route::post('updateconnectedaccount', [UserController::class, 'updateConnectedAccount']);
 	Route::post('fullrefund', [UserController::class, 'refundFullAmount']);
 	Route::post('topups', [UserController::class, 'topups']);
 	

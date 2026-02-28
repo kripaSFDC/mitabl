@@ -15,19 +15,14 @@ class WebApiToCurlController extends Controller
 
     public function preRegister(Request $request)
     {
-        $postInputSen = $request->all();
-        // print_r(); die();
+        $postInputSen = $this->normalizePreRegisterPayload($request->all());
+        $apiURL = rtrim((string) config('services.salesforce.base_url'), '/') .
+            '/services/data/' . config('services.salesforce.api_version', 'v55.0') . '/sobjects/Lead';
 
-        // $apiURL = 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v53.0/sobjects/Lead';
-        $apiURL = 'https://mitabl.my.salesforce.com/services/data/v53.0/sobjects/Lead';
-        // $accessTkn = '00D0w0000000VGf!ARgAQNkUQ.96pjGg87HyU_vqm2TfVpHWdF.UM03CFs2Miax2e2oR2OXB3hSpx8S6BfoSYXjFo_RYONUlHpAGdT0U1yE2bNNp';
-        $accessTkn = '00D0w0000000VGf!ARgAQFzMElnkNvdJ5KIbX7Mkg2yiCqrbPGQWULGV5gOgUsMtPBIu4OsZYjXM1.48O_vNLmhEs.oHJTzFSzVhBoIthLrSt2lU';
-
-        // print_r(); die();
-
-        if ($this->getAccToken()) {
-            $accessTkn = $this->getAccToken();
-        }else{
+        $accessTkn = $this->getAccToken();
+        if ($accessTkn) {
+            // token resolved
+        } else {
             return $this->responser([],'Pre Registration Not Available');
         }
 
@@ -42,18 +37,28 @@ class WebApiToCurlController extends Controller
 
   
 
-        $response = Http::withHeaders($headers)->post($apiURL, $postInputSen);
+        try {
+            $response = Http::withHeaders($headers)
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->post($apiURL, $postInputSen);
+        } catch (\Throwable $e) {
+            return $this->responser([], 'Pre Registration Not Available');
+        }
 
   
 
         $statusCode = $response->status();
 
-        $responseBody = json_decode($response->getBody(), true);
+        $responseBody = $response->json();
 
         if ($statusCode == 200) {
             return $this->responser($responseBody,"Your Registration Created Successfully");
         } elseif ($statusCode == 400) {
-            return $this->responser([],$responseBody[0]['message']);
+            $message = is_array($responseBody) && isset($responseBody[0]['message'])
+                ? (string) $responseBody[0]['message']
+                : 'Pre Registration Not Available';
+            return $this->responser([], $message);
         } elseif ($statusCode == 201) {
             return $this->responser($responseBody,"Your Registration Created Successfully");
         } else {
@@ -72,19 +77,14 @@ class WebApiToCurlController extends Controller
 
     public function mobContact(Request $request)
     {
-        $postInputSen = $request->all();
-        // print_r($postInputSen); die();
+        $postInputSen = $this->normalizeMobContactPayload($request->all());
+        $apiURL = rtrim((string) config('services.salesforce.base_url'), '/') .
+            '/services/data/' . config('services.salesforce.api_version', 'v55.0') . '/sobjects/Case';
 
-        // $apiURL = 'https://mitabl--test.sandbox.my.salesforce.com/services/data/v53.0/sobjects/Case';
-        $apiURL = 'https://mitabl.my.salesforce.com/services/data/v53.0/sobjects/Case';
-        // $accessTkn = '00D0w0000000VGf!ARgAQNkUQ.96pjGg87HyU_vqm2TfVpHWdF.UM03CFs2Miax2e2oR2OXB3hSpx8S6BfoSYXjFo_RYONUlHpAGdT0U1yE2bNNp';
-        $accessTkn = '00D0w0000000VGf!ARgAQE92IOKKjemBf1EECUijTrCOoD.fKTOMdTF.JsTdpNSYuBIN6jVQ2mHdeK.BhodrZGGNDTJUNiggH1Xe2nDSaI1nVQBA';
-
-        // print_r($accessTkn); die();
-
-        if ($this->getAccToken()) {
-            $accessTkn = $this->getAccToken();
-        }else{
+        $accessTkn = $this->getAccToken();
+        if ($accessTkn) {
+            // token resolved
+        } else {
             return $this->responser([],'Contact Not Available');
         }
 
@@ -99,18 +99,28 @@ class WebApiToCurlController extends Controller
 
   
 
-        $response = Http::withHeaders($headers)->post($apiURL, $postInputSen);
+        try {
+            $response = Http::withHeaders($headers)
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->post($apiURL, $postInputSen);
+        } catch (\Throwable $e) {
+            return $this->responser([], 'Contact Not Available');
+        }
 
   
 
         $statusCode = $response->status();
 
-        $responseBody = json_decode($response->getBody(), true);
+        $responseBody = $response->json();
 
         if ($statusCode == 200) {
             return $this->responser($responseBody,"Contact Message Sent Successfully");
         } elseif ($statusCode == 400) {
-            return $this->responser([],$responseBody[0]['message']);
+            $message = is_array($responseBody) && isset($responseBody[0]['message'])
+                ? (string) $responseBody[0]['message']
+                : 'Contact Not Available';
+            return $this->responser([], $message);
         } elseif ($statusCode == 201) {
             return $this->responser($responseBody,"Contact Message Sent Successfully");
         } else {
@@ -123,31 +133,101 @@ class WebApiToCurlController extends Controller
 
     public function getAccToken()
     {
-        $apiUrl = 'https://mitabl.my.salesforce.com/services/oauth2/token';
+        $baseUrl = rtrim((string) config('services.salesforce.base_url'), '/');
+        if ($baseUrl === '') {
+            return null;
+        }
+        $apiUrl = $baseUrl . '/services/oauth2/token';
 
         $postInput = [
                 'grant_type' => 'password',
-                'client_id' => '3MVG9rnryk9FxFMWV7Yuw3aQ.J.KBU2ss23wWNsxfLBLkbNzqEB19rnOjsqls0dd9ruedSClnDEA3Ys2wKqku',
-                'client_secret' => 'F9509C8032FF50FAA68E49DD10C3870D0E1EB74A69B5BAE7D97E1B4845D6CCBC',
-                'username' => 'int_user@mitabl.com',
-                'password' => 'Integration@112233'
+                'client_id' => config('services.salesforce.client_id'),
+                'client_secret' => config('services.salesforce.client_secret'),
+                'username' => config('services.salesforce.username'),
+                'password' => (string) config('services.salesforce.password') . (string) config('services.salesforce.security_token'),
             ];
 
+        if (empty($postInput['client_id']) || empty($postInput['client_secret']) || empty($postInput['username']) || empty($postInput['password'])) {
+            return null;
+        }
+
         $headers = [
-
             'Access-Control-Allow-Origin' => '*',
-            'Content-Type' => 'application/x-www-form-urlencoded', 
-
         ];
 
-        $response = Http::withHeaders($headers)->withBody(http_build_query($postInput), 'application/json')->post($apiUrl)->collect()->toArray();
+        try {
+            $response = Http::withHeaders($headers)
+                ->asForm()
+                ->connectTimeout(10)
+                ->timeout(20)
+                ->post($apiUrl, $postInput);
+        } catch (\Throwable $e) {
+            return null;
+        }
+        $responseBody = $response->json();
 
-
-        if (array_key_exists("access_token",$response)) {
-            return $response['access_token'];
+        if (is_array($responseBody) && array_key_exists('access_token', $responseBody)) {
+            return $responseBody['access_token'];
         }
 
         return null;
+    }
+
+    private function normalizePreRegisterPayload(array $payload): array
+    {
+        if (!isset($payload['FirstName']) && isset($payload['first_name'])) {
+            $payload['FirstName'] = $payload['first_name'];
+        }
+        if (!isset($payload['LastName']) && isset($payload['last_name'])) {
+            $payload['LastName'] = $payload['last_name'];
+        }
+        if (!isset($payload['Email']) && isset($payload['email'])) {
+            $payload['Email'] = $payload['email'];
+        }
+        if (!isset($payload['MobilePhone']) && isset($payload['mobile'])) {
+            $payload['MobilePhone'] = $payload['mobile'];
+        }
+        if (!isset($payload['City']) && isset($payload['city'])) {
+            $payload['City'] = $payload['city'];
+        }
+        if (!isset($payload['mitabl_Interested_In__c']) && isset($payload['00N5i000006uZtT'])) {
+            $payload['mitabl_Interested_In__c'] = $payload['00N5i000006uZtT'];
+        }
+
+        return $payload;
+    }
+
+    private function normalizeMobContactPayload(array $payload): array
+    {
+        if (!isset($payload['Type']) && isset($payload['type'])) {
+            $payload['Type'] = $payload['type'];
+        }
+        if (!isset($payload['SuppliedEmail']) && isset($payload['email'])) {
+            $payload['SuppliedEmail'] = $payload['email'];
+        }
+        if (!isset($payload['SuppliedPhone']) && isset($payload['phone'])) {
+            $payload['SuppliedPhone'] = $payload['phone'];
+        }
+        if (!isset($payload['Subject']) && isset($payload['subject'])) {
+            $payload['Subject'] = $payload['subject'];
+        }
+        if (!isset($payload['Description']) && isset($payload['description'])) {
+            $payload['Description'] = $payload['description'];
+        }
+        if (!isset($payload['mitabl_Case_For__c']) && isset($payload['recordType'])) {
+            $payload['mitabl_Case_For__c'] = $payload['recordType'];
+        }
+        if (!isset($payload['mitabl_micook_Id__c']) && isset($payload['00N5i000009zQqb'])) {
+            $payload['mitabl_micook_Id__c'] = $payload['00N5i000009zQqb'];
+        }
+        if (!isset($payload['mitabl_Mifoodi_Id__c']) && isset($payload['00N5i000009zQxr'])) {
+            $payload['mitabl_Mifoodi_Id__c'] = $payload['00N5i000009zQxr'];
+        }
+        if (!isset($payload['mitabl_Order_Id__c']) && isset($payload['00N5i000006ubH5'])) {
+            $payload['mitabl_Order_Id__c'] = $payload['00N5i000006ubH5'];
+        }
+
+        return $payload;
     }
 
 }
