@@ -68,6 +68,7 @@ class PhaseOneFoundationRegressionTest extends TestCase
             '2026_02_28_000011_create_policies_table.php',
             '2026_02_28_000012_create_policy_change_log_table.php',
             '2026_02_28_000013_create_admin_password_resets_table.php',
+            '2026_02_28_000020_drop_sales_kitchens_table.php',
         ];
 
         foreach ($requiredMigrations as $file) {
