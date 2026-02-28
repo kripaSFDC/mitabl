@@ -140,14 +140,8 @@ class SystemHealthService
             $failedJobsCount = DB::table('failed_jobs')->count();
             $oldestPending = DB::table('jobs')->min('created_at');
             $poisonCount = DB::table('failed_jobs')
-                ->where('payload', 'like', '%"attempts":%')
-                ->get(['payload'])
-                ->filter(function ($job): bool {
-                    $decoded = json_decode((string) $job->payload, true);
-                    $attempts = (int) data_get($decoded, 'attempts', 0);
-
-                    return $attempts >= 5;
-                })
+                ->get(['payload', 'exception'])
+                ->filter(fn ($job): bool => $this->isPoisonFailedJob((string) $job->payload, (string) $job->exception))
                 ->count();
         } catch (\Throwable $throwable) {
             return [
@@ -227,6 +221,7 @@ class SystemHealthService
             $value = $this->normalizeSettingValue($setting?->value);
             $enabled = filter_var(data_get($value, 'enabled', false), FILTER_VALIDATE_BOOL);
             $postmortem = (string) data_get($value, 'postmortem_url', '');
+            $annotation = trim((string) data_get($value, 'annotation', data_get($value, 'incident_note', '')));
 
             if (! $enabled) {
                 return [
@@ -241,7 +236,9 @@ class SystemHealthService
                 'key' => 'degraded_mode',
                 'label' => 'Partial Outage Mode',
                 'status' => 'warning',
-                'message' => 'Degraded mode is active.' . ($postmortem !== '' ? ' Postmortem: ' . $postmortem : ''),
+                'message' => 'Degraded mode is active.'
+                    . ($annotation !== '' ? ' Incident: ' . $annotation . '.' : '')
+                    . ($postmortem !== '' ? ' Postmortem: ' . $postmortem : ''),
             ];
         } catch (\Throwable $throwable) {
             return [
@@ -251,6 +248,39 @@ class SystemHealthService
                 'message' => 'Unable to determine degraded mode status: ' . $throwable->getMessage(),
             ];
         }
+    }
+
+    private function isPoisonFailedJob(string $payload, string $exception): bool
+    {
+        $attempts = $this->extractAttemptsFromFailedPayload($payload, $exception);
+
+        if ($attempts >= 5) {
+            return true;
+        }
+
+        return str_contains(strtolower($exception), 'attempted too many times');
+    }
+
+    private function extractAttemptsFromFailedPayload(string $payload, string $exception): int
+    {
+        $decoded = json_decode($payload, true);
+        if (is_array($decoded)) {
+            $directAttempts = (int) data_get($decoded, 'attempts', 0);
+            if ($directAttempts > 0) {
+                return $directAttempts;
+            }
+
+            $maxTries = (int) data_get($decoded, 'maxTries', 0);
+            if ($maxTries > 0) {
+                return $maxTries;
+            }
+        }
+
+        if (preg_match('/attempted\s+(\d+)\s+times/i', $exception, $matches) === 1) {
+            return (int) ($matches[1] ?? 0);
+        }
+
+        return 0;
     }
 
     private function checkMail(): array
