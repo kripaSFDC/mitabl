@@ -241,7 +241,15 @@ class PaymentResource extends Resource
             return false;
         }
 
-        return ((bool) $payment->confirm || (bool) $payment->order->paid) && (int) ($payment->order->refund_percentage ?? 0) < 100;
+        if ((int) ($payment->order->refund_percentage ?? 0) > 0) {
+            return false;
+        }
+
+        if ($payment->order->relationLoaded('refunds') && $payment->order->refunds->isNotEmpty()) {
+            return false;
+        }
+
+        return (bool) $payment->confirm || (bool) $payment->order->paid;
     }
 
     private static function stripePaymentUrl(Payment $payment): ?string
