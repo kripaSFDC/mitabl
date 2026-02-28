@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\WatchSubscription;
+use App\Models\Tag;
+use App\Models\InternalNote;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -93,5 +96,22 @@ class Order extends Model
     {
         return [self::STATUS_LEGACY_CANCELLED, self::STATUS_CANCELLED];
     }
+
+
+    public function internalNotes()
+    {
+        return $this->morphMany(InternalNote::class, 'noteable')->latest();
+    }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    public function watchers()
+    {
+        return $this->morphMany(WatchSubscription::class, 'watchable');
+    }
+
 
 }

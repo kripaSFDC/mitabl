@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
+use App\Models\PlatformSetting;
 
 class SystemHealthService
 {
@@ -14,6 +16,7 @@ class SystemHealthService
     {
         $checks = [
             $this->checkDatabase(),
+            $this->checkRedis(),
             $this->checkQueue(),
             $this->checkQueueProcessing(),
             $this->checkMail(),
@@ -21,6 +24,8 @@ class SystemHealthService
             $this->checkStorage(),
             $this->checkFcm(),
             $this->checkStripe(),
+            $this->checkSchedulerHeartbeat(),
+            $this->checkDegradedMode(),
         ];
 
         $failed = collect($checks)->whereIn('status', ['error', 'warning'])->count();
@@ -34,14 +39,18 @@ class SystemHealthService
 
     private function checkDatabase(): array
     {
+        $startedAt = microtime(true);
+
         try {
             DB::connection()->getPdo();
+            $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
+            $status = $latencyMs > 250 ? 'warning' : 'ok';
 
             return [
                 'key' => 'database',
                 'label' => 'Database',
-                'status' => 'ok',
-                'message' => 'Database connection is healthy.',
+                'status' => $status,
+                'message' => 'Database connection is healthy. Latency: ' . $latencyMs . 'ms.',
             ];
         } catch (\Throwable $throwable) {
             return [
@@ -49,6 +58,27 @@ class SystemHealthService
                 'label' => 'Database',
                 'status' => 'error',
                 'message' => 'Database connection failed: ' . $throwable->getMessage(),
+            ];
+        }
+    }
+
+    private function checkRedis(): array
+    {
+        try {
+            Redis::connection()->ping();
+
+            return [
+                'key' => 'redis',
+                'label' => 'Redis',
+                'status' => 'ok',
+                'message' => 'Redis connection is healthy.',
+            ];
+        } catch (\Throwable $throwable) {
+            return [
+                'key' => 'redis',
+                'label' => 'Redis',
+                'status' => $this->isProductionLike() ? 'error' : 'warning',
+                'message' => 'Redis check failed: ' . $throwable->getMessage(),
             ];
         }
     }
@@ -108,6 +138,17 @@ class SystemHealthService
         try {
             $jobsCount = DB::table('jobs')->count();
             $failedJobsCount = DB::table('failed_jobs')->count();
+            $oldestPending = DB::table('jobs')->min('created_at');
+            $poisonCount = DB::table('failed_jobs')
+                ->where('payload', 'like', '%"attempts":%')
+                ->get(['payload'])
+                ->filter(function ($job): bool {
+                    $decoded = json_decode((string) $job->payload, true);
+                    $attempts = (int) data_get($decoded, 'attempts', 0);
+
+                    return $attempts >= 5;
+                })
+                ->count();
         } catch (\Throwable $throwable) {
             return [
                 'key' => 'queue_processing',
@@ -120,12 +161,22 @@ class SystemHealthService
         $status = 'ok';
         $message = 'Queue backlog is within threshold.';
 
-        if ($failedJobsCount > 0) {
+        $oldestAgeMinutes = $oldestPending ? now()->diffInMinutes($oldestPending) : 0;
+
+        if ($failedJobsCount > 100) {
+            $status = 'error';
+            $message = 'Dead-letter queue pressure detected (' . $failedJobsCount . ' failed jobs).';
+        } elseif ($failedJobsCount > 0) {
             $status = 'warning';
             $message = 'Failed jobs detected (' . $failedJobsCount . ').';
-        } elseif ($jobsCount > 1000) {
+        } elseif ($jobsCount > 1000 || $oldestAgeMinutes > 60) {
             $status = 'warning';
-            $message = 'Queue backlog is high (' . $jobsCount . ' pending jobs).';
+            $message = 'Queue backlog is high (' . $jobsCount . ' pending jobs, oldest age: ' . $oldestAgeMinutes . ' min).';
+        }
+
+        if ($poisonCount > 0) {
+            $status = $status === 'error' ? 'error' : 'warning';
+            $message .= ' Potential poison-message retries: ' . $poisonCount . '.';
         }
 
         return [
@@ -134,6 +185,72 @@ class SystemHealthService
             'status' => $status,
             'message' => $message,
         ];
+    }
+
+    private function checkSchedulerHeartbeat(): array
+    {
+        $lastRun = Cache::get('platform.health.synthetic.last_run_at');
+
+        if (! $lastRun) {
+            return [
+                'key' => 'scheduler',
+                'label' => 'Scheduler',
+                'status' => 'warning',
+                'message' => 'No scheduler heartbeat found yet.',
+            ];
+        }
+
+        $lastRunAt = \Carbon\Carbon::parse((string) $lastRun);
+        $ageMinutes = now()->diffInMinutes($lastRunAt);
+
+        if ($ageMinutes > 15) {
+            return [
+                'key' => 'scheduler',
+                'label' => 'Scheduler',
+                'status' => 'error',
+                'message' => 'Scheduler heartbeat stale (' . $ageMinutes . ' min). Possible failed cron.',
+            ];
+        }
+
+        return [
+            'key' => 'scheduler',
+            'label' => 'Scheduler',
+            'status' => $ageMinutes > 7 ? 'warning' : 'ok',
+            'message' => 'Scheduler heartbeat age: ' . $ageMinutes . ' min.',
+        ];
+    }
+
+    private function checkDegradedMode(): array
+    {
+        try {
+            $setting = PlatformSetting::query()->where('key', 'incident.degraded_mode')->first();
+            $value = $this->normalizeSettingValue($setting?->value);
+            $enabled = filter_var(data_get($value, 'enabled', false), FILTER_VALIDATE_BOOL);
+            $postmortem = (string) data_get($value, 'postmortem_url', '');
+
+            if (! $enabled) {
+                return [
+                    'key' => 'degraded_mode',
+                    'label' => 'Partial Outage Mode',
+                    'status' => 'ok',
+                    'message' => 'Degraded mode is disabled.',
+                ];
+            }
+
+            return [
+                'key' => 'degraded_mode',
+                'label' => 'Partial Outage Mode',
+                'status' => 'warning',
+                'message' => 'Degraded mode is active.' . ($postmortem !== '' ? ' Postmortem: ' . $postmortem : ''),
+            ];
+        } catch (\Throwable $throwable) {
+            return [
+                'key' => 'degraded_mode',
+                'label' => 'Partial Outage Mode',
+                'status' => 'warning',
+                'message' => 'Unable to determine degraded mode status: ' . $throwable->getMessage(),
+            ];
+        }
     }
 
     private function checkMail(): array
@@ -307,6 +424,23 @@ class SystemHealthService
             'status' => 'ok',
             'message' => 'Stripe credentials are configured.',
         ];
+    }
+
+
+    private function normalizeSettingValue(mixed $value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '') {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [];
     }
 
     private function isProductionLike(): bool

@@ -20,6 +20,8 @@ class PhaseFourPlatformAdminScaffoldTest extends TestCase
             'resources/views/filament/pages/system-health-page.blade.php',
             'app/Filament/Pages/QueueOpsPage.php',
             'resources/views/filament/pages/queue-ops-page.blade.php',
+            'app/Filament/Pages/IntegrationLogsPage.php',
+            'resources/views/filament/pages/integration-logs-page.blade.php',
             'app/Filament/Pages/SecurityAdminPage.php',
             'resources/views/filament/pages/security-admin-page.blade.php',
             'app/Filament/Widgets/SlaHealthWidget.php',
@@ -30,7 +32,12 @@ class PhaseFourPlatformAdminScaffoldTest extends TestCase
             'app/Http/Middleware/RecordAdminAction.php',
             'app/Models/AdminActionLog.php',
             'app/Filament/Resources/AdminActionLogResource.php',
+            'app/Filament/Resources/AuditLogResource.php',
+            'app/Models/InternalNote.php',
+            'app/Models/Tag.php',
+            'app/Models/WatchSubscription.php',
             'database/migrations/2026_02_28_000015_create_admin_action_logs_table.php',
+            'database/migrations/2026_02_28_000016_create_collaboration_tables.php',
         ];
 
         foreach ($requiredFiles as $path) {

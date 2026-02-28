@@ -33,6 +33,7 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $securityPage = (string) file_get_contents(app_path('Filament/Pages/SecurityAdminPage.php'));
         $securityView = (string) file_get_contents(resource_path('views/filament/pages/security-admin-page.blade.php'));
         $queueView = (string) file_get_contents(resource_path('views/filament/pages/queue-ops-page.blade.php'));
+        $integrationPage = (string) file_get_contents(app_path('Filament/Pages/IntegrationLogsPage.php'));
         $healthService = (string) file_get_contents(app_path('Services/SystemHealthService.php'));
         $kernel = (string) file_get_contents(app_path('Console/Kernel.php'));
         $syntheticCommand = (string) file_get_contents(app_path('Console/Commands/PlatformSyntheticHealthCheckCommand.php'));
@@ -62,14 +63,19 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('checkStorage', $healthService);
         $this->assertStringContainsString('checkFcm', $healthService);
         $this->assertStringContainsString('checkStripe', $healthService);
+        $this->assertStringContainsString('checkSchedulerHeartbeat', $healthService);
+        $this->assertStringContainsString('checkDegradedMode', $healthService);
         $this->assertStringContainsString('platform:health:synthetic', $kernel);
         $this->assertStringContainsString('class PlatformSyntheticHealthCheckCommand', $syntheticCommand);
         $this->assertStringContainsString('retryJob', $queuePage);
         $this->assertStringContainsString('requeueJob', $queuePage);
         $this->assertStringContainsString('discardJob', $queuePage);
         $this->assertStringContainsString('retryAll', $queuePage);
+        $this->assertStringContainsString('loadMetrics', $queuePage);
         $this->assertStringContainsString('canManageQueue', $queuePage);
         $this->assertStringContainsString('@if ($canManageQueue)', $queueView);
+        $this->assertStringContainsString('Queue depth', $queueView);
+        $this->assertStringContainsString('class IntegrationLogsPage', $integrationPage);
         $this->assertStringContainsString('class SecurityAdminPage', $securityPage);
         $this->assertStringContainsString('dormantAdmins', $securityPage);
         $this->assertStringContainsString("iam.manage", $securityPage);

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Services\SystemHealthService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class PlatformSyntheticHealthCheckCommand extends Command
@@ -14,6 +15,8 @@ class PlatformSyntheticHealthCheckCommand extends Command
 
     public function handle(SystemHealthService $healthService): int
     {
+        Cache::put('platform.health.synthetic.last_run_at', now()->toIso8601String(), now()->addDay());
+
         $summary = $healthService->runChecks();
         $overall = (string) ($summary['overall'] ?? 'unknown');
         $checks = collect($summary['checks'] ?? []);
@@ -39,4 +42,3 @@ class PlatformSyntheticHealthCheckCommand extends Command
         return self::SUCCESS;
     }
 }
-

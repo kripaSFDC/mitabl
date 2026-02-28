@@ -46,6 +46,7 @@ class AdminRolePermissionSeeder extends Seeder
             'queue_ops.view',
             'queue_ops.manage',
             'health.view',
+            'integration_logs.view',
             'audit_logs.view',
             'iam.manage',
         ];
@@ -71,6 +72,7 @@ class AdminRolePermissionSeeder extends Seeder
                 'queue_ops.view',
                 'queue_ops.manage',
                 'health.view',
+                'integration_logs.view',
                 'audit_logs.view',
             ],
             'operations' => [

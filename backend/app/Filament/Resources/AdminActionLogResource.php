@@ -38,6 +38,14 @@ class AdminActionLogResource extends Resource
                 Tables\Columns\TextColumn::make('method')->badge()->sortable(),
                 Tables\Columns\TextColumn::make('status_code')->sortable()->toggleable(),
                 Tables\Columns\TextColumn::make('path')->searchable()->toggleable(),
+                Tables\Columns\TextColumn::make('metadata.before')
+                    ->label('Before')
+                    ->formatStateUsing(fn ($state): string => str(json_encode($state, JSON_UNESCAPED_SLASHES))->limit(80)->toString())
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('metadata.after')
+                    ->label('After')
+                    ->formatStateUsing(fn ($state): string => str(json_encode($state, JSON_UNESCAPED_SLASHES))->limit(80)->toString())
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('ip_address')->toggleable(),
             ])
             ->filters([
@@ -49,7 +57,18 @@ class AdminActionLogResource extends Resource
                         'DELETE' => 'DELETE',
                     ]),
             ])
-            ->actions([])
+            ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Audit log entry')
+                    ->infolist([
+                        \Filament\Infolists\Components\TextEntry::make('adminUser.name')->label('Admin'),
+                        \Filament\Infolists\Components\TextEntry::make('action'),
+                        \Filament\Infolists\Components\TextEntry::make('method'),
+                        \Filament\Infolists\Components\TextEntry::make('path'),
+                        \Filament\Infolists\Components\TextEntry::make('metadata')->formatStateUsing(fn ($state): string => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}'),
+                        \Filament\Infolists\Components\TextEntry::make('request_payload')->label('Request payload')->formatStateUsing(fn ($state): string => json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}'),
+                    ]),
+            ])
             ->bulkActions([]);
     }
 

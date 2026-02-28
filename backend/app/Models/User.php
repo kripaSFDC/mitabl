@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\WatchSubscription;
+use App\Models\Tag;
+use App\Models\InternalNote;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -199,4 +202,21 @@ class User extends Authenticatable implements JWTSubject
             $user->orders()->delete();
         });
     }
+
+    public function internalNotes()
+    {
+        return $this->morphMany(InternalNote::class, 'noteable')->latest();
+    }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    public function watchers()
+    {
+        return $this->morphMany(WatchSubscription::class, 'watchable');
+    }
+
+
 }
