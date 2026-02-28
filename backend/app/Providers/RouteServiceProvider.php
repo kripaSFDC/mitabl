@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Throwable;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -55,7 +56,7 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting()
     {
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(60)->by($this->resolveRateLimitActorKey($request, 'api'));
         });
 
         RateLimiter::for('support-intake', function (Request $request) {
@@ -71,11 +72,26 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('support-read', function (Request $request) {
-            return Limit::perMinute(30)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(30)->by($this->resolveRateLimitActorKey($request, 'support-read'));
         });
 
         RateLimiter::for('support-reply', function (Request $request) {
-            return Limit::perMinute(12)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(12)->by($this->resolveRateLimitActorKey($request, 'support-reply'));
         });
+    }
+
+    private function resolveRateLimitActorKey(Request $request, string $prefix): string
+    {
+        try {
+            $userId = optional($request->user())->id;
+        } catch (Throwable) {
+            $userId = null;
+        }
+
+        if ($userId) {
+            return "{$prefix}:user:{$userId}";
+        }
+
+        return "{$prefix}:ip:" . (string) $request->ip();
     }
 }

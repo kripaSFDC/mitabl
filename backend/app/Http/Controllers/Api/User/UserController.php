@@ -11,6 +11,7 @@ use App\Models\verifyOtp;
 use Illuminate\Support\Facades\Auth;
 use Validator;
 use GuzzleHttp\Client;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Mail;
@@ -118,7 +119,21 @@ class UserController extends Controller
         $return = [];
 
         // Get the user data.
-        $user = Auth::guard("api")->user(); 
+        $user = Auth::guard("api")->user();
+
+        if (! $user) {
+            return $this->responser([], 'Unable to resolve authenticated user.');
+        }
+
+        if ($this->isAdminIdentityRole((int) $user->role_id)) {
+            Auth::guard('api')->logout();
+            return $this->forbiddenAdminIdentityResponse();
+        }
+
+        if ((bool) $user->suspended) {
+            Auth::guard('api')->logout();
+            return $this->suspendedAccountResponse();
+        }
 
         if ($user->email_verified == 1) {
             $asgnToken = null;
@@ -295,7 +310,7 @@ class UserController extends Controller
             'last_name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required',
-            // 'c_password' => 'required|same:password',
+            'role_id' => 'nullable|integer|in:2,3',
             'phone' => 'required|numeric',
         ]);
 
@@ -305,8 +320,17 @@ class UserController extends Controller
 
         // $device_token = '';
 
-        $input = $request->all();
+        $roleId = $request->filled('role_id') ? (int) $request->input('role_id') : 3;
 
+        $input = [
+            'first_name' => (string) $request->input('first_name'),
+            'last_name' => (string) $request->input('last_name'),
+            'email' => (string) $request->input('email'),
+            'password' => (string) $request->input('password'),
+            'phone' => (string) $request->input('phone'),
+            'address' => (string) $request->input('address', ''),
+            'role_id' => $roleId,
+        ];
         $input['password'] = bcrypt($input['password']);
         // echo "<pre>"; 
         $user = User::create($input);
@@ -414,16 +438,37 @@ class UserController extends Controller
             $chkstrpaccexist = 0;
             $user = User::where('id',$request->id)->first();
 
+            if (! $user) {
+                return $this->responser([], 'User not found.');
+            }
+
+            if ($this->isAdminIdentityRole((int) $user->role_id)) {
+                return $this->forbiddenAdminIdentityResponse();
+            }
+
+            if (! in_array((int) $user->role_id, [2, 3], true)) {
+                return response()->json([
+                    'status' => 422,
+                    'isSuccess' => false,
+                    'isError' => 'Unsupported account role for mobile authentication.',
+                    'data' => [],
+                ], 422);
+            }
+
+            if ((bool) $user->suspended) {
+                return $this->suspendedAccountResponse();
+            }
+
             $user->email_verified = 1;
             $user->save();
             // ->update(['email_verified' => 1]);
 
 
-            if ($user->role_id == 3) {
+            if ((int) $user->role_id === 3) {
                 
                 $account = $this->paymentService->safely(fn () => $this->paymentService->createCustomer(['name'=>$user->first_name,'email'=>$user->email]));
                 $acc_type = 'customer';
-            } elseif($user->role_id == 2){
+            } elseif ((int) $user->role_id === 2) {
                 $account = $this->paymentService->safely(fn () => $this->paymentService->createVendor($user));
                 $acc_type = 'vendor';
             }
@@ -822,7 +867,7 @@ class UserController extends Controller
     public function delete(Request $request)
     {
         $user = Auth::guard('api')->user();
-        $user->delete();
+        $user->forceDelete();
 
         return $this->responser($user,'Account Deleted Successfully.');
     }
@@ -953,32 +998,12 @@ class UserController extends Controller
 
     public function refundFullAmount(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 1) {
-            return $this->responser([], 'Only admin accounts can issue refunds.');
-        }
-
-        $validator = Validator::make($request->all(), [
-            'payment_intent_id' => 'required|string',
-            'amount' => 'required|numeric',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->responser([], $validator->errors()->first());
-        }
-
-        $refund = $this->paymentService->safely(
-            fn () => $this->paymentService->refundAmount(
-                (string) $request->payment_intent_id,
-                (float) $request->amount,
-                0
-            )
-        );
-
-        if (!is_object($refund)) {
-            return $this->responser([], (string) $refund);
-        }
-
-        return $this->responser($refund, 'refund processed.');
+        return response()->json([
+            'status' => 403,
+            'isSuccess' => false,
+            'isError' => 'Forbidden. Manual refunds are restricted to admin identities in the web admin panel.',
+            'data' => [],
+        ], 403);
     }
 
     public function retrieveAccount()
@@ -1091,16 +1116,12 @@ class UserController extends Controller
 
     public function topups()
     {
-        if ((int) Auth::user()->role_id !== 1) {
-            return $this->responser([], 'Only admin accounts can create topups.');
-        }
-
-        $topup = $this->paymentService->safely(fn () => $this->paymentService->topups());
-        if (!is_object($topup)) {
-            return $this->responser([], (string) $topup);
-        }
-
-        return $this->responser($topup, 'topup created.');
+        return response()->json([
+            'status' => 403,
+            'isSuccess' => false,
+            'isError' => 'Forbidden. Top-up operations are restricted to admin identities in the web admin panel.',
+            'data' => [],
+        ], 403);
     }
 
     public function mobileContact(Request $request)
@@ -1109,6 +1130,31 @@ class UserController extends Controller
         // $user = User::find(25);
         $rspn = ['role' => $user->role_id,'id' => $user->id,'email' => $user->email,'phone' => $user->phone ];
         return $this->responser($rspn,'User details.');
+    }
+
+    private function isAdminIdentityRole(int $roleId): bool
+    {
+        return $roleId === 1;
+    }
+
+    private function forbiddenAdminIdentityResponse(): JsonResponse
+    {
+        return response()->json([
+            'status' => 403,
+            'isSuccess' => false,
+            'isError' => 'Forbidden. Admin identities must authenticate via the web admin panel.',
+            'data' => [],
+        ], 403);
+    }
+
+    private function suspendedAccountResponse(): JsonResponse
+    {
+        return response()->json([
+            'status' => 403,
+            'isSuccess' => false,
+            'isError' => 'Your account is suspended. Please contact support.',
+            'data' => [],
+        ], 403);
     }
 
 }

@@ -99,7 +99,12 @@ class OrderController extends Controller
         }
 
         
-        if ((int) $request->status == 3) {
+        $requestedStatus = (int) $request->status;
+        if ($requestedStatus === Order::STATUS_LEGACY_CANCELLED) {
+            $requestedStatus = Order::STATUS_CANCELLED;
+        }
+
+        if ($requestedStatus === Order::STATUS_CONFIRMED) {
             if (!$order->payment) {
                 return $this->responser([], 'Payment record not found for this order.');
             }
@@ -117,7 +122,7 @@ class OrderController extends Controller
             } else {
                return $this->responser([],$confirmPayment);  
             }
-        } elseif((int) $request->status == 1) {
+        } elseif ($requestedStatus === Order::STATUS_COMPLETED) {
             $completedOrder = new CompletedOrder();
             $completedOrder->order_id = $request->order_id;
             $completedOrder->completed_date_time = Carbon::now();
@@ -137,7 +142,7 @@ class OrderController extends Controller
         }
         
 
-        $order->status = (int) $request->status; 
+        $order->status = $requestedStatus; 
         $order->save();
 
         return $this->responser($order,'Order Updated successfully.'); 
@@ -167,7 +172,11 @@ class OrderController extends Controller
             return $this->responser($this->data, 'No Bookings');
         }
 
-        $statusArry = array('0' => 0,'1' => 1,);
+        $statusArry = [
+            Order::STATUS_LEGACY_CANCELLED,
+            Order::STATUS_COMPLETED,
+            Order::STATUS_CANCELLED,
+        ];
         $orders = Order::where('mikitchn_id',$kitchen->id);
         if ($request->has('sortby')) {
             if ($request->sortby == 'take_away') {
@@ -213,7 +222,7 @@ class OrderController extends Controller
     public function myorderlist(Request $request)
     {
         $queryparams = $request->query();
-        $orders = Auth::guard('api')->user()->orders()->where('status','!=',4);
+        $orders = Auth::guard('api')->user()->orders()->whereNotIn('status', Order::cancelledStatuses());
 
         $this->data['total_count'] = $orders->count();
         $orders = $orders->orderBy('id','desc')->paginate($queryparams['limit']);
@@ -230,7 +239,7 @@ class OrderController extends Controller
             return $this->responser([], 'restaurant not found.');
         }
 
-        $statusArry = array(3);
+        $statusArry = [Order::STATUS_CONFIRMED];
 
         $timings = $restaurant->weektimings->makeHidden(['created_at','updated_at','id','mikitchn_id'])->toArray();
         $TotalSeats = $restaurant->no_of_seats;
@@ -275,7 +284,7 @@ class OrderController extends Controller
 
     public function checkBookedTimeByDate(Request $request)
     {
-        $statusArry = array(3);
+        $statusArry = [Order::STATUS_CONFIRMED];
         $date = $request->date;
         $time_from = Carbon::parse($request->time_from)->format('H:i:s');
         $time_to = Carbon::parse($request->time_to)->format('H:i:s');
@@ -336,7 +345,7 @@ class OrderController extends Controller
         }
         // print_r($user); die();
         $order = Order::find($request->order_id);
-        if ($order->status == 3) {
+        if ((int) $order->status === Order::STATUS_CONFIRMED) {
             event(new CancelOrderRefund($order,$by_user));
         }
 
@@ -350,7 +359,7 @@ class OrderController extends Controller
 	    }
         
 
-        $order->status = 0;
+        $order->status = Order::STATUS_CANCELLED;
 
         if ($order->save()) {
             $cancelReason = new CancelReason();
@@ -439,7 +448,7 @@ class OrderController extends Controller
         }
 
         // print_r($order); die();
-        $order->status = 2;
+        $order->status = Order::STATUS_REQUESTED;
         $order->paymentmethod_id = $request->card_id;
         $order->save();
 

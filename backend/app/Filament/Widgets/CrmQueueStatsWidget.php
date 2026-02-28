@@ -3,12 +3,18 @@
 namespace App\Filament\Widgets;
 
 use App\Models\SupportTicket;
+use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CrmQueueStatsWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 1;
+
+    public static function canView(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('dashboard.view');
+    }
 
     protected function getStats(): array
     {

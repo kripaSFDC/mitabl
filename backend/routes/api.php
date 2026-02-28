@@ -71,7 +71,7 @@ Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply
 // add card to customer
 	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
-Route::group(['prefix' => 'v1', 'middleware' => ['auth:api']], function ($router){
+Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
 
 	Route::post('changepassword', [UserController::class, 'changePassword']);
 
@@ -211,10 +211,6 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api']], function ($router
 		Route::get('checkdiscounteduser', [OrderController::class, 'checkDiscountedUser']);
 
 	});
-	Route::post('fullrefund', [UserController::class, 'refundFullAmount']);
-	Route::post('topups', [UserController::class, 'topups']);
-	
-
 	// Route::get('mob-contact', [UserController::class, 'mobileContact']);
 
 });

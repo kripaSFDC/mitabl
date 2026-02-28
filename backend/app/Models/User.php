@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 // use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, Favoriter;
+    use HasFactory, Notifiable, Favoriter, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -77,6 +78,7 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'suspended' => 'boolean',
         'suspended_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function getJWTIdentifier()
@@ -154,34 +156,26 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(AdminUser::class, 'suspended_by');
     }
 
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
+
     
 
     public function is_superAdmin($id){
-        $user = User::where('id' , $id)->first();
-        if($user->role_id == 1 ){
-            return true;
-        } else {
-            return false;
-        }
+        $user = User::query()->find($id);
+        return (bool) ($user && (int) $user->role_id === 1);
     }
 
     public function is_restaurant($id){
-        $user = User::where('id' , $id)->first();
-        if($user->role_id == 2 ){
-            return true;
-        } else {
-            return false;
-        }
+        $user = User::query()->find($id);
+        return (bool) ($user && (int) $user->role_id === 2);
     }
 
     public function is_customer(){
-        // $user = User::where('id' , $id)->first();
-        $user = Auth::use();
-        if($user->role_id == 2 ){
-            return true;
-        } else {
-            return false;
-        }
+        $user = Auth::guard('api')->user();
+        return (bool) ($user && (int) $user->role_id === 3);
     }
 
     public function sendPasswordResetNotification($token)
@@ -189,16 +183,20 @@ class User extends Authenticatable implements JWTSubject
         $this->notify(new ResetPassword($token));
     }
 
-    public function delete() {
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            if (! $user->isForceDeleting()) {
+                return;
+            }
 
-        $this->vendor()->delete();
-        $this->customer()->delete();
-        DB::table('reviews')->where('user_id', $this->id)->delete();
-        // $this->reviews()->delete();
-        $this->restaurant()->delete();
-        $this->card()->delete();
-        $this->stripeBankAccount()->delete();
-        $this->orders()->delete();
-        parent::delete();
+            $user->vendor()->delete();
+            $user->customer()->delete();
+            DB::table('reviews')->where('user_id', $user->id)->delete();
+            $user->restaurant()->delete();
+            $user->card()->delete();
+            $user->stripeBankAccount()->delete();
+            $user->orders()->delete();
+        });
     }
 }

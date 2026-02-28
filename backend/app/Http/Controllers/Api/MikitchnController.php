@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Support\Facades\Http;
 use App\Models\Mikitchn;
 use App\Models\User;
 use App\Models\Review;
@@ -443,7 +442,7 @@ class MikitchnController extends Controller
             'certificate_no' => 'required',
             'abn' => 'required',
             'abn_gst' => 'required',
-            'certificate_doc' => 'required|mimes:jpeg,png,jpg,svg,pdf',
+            'certificate_doc' => 'required|mimes:jpeg,png,jpg,pdf,webp',
         ],[
             'abn_gst.required' => "GST for ABN is required"
         ]);
@@ -452,23 +451,16 @@ class MikitchnController extends Controller
             return $this->responser($this->data,$validator->errors()->first());
         }
 
-        // ?certId=FSA1717011&fName=Oraya&lName=Tubutda
-
-        $endpoint = "https://9nxccxu88j.execute-api.ap-southeast-2.amazonaws.com/dev/isValidCertificate";
-        // $client = new \GuzzleHttp\Client();
-        $query = [
-            'certId' => $request->certificate_no, 
-            'fName' => $request->first_name,
-            'lName' => $request->last_name,
-        ];
-        // $response = $client->request('GET', $endpoint, ['query' => $query]);
-        $response = Http::get($endpoint, $query);
-        // print_r($response->failed()); die();
-        $status = 1;
-        $msg = 'Certificate Added';
-        if ($response->failed()) {
-            $status = 0;
-            $msg = 'Hold tight! We are reviewing your request';
+        $status = 0;
+        $msg = 'Certificate submitted and pending review.';
+        $kitchen = Auth::guard('api')->user()->restaurant;
+        if (! $kitchen) {
+            return response()->json([
+                'status' => 422,
+                'isSuccess' => false,
+                'isError' => 'Kitchen profile is required before certificate submission.',
+                'data' => [],
+            ], 422);
         }
 
         if ($request->hasFile('certificate_doc')) {
@@ -482,22 +474,32 @@ class MikitchnController extends Controller
         // }
         
         $returnFlSts = $this->uploadImageOrDoc($file,'certificates');
-        $kitchen = Auth::guard('api')->user()->restaurant;
         if ($returnFlSts['success']) {
-            
-            $kitchen->certificate()->delete();
-            $certificate = new Certificate();
-            $certificate->mikitchn_id = $kitchen->id;
-            $certificate->first_name = $request->first_name;
-            $certificate->last_name = $request->last_name;
-            $certificate->certificate_no = $request->certificate_no;
-            $certificate->certificate_doc = $returnFlSts['path'];
-            $certificate->abn_gst = $request->abn_gst;
-            $certificate->status = $status;
-            $certificate->abn = $request->abn;
-            $certificate->save();
+            $certificate = DB::transaction(function () use ($kitchen, $request, $returnFlSts, $status) {
+                $certificate = Certificate::query()
+                    ->where('mikitchn_id', $kitchen->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            
+                if (! $certificate) {
+                    $certificate = new Certificate();
+                    $certificate->mikitchn_id = $kitchen->id;
+                }
+
+                $certificate->first_name = $request->first_name;
+                $certificate->last_name = $request->last_name;
+                $certificate->certificate_no = $request->certificate_no;
+                $certificate->certificate_doc = $returnFlSts['path'];
+                $certificate->abn_gst = $request->abn_gst;
+                $certificate->status = $status;
+                $certificate->abn = $request->abn;
+                $certificate->rejection_reason = null;
+                $certificate->reviewed_at = null;
+                $certificate->reviewed_by = null;
+                $certificate->save();
+
+                return $certificate;
+            });
 
             $this->kitchenService->invalidateDiscoveryCaches();
 
@@ -557,7 +559,11 @@ class MikitchnController extends Controller
     public function getDashboardData()
     {
         $currntdate = date('Y-m-d');
-        $statusArry = array('0' => 0,'1' => 1,);
+        $statusArry = [
+            Order::STATUS_LEGACY_CANCELLED,
+            Order::STATUS_COMPLETED,
+            Order::STATUS_CANCELLED,
+        ];
         $kitchen = Auth::guard('api')->user()->restaurant;
 
         if (!$kitchen) {
@@ -571,7 +577,10 @@ class MikitchnController extends Controller
 
         $allOrders = $orders->whereIn('status',$statusArry)->count();
 
-        $upcoming = Order::where('mikitchn_id',$kitchen->id)->where('delivery_date', '>=', $currntdate)->where('status',3)->count();
+        $upcoming = Order::where('mikitchn_id', $kitchen->id)
+            ->where('delivery_date', '>=', $currntdate)
+            ->where('status', Order::STATUS_CONFIRMED)
+            ->count();
 
         $data = ['total_earning'=> $earnings, 'n_bookings' => $allOrders, 'n_upcoming_bookings' => $upcoming];
 

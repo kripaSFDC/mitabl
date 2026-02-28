@@ -6,6 +6,7 @@ use App\Filament\Resources\PolicyResource\Pages;
 use App\Models\Policy;
 use App\Models\PolicyChangeLog;
 use App\Services\AdminAuditLogService;
+use App\Services\AdminStepUpService;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -101,8 +102,20 @@ class PolicyResource extends Resource
                             ->label('Publish summary')
                             ->required()
                             ->maxLength(1000),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
                     ])
                     ->action(function (Policy $record, array $data): void {
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to publish this policy.'
+                        )) {
+                            return;
+                        }
+
                         try {
                             DB::transaction(function () use ($record, $data): void {
                                 Policy::query()
@@ -263,8 +276,20 @@ class PolicyResource extends Resource
                             ->label('Rollback reason')
                             ->required()
                             ->maxLength(1000),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
                     ])
                     ->action(function (Policy $record, array $data): void {
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to roll back this policy.'
+                        )) {
+                            return;
+                        }
+
                         try {
                             DB::transaction(function () use ($record, $data): void {
                                 Policy::query()

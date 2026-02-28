@@ -12,7 +12,8 @@ class CertificateStatusUpdatedNotification extends Notification implements Shoul
 
     public function __construct(
         private readonly string $status,
-        private readonly ?string $reason = null
+        private readonly ?string $reason = null,
+        private readonly ?int $certificateId = null
     ) {
     }
 
@@ -26,6 +27,7 @@ class CertificateStatusUpdatedNotification extends Notification implements Shoul
         return [
             'type' => 'certificate_status_updated',
             'status' => $this->status,
+            'certificate_id' => $this->certificateId,
             'message' => $this->status === 'approved'
                 ? 'Your certificate has been approved.'
                 : 'Your certificate has been rejected. Please review feedback and resubmit.',

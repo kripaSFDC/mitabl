@@ -15,8 +15,7 @@ class PhaseTwoActionContractTest extends TestCase
         $this->assertStringContainsString('lockForUpdate()', $certificateResource);
         $this->assertStringContainsString("Forms\\Components\\Textarea::make('rejection_reason')", $certificateResource);
         $this->assertStringContainsString("->required()", $certificateResource);
-        $this->assertStringContainsString("CertificateApproved", $certificateResource);
-        $this->assertStringContainsString("CertificateRejected", $certificateResource);
+        $this->assertStringContainsString("SendCertificateReviewOutcomeJob::dispatch", $certificateResource);
         $this->assertStringContainsString('hasValidCertificateDocument', $certificateResource);
         $this->assertStringContainsString('isReviewSnapshotCurrent', $certificateResource);
         $this->assertStringContainsString('afterCommit()', $certificateResource);
@@ -36,6 +35,9 @@ class PhaseTwoActionContractTest extends TestCase
         $this->assertStringContainsString('Refund::query()', $orderResource);
         $this->assertStringContainsString('Payment intent is missing for this order.', $orderResource);
         $this->assertStringContainsString('RefundInvoice($order->user, $order, 1, 100))->afterCommit()', $orderResource);
+        $this->assertStringContainsString("Order::STATUS_CANCELLED => 'Cancelled'", $orderResource);
+        $this->assertStringContainsString("Order::STATUS_LEGACY_CANCELLED => 'Cancelled (legacy: 0)'", $orderResource);
+        $this->assertStringContainsString('renderTimeline', $orderResource);
     }
 
     public function test_user_and_kitchen_admin_actions_have_required_safety_checks(): void
@@ -52,10 +54,13 @@ class PhaseTwoActionContractTest extends TestCase
 
         $this->assertStringContainsString("Action::make('activate')", $kitchenResource);
         $this->assertStringContainsString("Action::make('deactivate')", $kitchenResource);
+        $this->assertStringContainsString("Action::make('view_profile')", $kitchenResource);
         $this->assertStringContainsString('approved certificate', $kitchenResource);
         $this->assertStringContainsString('open upcoming bookings', $kitchenResource);
         $this->assertStringContainsString('hasValidKitchenLocation', $kitchenResource);
         $this->assertStringContainsString('lockForUpdate()', $kitchenResource);
+        $this->assertStringContainsString('Order::STATUS_REQUESTED', $kitchenResource);
+        $this->assertStringContainsString('Order::STATUS_CONFIRMED', $kitchenResource);
     }
 
     public function test_promo_code_actions_are_stateful_and_delete_is_disabled(): void

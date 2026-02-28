@@ -4,6 +4,11 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\CrmAgingBucketsChart;
 use App\Filament\Widgets\CrmQueueStatsWidget;
+use App\Filament\Widgets\DashboardLiveOperationsWidget;
+use App\Filament\Widgets\DashboardOperationalSnapshotWidget;
+use App\Filament\Widgets\IntegrationHealthWidget;
+use App\Filament\Widgets\OrdersPerDayChartWidget;
+use App\Filament\Widgets\RegistrationsPerDayChartWidget;
 use App\Filament\Widgets\SlaHealthWidget;
 use App\Filament\Widgets\SystemHealthSummaryWidget;
 use App\Http\Middleware\RecordAdminAction;
@@ -56,10 +61,15 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+                DashboardOperationalSnapshotWidget::class,
+                DashboardLiveOperationsWidget::class,
+                IntegrationHealthWidget::class,
                 CrmQueueStatsWidget::class,
                 CrmAgingBucketsChart::class,
                 SlaHealthWidget::class,
                 SystemHealthSummaryWidget::class,
+                OrdersPerDayChartWidget::class,
+                RegistrationsPerDayChartWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SupportTicketResource\Pages;
 use App\Models\AdminUser;
 use App\Models\SupportTicket;
+use App\Services\AdminStepUpService;
 use App\Services\SupportTicketService;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -325,8 +326,20 @@ class SupportTicketResource extends Resource
                             ->required()
                             ->label('Status change reason')
                             ->maxLength(300),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to force a status transition.'
+                        )) {
+                            return;
+                        }
+
                         try {
                             /** @var SupportTicketService $service */
                             $service = app(SupportTicketService::class);

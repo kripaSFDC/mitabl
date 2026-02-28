@@ -77,7 +77,6 @@ class AdminRolePermissionSeeder extends Seeder
                 'kitchens.edit',
                 'orders.view',
                 'orders.override_status',
-                'orders.refund',
                 'pre_registrations.view',
                 'pre_registrations.edit',
                 'promo_codes.view',

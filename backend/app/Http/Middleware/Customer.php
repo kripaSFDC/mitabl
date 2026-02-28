@@ -18,7 +18,9 @@ class Customer
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role->role == 'Foodie') {
+        $user = Auth::guard('api')->user();
+
+        if ($user && $user->role && $user->role->role === 'Foodie') {
             return $next($request);
         }
         return Controller::responser([],'Your account is Unauthorize for this request. Login with Foodie account.');

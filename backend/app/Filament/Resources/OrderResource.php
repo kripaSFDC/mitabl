@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource\Pages;
 use App\Models\CancelReason;
 use App\Models\Order;
 use App\Models\Refund;
+use App\Services\AdminStepUpService;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
@@ -53,13 +54,7 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('taxes')->numeric(),
                         Forms\Components\TextInput::make('refund_percentage')->numeric(),
                         Forms\Components\Select::make('status')
-                            ->options([
-                                0 => 'Cancelled',
-                                1 => 'Completed',
-                                2 => 'Requested',
-                                3 => 'Confirmed',
-                                4 => 'Cancelled (legacy)',
-                            ])
+                            ->options(static::statusOptions(includeLegacy: true))
                             ->required(),
                         Forms\Components\Toggle::make('paid'),
                     ])
@@ -70,18 +65,37 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['Mikitchn.user', 'user', 'payment', 'cancelreason'])->withCount('orderdata'))
+            ->modifyQueryUsing(fn ($query) => $query
+                ->with(['Mikitchn.user', 'user', 'payment', 'cancelreason', 'completedorder'])
+                ->withCount(['orderdata', 'refunds'])
+                ->withMax('refunds', 'percentage'))
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('Order ID')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('Mikitchn.name')->label('Kitchen')->searchable(),
                 Tables\Columns\TextColumn::make('user.email')->label('Customer')->searchable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Order Date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('delivery_date')->date()->sortable(),
                 Tables\Columns\TextColumn::make('order_type')
                     ->label('Type')
-                    ->state(fn (Order $record): string => (int) $record->dine_in === 1 ? 'Dine-in' : 'Take-away')
+                    ->state(function (Order $record): string {
+                        $isDineIn = (int) $record->dine_in === 1;
+                        $isTakeAway = (int) $record->take_away === 1;
+
+                        return match (true) {
+                            $isDineIn && $isTakeAway => 'Dine-in / Take-away',
+                            $isDineIn => 'Dine-in',
+                            $isTakeAway => 'Take-away',
+                            default => '-',
+                        };
+                    })
                     ->badge(),
                 Tables\Columns\TextColumn::make('total_price')->money('AUD')->sortable(),
                 Tables\Columns\IconColumn::make('paid')->boolean(),
+                Tables\Columns\TextColumn::make('refund_state')
+                    ->label('Refund State')
+                    ->badge()
+                    ->state(fn (Order $record): string => static::refundStateLabel($record))
+                    ->color(fn (Order $record): string => static::refundStateColor($record)),
                 Tables\Columns\TextColumn::make('refund_percentage')
                     ->label('Refund %')
                     ->formatStateUsing(fn ($state): string => $state === null ? '-' : ((int) $state) . '%'),
@@ -96,13 +110,7 @@ class OrderResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        0 => 'Cancelled',
-                        1 => 'Completed',
-                        2 => 'Requested',
-                        3 => 'Confirmed',
-                        4 => 'Cancelled (legacy)',
-                    ]),
+                    ->options(static::statusOptions(includeLegacy: true)),
                 Tables\Filters\Filter::make('delivery_date')
                     ->form([
                         Forms\Components\DatePicker::make('from'),
@@ -125,10 +133,10 @@ class OrderResource extends Resource
                     ->form([
                         Forms\Components\Placeholder::make('kitchen')
                             ->label('Kitchen')
-                            ->content(fn (Order $record): string => (string) ($record->Mikitchn->name ?? '-')),
+                            ->content(fn (Order $record): string => (string) (optional($record->Mikitchn)->name ?? '-')),
                         Forms\Components\Placeholder::make('customer')
                             ->label('Customer')
-                            ->content(fn (Order $record): string => (string) ($record->user->email ?? '-')),
+                            ->content(fn (Order $record): string => (string) (optional($record->user)->email ?? '-')),
                         Forms\Components\Placeholder::make('status')
                             ->label('Status')
                             ->content(fn (Order $record): string => static::formatStatus((int) $record->status)),
@@ -140,16 +148,19 @@ class OrderResource extends Resource
                             ->content(fn (Order $record): string => '$' . number_format((float) $record->total_price, 2)),
                         Forms\Components\Placeholder::make('payment_id')
                             ->label('Payment Intent')
-                            ->content(fn (Order $record): string => (string) ($record->payment->payment_id ?? '-')),
+                            ->content(fn (Order $record): string => (string) (optional($record->payment)->payment_id ?? '-')),
                         Forms\Components\Placeholder::make('payment_status')
                             ->label('Payment Status')
-                            ->content(fn (Order $record): string => (string) ($record->payment->status ?? '-')),
+                            ->content(fn (Order $record): string => (string) (optional($record->payment)->status ?? '-')),
                         Forms\Components\Placeholder::make('refund_percentage')
                             ->label('Refund %')
                             ->content(fn (Order $record): string => $record->refund_percentage === null ? '-' : ((int) $record->refund_percentage) . '%'),
                         Forms\Components\Placeholder::make('cancel_reason')
                             ->label('Cancel Reason')
                             ->content(fn (Order $record): string => (string) ($record->cancelreason->comment ?? '-')),
+                        Forms\Components\Placeholder::make('timeline')
+                            ->label('Timeline')
+                            ->content(fn (Order $record): string => static::renderTimeline($record)),
                     ])
                     ->columns(2),
                 Action::make('override_status')
@@ -160,19 +171,30 @@ class OrderResource extends Resource
                     ->form([
                         Forms\Components\Select::make('status')
                             ->required()
-                            ->options([
-                                0 => 'Cancelled',
-                                1 => 'Completed',
-                                2 => 'Requested',
-                                3 => 'Confirmed',
-                                4 => 'Cancelled (legacy)',
-                            ]),
+                            ->options(static::statusOptions(includeLegacy: false)),
                         Forms\Components\Textarea::make('reason')
                             ->required()
                             ->minLength(5)
                             ->maxLength(500),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
                     ])
                     ->action(function (Order $record, array $data): void {
+                        if (! static::canOverrideStatus()) {
+                            Notification::make()->title('You are not authorized to override order status.')->danger()->send();
+                            return;
+                        }
+
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to force a status transition.'
+                        )) {
+                            return;
+                        }
+
                         $updated = false;
 
                         DB::transaction(function () use ($record, $data, &$updated): void {
@@ -182,10 +204,20 @@ class OrderResource extends Resource
                                 return;
                             }
 
-                            $lockedOrder->status = (int) $data['status'];
+                            $targetStatus = (int) $data['status'];
+                            if ((int) $lockedOrder->status === $targetStatus) {
+                                Notification::make()
+                                    ->title('Order is already in the selected status. No changes applied.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $lockedOrder->status = $targetStatus;
                             $lockedOrder->save();
 
-                            if ((int) $data['status'] === 0) {
+                            if ($targetStatus === Order::STATUS_CANCELLED) {
                                 CancelReason::updateOrCreate(
                                     ['order_id' => $lockedOrder->id],
                                     [
@@ -199,7 +231,7 @@ class OrderResource extends Resource
 
                             Log::info('orders.override_status', [
                                 'order_id' => $lockedOrder->id,
-                                'new_status' => (int) $data['status'],
+                                'new_status' => $targetStatus,
                                 'reason' => $data['reason'],
                                 'actor_admin_id' => Filament::auth()->id(),
                             ]);
@@ -237,14 +269,31 @@ class OrderResource extends Resource
                             ->required()
                             ->minLength(5)
                             ->maxLength(500),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
                     ])
                     ->action(function (Order $record, array $data): void {
+                        if (! static::canRefundOrder()) {
+                            Notification::make()->title('You are not authorized to refund orders.')->danger()->send();
+                            return;
+                        }
+
                         if (($data['confirm_text'] ?? null) !== 'REFUND') {
                             Notification::make()
                                 ->title('Refund confirmation text mismatch.')
                                 ->danger()
                                 ->send();
 
+                            return;
+                        }
+
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to issue a manual refund.'
+                        )) {
                             return;
                         }
 
@@ -389,11 +438,11 @@ class OrderResource extends Resource
     private static function formatStatus(int $status): string
     {
         return match ($status) {
-            0 => 'Cancelled',
-            1 => 'Completed',
-            2 => 'Requested',
-            3 => 'Confirmed',
-            4 => 'Cancelled (legacy)',
+            Order::STATUS_COMPLETED => 'Completed',
+            Order::STATUS_REQUESTED => 'Requested',
+            Order::STATUS_CONFIRMED => 'Confirmed',
+            Order::STATUS_CANCELLED => 'Cancelled',
+            Order::STATUS_LEGACY_CANCELLED => 'Cancelled (legacy: 0)',
             default => 'Unknown',
         };
     }
@@ -401,12 +450,77 @@ class OrderResource extends Resource
     private static function statusColor(int $status): string
     {
         return match ($status) {
-            0, 4 => 'danger',
-            1 => 'success',
-            2 => 'warning',
-            3 => 'info',
+            Order::STATUS_LEGACY_CANCELLED, Order::STATUS_CANCELLED => 'danger',
+            Order::STATUS_COMPLETED => 'success',
+            Order::STATUS_REQUESTED => 'warning',
+            Order::STATUS_CONFIRMED => 'info',
             default => 'gray',
         };
+    }
+
+    private static function statusOptions(bool $includeLegacy): array
+    {
+        $options = [
+            Order::STATUS_COMPLETED => 'Completed',
+            Order::STATUS_REQUESTED => 'Requested',
+            Order::STATUS_CONFIRMED => 'Confirmed',
+            Order::STATUS_CANCELLED => 'Cancelled',
+        ];
+
+        if ($includeLegacy) {
+            $options[Order::STATUS_LEGACY_CANCELLED] = 'Cancelled (legacy: 0)';
+        }
+
+        return $options;
+    }
+
+    private static function refundStateLabel(Order $record): string
+    {
+        $percentage = (int) ($record->refund_percentage ?? 0);
+        $hasRefund = (int) ($record->refunds_count ?? 0) > 0;
+        $maxRecordedRefundPercentage = (int) ($record->refunds_max_percentage ?? 0);
+
+        if ($percentage >= 100 || $maxRecordedRefundPercentage >= 100) {
+            return 'Full Refunded';
+        }
+
+        if ($percentage > 0 || $hasRefund) {
+            return 'Partial Refunded';
+        }
+
+        return 'Not Refunded';
+    }
+
+    private static function refundStateColor(Order $record): string
+    {
+        return match (static::refundStateLabel($record)) {
+            'Full Refunded' => 'success',
+            'Partial Refunded' => 'warning',
+            default => 'gray',
+        };
+    }
+
+    private static function renderTimeline(Order $record): string
+    {
+        $entries = [
+            'Created: ' . ($record->created_at ? $record->created_at->format('Y-m-d H:i') : '-'),
+        ];
+
+        if ($record->payment?->confirm_date_time) {
+            $entries[] = 'Payment confirmed: ' . Carbon::parse($record->payment->confirm_date_time)->format('Y-m-d H:i');
+        }
+
+        if ($record->completedorder?->completed_date_time) {
+            $entries[] = 'Completed: ' . Carbon::parse($record->completedorder->completed_date_time)->format('Y-m-d H:i');
+        }
+
+        if ($record->cancelreason?->created_at) {
+            $entries[] = 'Cancelled: ' . Carbon::parse($record->cancelreason->created_at)->format('Y-m-d H:i');
+        }
+
+        $entries[] = 'Current status: ' . static::formatStatus((int) $record->status);
+
+        return implode(PHP_EOL, $entries);
     }
 }
 

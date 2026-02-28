@@ -15,10 +15,9 @@ class ProcessSupportTicketSlaEscalationJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public string $queue = 'crm-escalations';
-
     public function __construct(private int $ticketId, private string $reason)
     {
+        $this->onQueue('crm-escalations');
     }
 
     public function handle(SupportTicketService $supportTicketService): void

@@ -72,8 +72,8 @@ class Controller extends BaseController
 
     public function uploadImageOrDoc($mediaFile,$folderPathOrName){
         
-        $allowedfileExtension=['jpg','jpeg','png','pdf','svg'];
-        $extension = $mediaFile->getClientOriginalExtension();
+        $allowedfileExtension=['jpg','jpeg','png','pdf','webp'];
+        $extension = strtolower((string) $mediaFile->getClientOriginalExtension());
  
         $check = in_array($extension,$allowedfileExtension);
         if ($check) {
@@ -85,7 +85,7 @@ class Controller extends BaseController
             
             return ['success'=>true,'path'=>$path];
         } else {
-            return ['success'=>false,'msg'=>"Allow Image with (jpg,jpeg,png,pdf,svg) These extensions."];
+            return ['success'=>false,'msg'=>"Allow Image with (jpg,jpeg,png,pdf,webp) These extensions."];
         }
     }
 

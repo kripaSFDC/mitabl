@@ -3,10 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CertificateResource\Pages;
-use App\Mail\CertificateApproved;
-use App\Mail\CertificateRejected;
+use App\Jobs\SendCertificateReviewOutcomeJob;
 use App\Models\Certificate;
-use App\Notifications\CertificateStatusUpdatedNotification;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -18,7 +16,6 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CertificateResource extends Resource
@@ -100,7 +97,7 @@ class CertificateResource extends Resource
                 Tables\Columns\TextColumn::make('certificate_doc')
                     ->label('Document')
                     ->formatStateUsing(fn (?string $state): string => $state ? 'View' : 'Missing')
-                    ->url(fn (Certificate $record): ?string => $record->certificate_doc ? asset($record->certificate_doc) : null)
+                    ->url(fn (Certificate $record): ?string => static::resolveDocumentUrl($record->certificate_doc))
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -176,7 +173,7 @@ class CertificateResource extends Resource
                         Forms\Components\Placeholder::make('document')
                             ->label('Document preview')
                             ->content(fn (Certificate $record): string => $record->certificate_doc
-                                ? 'Open document: ' . asset($record->certificate_doc)
+                                ? 'Open document: ' . (static::resolveDocumentUrl($record->certificate_doc) ?? '-')
                                 : 'No document uploaded'),
                     ])
                     ->columns(2),
@@ -231,8 +228,7 @@ class CertificateResource extends Resource
 
                             $recipient = optional($certificate->mikitchn)->user;
                             if ($recipient && $recipient->email) {
-                                Mail::to($recipient->email)->queue((new CertificateApproved($recipient, $certificate))->afterCommit());
-                                $recipient->notify((new CertificateStatusUpdatedNotification('approved', null))->afterCommit());
+                                SendCertificateReviewOutcomeJob::dispatch($certificate->id)->afterCommit();
                             }
 
                             Log::info('certificate.approved', [
@@ -300,8 +296,7 @@ class CertificateResource extends Resource
 
                             $recipient = optional($certificate->mikitchn)->user;
                             if ($recipient && $recipient->email) {
-                                Mail::to($recipient->email)->queue((new CertificateRejected($recipient, $certificate))->afterCommit());
-                                $recipient->notify((new CertificateStatusUpdatedNotification('rejected', $data['rejection_reason']))->afterCommit());
+                                SendCertificateReviewOutcomeJob::dispatch($certificate->id)->afterCommit();
                             }
 
                             Log::info('certificate.rejected', [
@@ -320,6 +315,64 @@ class CertificateResource extends Resource
 
                         Notification::make()
                             ->title('Certificate rejected successfully.')
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('request_resubmission')
+                    ->label('Request Re-Submission')
+                    ->icon('heroicon-o-arrow-path-rounded-square')
+                    ->color('warning')
+                    ->visible(fn (Certificate $record): bool => in_array((int) $record->status, [1, 2], true) && static::canReview())
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Textarea::make('resubmission_reason')
+                            ->label('Reason for re-submission')
+                            ->required()
+                            ->minLength(5)
+                            ->maxLength(500)
+                            ->rows(4),
+                    ])
+                    ->action(function (Certificate $record, array $data): void {
+                        $requested = false;
+
+                        DB::transaction(function () use ($record, $data, &$requested): void {
+                            $certificate = Certificate::query()->lockForUpdate()->find($record->id);
+
+                            if (! $certificate) {
+                                return;
+                            }
+
+                            if ((int) $certificate->status === 0) {
+                                Notification::make()
+                                    ->title('Certificate is already pending review.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $certificate->status = 0;
+                            $certificate->rejection_reason = (string) $data['resubmission_reason'];
+                            $certificate->reviewed_by = Filament::auth()->id();
+                            $certificate->reviewed_at = Carbon::now();
+                            $certificate->save();
+
+                            Log::info('certificate.resubmission_requested', [
+                                'certificate_id' => $certificate->id,
+                                'mikitchn_id' => $certificate->mikitchn_id,
+                                'reviewed_by' => Filament::auth()->id(),
+                                'reason' => $data['resubmission_reason'],
+                            ]);
+
+                            $requested = true;
+                        });
+
+                        if (! $requested) {
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title('Re-submission requested. Certificate moved to pending review.')
                             ->success()
                             ->send();
                     }),
@@ -354,6 +407,7 @@ class CertificateResource extends Resource
                                 $certificate->reviewed_by = Filament::auth()->id();
                                 $certificate->reviewed_at = Carbon::now();
                                 $certificate->save();
+                                SendCertificateReviewOutcomeJob::dispatch($certificate->id)->afterCommit();
                                 $approved++;
                             });
                         }
@@ -393,6 +447,7 @@ class CertificateResource extends Resource
                                 $certificate->reviewed_by = Filament::auth()->id();
                                 $certificate->reviewed_at = Carbon::now();
                                 $certificate->save();
+                                SendCertificateReviewOutcomeJob::dispatch($certificate->id)->afterCommit();
                                 $rejected++;
                             });
                         }
@@ -465,6 +520,20 @@ class CertificateResource extends Resource
         }
 
         return $certificate->updated_at->toISOString() === $lastKnownUpdateAt;
+    }
+
+    private static function resolveDocumentUrl(?string $documentPath): ?string
+    {
+        $documentPath = trim((string) $documentPath);
+        if ($documentPath === '') {
+            return null;
+        }
+
+        if (Str::startsWith($documentPath, ['http://', 'https://'])) {
+            return $documentPath;
+        }
+
+        return asset($documentPath);
     }
 }
 

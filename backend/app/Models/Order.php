@@ -11,6 +11,12 @@ class Order extends Model
 {
     use HasFactory, Notifiable;
 
+    public const STATUS_LEGACY_CANCELLED = 0;
+    public const STATUS_COMPLETED = 1;
+    public const STATUS_REQUESTED = 2;
+    public const STATUS_CONFIRMED = 3;
+    public const STATUS_CANCELLED = 4;
+
     protected $appends = ['items','orderId'];
 
     /**
@@ -76,6 +82,16 @@ class Order extends Model
     public function completedorder()
     {
         return $this->hasOne('App\Models\CompletedOrder');
+    }
+
+    public function refunds()
+    {
+        return $this->hasMany('App\Models\Refund');
+    }
+
+    public static function cancelledStatuses(): array
+    {
+        return [self::STATUS_LEGACY_CANCELLED, self::STATUS_CANCELLED];
     }
 
 }

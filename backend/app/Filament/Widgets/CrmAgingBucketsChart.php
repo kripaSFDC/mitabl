@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\SupportTicket;
+use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 
 class CrmAgingBucketsChart extends ChartWidget
@@ -10,6 +11,11 @@ class CrmAgingBucketsChart extends ChartWidget
     protected static ?string $heading = 'Support Ticket Aging Buckets';
 
     protected static ?int $sort = 2;
+
+    public static function canView(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('dashboard.view');
+    }
 
     protected function getData(): array
     {

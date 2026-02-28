@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\PlatformSetting;
 use App\Services\AdminAuditLogService;
+use App\Services\AdminStepUpService;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -108,6 +109,10 @@ class PlatformSettingsPage extends Page implements HasForms
                             ->rows(3)
                             ->maxLength(1000)
                             ->helperText('Required for high-risk configuration keys (for example, maintenance/auth/payment/queue/cache/incident).'),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password for high-risk changes')
+                            ->password()
+                            ->revealable(false),
                     ]),
             ])
             ->statePath('data');
@@ -123,6 +128,7 @@ class PlatformSettingsPage extends Page implements HasForms
         $state = $this->form->getState();
         $rows = (array) ($state['settings'] ?? []);
         $changeReason = trim((string) ($state['change_reason'] ?? ''));
+        $currentPassword = $state['current_password'] ?? null;
         $changedKeys = [];
         $deletedCount = 0;
 
@@ -196,6 +202,13 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->title('Change reason is required for high-risk settings.')
                     ->danger()
                     ->send();
+                return;
+            }
+
+            if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                is_string($currentPassword) ? $currentPassword : null,
+                'Step-up authentication failed. Enter your admin password to apply high-risk platform setting changes.'
+            )) {
                 return;
             }
         }
@@ -319,6 +332,10 @@ class PlatformSettingsPage extends Page implements HasForms
             'auth',
             'password',
             'session',
+            'feature',
+            'flag',
+            'integration',
+            'policy',
             'payment',
             'stripe',
             'queue',

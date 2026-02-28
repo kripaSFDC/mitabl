@@ -18,7 +18,9 @@ class Restaurant
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role->role == 'Restaurant') {
+        $user = Auth::guard('api')->user();
+
+        if ($user && $user->role && $user->role->role === 'Restaurant') {
             return $next($request);
         }
         // return response()->json('Your account is Unauthorize for this request.'); 
