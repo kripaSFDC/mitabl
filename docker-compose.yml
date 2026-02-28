@@ -21,6 +21,26 @@ services:
         condition: service_healthy
     restart: "no"
 
+  website-db-migrate:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: mitabl-website-db-migrate
+    env_file:
+      - ./website/.env
+    command:
+      - sh
+      - -c
+      - |
+        php artisan migrate --force
+        if [ "${RUN_SEEDERS_ON_BOOT:-false}" = "true" ]; then
+          php artisan db:seed --force
+        fi
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
@@ -53,6 +73,8 @@ services:
     depends_on:
       backend:
         condition: service_started
+      website-db-migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
   mobile-app:
