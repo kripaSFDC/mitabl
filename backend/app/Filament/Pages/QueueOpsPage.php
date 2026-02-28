@@ -135,15 +135,16 @@ class QueueOpsPage extends Page
                     'payload',
                 ])
                 ->map(function ($row): array {
-                    $payload = json_decode((string) $row->payload, true);
+                    $payloadRaw = (string) $row->payload;
+                    $exception = (string) $row->exception;
 
                     return [
                         'id' => (int) $row->id,
                         'connection' => (string) $row->connection,
                         'queue' => (string) $row->queue,
                         'failed_at' => (string) $row->failed_at,
-                        'attempts' => (int) data_get($payload, 'attempts', 0),
-                        'exception' => str((string) $row->exception)->limit(240)->toString(),
+                        'attempts' => $this->extractAttemptsFromFailedPayload($payloadRaw, $exception),
+                        'exception' => str($exception)->limit(240)->toString(),
                     ];
                 })
                 ->toArray();
@@ -183,6 +184,32 @@ class QueueOpsPage extends Page
     private function canManage(): bool
     {
         return (bool) Filament::auth()->user()?->can('queue_ops.manage');
+    }
+
+    private function extractAttemptsFromFailedPayload(string $payload, string $exception): int
+    {
+        $decoded = json_decode($payload, true);
+        if (is_array($decoded)) {
+            $directAttempts = (int) data_get($decoded, 'attempts', 0);
+            if ($directAttempts > 0) {
+                return $directAttempts;
+            }
+
+            $maxTries = (int) data_get($decoded, 'maxTries', 0);
+            if ($maxTries > 0) {
+                return $maxTries;
+            }
+        }
+
+        if (preg_match('/attempted\s+(\d+)\s+times/i', $exception, $matches) === 1) {
+            return (int) ($matches[1] ?? 0);
+        }
+
+        if (str_contains(strtolower($exception), 'attempted too many times')) {
+            return 5;
+        }
+
+        return 0;
     }
 
     public static function canAccess(): bool
