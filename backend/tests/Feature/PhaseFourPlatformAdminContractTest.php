@@ -37,6 +37,7 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $healthService = (string) file_get_contents(app_path('Services/SystemHealthService.php'));
         $kernel = (string) file_get_contents(app_path('Console/Kernel.php'));
         $syntheticCommand = (string) file_get_contents(app_path('Console/Commands/PlatformSyntheticHealthCheckCommand.php'));
+        $activateDuePolicyCommand = (string) file_get_contents(app_path('Console/Commands/ActivateDuePoliciesCommand.php'));
         $apiRoutes = (string) file_get_contents(base_path('routes/api.php'));
 
         $this->assertStringContainsString('class PlatformSettingsPage', $settingsPage);
@@ -66,7 +67,9 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('checkSchedulerHeartbeat', $healthService);
         $this->assertStringContainsString('checkDegradedMode', $healthService);
         $this->assertStringContainsString('platform:health:synthetic', $kernel);
+        $this->assertStringContainsString('platform:policies:activate-due', $kernel);
         $this->assertStringContainsString('class PlatformSyntheticHealthCheckCommand', $syntheticCommand);
+        $this->assertStringContainsString('class ActivateDuePoliciesCommand', $activateDuePolicyCommand);
         $this->assertStringContainsString('retryJob', $queuePage);
         $this->assertStringContainsString('requeueJob', $queuePage);
         $this->assertStringContainsString('discardJob', $queuePage);
