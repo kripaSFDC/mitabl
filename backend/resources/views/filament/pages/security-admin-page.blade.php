@@ -7,6 +7,7 @@
             <div class="space-y-2 text-sm">
                 <p><strong>Session lifetime (minutes):</strong> {{ $sessionPolicy['lifetime_minutes'] ?? 0 }}</p>
                 <p><strong>Expire on close:</strong> {{ ($sessionPolicy['expire_on_close'] ?? false) ? 'Yes' : 'No' }}</p>
+                <p><strong>Sensitive-action re-auth (minutes):</strong> {{ $sessionPolicy['step_up_reauth_minutes'] ?? 15 }}</p>
                 <p><strong>Dormant threshold (days):</strong> {{ $sessionPolicy['dormant_threshold_days'] ?? 30 }}</p>
             </div>
         </x-filament::section>
@@ -67,4 +68,3 @@
         </div>
     </x-filament::section>
 </x-filament-panels::page>
-
