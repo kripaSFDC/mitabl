@@ -1,3 +1,40 @@
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.skip-link:focus {
+    left: 16px;
+    top: 16px;
+    width: auto;
+    height: auto;
+    padding: 8px 12px;
+    background: #ffffff;
+    color: #0071bc;
+    border: 2px solid #0071bc;
+    border-radius: 6px;
+    z-index: 10000;
+}
+
+:focus-visible {
+    outline: 3px solid #005a95;
+    outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.navbar-toggler:focus-visible,
+.close:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 113, 188, 0.35);
+    border-radius: 4px;
+}
 body{
     font-family: itc-avant-garde-gothic-pro, sans-serif;
     color: #707070;
