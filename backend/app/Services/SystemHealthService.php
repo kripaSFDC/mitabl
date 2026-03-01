@@ -342,26 +342,42 @@ class SystemHealthService
 
         $hasSupportTicketRoute = false;
         $hasPreRegisterRoute = false;
+        $supportHasThrottle = false;
+        $preRegisterHasThrottle = false;
 
         foreach ($routes as $route) {
             $uri = trim((string) $route->uri(), '/');
             $methods = $route->methods();
+            $middleware = $route->middleware();
 
             if (in_array('POST', $methods, true) && $uri === 'api/support/ticket') {
                 $hasSupportTicketRoute = true;
+                $supportHasThrottle = collect($middleware)
+                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
             }
 
             if (in_array('POST', $methods, true) && $uri === 'api/preregister') {
                 $hasPreRegisterRoute = true;
+                $preRegisterHasThrottle = collect($middleware)
+                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
             }
         }
 
-        if ($hasSupportTicketRoute || $hasPreRegisterRoute) {
+        if (! $hasSupportTicketRoute || ! $hasPreRegisterRoute) {
+            return [
+                'key' => 'ticket_intake',
+                'label' => 'Ticket Intake',
+                'status' => 'error',
+                'message' => 'Support intake routes are incomplete. Expected POST /api/support/ticket and /api/preregister.',
+            ];
+        }
+
+        if (! $supportHasThrottle || ! $preRegisterHasThrottle) {
             return [
                 'key' => 'ticket_intake',
                 'label' => 'Ticket Intake',
                 'status' => 'warning',
-                'message' => 'Legacy public intake routes are still enabled and should be removed.',
+                'message' => 'Support intake throttling is missing on one or more public intake routes.',
             ];
         }
 
@@ -369,7 +385,7 @@ class SystemHealthService
             'key' => 'ticket_intake',
             'label' => 'Ticket Intake',
             'status' => 'ok',
-            'message' => 'Legacy public intake routes are disabled.',
+            'message' => 'Support intake routes and throttles are configured.',
         ];
     }
 

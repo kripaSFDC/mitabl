@@ -17,6 +17,23 @@ services:
       - ./environments/backend-api.env
     restart: "no"
 
+  website-db-migrate:
+    build:
+      context: ../website
+      dockerfile: Dockerfile
+    labels:
+      com.mitabl.service: migrations
+    command:
+      - sh
+      - -c
+      - |
+        php artisan migrate --force
+        if [ "${RUN_SEEDERS_ON_BOOT:-false}" = "true" ]; then
+          php artisan db:seed --force
+        fi
+    env_file:
+      - ./environments/marketing-web.env
+    restart: "no"
 
   marketing-web:
     build:
@@ -42,6 +59,9 @@ services:
         limits:
           cpus: "0.75"
           memory: 768M
+    depends_on:
+      website-db-migrate:
+        condition: service_completed_successfully
 
   backend-api:
     build:
