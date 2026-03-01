@@ -58,20 +58,33 @@
       <div class="row">
          <div class="col-md-12">
             <h3>Platform Basics</h3>
-            <p><strong>What is mitabl?</strong><br>mitabl is a mobile-first marketplace that connects local micooks with nearby food lovers.</p>
-            <p><strong>Where does the experience happen?</strong><br>The mobile app is where customers browse menus, place orders, and manage their account.</p>
+            <p><strong>What is mitabl?</strong><br>mitabl is a home-cooked food marketplace platform connecting Foodies (customers) and Cooks operating virtual kitchens (miKitchens).</p>
+            <p><strong>Is this website transactional?</strong><br>No. The public website is an informational and marketing surface. Transactional flows (authentication, ordering, payments, support ticket API actions, and account operations) run through the mobile app and backend API.</p>
+            <p><strong>How is traffic split across the platform?</strong><br>Ingress policy routes public pages on <code>/</code> to the marketing website, <code>/api/*</code> to the backend API, and <code>/admin</code> to the operations admin service.</p>
 
-            <h3>For Foodies</h3>
-            <p><strong>What can I do in the app?</strong><br>Discover local kitchens, explore menus, place secure orders, and leave reviews after your meal.</p>
-            <p><strong>Can I order directly from the website?</strong><br>No. The website is for marketing and information, while ordering is managed in the mitabl app.</p>
+            <h3>App Experience</h3>
+            <p><strong>What can Foodies do in the mobile app?</strong><br>Foodies can discover kitchens, browse menus, place orders, manage cards/payments, and submit reviews.</p>
+            <p><strong>Can one app support both personas?</strong><br>Yes. The Flutter mobile app contains both Foodie and Cook journeys in a single application.</p>
 
-            <h3>For micooks</h3>
-            <p><strong>What can micooks manage?</strong><br>micooks can maintain kitchen profiles, update menus, and manage order fulfilment through mitabl platform workflows.</p>
-            <p><strong>How is day-to-day reliability supported?</strong><br>mitabl's backend operations support order tracking, payment flow, and operational visibility for trusted service delivery.</p>
+            <h3>Cook Operations</h3>
+            <p><strong>What can Cooks manage?</strong><br>Cook-side API routes support certificate checks, miKitchen profile updates, menu item create/edit/delete, incoming order handling, dashboard data, and fulfillment status updates.</p>
+            <p><strong>Are cook actions role-restricted?</strong><br>Yes. Cook operations are behind authenticated <code>/api/v1</code> routes with <code>restaurant</code> middleware.</p>
 
-            <h3>Support</h3>
-            <p><strong>How do I get help?</strong><br>Support is handled by mitabl's customer operations team through internal service tools.</p>
-            <p><strong>Where is customer data managed?</strong><br>Customer and order data are managed by mitabl backend systems that power the app experience.</p>
+            <h3>Ordering &amp; Payments</h3>
+            <p><strong>How are customer orders handled?</strong><br>Customer routes include restaurant discovery/filtering, order creation, order history/details, booked date/time checks, and order cancellation with reason.</p>
+            <p><strong>Which payment flows are implemented?</strong><br>The backend exposes card management, payment intent/confirm flows, checkout session creation, and payment execution endpoints.</p>
+
+            <h3>Support &amp; Ticketing</h3>
+            <p><strong>How does support ticketing work?</strong><br>Backend public routes provide support ticket create, read, and reply endpoints with dedicated throttle middleware.</p>
+            <p><strong>Does the website proxy support requests?</strong><br>No. The stateless cutover removed website support-ticket proxy routes; ticket APIs are owned by the backend.</p>
+
+            <h3>Security &amp; Privacy</h3>
+            <p><strong>What security controls are enforced at ingress?</strong><br>TLS is terminated at nginx with HSTS and security headers, and admin traffic has additional network controls and cache restrictions.</p>
+            <p><strong>Where is persistence managed?</strong><br>Backend is the persistence authority for platform entities. The website is static and does not require a runtime database to render pages.</p>
+
+            <h3>Admin &amp; Access Boundaries</h3>
+            <p><strong>How is admin access separated?</strong><br>The admin panel is served on <code>/admin</code> and restricted to trusted network ranges at ingress.</p>
+            <p><strong>Can admin identities use API mobile routes?</strong><br>No. The API activity middleware denies role_id <code>1</code> identities on the API guard and instructs them to authenticate via the web admin panel.</p>
          </div>
       </div>
    </div>
