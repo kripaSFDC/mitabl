@@ -59,8 +59,8 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                defined('PDO::MYSQL_ATTR_SSL_CA') ? PDO::MYSQL_ATTR_SSL_CA : null => env('MYSQL_ATTR_SSL_CA'),
+            ], fn (mixed $value, mixed $key): bool => $key !== null && $value !== null, ARRAY_FILTER_USE_BOTH) : [],
         ],
 
         'pgsql' => [
