@@ -56,3 +56,5 @@ bootstrap/cache/
 !website/storage/logs/.gitignore
 # Docker
 *.pid
+
+!backend/.env.text
