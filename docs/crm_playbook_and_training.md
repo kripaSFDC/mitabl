@@ -13,13 +13,15 @@ Date: 2026-02-28
 7. Use `Resolve` with mandatory summary before closure.
 8. Use `Merge`/`Split` only with typed confirmation and explicit reason.
 
-## 2) Operations SOP (Leads + Certificates)
+## 2) Operations SOP (Support + Certificates)
 
-1. Open `Admin -> Customer Support -> Pre Registrations`.
-2. Triage new leads, assign an operator, set status to `triaged` or `contacted`.
-3. Link converted leads to existing users using `Convert`.
+1. Open `Admin -> Customer Support -> Support Tickets` for customer intake operations.
+2. Triage incoming tickets by SLA risk/priority and assign clear ownership.
+3. Track ticket state transitions and keep requester-visible replies updated.
 4. For certificates, use `Review Workspace` for context.
 5. Use bulk approve/reject only after typed confirmation and rejection reason validation.
+
+> **Retirement note:** legacy pre-registration lead intake has been retired and is not an active CRM workflow.
 
 ## 3) Escalation Ladder
 
@@ -76,4 +78,3 @@ Run this verification whenever support-ticket code, migrations, or CRM filters a
 4. **Expected result**
    - All tests pass.
    - Any failure blocks CI via `.github/workflows/ci-cd.yml` job `support-ticket-contract`.
-

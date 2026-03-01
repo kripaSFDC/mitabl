@@ -37,6 +37,7 @@ This document is intentionally detailed and aligned to the **current codebase st
 - **Cooks** can onboard as miKitchen operators, manage profiles and menu, receive bookings/orders, and handle fulfillment status updates.
 - **Operations/Admin teams** can use a Filament admin console for certificate review, customer support, order interventions, payments visibility, policy governance, queue/health operations, and IAM controls.
 - **CRM intake** supports support-ticket workflows with event/message tracking.
+- **Legacy pre-registration intake is retired** and no longer part of active product functionality; onboarding is handled through standard account registration and support-ticket flows only.
 
 ### High-level runtime topology
 
@@ -197,6 +198,7 @@ The current CRM footprint is fully represented in this repository via backend mo
 - **Ops workflows**: assignment, response, resolution status progression.
 - **SLA/operations visibility**: dashboard widgets and list views in admin.
 - **Auditability**: action logs and auditable resources.
+- **Intake scope**: active CRM intake is support-ticket based; legacy pre-registration lead intake is retired/unsupported.
 
 ### Operational documentation present
 
