@@ -1,389 +1,511 @@
-# Mitabl Mobile App — Enterprise Overview
+# Mitabl Mobile App — Enterprise Technical Overview (Deep Audit)
 
-## 1) Executive Summary
+## Document intent
+This document is a **deep, engineering-grade overview** of the `mobile-app/` codebase for architecture review, onboarding, security assessment, platform operations, QA planning, and modernization roadmapping.
 
-The Mitabl mobile application (`mobile-app/`) is a Flutter-based, role-aware client that supports two primary personas in one codebase:
-
-- **Foodie (customer)** experiences for discovery and profile management.
-- **Cook/Restaurant (vendor)** experiences for onboarding, kitchen/profile management, menu operations, bookings/requests, and operational settings.
-
-The app is built with a **BLoC/Cubit + repository** architecture, stores session identity in `SharedPreferences`, and communicates with a Laravel-style backend API via JSON and multipart HTTP requests.
-
-At a strategic level, the app is already structured around reusable modules and clear route boundaries; however, from an enterprise-readiness standpoint it still has modernization opportunities around security hardening, observability, testing depth, and release governance.
+It reflects a code-first audit across app entry points, routing, feature modules, state management, repositories, models, native wrappers, configuration, and tests.
 
 ---
 
-## 2) Product Scope & User Journeys
+## 1. System snapshot
 
-## 2.1 Primary user personas
+- **Platform**: Flutter (single codebase with Android + iOS wrappers).
+- **App package name**: `mitabl_user`.
+- **User personas**:
+  - Foodie (consumer)
+  - Cook/Restaurant (vendor)
+- **Runtime style**: Route-driven app with `BLoC/Cubit` state and repository-based data access.
+- **Session persistence**: `SharedPreferences` with serialized `current_user` payload.
+- **Environment config**: Runtime JSON config (`assets/cfg/configuration.json`) loaded on startup.
 
-1. **Foodie user**
-   - Sign up/login/OTP verification.
-   - Browse recommended, top-rated, and nearby kitchens.
-   - Manage profile.
+### Scale indicators
 
-2. **Cook/Vendor user**
-   - Sign up/login/OTP verification.
-   - Complete kitchen profile onboarding.
-   - Access dashboard, menu management, incoming requests, bookings, profile/settings.
-   - Use support-ticket workflows from settings.
-
-## 2.2 Route-level feature map
-
-Named routes are centrally generated in `RouteGenerator` and include:
-
-- Auth/onboarding: `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage`, `/CookProfile`.
-- Foodie: `/HomePage`, `/ProfileFoodie`, `/EditProfileFoodie`.
-- Cook: `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails`.
-
-This gives the product a single navigation contract, making route governance straightforward for future module expansion.
+- `118` Dart source files.
+- `~24,060` lines of Dart.
+- `6` repositories.
+- `21` model files.
+- `18` Bloc/Cubit state-management files.
 
 ---
 
-## 3) Technical Architecture
+## 2. Startup, app shell, and navigation model
 
-## 3.1 Runtime composition
+## 2.1 Boot sequence
 
-Entry and app composition:
+1. `main.dart`
+   - Calls `WidgetsFlutterBinding.ensureInitialized()`.
+   - Loads `GlobalConfiguration().loadFromAsset('configuration')`.
+   - Starts `App(authenticationRepository, userRepository)`.
 
-- `main.dart` initializes Flutter bindings and loads runtime config (`assets/cfg/configuration.json`) via `global_configuration`.
-- `App` wires repositories + BLoCs through `MultiRepositoryProvider` and `MultiBlocProvider`.
-- `AuthenticationBloc` listens to `AuthenticationRepository.status` and drives top-level navigation through a global `navigatorKey`.
+2. `app.dart`
+   - Registers repositories globally (`AuthenticationRepository`, `UserRepository`, `SupportTicketRepository`).
+   - Registers cross-cutting blocs/cubits (`AuthenticationBloc`, `LoginCubit`, `DashboardCookCubit`, `ProfileCookCubit`, `ProfileFoodieCubit`, `AddMenuCubit`).
+   - Configures a global `MaterialApp` with `RouteGenerator` and app theme.
+   - Locks orientation to portrait (`SystemChrome.setPreferredOrientations`).
 
-## 3.2 Architectural pattern
+3. `AuthenticationBloc` + `navigatorKey`
+   - Auth status stream controls root navigation:
+     - authenticated + role=Restaurant → `/DashboardCook`
+     - authenticated + non-cook → `/HomePage`
+     - unauthenticated → `/LandingPage`
 
-The app follows a layered structure:
+## 2.2 Route registry contract
 
-- **Presentation layer**: widgets/pages (`lib/pages`, `lib/pages_cook`).
-- **State layer**: Cubits/BLoC (`lib/**/cubit`, `lib/auth_bloc`).
-- **Data access layer**: repositories (`lib/repos`).
-- **Domain transport layer**: DTO-style models (`lib/model`).
-- **Utility layer**: helpers/constants/config (`lib/helper`).
+`lib/route_generator.dart` is the single route dispatcher.
 
-This is close to a pragmatic clean architecture, though domain boundaries are still lightweight (models and repository contracts are tightly bound to transport payloads).
+### Registered route map
 
-## 3.3 State management strategy
+| Domain | Routes |
+|---|---|
+| Launch/auth | `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage` |
+| Shared profile setup | `/CookProfile` |
+| Foodie | `/HomePage`, `/EditProfileFoodie`, `/ProfileFoodie` |
+| Cook shell & ops | `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails` |
 
-State is managed with:
+### Observations
 
-- `AuthenticationBloc` for application-wide auth status.
-- Feature-specific cubits (e.g., `LoginCubit`, `SignUpCubit`, `HomeCubit`, `DashboardCookCubit`, `BookingsCubit`, `RequestsCubit`, `AddMenuCubit`, etc.).
-- `Formz` for input validation and submission status transitions.
-
-This enables predictable state transitions and straightforward UI binding, with clear opportunities to standardize failure handling and telemetry hooks.
-
----
-
-## 4) Codebase Topology
-
-High-level package layout:
-
-- `lib/auth_bloc/` — global authentication state.
-- `lib/helper/` — constants, responsive sizing, API URI builder, utility widgets.
-- `lib/model/` — request/response models.
-- `lib/pages/` — foodie + common/auth pages.
-- `lib/pages_cook/` — cook-side operational pages.
-- `lib/repos/` — API and persistence repositories.
-- `assets/cfg/` — runtime environment config.
-- `android/`, `ios/` — native wrappers and permissions.
-
-This structure is understandable for multi-team ownership and supports incremental decomposition into internal packages if needed at scale.
+- Centralized named route control is good for governance.
+- Several routes require `RouteArguments` cast at runtime; bad payload types can crash at navigation boundaries.
 
 ---
 
-## 5) Authentication, Session, and Identity Flow
+## 3. Complete source inventory (code-facing files)
 
-## 5.1 Auth lifecycle
+This section captures **every major code/config file class** under `mobile-app/` (excluding binary image/font/icon payloads).
 
-- `AuthenticationRepository.status` waits ~3 seconds and checks `current_user` from `SharedPreferences`.
-- If found, app becomes `authenticated`; otherwise `unauthenticated`.
-- Login/signup/OTP flows eventually persist the full user payload and push auth status events.
+## 3.1 Core entry and wiring
 
-## 5.2 Token handling
+- `lib/main.dart`
+- `lib/app.dart`
+- `lib/route_generator.dart`
+- `lib/splash.dart`
 
-- Access token is read from `UserModel.data.accessToken` and attached as bearer token for protected calls.
-- Repository methods guard token retrieval and throw when absent in some paths.
+## 3.2 Authentication bloc
 
-## 5.3 Session storage
+- `lib/auth_bloc/authentication/authentication_bloc.dart`
+- `lib/auth_bloc/authentication/authentication_event.dart`
+- `lib/auth_bloc/authentication/authentication_state.dart`
 
-- User session is serialized as JSON into `SharedPreferences` key: `current_user`.
-- Logout clears this key and emits unauthenticated status.
+## 3.3 Helper/util layer
 
-### Enterprise note
-`SharedPreferences` is convenient but not a hardened secret store. For enterprise security, migrate tokens to platform-secure storage (`flutter_secure_storage` + OS keystore/keychain policies).
+- `lib/helper/api_contract.dart`
+- `lib/helper/app_config.dart`
+- `lib/helper/appconstants.dart`
+- `lib/helper/common_appbar.dart`
+- `lib/helper/common_progress.dart`
+- `lib/helper/helper.dart`
+- `lib/helper/no_data_widget.dart`
+- `lib/helper/route_arguement.dart`
+- `lib/helper/shape_custom.dart`
+
+## 3.4 Data repositories
+
+- `lib/repos/authentication_repository.dart`
+- `lib/repos/bookings_repository.dart`
+- `lib/repos/cook_repository.dart`
+- `lib/repos/home_repository.dart`
+- `lib/repos/support_ticket_repository.dart`
+- `lib/repos/user_repository.dart`
+
+## 3.5 Transport/domain model files
+
+- `lib/model/bookings.dart`
+- `lib/model/confirmpassword.dart`
+- `lib/model/cooking_style.dart`
+- `lib/model/dashboard_data.dart`
+- `lib/model/email.dart`
+- `lib/model/food_menu.dart`
+- `lib/model/get_profile_model.dart`
+- `lib/model/kitchen_profile.dart`
+- `lib/model/name.dart`
+- `lib/model/near_by_restaurants_response.dart`
+- `lib/model/otp.dart`
+- `lib/model/otp_response.dart`
+- `lib/model/password.dart`
+- `lib/model/phone.dart`
+- `lib/model/recommended_rest_response.dart`
+- `lib/model/requests.dart`
+- `lib/model/signup_response.dart`
+- `lib/model/special_diet.dart`
+- `lib/model/timing_model.dart`
+- `lib/model/top_rated_rest_response.dart`
+- `lib/model/user_model.dart`
+
+## 3.6 Foodie/auth/profile features
+
+- `lib/pages/landing_page/landing_page.dart`
+- `lib/pages/login/view/login_page.dart`, `lib/pages/login/view/login_form.dart`
+- `lib/pages/login/cubit/login_cubit.dart`, `lib/pages/login/cubit/login_state.dart`
+- `lib/pages/signup/view/signup_page.dart`
+- `lib/pages/signup/cubit/sign_up_cubit.dart`, `lib/pages/signup/cubit/sign_up_state.dart`
+- `lib/pages/forgot/view/forgot_page.dart`
+- `lib/pages/forgot/cubit/forgot_cubit.dart`, `lib/pages/forgot/cubit/forgot_state.dart`
+- `lib/pages/otp/view/otp_page.dart`
+- `lib/pages/otp/cubit/otp_cubit.dart`, `lib/pages/otp/cubit/otp_state.dart`
+- `lib/pages/home/view/home_page.dart`
+- `lib/pages/home/cubit/home_cubit.dart`, `lib/pages/home/cubit/home_state.dart`
+- `lib/pages/home/element/filter_dialog.dart`
+- `lib/pages/home/element/near_by_restaurant.dart`
+- `lib/pages/home/element/near_by_widget.dart`
+- `lib/pages/home/element/recomm_rest_widget.dart`
+- `lib/pages/home/element/top_rated.dart`
+- `lib/pages/profile_foodie/view/profile_foodie_page.dart`
+- `lib/pages/profile_foodie/cubit/profile_foodie_cubit.dart`, `lib/pages/profile_foodie/cubit/profile_foodie_state.dart`
+- `lib/pages/edit_profile_foodie/view/edit_profile_foodie_page.dart`
+- `lib/pages/profile_signup_cook/cook_profile/cook_profile_page.dart`
+- `lib/pages/profile_signup_cook/cook_profile/cubit/cook_profile_cubit.dart`
+- `lib/pages/profile_signup_cook/cook_profile/cubit/cook_profile_state.dart`
+- `lib/pages/profile_signup_cook/cook_profile/element/timing_dialog.dart`
+
+## 3.7 Cook operations features
+
+- Dashboard/home/menu/requests shell:
+  - `lib/pages_cook/dashboard_cook/view/dashboard_cook_page.dart`
+  - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart`
+  - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_state.dart`
+  - `lib/pages_cook/home_page/view/home_cook_page.dart`
+  - `lib/pages_cook/home_page/element/home_cook_header.dart`
+  - `lib/pages_cook/menu/view/menu_page.dart`
+  - `lib/pages_cook/menu/cubit/menu_cubit.dart`
+  - `lib/pages_cook/menu/cubit/menu_state.dart`
+  - `lib/pages_cook/menu_detail/view/menu_detail.dart`
+
+- Add/edit menu and food metadata:
+  - `lib/pages_cook/add_menu_item/view/add_menu_page.dart`
+  - `lib/pages_cook/add_menu_item/cubit/add_menu_cubit.dart`
+  - `lib/pages_cook/add_menu_item/cubit/add_menu_state.dart`
+  - `lib/pages_cook/add_menu_item/elements/cooking_style_dialog.dart`
+  - `lib/pages_cook/add_menu_item/elements/special_diet/special_diet_dialog.dart`
+  - `lib/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_cubit.dart`
+  - `lib/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_state.dart`
+
+- Requests/bookings/order actions:
+  - `lib/pages_cook/requests/view/requests_page.dart`
+  - `lib/pages_cook/requests/cubit/requests_cubit.dart`
+  - `lib/pages_cook/requests/cubit/requests_state.dart`
+  - `lib/pages_cook/requests/elements/accept_reject_dialog.dart`
+  - `lib/pages_cook/requests/elements/order_details_view.dart`
+  - `lib/pages_cook/bookings/view/bookings_page.dart`
+  - `lib/pages_cook/bookings/cubit/bookings_cubit.dart`
+  - `lib/pages_cook/bookings/cubit/bookings_state.dart`
+  - `lib/pages_cook/bookings/elements/booking_filter_dialog.dart`
+  - `lib/pages_cook/bookings/elements/order_details_booking.dart`
+  - `lib/pages_cook/upcoming_bookings/view/upcoming_bookings.dart`
+
+- Cook profile and kitchen profile:
+  - `lib/pages_cook/profile_cook/view/profile_cook_page.dart`
+  - `lib/pages_cook/profile_cook/view/personal_view.dart`
+  - `lib/pages_cook/profile_cook/view/mikitchn_view.dart`
+  - `lib/pages_cook/profile_cook/cubit/profile_cook_cubit.dart`
+  - `lib/pages_cook/profile_cook/cubit/profile_cook_state.dart`
+  - `lib/pages_cook/profile_cook/elements/timing_view.dart`
+  - `lib/pages_cook/edit_profile_cook/view/edit_profile_cook_page.dart`
+  - `lib/pages_cook/edit_profile_cook/cubit/edit_profile_cook_cubit.dart`
+  - `lib/pages_cook/edit_profile_cook/cubit/edit_profile_cook_state.dart`
+  - `lib/pages_cook/edit_kitchen_profile/view/edit_kitchen_profile.dart`
+  - `lib/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_cubit.dart`
+  - `lib/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_state.dart`
+  - `lib/pages_cook/edit_kitchen_profile/elements/timing_edit.dart`
+
+- Other cook pages:
+  - `lib/pages_cook/settings_page/view/settings_page_cook.dart`
+  - `lib/pages_cook/settings_page/cubit/settings_cook_cubit.dart`
+  - `lib/pages_cook/settings_page/cubit/settings_cook_state.dart`
+  - `lib/pages_cook/customer_reviews/view/customer_review_page.dart`
+  - `lib/pages_cook/user_details_page/user_details.dart`
+
+## 3.8 Test files
+
+- `test/repos/support_ticket_repository_test.dart`
+- `test/widget_test.dart`
+
+## 3.9 Android layer
+
+- `android/app/src/main/AndroidManifest.xml`
+- `android/app/src/debug/AndroidManifest.xml`
+- `android/app/src/profile/AndroidManifest.xml`
+- `android/app/src/main/kotlin/com/mitabl/user/mitabl_user/MainActivity.kt`
+- `android/app/build.gradle`
+- `android/build.gradle`
+- `android/settings.gradle`
+- `android/gradle.properties`
+- `android/gradle/wrapper/gradle-wrapper.properties`
+
+## 3.10 iOS layer
+
+- `ios/Runner/Info.plist`
+- `ios/Runner/AppDelegate.swift`
+- `ios/Runner/Base.lproj/Main.storyboard`
+- `ios/Runner/Base.lproj/LaunchScreen.storyboard`
+- `ios/Runner.xcodeproj/project.pbxproj`
+- `ios/Flutter/Debug.xcconfig`
+- `ios/Flutter/Release.xcconfig`
+- `ios/Flutter/AppFrameworkInfo.plist`
+
+## 3.11 Build/runtime metadata
+
+- `pubspec.yaml`
+- `analysis_options.yaml`
+- `Dockerfile`
+- `assets/cfg/configuration.json`
 
 ---
 
-## 6) API Integration & Contract Surface
+## 4. Domain architecture and behavior
 
-## 6.1 Base URL and URI normalization
+## 4.1 Authentication and account lifecycle
 
-- `ApiContract.uri()` normalizes base URL + endpoint path and filters empty query params.
-- Base URLs are provided by `assets/cfg/configuration.json`:
-  - `base_url`
-  - `api_base_url`
-  - `image_base_url`
+- `AuthenticationRepository` provides login, signup, OTP verify, forgot password, logout API, and kitchen onboarding upload.
+- `AuthenticationBloc` subscribes to repository auth stream and emits `unknown/authenticated/unauthenticated`.
+- Session user payload is persisted/loaded by `UserRepository` from `SharedPreferences`.
 
-## 6.2 API capability map
+### End-to-end auth flow
 
-### Authentication & onboarding
+1. Launch in `/Splash`.
+2. `AuthenticationRepository.status` checks session after delay.
+3. If no user, route to `/LandingPage`.
+4. Login/signup flows issue API calls and persist response.
+5. Auth event propagates through `AuthenticationBloc` to route user based on role.
 
-- `POST /login`
-- `POST /register`
-- `POST /verifyOtp`
-- `POST /password/reset`
-- `POST /v1/logout`
-- `POST /v1/mikitchn/store` (multipart cook onboarding)
+## 4.2 Foodie discovery and profile
 
-### User/profile
+- `HomeCubit` orchestrates:
+  - recommended restaurants
+  - top-rated restaurants
+  - nearby restaurants
+  - filter toggles (dine-in / take-away, cooking style, distance)
+- Home network operations are in `HomeRepository`.
+- Foodie profile fetch/update paths are in `ProfileFoodieCubit` + `UserRepository`.
 
-- `GET /v1/getprofile`
-- `GET /v1/getcustomerprofile`
-- `POST /v1/editprofile` (multipart avatar/profile)
-- `POST /v1/deleteimage`
-- `POST /v1/mikitchn/editkitchen` (multipart kitchen update)
+## 4.3 Cook/vendor operations
 
-### Discovery (foodie)
+- `DashBoardCookPage` hosts 4-tab shell: home/menu/requests/profile.
+- Menu management:
+  - listing (`mymenu`), special diets, cooking styles, add/edit food, food active/inactive toggle.
+  - image uploads via multipart requests.
+- Order operations:
+  - requests list, bookings list/upcoming list, status updates.
+- Profile/kitchen updates:
+  - profile edit and avatar update.
+  - kitchen details and timings update.
 
-- `POST /v1/recommendedrestaurant`
-- `POST /v1/topRatedRestaurant?page=1&limit=20`
-- `POST /v1/nearestRestaurant?page=1&limit=20`
+## 4.4 Settings and support workflow
 
-### Cook menu/catalog
+- Settings includes:
+  - profile navigation
+  - notification toggle UI placeholder
+  - support bottom sheet with create/get/reply ticket actions
+  - delete-account placeholder row
+- Support workflow uses dedicated `SupportTicketRepository` and channel headers.
 
-- `GET /v1/mymenu`
-- `GET /v1/getspecialdiets`
-- `GET /v1/getcookingstyles`
-- `POST /v1/food/add` (multipart)
-- `POST /v1/food/editfood` (multipart)
-- `GET /v1/food/status/{foodId}`
+---
 
-### Requests/bookings
+## 5. API and backend contract map
 
-- `POST /v1/allorders` (paginated with filters)
-- `POST /v1/kitchenupcomingorders` (paginated)
-- `POST /v1/updateorderstatus`
-- `GET /v1/kitchenorderrequest` (paginated)
+## 5.1 Endpoint families
 
-### Support workflow
+### Auth
+- `POST login`
+- `POST register`
+- `POST verifyOtp`
+- `POST password/reset`
+- `POST v1/logout`
 
+### Kitchen and profile
+- `POST v1/mikitchn/store`
+- `POST v1/mikitchn/editkitchen`
+- `GET v1/getprofile`
+- `GET v1/getcustomerprofile`
+- `POST v1/editprofile`
+- `POST v1/deleteimage`
+
+### Discovery
+- `POST v1/recommendedrestaurant`
+- `POST v1/topRatedRestaurant`
+- `POST v1/nearestRestaurant`
+
+### Menu
+- `GET v1/mymenu`
+- `GET v1/getspecialdiets`
+- `GET v1/getcookingstyles`
+- `POST v1/food/add`
+- `POST v1/food/editfood`
+- `GET v1/food/status/{id}`
+
+### Orders
+- `POST v1/allorders`
+- `POST v1/kitchenupcomingorders`
+- `GET v1/kitchenorderrequest`
+- `POST v1/updateorderstatus`
+
+### Support
 - `POST /support/ticket`
 - `GET /support/ticket/{id}`
 - `POST /support/ticket/{id}/reply`
 
-Support APIs include channel headers:
-
-- `X-Authenticated-Channel: mobile_app`
-- `X-Client-Channel: mobile_app`
-- Optional `X-Ticket-Token`
-
-## 6.3 API robustness observations
+## 5.2 API client posture
 
 Strengths:
+- Central URI helper (`ApiContract.uri`) handles path/query normalization.
+- Modern support ticket repository has better header + parsing discipline.
 
-- Centralized URI normalization exists.
-- Modernized support-ticket repository returns parsed maps and supports optional auth.
-
-Gaps to address:
-
-- Inconsistent error handling and response typing across repositories.
-- Frequent `dynamic` return types instead of sealed/result abstractions.
-- Limited retry/backoff, request timeouts, and standardized exception mapping.
-
----
-
-## 7) Feature Domains in Detail
-
-## 7.1 Auth & onboarding domain
-
-- `LoginCubit`, `SignUpCubit`, `OtpCubit`, `ForgotCubit` use `Formz` validations and repository calls.
-- Role-based post-auth navigation:
-  - Foodie → `/HomePage`
-  - Cook → `/DashboardCook` after profile flow
-
-## 7.2 Foodie domain
-
-- `HomeCubit` orchestrates three restaurant feeds and filtering signals (dine-in/take-away, cooking style, distance).
-- `ProfileFoodieCubit` supports profile retrieval and updates.
-
-## 7.3 Cook operations domain
-
-- `DashBoardCookPage` defines bottom-nav shell: dashboard, menu, requests, profile.
-- `MenuCubit` + `AddMenuCubit` support CRUD-style menu operations, images, special diets, cooking style links, and status toggles.
-- `BookingsCubit` and `RequestsCubit` manage order lifecycle interactions.
-- `EditKitchenProfileCubit` and `EditProfileCookCubit` support vendor identity and kitchen edits.
-
-## 7.4 Support & settings domain
-
-- Settings includes a bottom-sheet support workflow for create/get/reply ticket actions.
-- Notification toggle UI exists; backend integration is currently placeholder-level.
-- Delete-account entry exists as a placeholder with no backend invocation.
+Weak points:
+- Widespread `dynamic` response contracts.
+- Inconsistent use of `http.Client` lifecycle handling.
+- Limited unified exception taxonomy.
+- Verbose `print` logging in production paths.
 
 ---
 
-## 8) Data Model Strategy
+## 6. Data/state design
 
-The app uses transport-facing model classes under `lib/model/` (e.g., `user_model`, `dashboard_data`, `food_menu`, `bookings`, `kitchen_profile`, `otp_response`, etc.).
+## 6.1 State-management inventory
 
-### Enterprise implications
+- 1 global bloc (`AuthenticationBloc`).
+- 17 feature cubits for auth/forms/home/cook/menu/requests/bookings/profile.
+- Validation largely uses `Formz` for form states.
 
-- Good: explicit DTOs reduce ad-hoc map access in UI.
-- Improvement: introduce domain models where business logic is non-trivial, and separate API DTO from domain entities to reduce coupling and simplify future API evolution/versioning.
+## 6.2 Data modeling
 
----
+- 21 explicit model files cover auth payloads, restaurants, menu, bookings, requests, profiles, and validation wrappers.
+- Model layer is largely API-DTO oriented (tight coupling with current backend responses).
 
-## 9) Platform, Permissions, and Native Wrappers
+### Enterprise recommendation
 
-## 9.1 Android
-
-Current Android manifest includes permissions/features:
-
-- `INTERNET`
-- `CAMERA`
-- `READ_PHONE_STATE`
-- `WRITE_EXTERNAL_STORAGE` / `READ_EXTERNAL_STORAGE`
-- Camera feature marked `required=false`
-- `android:usesCleartextTraffic="true"`
-- `android:requestLegacyExternalStorage="true"`
-
-Build config highlights:
-
-- `minSdkVersion 17`
-- Kotlin `1.6.10`
-- Android Gradle Plugin `4.1.0`
-
-## 9.2 iOS
-
-- Camera and photo library usage descriptions are declared.
-- Schemes queried: `sms`, `tel`.
-- Landscape orientations enabled in `Info.plist` (while runtime Flutter app constrains orientation to portrait in `AppView`).
-
-### Enterprise note
-Platform configuration should be modernized (SDK/API levels, storage model, cleartext policy, and legacy permissions minimization) to meet current store/compliance baselines.
+Add a domain abstraction layer for high-change business domains (orders/menu/support), leaving DTO transformations at repository boundaries.
 
 ---
 
-## 10) UI/UX Architecture and Design System Signals
+## 7. Security, privacy, and compliance review
 
-- Theme is centrally configured in `AppView` (`ThemeData`) with custom color/font families (`itc_avant_garde_gothic_std`) and responsive helper sizing.
-- Asset strategy is broad (`assets/img`, `assets/fonts`, `assets/cfg`).
-- UX is currently mobile portrait-focused.
+## 7.1 Security positives
 
-### Improvement opportunities
+- Bearer token used for authenticated endpoints.
+- Support channel headers (`X-Authenticated-Channel`, `X-Client-Channel`) provide backend channel context.
 
-- Introduce a formal design token layer and component library abstraction to reduce style drift.
-- Standardize spacing/typography tokens and semantics for accessibility (contrast, scalable text, labels).
+## 7.2 Material risks
 
----
+- Access token persisted in `SharedPreferences` instead of secure keystore/keychain storage.
+- Android manifest enables `usesCleartextTraffic=true`.
+- Legacy storage permissions still requested (`WRITE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`, legacy external storage mode).
+- Production code logs request/response details via `print`, risking sensitive data exposure.
+- Permission UX appears partial (dialog helper exists, but not all permission lifecycles are centrally managed).
 
-## 11) Observability, Logging, and Telemetry
+## 7.3 Enterprise controls to prioritize
 
-Current status:
-
-- Logging mostly via `print` statements.
-- No structured app-level telemetry pipeline (crash reporting, distributed tracing correlation, performance timings).
-
-Enterprise recommendation:
-
-- Add structured logging facade and environment-aware log levels.
-- Integrate crash + performance analytics (e.g., Firebase Crashlytics/Performance or equivalent enterprise observability stack).
-- Add API correlation IDs and user/session context propagation where policy allows.
+1. Migrate auth token/session secret material to secure storage.
+2. Enforce HTTPS-only transport and remove cleartext if not required.
+3. Minimize Android permissions to current scoped-storage standards.
+4. Introduce redaction-safe structured logging.
+5. Add mobile security checks to CI (SCA, manifest linting, secret scanning).
 
 ---
 
-## 12) Security & Compliance Posture
+## 8. Platform engineering audit
 
-## 12.1 Strengths
+## 8.1 Android
 
-- Most protected calls use bearer token authorization.
-- Support channel headers indicate backend channel-awareness.
+- `applicationId`: `com.mitabl.user.mitabl_user`
+- `minSdkVersion`: 17
+- Permissions include internet, camera, phone state, external storage read/write.
+- `requestLegacyExternalStorage=true` present.
+- Build stack includes older Android Gradle plugin/Kotlin combinations.
 
-## 12.2 Risks / gaps
+## 8.2 iOS
 
-- Token persisted in plain shared preferences (not secure enclave/keychain-backed).
-- `usesCleartextTraffic=true` in Android manifest may permit non-TLS traffic if endpoints/config drift.
-- Legacy storage permissions and `requestLegacyExternalStorage` increase attack surface.
-- Limited client-side guardrails around replay mitigation, certificate pinning, and sensitive data redaction in logs.
+- `Info.plist` includes camera/photo usage descriptions and URL query schemes (`sms`, `tel`).
+- iOS supports landscape orientations in plist, while Flutter runtime forces portrait; alignment should be clarified.
+- Standard Flutter `AppDelegate` plugin registration pattern is in place.
 
-## 12.3 Recommended controls
+## 8.3 Environment config
 
-1. Move secrets to secure storage.
-2. Enforce HTTPS-only transport and optionally certificate pinning.
-3. Reduce runtime permissions to least-privilege.
-4. Replace `print` with redaction-aware logging.
-5. Add dependency and SCA checks in CI for Flutter and native wrappers.
-
----
-
-## 13) Quality Engineering & Test Coverage
-
-Existing tests:
-
-- `test/repos/support_ticket_repository_test.dart` verifies request paths/headers/payload behavior via mocked HTTP client.
-- `test/widget_test.dart` remains scaffold boilerplate and does not reflect app’s actual widget tree.
-
-Enterprise-grade target state:
-
-- Repository contract tests for all critical API domains.
-- Cubit/BLoC state transition tests (success/failure/edge cases).
-- Golden tests for critical visual states.
-- Smoke/integration tests for core journeys (login → role routing, menu add/edit, bookings actions, support ticket flow).
+- Base URLs are runtime-loaded from `assets/cfg/configuration.json`.
+- Current file points to hosted production-like endpoints.
+- No explicit environment flavor strategy documented in-app (dev/stage/prod variants should be formalized).
 
 ---
 
-## 14) Build, Environment, and Delivery
+## 9. UX and product implementation notes
 
-## 14.1 Runtime environment config
-
-- Configuration loaded from asset file at startup, enabling simple environment parameterization.
-
-## 14.2 Containerized development support
-
-- A lightweight Flutter `Dockerfile` is provided for deterministic local build environments.
-
-## 14.3 Release hardening recommendations
-
-- Introduce flavor-based environment separation (dev/stage/prod) with compile-time constants and secure secret injection.
-- Add CI gates: formatting, static analysis, unit/widget/integration tests, dependency audit, and signed artifact verification.
-- Add release checklist for store compliance, privacy disclosure, and backward compatibility.
+- Theme is globally defined with custom font family + color helpers.
+- Extensive icon/asset library under `assets/img`.
+- Core UX implemented for both personas with rich cook operations.
+- Some UI controls are placeholders (e.g., notification toggle behavior, delete account action wiring).
 
 ---
 
-## 15) Operational Readiness Assessment (Enterprise Lens)
+## 10. Testing and quality posture
 
-## 15.1 Current maturity snapshot
+Current automated test reality:
 
-- **Architecture**: Moderate maturity (clear module boundaries, BLoC usage, repository separation).
-- **Security**: Basic-to-moderate (auth present; storage and transport controls need hardening).
-- **Quality**: Early-to-moderate (limited automated coverage).
-- **Observability**: Early (no structured telemetry).
-- **Release governance**: Early (needs stronger CI/CD and environment stratification).
+- `test/repos/support_ticket_repository_test.dart` provides meaningful repository contract tests (headers/path/body behavior).
+- `test/widget_test.dart` is still scaffold boilerplate and not representative of the real app shell.
 
-## 15.2 Priority action plan (recommended order)
+### Enterprise quality roadmap
 
-1. **Security uplift**: secure token storage, cleartext prohibition, permission minimization.
-2. **Stability uplift**: unified error model, timeout/retry/circuit patterns.
-3. **Quality uplift**: BLoC + repository tests across critical domains.
-4. **Operational uplift**: crash/perf telemetry and structured logging.
-5. **Delivery uplift**: flavors + CI policy gates + release runbooks.
-
----
-
-## 16) Appendix — Key Technical Assets
-
-- App entry: `lib/main.dart`, `lib/app.dart`
-- Route registry: `lib/route_generator.dart`
-- Global auth: `lib/auth_bloc/authentication/`
-- Core repos: `lib/repos/*.dart`
-- Settings support integration: `lib/pages_cook/settings_page/view/settings_page_cook.dart`
-- Runtime config: `assets/cfg/configuration.json`
-- Android permissions/config: `android/app/src/main/AndroidManifest.xml`
-- iOS permissions/config: `ios/Runner/Info.plist`
-- Build container: `Dockerfile`
-- Tests: `test/repos/support_ticket_repository_test.dart`
+- Add bloc/cubit unit tests for each critical state machine.
+- Add repository tests for all endpoint families (auth/menu/orders/profile).
+- Add widget/golden tests for primary screens and important states.
+- Add integration tests for top journeys:
+  - login and role routing
+  - signup + OTP
+  - cook add/edit menu with image handling
+  - booking/request status transitions
+  - support ticket create/read/reply
 
 ---
 
-## 17) Conclusion
+## 11. Observability and operability
 
-The Mitabl mobile app has a solid functional foundation and a recognizable modular architecture suitable for ongoing growth. To become fully enterprise-grade, the next evolution should focus on **security hardening**, **operational observability**, **test depth**, and **release governance**. Executing the priority plan above will materially improve resilience, compliance posture, and maintainability for scaled production operations.
+Current:
+- No central telemetry abstraction.
+- No crash/performance pipeline described in code.
+- Diagnostic output mostly raw `print` calls.
+
+Required for enterprise operation:
+- Structured logs with environment-aware levels.
+- Crash analytics + performance instrumentation.
+- Correlation IDs for API requests.
+- Runtime health toggles/feature flags for safe rollout and incident response.
+
+---
+
+## 12. Delivery and governance readiness
+
+- Containerized build helper exists (`Dockerfile`).
+- Project lint policy uses Flutter lints (`analysis_options.yaml`).
+
+To move to enterprise delivery:
+
+1. Introduce build flavors and environment segregation.
+2. Require CI gates: format, analyze, tests, dependency audit.
+3. Enforce release checklist: security review, API compatibility, store policy validation, rollback plan.
+4. Maintain architecture decision records for major module changes.
+
+---
+
+## 13. Priority modernization plan
+
+## Phase 1 (Immediate hardening)
+- Secure storage migration.
+- Remove cleartext transport and legacy storage where possible.
+- Standardize HTTP timeout/error handling.
+- Replace sensitive `print` logging.
+
+## Phase 2 (Reliability + quality)
+- Expand test suite (bloc, repository, widget, integration).
+- Introduce typed result wrappers and API error taxonomy.
+- Add retry/backoff and offline-aware UX for key flows.
+
+## Phase 3 (Scale + governance)
+- Split into clearer feature modules/packages where appropriate.
+- Add observability stack and release analytics.
+- Add formal SDLC controls around mobile security and compliance.
+
+---
+
+## 14. Conclusion
+
+The Mitabl mobile app is a substantial dual-persona Flutter application with clear functional breadth and a workable architecture foundation. It is production-capable but not yet enterprise-optimized. The highest-value improvements are concentrated in security hardening, reliability controls, test depth, and operational governance.
+
+This document is intended to be the baseline reference for executing that transition.
