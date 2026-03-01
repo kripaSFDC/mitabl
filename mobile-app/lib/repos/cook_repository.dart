@@ -111,10 +111,10 @@ class CookRepository {
       //for image and videos and files
 
       if (filePaths.isNotEmpty) {
-        filePaths.forEach((element) async {
-          request.files.add(
-              await http.MultipartFile.fromPath("pictures[]", "${element}"));
-        });
+        for (final element in filePaths) {
+          request.files
+              .add(await http.MultipartFile.fromPath("pictures[]", element));
+        }
       }
 
       request.fields.addAll({

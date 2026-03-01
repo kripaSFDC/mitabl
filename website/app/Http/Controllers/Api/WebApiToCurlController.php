@@ -2,33 +2,50 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Response as HttpClientResponse;
-use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 class WebApiToCurlController extends Controller
 {
     public function preRegister(Request $request)
     {
-        return $this->forwardToBackend('/api/preregister', $request->all());
+        return $this->forwardToBackend('POST', '/api/preregister', $request->all());
     }
 
     public function supportTicket(Request $request)
     {
-        return $this->forwardToBackend('/api/support/ticket', $request->all());
+        return $this->forwardToBackend('POST', '/api/support/ticket', $request->all());
     }
 
-    private function forwardToBackend(string $path, array $payload)
+    public function mobileContact(Request $request)
+    {
+        return $this->forwardToBackend(
+            'GET',
+            '/api/v1/mob-contact',
+            $request->query(),
+            [
+                'Authorization' => (string) $request->header('Authorization', ''),
+            ]
+        );
+    }
+
+    private function forwardToBackend(string $method, string $path, array $payload = [], array $headers = [])
     {
         $baseUrl = rtrim((string) config('services.backend_api.base_url'), '/');
         $url = $baseUrl . $path;
 
         try {
-            $response = Http::acceptJson()
+            $http = Http::acceptJson()
                 ->connectTimeout(10)
                 ->timeout(20)
-                ->post($url, $payload);
+                ->withHeaders(array_filter($headers));
+
+            $response = match (strtoupper($method)) {
+                'GET' => $http->get($url, $payload),
+                default => $http->post($url, $payload),
+            };
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 503,
