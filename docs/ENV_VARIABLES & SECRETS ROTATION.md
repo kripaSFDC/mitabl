@@ -1,62 +1,6 @@
-# API Key, Secret Rotation, and Environment Inventory Runbook
-
-This runbook lists only environment variables that are still referenced by code (`env(...)`) and operational secret handling guidance.
-
-## Secret Rotation Runbook
-
-### Rotation Policy
-- Critical secrets: rotate every 90 days.
-- High-risk integrations (payments/auth): rotate every 60 days.
-- Emergency compromise: immediate revoke + replace.
-
-### Standard Procedure
-1. Prepare change ticket + approver.
-2. Generate replacement secret.
-3. Deploy safely (staging then production).
-4. Validate health checks and key flows (ticket intake, mail, queue, storage).
-5. Cut over and revoke prior secret.
-6. Record audit evidence.
-
-### Emergency Procedure
-1. Enable incident degraded mode if needed.
-2. Revoke compromised secret.
-3. Redeploy replacement and verify integrations.
-4. Bulk-retry failed jobs where safe.
-5. Record incident/postmortem references.
-
-## Migrated From Env To Platform Admin Settings
-
-The following variables are intentionally **removed** from env management and are now DB-backed platform settings editable in Platform Settings UI:
-
-- `SUPPORT_DUPLICATE_WINDOW_MINUTES`
-- `SUPPORT_REOPEN_WINDOW_HOURS`
-- `SUPPORT_HONEYPOT_FIELD`
-- `SUPPORT_SLA_FIRST_RESPONSE_MINUTES`
-- `SUPPORT_SLA_RESOLUTION_MINUTES`
-- `SUPPORT_SLA_LOW_FIRST_RESPONSE_MINUTES`
-- `SUPPORT_SLA_LOW_RESOLUTION_MINUTES`
-- `SUPPORT_SLA_NORMAL_FIRST_RESPONSE_MINUTES`
-- `SUPPORT_SLA_NORMAL_RESOLUTION_MINUTES`
-- `SUPPORT_SLA_HIGH_FIRST_RESPONSE_MINUTES`
-- `SUPPORT_SLA_HIGH_RESOLUTION_MINUTES`
-- `SUPPORT_SLA_URGENT_FIRST_RESPONSE_MINUTES`
-- `SUPPORT_SLA_URGENT_RESOLUTION_MINUTES`
-- `ADMIN_REAUTH_MINUTES`
-- `SESSION_LIFETIME`
-- `SESSION_EXPIRE_ON_CLOSE`
-- `STRIPE_DASHBOARD_BASE_URL`
-- `STRIPE_REDIRECT_URI`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_PUBLISHABLE_KEY`
-- `STRIPE_CLIENT_ID`
+# Environment Variables & Secrets Rotation Runbook
 
 ## Active Environment Variable Inventory
-
-Source of truth command:
-
-```bash
-rg -No "env\('([A-Z0-9_]+)'" backend/app backend/config backend/database backend/myproject/config backend/routes backend/bootstrap | sed -E "s/.*env\('([A-Z0-9_]+)'.*/\1/" | sort -u
-```
 
 Total active env variables: **191**.
 
@@ -253,3 +197,59 @@ Total active env variables: **191**.
 - `SUPPORT_ROUTING_OTHER_ASSIGNEE_ID`
 - `SUPPORT_ROUTING_PAYMENT_ASSIGNEE_ID`
 - `SUPPORT_ROUTING_URGENT_ASSIGNEE_ID`
+
+
+
+
+
+-----
+
+
+
+# Secrets Rotation Runbook
+
+This runbook covers operational rotation for platform-level API keys and secrets used by the backend API, queue workers, Filament ops-admin, and website integrations.
+
+## Triggers
+
+* Scheduled quarterly rotation.
+* Credential leak suspicion or confirmed exposure.
+* Vendor-directed credential rollover.
+* Personnel offboarding impacting shared secret access.
+
+## Rotation workflow
+
+1. **Prepare**
+   * Open an incident/change ticket and assign an owner + approver.
+   * Identify all dependent services and environment scopes (`dev`, `staging`, `prod`).
+   * Confirm rollback window and communication channel.
+2. **Generate replacement credentials**
+   * Create new API key/secret pair from provider console.
+   * Prefer overlap mode (old and new valid concurrently) where provider allows.
+3. **Store and distribute securely**
+   * Save replacement values in the secret manager (not in git).
+   * Update deployment references for each environment.
+4. **Deploy incrementally**
+   * Roll out to `dev`, then `staging`, then `prod`.
+   * Restart PHP-FPM/queue workers/Horizon after env refresh.
+5. **Validate**
+   * Run health checks: `/api/health/ready` and `php artisan platform:health:synthetic`.
+   * Confirm queue processing and integration logs show no auth failures.
+6. **Deactivate old credential**
+   * Revoke old key/secret after production verification.
+7. **Audit evidence**
+   * Capture ticket ID, rotated providers, affected envs, and completion time.
+
+## Minimum validation checklist
+
+* No `401`/`403` spikes in outbound integration logs.
+* No failed jobs caused by auth/signature errors.
+* Stripe/FCM/SMTP dependent flows continue to pass health checks.
+* Platform setting `incident.degraded_mode` remains disabled unless an incident is active.
+
+## Rollback
+
+* Re-enable previous key in provider console (if still available).
+* Revert secret manager references.
+* Redeploy and restart workers.
+* Mark rotation as failed and keep incident mode active until stabilization.
