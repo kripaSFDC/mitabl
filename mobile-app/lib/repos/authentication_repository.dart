@@ -50,6 +50,7 @@ class AuthenticationRepository {
         // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: json.encode(data));
     print(response.body);
@@ -77,6 +78,7 @@ class AuthenticationRepository {
         // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: json.encode(data));
 
@@ -97,7 +99,7 @@ class AuthenticationRepository {
     final response = await client.post(
       Uri.parse(url),
       headers: {
-        'accept': 'application/json',
+        'Accept': 'application/json',
         'Authorization': 'Bearer ${userModel!.data!.accessToken}'
       },
     );
@@ -130,8 +132,9 @@ class AuthenticationRepository {
           // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             // 'Content-Type': 'multipart/form-data',
-            // 'accept': 'application/json',
+            // 'Accept': 'application/json',
             // 'X-CSRF-TOKEN':''
           },
           body: json.encode(data));
@@ -161,6 +164,7 @@ class AuthenticationRepository {
       final response = await client.post(Uri.parse(url),
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
           body: json.encode(data));
 
@@ -189,15 +193,16 @@ class AuthenticationRepository {
       var request = http.MultipartRequest('POST', Uri.parse(url));
 
       //for token
-      request.headers.addAll(
-          {"Authorization": "Bearer ${routeArguments!.data!.accessToken}"});
+      request.headers.addAll({
+        "Authorization": "Bearer ${routeArguments!.data!.accessToken}",
+        "Accept": "application/json",
+      });
 
       //for image and videos and files
 
-      filePaths.forEach((element) async {
-        request.files
-            .add(await http.MultipartFile.fromPath("images[]", "${element}"));
-      });
+      for (final element in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath('images[]', element));
+      }
 
       request.fields.addAll({
         'name': '${data['name']}',

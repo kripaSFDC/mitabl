@@ -1,4 +1,12 @@
 <x-filament-panels::page>
+    <x-filament::section class="mb-4">
+        <x-slot name="heading">Health triage guide</x-slot>
+        <x-slot name="description">
+            Start with failing checks, then warnings. Use this page to confirm service readiness before running bulk
+            operations such as queue retries or high-volume CRM actions.
+        </x-slot>
+    </x-filament::section>
+
     <div class="mb-4">
         <x-filament::button wire:click="refreshChecks" color="info">
             Refresh checks

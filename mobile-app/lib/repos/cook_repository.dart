@@ -21,7 +21,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -47,7 +48,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -73,7 +75,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -105,7 +108,8 @@ class CookRepository {
 
       //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+        "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+        "Accept": "application/json",
       });
 
       //for image and videos and files
@@ -179,7 +183,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 

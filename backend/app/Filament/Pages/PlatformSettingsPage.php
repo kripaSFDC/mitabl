@@ -55,9 +55,11 @@ class PlatformSettingsPage extends Page implements HasForms
                                 Forms\Components\TextInput::make('key')
                                     ->required()
                                     ->maxLength(255)
-                                    ->placeholder('feature.flag_name'),
+                                    ->placeholder('feature.flag_name')
+                                    ->helperText('Use stable dot-notation keys (for example auth.lockout.window_minutes).'),
                                 Forms\Components\Select::make('value_type')
                                     ->required()
+                                    ->helperText('Choose the expected backend type so runtime parsing stays safe.')
                                     ->options([
                                         'boolean' => 'Boolean',
                                         'integer' => 'Integer',
@@ -68,7 +70,8 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->live(),
                                 Forms\Components\Textarea::make('description')
                                     ->rows(2)
-                                    ->maxLength(1000),
+                                    ->maxLength(1000)
+                                    ->helperText('Describe impact and rollback hints for on-call operators.'),
                                 Forms\Components\Toggle::make('value_boolean')
                                     ->label('Boolean value')
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'boolean'),

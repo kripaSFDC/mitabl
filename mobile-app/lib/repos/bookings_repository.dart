@@ -54,7 +54,8 @@ class BookingRepository {
 
       final response = await client.post(Uri.parse(url),
           headers: {
-            "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+            "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+            "Accept": "application/json",
           },
           body: data);
 
