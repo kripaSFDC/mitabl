@@ -17,7 +17,6 @@ class CrmCommunicationLog extends Model
         'status',
         'metadata',
         'support_ticket_id',
-        'pre_registration_id',
         'queued_at',
         'sent_at',
     ];
@@ -33,8 +32,5 @@ class CrmCommunicationLog extends Model
         return $this->belongsTo(SupportTicket::class, 'support_ticket_id');
     }
 
-    public function preRegistration()
-    {
-        return $this->belongsTo(PreRegistration::class, 'pre_registration_id');
-    }
+
 }

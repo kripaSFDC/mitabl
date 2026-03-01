@@ -6,7 +6,6 @@ use App\Models\AdminUser;
 use App\Models\PlatformSetting;
 use App\Models\Policy;
 use App\Models\PolicyChangeLog;
-use App\Models\PreRegistration;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketAttachment;
 use App\Models\SupportTicketEvent;
@@ -63,7 +62,6 @@ class PhaseOneFoundationRegressionTest extends TestCase
             '2026_02_28_000006_create_support_ticket_messages_table.php',
             '2026_02_28_000007_create_support_ticket_attachments_table.php',
             '2026_02_28_000008_create_support_ticket_events_table.php',
-            '2026_02_28_000009_create_pre_registrations_table.php',
             '2026_02_28_000010_create_platform_settings_table.php',
             '2026_02_28_000011_create_policies_table.php',
             '2026_02_28_000012_create_policy_change_log_table.php',
@@ -83,7 +81,6 @@ class PhaseOneFoundationRegressionTest extends TestCase
         $this->assertTrue(class_exists(SupportTicketMessage::class));
         $this->assertTrue(class_exists(SupportTicketAttachment::class));
         $this->assertTrue(class_exists(SupportTicketEvent::class));
-        $this->assertTrue(class_exists(PreRegistration::class));
         $this->assertTrue(class_exists(PlatformSetting::class));
         $this->assertTrue(class_exists(Policy::class));
         $this->assertTrue(class_exists(PolicyChangeLog::class));

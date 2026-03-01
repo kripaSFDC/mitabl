@@ -11,42 +11,13 @@ class PhaseFiveReconciliationCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_reconciliation_command_produces_duplicate_and_count_report_in_dry_run(): void
+    public function test_reconciliation_command_dry_run_writes_report_with_ticket_duplicate_summary(): void
     {
-        DB::table('pre_registrations')->insert([
-            [
-                'first_name' => 'Alpha',
-                'last_name' => 'Lead',
-                'email' => 'alpha@example.com',
-                'phone' => '0400000001',
-                'city' => 'Sydney',
-                'interested_as' => 'foodie',
-                'source' => 'website',
-                'status' => 'new',
-                'duplicate_fingerprint' => 'fp-1',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'first_name' => 'Beta',
-                'last_name' => 'Lead',
-                'email' => 'beta@example.com',
-                'phone' => '0400000002',
-                'city' => 'Melbourne',
-                'interested_as' => 'cook',
-                'source' => 'website',
-                'status' => 'new',
-                'duplicate_fingerprint' => 'fp-1',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
-
         DB::table('support_tickets')->insert([
             [
                 'ticket_number' => 'TKT-000001',
                 'requester_email' => 'ticket@example.com',
-                'requester_phone' => '0400000010',
+                'requester_phone' => '0400000000',
                 'subject' => 'Help needed',
                 'description' => 'Issue details',
                 'source' => 'website',
@@ -85,25 +56,11 @@ class PhaseFiveReconciliationCommandTest extends TestCase
 
         $this->assertIsArray($report);
         $this->assertSame(false, $report['write_mode']);
-        $this->assertSame(1, $report['duplicates']['pre_registrations']['duplicate_groups']);
         $this->assertSame(1, $report['duplicates']['support_tickets']['duplicate_groups']);
     }
 
     public function test_reconciliation_command_write_mode_normalizes_emails_and_phones(): void
     {
-        $preRegistrationId = DB::table('pre_registrations')->insertGetId([
-            'first_name' => 'Case',
-            'last_name' => 'Lead',
-            'email' => '  CASE@EXAMPLE.COM  ',
-            'phone' => '+61 (400) 123-456',
-            'city' => 'Brisbane',
-            'interested_as' => 'foodie',
-            'source' => 'website',
-            'status' => 'new',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         $ticketId = DB::table('support_tickets')->insertGetId([
             'ticket_number' => 'TKT-009999',
             'requester_email' => '  HELP@EXAMPLE.COM  ',
@@ -125,12 +82,6 @@ class PhaseFiveReconciliationCommandTest extends TestCase
             '--write' => true,
             '--report' => $reportPath,
         ])->assertSuccessful();
-
-        $this->assertDatabaseHas('pre_registrations', [
-            'id' => $preRegistrationId,
-            'email' => 'case@example.com',
-            'phone' => '+61400123456',
-        ]);
 
         $this->assertDatabaseHas('support_tickets', [
             'id' => $ticketId,

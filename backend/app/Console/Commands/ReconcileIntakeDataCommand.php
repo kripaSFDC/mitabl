@@ -10,7 +10,7 @@ class ReconcileIntakeDataCommand extends Command
 {
     protected $signature = 'crm:reconcile-intake {--write : Persist normalized values and FK repairs} {--report= : Absolute or relative JSON report path}';
 
-    protected $description = 'One-time reconciliation for pre-registrations and support tickets.';
+    protected $description = 'One-time reconciliation for support tickets.';
 
     public function handle(): int
     {
@@ -18,13 +18,11 @@ class ReconcileIntakeDataCommand extends Command
         $startedAt = now();
 
         $beforeCounts = $this->countsSnapshot();
-        $preDuplicates = $this->preRegistrationDuplicateSummary();
         $ticketDuplicates = $this->supportTicketDuplicateSummary();
         $normalizationPlan = $this->collectNormalizationPlan();
         $fkPlan = $this->collectForeignKeyRepairPlan();
 
         $mutations = [
-            'normalized_pre_registrations' => 0,
             'normalized_support_tickets' => 0,
             'repaired_ticket_user_links' => 0,
             'repaired_ticket_order_links' => 0,
@@ -34,7 +32,6 @@ class ReconcileIntakeDataCommand extends Command
         if ($write) {
             $mutations = DB::transaction(function () use ($normalizationPlan, $fkPlan): array {
                 return [
-                    'normalized_pre_registrations' => $this->applyPreRegistrationNormalization($normalizationPlan['pre_registrations']),
                     'normalized_support_tickets' => $this->applySupportTicketNormalization($normalizationPlan['support_tickets']),
                     'repaired_ticket_user_links' => $this->applyNulling('support_tickets', 'user_id', $fkPlan['invalid_user_ticket_ids']),
                     'repaired_ticket_order_links' => $this->applyNulling('support_tickets', 'order_id', $fkPlan['invalid_order_ticket_ids']),
@@ -54,11 +51,9 @@ class ReconcileIntakeDataCommand extends Command
                 'after' => $afterCounts,
             ],
             'duplicates' => [
-                'pre_registrations' => $preDuplicates,
                 'support_tickets' => $ticketDuplicates,
             ],
             'normalization' => [
-                'pre_registration_candidates' => count($normalizationPlan['pre_registrations']),
                 'support_ticket_candidates' => count($normalizationPlan['support_tickets']),
             ],
             'fk_consistency' => $fkPlan,
@@ -73,9 +68,7 @@ class ReconcileIntakeDataCommand extends Command
         $this->table(
             ['Metric', 'Value'],
             [
-                ['Pre-registration duplicates', (string) ($preDuplicates['duplicate_groups'] ?? 0)],
                 ['Support ticket duplicates', (string) ($ticketDuplicates['duplicate_groups'] ?? 0)],
-                ['Pre-registration normalization candidates', (string) count($normalizationPlan['pre_registrations'])],
                 ['Support ticket normalization candidates', (string) count($normalizationPlan['support_tickets'])],
                 ['Invalid ticket user links', (string) count($fkPlan['invalid_user_ticket_ids'])],
                 ['Invalid ticket order links', (string) count($fkPlan['invalid_order_ticket_ids'])],
@@ -89,33 +82,9 @@ class ReconcileIntakeDataCommand extends Command
     private function countsSnapshot(): array
     {
         return [
-            'pre_registrations_total' => DB::table('pre_registrations')->count(),
             'support_tickets_total' => DB::table('support_tickets')->count(),
-            'pre_registrations_with_email' => DB::table('pre_registrations')->whereNotNull('email')->count(),
-            'pre_registrations_with_phone' => DB::table('pre_registrations')->whereNotNull('phone')->count(),
             'support_tickets_with_email' => DB::table('support_tickets')->whereNotNull('requester_email')->count(),
             'support_tickets_with_phone' => DB::table('support_tickets')->whereNotNull('requester_phone')->count(),
-        ];
-    }
-
-    private function preRegistrationDuplicateSummary(): array
-    {
-        $groups = DB::table('pre_registrations')
-            ->select('duplicate_fingerprint', DB::raw('COUNT(*) as total'))
-            ->whereNotNull('duplicate_fingerprint')
-            ->groupBy('duplicate_fingerprint')
-            ->havingRaw('COUNT(*) > 1')
-            ->orderByDesc('total')
-            ->limit(25)
-            ->get();
-
-        return [
-            'duplicate_groups' => $groups->count(),
-            'records_in_duplicate_groups' => (int) $groups->sum('total'),
-            'top_groups' => $groups->map(fn ($row): array => [
-                'duplicate_fingerprint' => $row->duplicate_fingerprint,
-                'total' => (int) $row->total,
-            ])->all(),
         ];
     }
 
@@ -142,29 +111,6 @@ class ReconcileIntakeDataCommand extends Command
 
     private function collectNormalizationPlan(): array
     {
-        $preRegistrations = DB::table('pre_registrations')
-            ->select('id', 'email', 'phone')
-            ->get()
-            ->map(function ($row): ?array {
-                $email = $this->normalizeEmail($row->email);
-                $phone = $this->normalizePhone($row->phone);
-                $currentEmail = $row->email === null ? null : trim((string) $row->email);
-                $currentPhone = $row->phone === null ? null : trim((string) $row->phone);
-
-                if ($email === $currentEmail && $phone === $currentPhone) {
-                    return null;
-                }
-
-                return [
-                    'id' => (int) $row->id,
-                    'email' => $email,
-                    'phone' => $phone,
-                ];
-            })
-            ->filter()
-            ->values()
-            ->all();
-
         $supportTickets = DB::table('support_tickets')
             ->select('id', 'requester_email', 'requester_phone')
             ->get()
@@ -189,7 +135,6 @@ class ReconcileIntakeDataCommand extends Command
             ->all();
 
         return [
-            'pre_registrations' => $preRegistrations,
             'support_tickets' => $supportTickets,
         ];
     }
@@ -225,22 +170,6 @@ class ReconcileIntakeDataCommand extends Command
             'invalid_order_ticket_ids' => $invalidOrderTicketIds,
             'invalid_mikitchn_ticket_ids' => $invalidMikitchnTicketIds,
         ];
-    }
-
-    private function applyPreRegistrationNormalization(array $rows): int
-    {
-        $updated = 0;
-        foreach ($rows as $row) {
-            $updated += DB::table('pre_registrations')
-                ->where('id', $row['id'])
-                ->update([
-                    'email' => $row['email'],
-                    'phone' => $row['phone'],
-                    'updated_at' => now(),
-                ]);
-        }
-
-        return $updated;
     }
 
     private function applySupportTicketNormalization(array $rows): int
