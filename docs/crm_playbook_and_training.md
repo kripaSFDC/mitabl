@@ -50,3 +50,30 @@ Date: 2026-02-28
 - Internal notes are never customer-visible.
 - Spam classification is terminal and should only be used with clear abuse evidence.
 - Reopen from resolved is time-bound by configured reopen window.
+
+## 7) Operational Verification Checklist (Support Ticket Contract Flow)
+
+Run this verification whenever support-ticket code, migrations, or CRM filters are changed.
+
+1. **Prepare backend test environment**
+   - `cd backend`
+   - `cp .env.example .env`
+   - `composer install --prefer-dist --no-progress --no-interaction`
+   - `php artisan key:generate --force`
+   - `mkdir -p database && touch database/database.sqlite`
+
+2. **Run the support-ticket contract gate tests**
+   - `php artisan test tests/Feature/SupportTicketIntakeCrmEndToEndContractTest.php tests/Unit/PhaseThreeSupportTicketServiceTest.php`
+
+3. **What this gate verifies**
+   - API ticket creation contract (`POST /api/support/ticket`) and public intake hardening.
+   - Assignment transitions (`open -> in_progress`) and ownership logging.
+   - Reply workflow (admin reply + communication log generation).
+   - Resolve/close transitions (`pending_user -> resolved -> closed`) with lifecycle timestamps.
+   - CRM list visibility/filtering contracts (`merged` suppression, my queue, unassigned, SLA risk, status, priority).
+   - Support-ticket schema contract: required ticket tables, columns, and FK relationships.
+
+4. **Expected result**
+   - All tests pass.
+   - Any failure blocks CI via `.github/workflows/ci-cd.yml` job `support-ticket-contract`.
+
