@@ -1,6 +1,7 @@
-# Mitabl Mobile App — Enterprise Technical Overview (Deep Audit)
+# Mitabl Mobile App - Technical Overview
 
 ## Document intent
+
 This document is a **deep, engineering-grade overview** of the `mobile-app/` codebase for architecture review, onboarding, security assessment, platform operations, QA planning, and modernization roadmapping.
 
 It reflects a code-first audit across app entry points, routing, feature modules, state management, repositories, models, native wrappers, configuration, and tests.
@@ -33,17 +34,20 @@ It reflects a code-first audit across app entry points, routing, feature modules
 ## 2.1 Boot sequence
 
 1. `main.dart`
+   
    - Calls `WidgetsFlutterBinding.ensureInitialized()`.
    - Loads `GlobalConfiguration().loadFromAsset('configuration')`.
    - Starts `App(authenticationRepository, userRepository)`.
 
 2. `app.dart`
+   
    - Registers repositories globally (`AuthenticationRepository`, `UserRepository`, `SupportTicketRepository`).
    - Registers cross-cutting blocs/cubits (`AuthenticationBloc`, `LoginCubit`, `DashboardCookCubit`, `ProfileCookCubit`, `ProfileFoodieCubit`, `AddMenuCubit`).
    - Configures a global `MaterialApp` with `RouteGenerator` and app theme.
    - Locks orientation to portrait (`SystemChrome.setPreferredOrientations`).
 
 3. `AuthenticationBloc` + `navigatorKey`
+   
    - Auth status stream controls root navigation:
      - authenticated + role=Restaurant → `/DashboardCook`
      - authenticated + non-cook → `/HomePage`
@@ -55,12 +59,12 @@ It reflects a code-first audit across app entry points, routing, feature modules
 
 ### Registered route map
 
-| Domain | Routes |
-|---|---|
-| Launch/auth | `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage` |
-| Shared profile setup | `/CookProfile` |
-| Foodie | `/HomePage`, `/EditProfileFoodie`, `/ProfileFoodie` |
-| Cook shell & ops | `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails` |
+| Domain               | Routes                                                                                                                                                                                             |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Launch/auth          | `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage`                                                                                                                  |
+| Shared profile setup | `/CookProfile`                                                                                                                                                                                     |
+| Foodie               | `/HomePage`, `/EditProfileFoodie`, `/ProfileFoodie`                                                                                                                                                |
+| Cook shell & ops     | `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails` |
 
 ### Observations
 
@@ -160,6 +164,7 @@ This section captures **every major code/config file class** under `mobile-app/`
 ## 3.7 Cook operations features
 
 - Dashboard/home/menu/requests shell:
+  
   - `lib/pages_cook/dashboard_cook/view/dashboard_cook_page.dart`
   - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart`
   - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_state.dart`
@@ -171,6 +176,7 @@ This section captures **every major code/config file class** under `mobile-app/`
   - `lib/pages_cook/menu_detail/view/menu_detail.dart`
 
 - Add/edit menu and food metadata:
+  
   - `lib/pages_cook/add_menu_item/view/add_menu_page.dart`
   - `lib/pages_cook/add_menu_item/cubit/add_menu_cubit.dart`
   - `lib/pages_cook/add_menu_item/cubit/add_menu_state.dart`
@@ -180,6 +186,7 @@ This section captures **every major code/config file class** under `mobile-app/`
   - `lib/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_state.dart`
 
 - Requests/bookings/order actions:
+  
   - `lib/pages_cook/requests/view/requests_page.dart`
   - `lib/pages_cook/requests/cubit/requests_cubit.dart`
   - `lib/pages_cook/requests/cubit/requests_state.dart`
@@ -193,6 +200,7 @@ This section captures **every major code/config file class** under `mobile-app/`
   - `lib/pages_cook/upcoming_bookings/view/upcoming_bookings.dart`
 
 - Cook profile and kitchen profile:
+  
   - `lib/pages_cook/profile_cook/view/profile_cook_page.dart`
   - `lib/pages_cook/profile_cook/view/personal_view.dart`
   - `lib/pages_cook/profile_cook/view/mikitchn_view.dart`
@@ -208,6 +216,7 @@ This section captures **every major code/config file class** under `mobile-app/`
   - `lib/pages_cook/edit_kitchen_profile/elements/timing_edit.dart`
 
 - Other cook pages:
+  
   - `lib/pages_cook/settings_page/view/settings_page_cook.dart`
   - `lib/pages_cook/settings_page/cubit/settings_cook_cubit.dart`
   - `lib/pages_cook/settings_page/cubit/settings_cook_state.dart`
@@ -305,6 +314,7 @@ This section captures **every major code/config file class** under `mobile-app/`
 ## 5.1 Endpoint families
 
 ### Auth
+
 - `POST login`
 - `POST register`
 - `POST verifyOtp`
@@ -312,6 +322,7 @@ This section captures **every major code/config file class** under `mobile-app/`
 - `POST v1/logout`
 
 ### Kitchen and profile
+
 - `POST v1/mikitchn/store`
 - `POST v1/mikitchn/editkitchen`
 - `GET v1/getprofile`
@@ -320,11 +331,13 @@ This section captures **every major code/config file class** under `mobile-app/`
 - `POST v1/deleteimage`
 
 ### Discovery
+
 - `POST v1/recommendedrestaurant`
 - `POST v1/topRatedRestaurant`
 - `POST v1/nearestRestaurant`
 
 ### Menu
+
 - `GET v1/mymenu`
 - `GET v1/getspecialdiets`
 - `GET v1/getcookingstyles`
@@ -333,12 +346,14 @@ This section captures **every major code/config file class** under `mobile-app/`
 - `GET v1/food/status/{id}`
 
 ### Orders
+
 - `POST v1/allorders`
 - `POST v1/kitchenupcomingorders`
 - `GET v1/kitchenorderrequest`
 - `POST v1/updateorderstatus`
 
 ### Support
+
 - `POST /support/ticket`
 - `GET /support/ticket/{id}`
 - `POST /support/ticket/{id}/reply`
@@ -346,10 +361,12 @@ This section captures **every major code/config file class** under `mobile-app/`
 ## 5.2 API client posture
 
 Strengths:
+
 - Central URI helper (`ApiContract.uri`) handles path/query normalization.
 - Modern support ticket repository has better header + parsing discipline.
 
 Weak points:
+
 - Widespread `dynamic` response contracts.
 - Inconsistent use of `http.Client` lifecycle handling.
 - Limited unified exception taxonomy.
@@ -458,11 +475,13 @@ Current automated test reality:
 ## 11. Observability and operability
 
 Current:
+
 - No central telemetry abstraction.
 - No crash/performance pipeline described in code.
 - Diagnostic output mostly raw `print` calls.
 
 Required for enterprise operation:
+
 - Structured logs with environment-aware levels.
 - Crash analytics + performance instrumentation.
 - Correlation IDs for API requests.
@@ -487,17 +506,20 @@ To move to enterprise delivery:
 ## 13. Priority modernization plan
 
 ## Phase 1 (Immediate hardening)
+
 - Secure storage migration.
 - Remove cleartext transport and legacy storage where possible.
 - Standardize HTTP timeout/error handling.
 - Replace sensitive `print` logging.
 
 ## Phase 2 (Reliability + quality)
+
 - Expand test suite (bloc, repository, widget, integration).
 - Introduce typed result wrappers and API error taxonomy.
 - Add retry/backoff and offline-aware UX for key flows.
 
 ## Phase 3 (Scale + governance)
+
 - Split into clearer feature modules/packages where appropriate.
 - Add observability stack and release analytics.
 - Add formal SDLC controls around mobile security and compliance.

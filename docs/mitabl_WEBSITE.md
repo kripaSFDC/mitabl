@@ -1,24 +1,64 @@
-# WEBSITE.md — Enterprise Overview of the Public Website
+# Overview of mitabl Public Website
 
-## 1) Purpose and product scope
+## Purpose and product scope
 
 The `website/` project is a static, marketing-focused public surface for mitabl. It is intentionally non-transactional and designed to communicate brand positioning, product context, legal terms, privacy policy, and contact pathways for users and partners. The site ships as pre-rendered HTML/CSS assets served by nginx and does not require an application runtime, database, or API dependency to render pages.
 
-## 2) Runtime architecture and delivery model
+The `website/` project is a **static site** that serves public marketing pages only.
 
-### Static rendering model
-- All public pages are static HTML files under `website/public`.
-- Shared styling is provided by local CSS (`/frontend/css/style.css`) and Bootstrap v4 CSS (`/frontend/css/bootstrap.min.css`).
-- Interactive behaviors are intentionally lightweight and limited to:
-  - Bootstrap modal behavior for “Coming Soon” app-store links.
-  - jQuery-based navigation highlighting for active menu states.
+* **No runtime JavaScript build chain is required** to run or deploy this site.
+* **No local database or API dependency is required** for website pages to render.
+  
+  
+
+### Runtime architecture and delivery model
+
+* All public pages are static HTML files under `website/public`.
+* Shared styling is provided by local CSS (`/frontend/css/style.css`) and Bootstrap v4 CSS (`/frontend/css/bootstrap.min.css`).
+* Interactive behaviors are intentionally lightweight and limited to:
+  * Bootstrap modal behavior for “Coming Soon” app-store links.
+  * jQuery-based navigation highlighting for active menu states.
+
+#### Build
+
+From the repository root:
+
+```
+npm --prefix website run build
+```
+
+
+
+Current behavior: this command validates static-site packaging and performs no application-server or database build steps.
+
+#### Serve locally
+
+Use any static file server pointed at `website/public`.
+
+Example with Python:
+
+```
+cd website/public
+python3 -m http.server 8080
+
+
+Then open `http://localhost:8080`.
+```
+
+
+
+---
+
+ 
 
 ### Containerization and serving
+
 - `website/Dockerfile` builds a minimal nginx image and copies all static assets into `/usr/share/nginx/html`.
 - `website/nginx.conf` serves files on port `8080` and resolves extensionless routes using `try_files $uri $uri.html $uri/ $uri/index.html =404;`.
 - A dedicated `/health` endpoint returns static plain text (`ok`) for liveness checks.
 
 ### Build/test scripts
+
 - `website/package.json` intentionally includes no compile pipeline. `build` and `test` scripts are informational no-op commands to preserve CI compatibility for static packaging.
 
 ## 3) Content model and page inventory
@@ -41,20 +81,24 @@ This section captures an explicit review of each code/config/document file in `w
 ### Top-level files
 
 #### `website/README.md`
+
 - Documents the static-site philosophy and boundaries.
 - Defines local serving model (`python3 -m http.server 8080`) and route ownership split vs backend/admin surfaces.
 - Notes content governance for public claims (FAQ edits should map to repo truths).
 
 #### `website/package.json`
+
 - Package metadata for the website artifact.
 - `build` and `test` are intentionally no-op shell echoes, signaling no JS/SPA build chain.
 
 #### `website/Dockerfile`
+
 - Uses `nginx:1.27-alpine`.
 - Copies `nginx.conf` and all `public/` assets.
 - Exposes `8080`; launches nginx foreground process.
 
 #### `website/nginx.conf`
+
 - Static server configuration with extensionless route support.
 - Health route at `/health` for monitoring.
 - Correctly avoids unnecessary app-proxy complexity for this static surface.
@@ -62,19 +106,23 @@ This section captures an explicit review of each code/config/document file in `w
 ### Public root files
 
 #### `website/public/index.html`
+
 - Primary hero carousel and top-level product value proposition.
 - Uses a shared nav/footer pattern and “Coming Soon” modal for app-store CTAs.
 - Includes concise customer/cook/partner-oriented messaging blocks.
 
 #### `website/public/about.html`
+
 - Brand and mission narrative with supporting visual sections.
 - Includes mission/vision content blocks and shared layout primitives.
 
 #### `website/public/faq.html`
+
 - Comprehensive platform FAQ with high-level operational language.
 - Clarifies website/backend/admin boundaries and support process context.
 
 #### `website/public/contact.html`
+
 - Dedicated contact destination with:
   - Direct support email (`mitablinfo@gmail.com`).
   - Public social links for mitabl channels.
@@ -82,19 +130,23 @@ This section captures an explicit review of each code/config/document file in `w
 - Maintains site-wide nav/footer consistency.
 
 #### `website/public/terms.html`
+
 - Long-form legal terms and conditions content.
 - Uses consistent header/footer shell and legal-content formatting block.
 
 #### `website/public/privacy-policy.html`
+
 - Long-form privacy policy with collection/use/disclosure/security headings.
 - Uses shared legal-content rendering style.
 
 #### `website/public/robots.txt`
+
 - Allows crawling (`User-agent: *`, no disallow restrictions).
 
 ### Front-end styling files
 
 #### `website/public/frontend/css/style.css`
+
 - Primary custom stylesheet governing:
   - Header/nav styles and active-state treatment.
   - Hero/carousel sections.
@@ -103,6 +155,7 @@ This section captures an explicit review of each code/config/document file in `w
 - Contains extensive single-file styling architecture; suitable for static site scale but should be modularized if page count grows.
 
 #### `website/public/frontend/css/bootstrap.min.css`
+
 - Third-party minified Bootstrap distribution (vendor dependency).
 - Not treated as source-of-truth business logic; should be version-pinned and replaced only through controlled upgrades.
 
@@ -136,27 +189,7 @@ Operational note: `mailto` forms depend on client email configuration. For enter
 - nginx health endpoint supports orchestration readiness checks.
 - Legal pages (Terms/Privacy) are first-class navigable pages.
 - External links in contact/social usage include `rel="noopener noreferrer"` when opening new tabs.
+  
+  
 
-## 8) Recommended enterprise improvements (next phase)
-
-1. **Template consolidation**
-   - Extract repeated header/footer/scripts into a static-site templating pipeline to reduce drift.
-
-2. **Accessibility hardening**
-   - Add semantic landmarks, richer alt text where relevant, and explicit focus/keyboard states for all interactive elements.
-
-3. **Observability for contact flows**
-   - Replace `mailto` form with API-backed contact submission, anti-spam controls, and audit-ready delivery tracking.
-
-4. **Content governance**
-   - Define explicit ownership/approval flow for legal and FAQ updates.
-
-5. **Performance and cache policy**
-   - Add asset fingerprinting and long-lived immutable cache headers for static media/CSS.
-
-6. **Automated QA**
-   - Add link checking and HTML validation in CI for all static pages.
-
-## 9) Conclusion
-
-The public website is now a coherent, static marketing surface with a complete page set that includes a professional CONTACT page and cross-site navigation consistency. Its architecture is simple and production-friendly for low-complexity marketing delivery, while leaving clear paths for enterprise enhancements in templating, accessibility, and contact-flow observability.
+----
