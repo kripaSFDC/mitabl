@@ -340,10 +340,12 @@ class SystemHealthService
     {
         $routes = app('router')->getRoutes();
 
-        $hasSupportTicketRoute = false;
-        $hasPreRegisterRoute = false;
-        $supportHasThrottle = false;
-        $preRegisterHasThrottle = false;
+        $hasSupportTicketStoreRoute = false;
+        $hasSupportTicketShowRoute = false;
+        $hasSupportTicketReplyRoute = false;
+        $supportStoreHasThrottle = false;
+        $supportShowHasThrottle = false;
+        $supportReplyHasThrottle = false;
 
         foreach ($routes as $route) {
             $uri = trim((string) $route->uri(), '/');
@@ -351,33 +353,39 @@ class SystemHealthService
             $middleware = $route->middleware();
 
             if (in_array('POST', $methods, true) && $uri === 'api/support/ticket') {
-                $hasSupportTicketRoute = true;
-                $supportHasThrottle = collect($middleware)
+                $hasSupportTicketStoreRoute = true;
+                $supportStoreHasThrottle = collect($middleware)
                     ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
             }
 
-            if (in_array('POST', $methods, true) && $uri === 'api/preregister') {
-                $hasPreRegisterRoute = true;
-                $preRegisterHasThrottle = collect($middleware)
-                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-intake'));
+            if (in_array('GET', $methods, true) && $uri === 'api/support/ticket/{id}') {
+                $hasSupportTicketShowRoute = true;
+                $supportShowHasThrottle = collect($middleware)
+                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-read'));
+            }
+
+            if (in_array('POST', $methods, true) && $uri === 'api/support/ticket/{id}/reply') {
+                $hasSupportTicketReplyRoute = true;
+                $supportReplyHasThrottle = collect($middleware)
+                    ->contains(fn ($item): bool => is_string($item) && str_starts_with($item, 'throttle:support-reply'));
             }
         }
 
-        if (! $hasSupportTicketRoute || ! $hasPreRegisterRoute) {
+        if (! $hasSupportTicketStoreRoute || ! $hasSupportTicketShowRoute || ! $hasSupportTicketReplyRoute) {
             return [
                 'key' => 'ticket_intake',
                 'label' => 'Ticket Intake',
                 'status' => 'error',
-                'message' => 'Support intake routes are incomplete. Expected POST /api/support/ticket and /api/preregister.',
+                'message' => 'Support ticket routes are incomplete. Expected POST /api/support/ticket, GET /api/support/ticket/{id}, and POST /api/support/ticket/{id}/reply.',
             ];
         }
 
-        if (! $supportHasThrottle || ! $preRegisterHasThrottle) {
+        if (! $supportStoreHasThrottle || ! $supportShowHasThrottle || ! $supportReplyHasThrottle) {
             return [
                 'key' => 'ticket_intake',
                 'label' => 'Ticket Intake',
                 'status' => 'warning',
-                'message' => 'Support intake throttling is missing on one or more public intake routes.',
+                'message' => 'Support ticket throttling is missing on one or more ticket routes.',
             ];
         }
 
@@ -385,7 +393,7 @@ class SystemHealthService
             'key' => 'ticket_intake',
             'label' => 'Ticket Intake',
             'status' => 'ok',
-            'message' => 'Support intake routes and throttles are configured.',
+            'message' => 'Support ticket routes and throttles are configured.',
         ];
     }
 

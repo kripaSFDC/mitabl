@@ -4,8 +4,6 @@ return [
     'duplicate_window_minutes' => (int) env('SUPPORT_DUPLICATE_WINDOW_MINUTES', 10),
     'reopen_window_hours' => (int) env('SUPPORT_REOPEN_WINDOW_HOURS', 72),
     'honeypot_field' => env('SUPPORT_HONEYPOT_FIELD', 'website'),
-    'mobcontact_alias_sunset' => env('SUPPORT_MOBCONTACT_ALIAS_SUNSET', '2026-12-31'),
-    'mobcontact_alias_replacement_path' => env('SUPPORT_MOBCONTACT_ALIAS_REPLACEMENT_PATH', '/api/support/ticket'),
 
     'sla' => [
         'default' => [

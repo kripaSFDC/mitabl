@@ -83,16 +83,6 @@ class SupportTicketController extends Controller
         ], 'Contact Message Sent Successfully');
     }
 
-
-    public function deprecatedMobcontact(Request $request)
-    {
-        return response()->json([
-            'status' => 410,
-            'isSuccess' => false,
-            'isError' => 'The /api/mobcontact endpoint is deprecated. Use /api/support/ticket instead.',
-        ], 410);
-    }
-
     public function show(Request $request, int $id)
     {
         $ticket = SupportTicket::query()->with(['messages' => function ($query) {
