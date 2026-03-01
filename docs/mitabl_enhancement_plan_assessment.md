@@ -12,7 +12,7 @@ This assessment was performed against `mitabl_enhancement_plan.md` and validated
    - Verified presence of planned domain models and migrations.
 2. **API contract checks**
    - Verified plan-defined intake and compatibility routes exist.
-   - Verified legacy replacement routing behavior for `/api/preregister`, `/api/support/ticket`, and `/api/mobcontact` deprecation path.
+   - Verified legacy replacement routing behavior for `/api/support/ticket` and `/api/mobcontact` deprecation path.
 3. **Regression/unit test checks**
    - Executed PHPUnit test suite and isolated failures by source category.
    - Fixed repository-level blockers that prevented meaningful module validation.
@@ -53,29 +53,24 @@ This assessment was performed against `mitabl_enhancement_plan.md` and validated
 - Support ticket models and resources exist (`SupportTicket`, messages/events/attachments).
 - Intake endpoints and admin workflow resources/pages are present.
 
-### Module 7 — Pre-Registration / Lead Management
-**Status: Delivered.**
-- `PreRegistrationResource` exists and `pre_registrations` storage is present.
-- Intake replacement path is available through backend APIs.
-
-### Module 8 — Promo Code Management
+### Module 7 — Promo Code Management
 **Status: Delivered.**
 - `PromoCodeResource` exists and includes management controls.
 
-### Module 9 — Financial Overview
+### Module 8 — Financial Overview
 **Status: Delivered.**
 - `PaymentResource` exists with visibility-oriented controls and guardrails.
 
-### Module 10 — Platform Admin: Configuration & Policies
+### Module 9 — Platform Admin: Configuration & Policies
 **Status: Delivered.**
 - `PlatformSettingsPage`, `PolicyResource`, and `TemplateResource` are implemented.
 
-### Module 11 — Platform Admin: Health/Operations/Observability
+### Module 10 — Platform Admin: Health/Operations/Observability
 **Status: Delivered.**
 - `SystemHealthPage`, `QueueOpsPage`, and `IntegrationLogsPage` are present.
 - Health widgets/services exist to support operational visibility.
 
-### Module 12 — Internal Notes, Tags, Watchers, Collaboration
+### Module 11 — Internal Notes, Tags, Watchers, Collaboration
 **Status: Delivered, with a validation bug fixed in tests.**
 - Collaboration schema and relationships are implemented.
 - Admin workflow actions for tags/watchers exist in support ticket resource.
@@ -90,7 +85,7 @@ This assessment was performed against `mitabl_enhancement_plan.md` and validated
 - **Fix:** Added a constant-existence guard and filtered null keys/values before passing MySQL PDO options.
 - **Impact:** Restores portability and allows SQLite-based contract tests to run without false DB-option failures.
 
-### B) Module 12 contract test bug
+### B) Module 11 contract test bug
 - **Issue:** `ModuleTwelveCollaborationContractTest` used a double-quoted assertion string containing `$adminId`, causing unintended variable interpolation and test failure unrelated to product behavior.
 - **Fix:** Escaped `$adminId` in assertion string literal.
 - **Impact:** Test now validates actual file content instead of crashing.

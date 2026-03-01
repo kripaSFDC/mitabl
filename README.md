@@ -35,8 +35,8 @@ This document is intentionally detailed and aligned to the **current codebase st
 
 - **Foodies** can discover kitchens, browse menu items, place orders, manage payments/cards, and leave reviews.
 - **Cooks** can onboard as miKitchen operators, manage profiles and menu, receive bookings/orders, and handle fulfillment status updates.
-- **Operations/Admin teams** can use a Filament admin console for certificate review, customer support, pre-registrations, order interventions, payments visibility, policy governance, queue/health operations, and IAM controls.
-- **CRM intake** supports pre-registration and support-ticket workflows with event/message tracking.
+- **Operations/Admin teams** can use a Filament admin console for certificate review, customer support, order interventions, payments visibility, policy governance, queue/health operations, and IAM controls.
+- **CRM intake** supports support-ticket workflows with event/message tracking.
 
 ### High-level runtime topology
 
@@ -111,7 +111,7 @@ mitabl/
 5. **Payments and payout flows**
    - Card add/list, payment intents, checkout session support, transfer/refund admin actions.
 6. **Support/CRM intake**
-   - Pre-registration and support ticket API endpoints and associated domain models.
+   - Support ticket API endpoints and associated domain models.
 7. **Notifications and reviews**
    - Notification feed retrieval and bi-directional review flows.
 
@@ -216,7 +216,6 @@ Backend ships a dedicated Filament panel provider with grouped navigation and pe
 - `MikitchnResource`
 - `OrderResource`
 - `SupportTicketResource`
-- `PreRegistrationResource`
 - `CertificateResource`
 - `PromoCodeResource`
 - `PaymentResource`
@@ -273,7 +272,7 @@ Backend ships a dedicated Filament panel provider with grouped navigation and pe
 2. **platform_admin**
    - Platform governance and control-plane permissions (settings, policy/template governance, queue/health/integration/audit visibility).
 3. **operations**
-   - Operational management of kitchens/certificates/orders/promo/pre-registration/support.
+   - Operational management of kitchens/certificates/orders/promo/support.
 4. **customer_service**
    - Customer and support ticket handling with order/user visibility and ticket operations.
 5. **finance_readonly**
@@ -305,8 +304,6 @@ Legend: ✅ assigned, — not assigned.
 | support_tickets.assign | ✅ | — | ✅ | ✅ | — |
 | support_tickets.respond | ✅ | — | ✅ | ✅ | — |
 | support_tickets.resolve | ✅ | — | ✅ | ✅ | — |
-| pre_registrations.view | ✅ | — | ✅ | ✅ | — |
-| pre_registrations.edit | ✅ | — | ✅ | ✅ | — |
 | promo_codes.view | ✅ | — | ✅ | — | — |
 | promo_codes.edit | ✅ | — | ✅ | — | — |
 | payments.view | ✅ | — | — | — | ✅ |
@@ -328,7 +325,6 @@ Legend: ✅ assigned, — not assigned.
 ### Permission -> Filament surface mapping
 
 - `support_tickets.*` -> SupportTicketResource
-- `pre_registrations.*` -> PreRegistrationResource
 - `certificates.*` -> CertificateResource
 - `users.*` -> UserResource
 - `kitchens.*` -> MikitchnResource
@@ -352,7 +348,7 @@ Representative backend model groups:
 
 - **Core marketplace**: `User`, `Role`, `Mikitchn`, `Foods`, `Order`, `OrderData`, `CompletedOrder`, `Timing`, `Image`, `Review`, `Favorite`, `PromoCode`, `Partner`.
 - **Payments/settlement**: `Payment`, `Refund`, `Transfer`, `Card`, `StripeAccount`, `StripeBankAccount`.
-- **CRM/support**: `PreRegistration`, `SupportTicket`, `SupportTicketMessage`, `SupportTicketEvent`, `SupportTicketAttachment`, `Template`, `Tag`.
+- **CRM/support**: `SupportTicket`, `SupportTicketMessage`, `SupportTicketEvent`, `SupportTicketAttachment`, `Template`, `Tag`.
 - **Platform governance/admin**: `AdminUser`, `AdminActionLog`, `Policy`, `PolicyChangeLog`, `PlatformSetting`, `WatchSubscription`.
 
 ---

@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Mail\PreRegistrationAcknowledged;
 use App\Mail\SupportTicketEscalated;
 use App\Mail\SupportTicketReply;
 use App\Models\AdminUser;
 use App\Models\CrmCommunicationLog;
-use App\Models\PreRegistration;
 use App\Models\SupportTicket;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -69,28 +67,12 @@ class CrmCommunicationService
         );
     }
 
-    public function sendPreRegistrationAcknowledgement(PreRegistration $registration): void
-    {
-        if (! $registration->email) {
-            return;
-        }
-
-        $this->queueMail(
-            recipient: $registration->email,
-            template: 'pre_registration_acknowledged',
-            subject: 'Thanks for your interest in mitabl',
-            mailable: new PreRegistrationAcknowledged($registration),
-            preRegistration: $registration
-        );
-    }
-
     private function queueMail(
         string $recipient,
         string $template,
         string $subject,
         $mailable,
-        ?SupportTicket $ticket = null,
-        ?PreRegistration $preRegistration = null
+        ?SupportTicket $ticket = null
     ): void {
         try {
             Mail::to($recipient)->queue(
@@ -107,10 +89,8 @@ class CrmCommunicationService
                 'status' => 'queued',
                 'metadata' => [
                     'ticket_number' => $ticket?->ticket_number,
-                    'pre_registration_id' => $preRegistration?->id,
                 ],
                 'support_ticket_id' => $ticket?->id,
-                'pre_registration_id' => $preRegistration?->id,
                 'queued_at' => now(),
             ]);
         } catch (\Throwable $throwable) {
@@ -129,10 +109,8 @@ class CrmCommunicationService
                 'metadata' => [
                     'error' => $throwable->getMessage(),
                     'ticket_number' => $ticket?->ticket_number,
-                    'pre_registration_id' => $preRegistration?->id,
                 ],
                 'support_ticket_id' => $ticket?->id,
-                'pre_registration_id' => $preRegistration?->id,
             ]);
         }
     }
