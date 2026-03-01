@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Filament\Resources\PreRegistrationResource\Pages;
+
+use App\Filament\Resources\PreRegistrationResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+
+class ListPreRegistrations extends ListRecords
+{
+    protected static string $resource = PreRegistrationResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\CreateAction::make(),
+        ];
+    }
+}
