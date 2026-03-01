@@ -20,19 +20,15 @@
 
 
 
-
-
-#2. Make sure styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website
-
-
-
 ---
 
 ## 2- Mobile App
 
-f
+1. Security improvements
 
-v
+2. UI/UX improvements
+
+
 
 
 
@@ -40,6 +36,10 @@ v
 
 ## 3- Backend/API
 
-f
+1. Attachment malware scanning pipeline and enforced attachment type/size policy are still not end-to-end wired (schema exists, but no upload/scanning workflow in these modules).
 
-v
+2. Styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website
+
+
+
+
