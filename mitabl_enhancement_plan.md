@@ -6,8 +6,6 @@ By: Usman Saleem
 
 ---
 
-
-
 ## Decision Summary
 
 - Keep the public marketing website public and unauthenticated. It remains focused on brand/commercial pages.
@@ -716,8 +714,8 @@ Backward compatibility:
 
 - No compatibility alias required for greenfield deployments.
 - `/api/mobcontact` responds with 410 and deprecation headers when called.
-
-
+  
+  
 
 ---
 
