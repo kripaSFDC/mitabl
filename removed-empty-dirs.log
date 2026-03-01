@@ -1,0 +1,83 @@
+Date: 2026-03-01
+Action: Removed empty directories under website/, mobile-app/, and backend/
+
+Removed paths (as reported by the cleanup script):
+
+website:
+C:\Code\mitabl\website\webdata\mitabl html\js
+C:\Code\mitabl\website\webdata\mitabl html\img
+C:\Code\mitabl\website\webdata\mitabl html\css
+C:\Code\mitabl\website\webdata\mitabl html
+C:\Code\mitabl\website\webdata\images
+C:\Code\mitabl\website\webdata
+C:\Code\mitabl\website\tests\Unit
+C:\Code\mitabl\website\tests\Feature
+C:\Code\mitabl\website\tests
+C:\Code\mitabl\website\storage\framework\testing
+C:\Code\mitabl\website\storage\framework\cache\data
+C:\Code\mitabl\website\storage\framework\cache
+C:\Code\mitabl\website\storage\app\public
+C:\Code\mitabl\website\storage\app
+C:\Code\mitabl\website\storage\api-docs
+C:\Code\mitabl\website\routes
+C:\Code\mitabl\website\resources\views\mob
+C:\Code\mitabl\website\resources\views\Mail
+C:\Code\mitabl\website\resources\views\layouts
+C:\Code\mitabl\website\resources\views\includes\frontend
+C:\Code\mitabl\website\resources\views\includes
+C:\Code\mitabl\website\resources\views\frontend
+C:\Code\mitabl\website\resources\views
+C:\Code\mitabl\website\resources\lang\en
+C:\Code\mitabl\website\resources\lang
+C:\Code\mitabl\website\resources\js
+C:\Code\mitabl\website\resources\css
+C:\Code\mitabl\website\resources
+C:\Code\mitabl\website\public\Images\user
+C:\Code\mitabl\website\public\Images\kitchen\food
+C:\Code\mitabl\website\public\Images\kitchen
+C:\Code\mitabl\website\public\Images
+C:\Code\mitabl\website\database\seeders
+C:\Code\mitabl\website\database\migrations
+C:\Code\mitabl\website\database\factories
+C:\Code\mitabl\website\database
+C:\Code\mitabl\website\config
+C:\Code\mitabl\website\app\Providers
+C:\Code\mitabl\website\app\Notifications
+C:\Code\mitabl\website\app\Models
+C:\Code\mitabl\website\app\Mail
+C:\Code\mitabl\website\app\Http\Resources\User
+C:\Code\mitabl\website\app\Http\Resources\Restaurant
+C:\Code\mitabl\website\app\Http\Resources\Order
+C:\Code\mitabl\website\app\Http\Resources
+C:\Code\mitabl\website\app\Http\Middleware
+C:\Code\mitabl\website\app\Http\Controllers\Api
+C:\Code\mitabl\website\app\Http\Controllers
+C:\Code\mitabl\website\app\Http
+C:\Code\mitabl\website\app\Exceptions
+C:\Code\mitabl\website\app\Console
+C:\Code\mitabl\website\app
+
+mobile-app:
+(no empty directories were found/removed)
+
+backend:
+C:\Code\mitabl\backend\vendor\symfony\string\Resources\bin
+C:\Code\mitabl\backend\vendor\symfony\mime\Resources\bin
+C:\Code\mitabl\backend\vendor\symfony\mime\Resources
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportWireText
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportWireShow
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportWireIgnore
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportWireConfirm
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportTransitions
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportStdClasses
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportPolling
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportErrorResponses
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportDataBinding
+C:\Code\mitabl\backend\vendor\livewire\livewire\src\Features\SupportAccessingParent
+C:\Code\mitabl\backend\myproject\vendor\symfony\string\Resources\bin
+C:\Code\mitabl\backend\myproject\vendor\symfony\mime\Resources\bin
+C:\Code\mitabl\backend\myproject\vendor\symfony\mime\Resources
+
+Notes:
+- Git reported the working tree was clean when deletions were attempted earlier. Many of the removed paths were in `vendor/` or other directories typically ignored by git; Git does not track empty directories.
+- This log documents the filesystem removals and is being committed so there's a recorded change in the repository history.
