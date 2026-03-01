@@ -21,7 +21,7 @@ It reflects a code-first audit across app entry points, routing, feature modules
 
 ### FAQ content source policy
 
-- The canonical FAQ source for all clients is the public website page: `https://mitabl.com/faq` (Option A).
+- The canonical FAQ source for all clients is the public website page: `https://mitabl.com/faq`.
 - The mobile app must not ship duplicated static FAQ copy as native text content.
 - Any FAQ content updates are website-owned changes and should be done only in the website FAQ source files.
 
