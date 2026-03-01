@@ -10,9 +10,14 @@ class BookingRepository {
   Future<dynamic?> getBookings(
       {int? page, int? limit, bool? isUpcoming, String? sortBy, String? status = ''}) async {
     try {
+      final resolvedPage = page ?? 1;
+      final resolvedLimit = limit ?? 10;
+      final safeSortBy = sortBy ?? '';
+      final safeStatus = status ?? '';
+
       final url = isUpcoming!
-          ? '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenupcomingorders?page=${1}&limit=${10}${sortBy!.isNotEmpty ? '&sortby=${sortBy}' : ''}'
-          : '${GlobalConfiguration().getValue<String>('api_base_url')}v1/allorders?page=${1}&limit=${10}${sortBy!.isNotEmpty ? '&sortby=${sortBy}' : ''}${status!.isNotEmpty ? '&status=${status}' : ''}';
+          ? '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenupcomingorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}'
+          : '${GlobalConfiguration().getValue<String>('api_base_url')}v1/allorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}${safeStatus.isNotEmpty ? '&status=$safeStatus' : ''}';
 
       print(url);
 

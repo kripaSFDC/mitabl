@@ -11,12 +11,13 @@
          <div class="col-md-6">
             <div class="contact-data">
                <!-- <h2>Contact us</h2> -->
-               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tellus elit. </p>
+               <p>Need help with your account, payment, or an order? Submit a support request below and our team will follow up by email.</p>
+               <p class="small text-muted">Tip: choose <strong>Payment</strong> or <strong>Complaint</strong> to include your order ID for faster resolution.</p>
                <form action="/api/support/ticket" method="POST" id="mob-contact">
 
                   <div class="form-outer">
                      <select id="category" name="category" onchange="getval(this);">
-                        <option value="">Type</option>
+                        <option value="">Type (select a category)</option>
                         <option value="account">Registration</option>
                         <option value="payment">Payment</option>
                         <option value="order">Complaint</option>
@@ -26,7 +27,7 @@
                      
                   </div>
                   <div class="form-outer" id="order_id" style="display:none;">
-                     <input id="order_id_input" maxlength="40" name="order_id" size="20" type="text" placeholder="Order Id" />
+                     <input id="order_id_input" maxlength="40" name="order_id" size="20" type="text" placeholder="Order Id" title="Provide the order id shown in your booking history." />
                      <span style="display:none;" class="error error-type">Please enter order id.</span>
                   </div>
                   <div class="form-outer">

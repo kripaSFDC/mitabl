@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\WebApiToCurlController;
 Route::post('preregister', [WebApiToCurlController::class, 'preRegister']);
 
 Route::post('support/ticket', [WebApiToCurlController::class, 'supportTicket']);
+Route::get('v1/mob-contact', [WebApiToCurlController::class, 'mobileContact']);
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });

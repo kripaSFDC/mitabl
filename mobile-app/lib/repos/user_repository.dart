@@ -281,10 +281,10 @@ class UserRepository {
       //for image and videos and files
 
       if (filePaths.isNotEmpty) {
-        filePaths.forEach((element) async {
+        for (final element in filePaths) {
           request.files
-              .add(await http.MultipartFile.fromPath("images[]", "${element}"));
-        });
+              .add(await http.MultipartFile.fromPath("images[]", element));
+        }
       }
 
       request.fields.addAll({
