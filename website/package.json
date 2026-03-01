@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Static marketing site assets",
   "scripts": {
-    "build": "echo 'Static site: no build step required'",
-    "test": "echo 'No website runtime tests for static site'"
+    "build": "node build-static-site.js",
+    "test": "npm run build"
   }
 }

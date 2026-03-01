@@ -1,8 +1,8 @@
-<!doctype html>
+const header = ({ pageTitle }) => `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Contact mitabl</title>
+    <title>${pageTitle}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
     <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
@@ -31,62 +31,26 @@
       </div>
     </header>
     <main id="main-content" tabindex="-1">
-<section class="about-section">
-   <div class="container">
-      <div class="row">
-         <div class="col-md-8">
-            <h2>Contact mitabl</h2>
-            <p>Connecting local cooks and food lovers with confidence, care, and community.</p>
-         </div>
-      </div>
-   </div>
-</section>
+`;
 
-<section class="contact-sec">
-   <div class="container">
-      <div class="row">
-         <div class="col-lg-5">
-            <div class="contact-data">
-               <h2>Let's build better local food moments</h2>
-               <p><strong>mitabl</strong> is where local flavour meets modern reliability.</p>
-               <p>Whether you're a foodie, a micook, or a partner, we'd love to hear from you.</p>
-               <p><strong>Email:</strong> <a href="mailto:mitablinfo@gmail.com">mitablinfo@gmail.com</a></p>
-               <p><strong>Follow mitabl:</strong></p>
-               <ul class="social-links">
-                  <li><a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-                  <li><a href="https://www.facebook.com/mitabl" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-                  <li><a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-                  <li><a href="https://x.com/mitabl" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
-               </ul>
-            </div>
-         </div>
-         <div class="col-lg-7">
-            <div class="contact-data">
-               <h2>Send us a message</h2>
-               <p>Use the form below to email our team directly at <a href="mailto:mitablinfo@gmail.com">mitablinfo@gmail.com</a>.</p>
-               <form class="contact-form" action="mailto:mitablinfo@gmail.com" method="post" enctype="text/plain">
-                  <div class="form-outer">
-                     <input type="text" name="Name" placeholder="Your full name" required>
-                  </div>
-                  <div class="form-outer">
-                     <input type="email" name="Email" placeholder="Your email address" required>
-                  </div>
-                  <div class="form-outer">
-                     <input type="text" name="Subject" placeholder="Subject" required>
-                  </div>
-                  <div class="form-outer">
-                     <textarea name="Message" placeholder="How can we help you?" required></textarea>
-                  </div>
-                  <div class="form-outer">
-                     <input type="submit" value="Send Email">
-                  </div>
-               </form>
-            </div>
-         </div>
+const modal = `
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="comingSoonTitle">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close coming soon dialog">&times;</button>
+        </div>
+        <div class="modal-body">
+          <img src="/frontend/images/rocket.png" alt="Rocket icon for coming soon message">
+          <h3 id="comingSoonTitle">Coming Soon...</h3>
+          <p>We are preparing something amazing and exciting for you.</p>
+        </div>
       </div>
-   </div>
-</section>
+    </div>
+  </div>
+`;
 
+const footer = ({ showStoreBadges }) => `
     </main>
     <footer role="contentinfo">
       <div class="container">
@@ -107,7 +71,7 @@
           </div>
           <div class="col-md-4">
             <div class="footer-app">
-              <a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a><a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl LinkedIn (opens in a new tab)">LinkedIn</a>
+              ${showStoreBadges ? '<a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a><a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>' : '<a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a><a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl LinkedIn (opens in a new tab)">LinkedIn</a>'}
             </div>
           </div>
         </div>
@@ -143,3 +107,6 @@
     </script>
   </body>
 </html>
+`;
+
+module.exports = { header, footer, modal };
