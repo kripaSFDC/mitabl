@@ -1,35 +1,29 @@
-Marketing Website
-=================
+Marketing Website (Static)
+==========================
 
-## Setup Steps 
+This directory now contains a static frontend for the mitabl marketing site.
 
-Setup steps:
+## Local preview
 
-PLease empty your directory and database then follow these steps:
+From the repository root:
 
-1.clone this respository. (1 time command)
+```bash
+docker compose up --build website
+```
 
-2.run command "composer install & npm install". (1 time command)
+Then open `http://localhost:8080`.
 
-3.create .env file with command " cp .env.example .env " (1 time command)
+## Routes
 
-4.change database credentials in ".env" file. (For connection with database. 1 time changes.)
+- `/`
+- `/about`
+- `/faq`
+- `/privacy-policy`
+- `/terms`
+- `/health`
 
-5.to generate application key run command "php artisan key:generate". (For generate unique key of application. 1 time changes.)
+## Notes
 
-
-6.run command "php artisan optimize:clear ". (For clear application cache of db,routes etc. run with every pull)
-
-7.run command "composer dump-autoload". (1 time command)
-
-
-8.To give read/write permissions to "storage & bootstrap & public" folders run command "chmod -R 777 storage" & "chmod -R 777 bootstrap" & "chmod -R 777 public". (1 time command)
-
-
-
-9.please bind your hosting url to public folder.  (1 time command)
-		
-			Or
-
-If you test on localhost then run "php artisan serve" its serve application on port 8000 
-
+- No Laravel runtime is required for `website/`.
+- No PHP/composer setup is required.
+- Static assets are served from `website/public/` via nginx.

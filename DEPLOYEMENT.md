@@ -16,7 +16,6 @@ This guide provides **step-by-step deployment instructions** for:
 - Access to this repository.
 - Environment-specific `.env` values for:
   - backend (`backend/.env`)
-  - website (`website/.env`)
 - DNS names (production) for website and API.
 - Stripe/FCM/Auth secrets and DB credentials.
 
@@ -54,12 +53,6 @@ cd mitabl
 Copy-Item backend/.env.example backend/.env
 ```
 
-2. Website env:
-
-```powershell
-Copy-Item website/.env.example website/.env
-```
-
 3. Update key variables in **backend/.env**:
 
 - `APP_ENV=local` (or `staging` for test parity)
@@ -71,17 +64,6 @@ Copy-Item website/.env.example website/.env
 - `DB_PASSWORD=root`
 - `JWT_SECRET` (generate later if blank)
 - Stripe/FCM variables as needed for test
-
-4. Update key variables in **website/.env**:
-
-- `APP_ENV=local`
-- `APP_URL=http://localhost:8080`
-- `DB_HOST=db`
-- `DB_PORT=3306`
-- `DB_DATABASE=mitabl`
-- `DB_USERNAME=root`
-- `DB_PASSWORD=root`
-- `BACKEND_API_BASE_URL=http://backend:8000` (or equivalent configured key in `config/services.php`)
 
 ## 2.4 Build and start stack
 
@@ -95,7 +77,6 @@ Expected services:
 
 - `mitabl-db`
 - `mitabl-db-migrate`
-- `mitabl-website-db-migrate`
 - `mitabl-backend`
 - `mitabl-website`
 - `mitabl-mobile` (build/runtime container)
@@ -124,13 +105,6 @@ docker compose exec backend php artisan key:generate --force
 docker compose exec backend php artisan jwt:secret --force
 docker compose exec backend php artisan migrate --force
 docker compose exec backend php artisan db:seed --force
-```
-
-Website key/migrations if needed:
-
-```powershell
-docker compose exec website php artisan key:generate --force
-docker compose exec website php artisan migrate --force
 ```
 
 ## 2.7 Admin access setup (simplified)
@@ -170,7 +144,6 @@ docker compose logs -f db
 Common fixes:
 - Container fails on DB connection: wait for DB healthcheck and re-run migration job.
 - 500 errors: verify env keys (`APP_KEY`, `JWT_SECRET`).
-- Intake proxy failures on website: verify backend base URL env/config.
 
 ## 2.9 Stop and clean test environment
 
@@ -239,7 +212,6 @@ cd /opt
 git clone <your-repo-url> mitabl
 cd mitabl
 cp backend/.env.example backend/.env
-cp website/.env.example website/.env
 ```
 
 Set production values:
@@ -254,14 +226,6 @@ Set production values:
 - `JWT_SECRET` (generated securely)
 - Stripe + FCM keys
 - mail transport settings
-
-### website/.env (minimum)
-
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL=https://www.<your-domain>`
-- DB credentials if website DB is used
-- backend API base URL -> `https://api.<your-domain>` (matching `config/services.php` key)
 
 ## 3.5 Bring up stack
 
@@ -287,8 +251,6 @@ docker compose exec backend php artisan jwt:secret --force
 docker compose exec backend php artisan migrate --force
 docker compose exec backend php artisan db:seed --force
 
-docker compose exec website php artisan key:generate --force
-docker compose exec website php artisan migrate --force
 ```
 
 > Run `db:seed` in production only when approved by release policy.
@@ -415,7 +377,7 @@ docker compose exec db sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" mitabl' 
 5. Run health checks.
 6. Run smoke tests for:
    - API auth + health
-   - Website landing + intake forms
+   - Website landing pages
    - Admin login + key list screens
 
 Example:
@@ -436,7 +398,6 @@ curl -f https://www.<your-domain>/health
 - [ ] Backend health endpoints return expected status.
 - [ ] Website `/health` returns `ok`.
 - [ ] Admin panel reachable and role-based access behaves correctly.
-- [ ] Intake APIs (`/api/preregister`, `/api/support/ticket`) working from website and direct backend paths.
 - [ ] Payment configuration keys present and no hardcoded secrets in repo.
 - [ ] Queue backlog and failed jobs are monitored.
 
