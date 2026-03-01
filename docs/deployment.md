@@ -22,7 +22,7 @@ If you need the mobile build tools container:
 docker compose --profile mobile-devtools up --build -d mobile-app
 ```
 
-### Phase0 stack (`deploy/docker-compose.phase0.yml`)
+### Target architecture stack (`deploy/docker-compose.architecture.yml`)
 Services:
 - `db-migrate`
 - `backend-api`
@@ -31,11 +31,11 @@ Services:
 - `marketing-web`
 - `redis`
 
-> Note: Phase0 does **not** provision MySQL. Use a managed/external database and set `DB_HOST` in `deploy/environments/*.env`.
+> Note: The target architecture stack does **not** provision MySQL. Use a managed/external database and set `DB_HOST` in `deploy/environments/*.env`.
 
 Start:
 ```bash
-docker compose -f deploy/docker-compose.phase0.yml up --build -d
+docker compose -f deploy/docker-compose.architecture.yml up --build -d
 ```
 
 ## 2) Environment templates
@@ -76,9 +76,9 @@ curl -fsS http://localhost:8000/api/health/ready
 curl -fsS http://localhost:8080/health
 ```
 
-Phase0:
+Target architecture:
 ```bash
-docker compose -f deploy/docker-compose.phase0.yml ps
+docker compose -f deploy/docker-compose.architecture.yml ps
 curl -fsS http://localhost:8000/api/health/live
 curl -fsS http://localhost:8001/api/health/live
 curl -fsS http://localhost:8080/health
@@ -91,4 +91,4 @@ curl -fsS http://localhost:8080/health
 docker compose logs db-migrate
 ```
 - If API fails boot, verify `APP_KEY`, `JWT_SECRET`, DB/Redis connectivity.
-- If queue is unhealthy in phase0, verify Redis health and Horizon process logs.
+- If queue is unhealthy in the target architecture stack, verify Redis health and Horizon process logs.
