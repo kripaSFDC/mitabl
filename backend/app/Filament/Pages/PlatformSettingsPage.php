@@ -60,7 +60,7 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->required()
                                     ->maxLength(255)
                                     ->placeholder('feature.flag_name')
-                                    ->helperText('Use stable dot-notation keys (for example auth.lockout.window_minutes).'),
+                                    ->helperText('Use stable dot-notation keys (for example auth.lockout.window_minutes). Keys under support/session/admin/stripe are platform-managed runtime controls.'),
                                 Forms\Components\Select::make('value_type')
                                     ->required()
                                     ->helperText('Choose the expected backend type so runtime parsing stays safe.')
@@ -75,22 +75,25 @@ class PlatformSettingsPage extends Page implements HasForms
                                 Forms\Components\Textarea::make('description')
                                     ->rows(2)
                                     ->maxLength(1000)
-                                    ->helperText('Describe impact and rollback hints for on-call operators.'),
+                                    ->helperText('Describe impact, safe ranges, and rollback hints for operators. This text serves as inline admin guidance.'),
                                 Forms\Components\Toggle::make('value_boolean')
                                     ->label('Boolean value')
+                                    ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'boolean'),
                                 Forms\Components\TextInput::make('value_integer')
                                     ->label('Integer value')
                                     ->numeric()
+                                    ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'integer'),
                                 Forms\Components\Textarea::make('value_string')
                                     ->label('String value')
                                     ->rows(3)
+                                    ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'string'),
                                 Forms\Components\Textarea::make('value_json')
                                     ->label('JSON value')
                                     ->rows(8)
-                                    ->helperText('Must be valid JSON.')
+                                    ->helperText(fn (Forms\Get $get): string => 'Must be valid JSON. ' . $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'json'),
                             ])
                             ->columns(2)
@@ -113,7 +116,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function save(): void
     {
-        if (! Filament::auth()->user()?->can('platform_settings.edit')) {
+        if (! $this->canManagePlatformConfiguration()) {
             Notification::make()->title('You do not have permission to modify platform settings.')->danger()->send();
             return;
         }
@@ -182,7 +185,7 @@ class PlatformSettingsPage extends Page implements HasForms
             ->values();
 
         if ($highRiskCandidates->isNotEmpty()) {
-            if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
                 Notification::make()
                     ->title('High-risk settings require publish-level approval permission.')
                     ->danger()
@@ -301,7 +304,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function approveRequest(int $requestId): void
     {
-        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+        if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
             Notification::make()->title('You do not have permission to approve high-risk settings changes.')->danger()->send();
             return;
         }
@@ -333,7 +336,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function activateRequest(int $requestId): void
     {
-        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+        if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
             Notification::make()->title('You do not have permission to activate high-risk settings changes.')->danger()->send();
             return;
         }
@@ -469,7 +472,40 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return (bool) Filament::auth()->user()?->can('platform_settings.view');
+        $user = Filament::auth()->user();
+
+        return (bool) ($user?->can('platform_settings.view')
+            && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
+    }
+
+
+    private function canManagePlatformConfiguration(): bool
+    {
+        $user = Filament::auth()->user();
+
+        return (bool) ($user?->can('platform_settings.edit')
+            && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
+    }
+
+    private function settingHelpForKey(string $key): string
+    {
+        $normalized = strtolower(trim($key));
+
+        return match (true) {
+            str_contains($normalized, 'support.sla') => 'SLA values are in minutes. Lower values tighten response/resolution targets and can increase staffing pressure.',
+            $normalized === 'support.duplicate_window_minutes' => 'Defines the deduplication lookback window (minutes) for newly submitted support tickets.',
+            $normalized === 'support.reopen_window_hours' => 'Defines how long a resolved ticket can be reopened after resolution (hours).',
+            $normalized === 'support.honeypot_field' => 'Set to a hidden field name rendered in forms. Bots filling this field are treated as spam.',
+            $normalized === 'admin.security.reauth_minutes' => 'Step-up auth window for sensitive actions in admin. Keep low for stronger security.',
+            $normalized === 'session.lifetime_minutes' => 'Admin/API session idle timeout in minutes.',
+            $normalized === 'session.expire_on_close' => 'When enabled, session cookies expire when the browser closes.',
+            $normalized === 'stripe.secret_key' => 'Secret credential for backend Stripe API calls. Rotate carefully and verify webhooks/payments after update.',
+            $normalized === 'stripe.publishable_key' => 'Public key used by front-end Stripe SDK flows.',
+            $normalized === 'stripe.client_id' => 'Stripe Connect client identifier for OAuth flows.',
+            $normalized === 'stripe.redirect_uri' => 'OAuth callback URL. Use absolute URL or a relative path (for example /api/stripe/callback).',
+            $normalized === 'stripe.dashboard_base_url' => 'Base URL used for admin links to Stripe dashboard payment pages.',
+            default => 'Document intended use, safe values, and rollback steps before saving.',
+        };
     }
 
     private function isHighRiskKey(string $key): bool
