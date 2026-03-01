@@ -34,14 +34,13 @@ class PhaseOneFoundationRegressionTest extends TestCase
         $this->assertStringContainsString("->authPasswordBroker('admin_users')", $panelProvider);
     }
 
-    public function test_filament_panel_provider_is_registered_and_branding_env_keys_exist(): void
+    public function test_filament_panel_provider_is_registered_and_uses_static_admin_path(): void
     {
         $appConfig = (string) file_get_contents(config_path('app.php'));
-        $envExample = (string) file_get_contents(base_path('.env.example'));
+        $panelProvider = (string) file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
 
         $this->assertStringContainsString('App\\Providers\\Filament\\AdminPanelProvider::class', $appConfig);
-        $this->assertStringContainsString('ADMIN_PANEL_PATH=', $envExample);
-        $this->assertStringContainsString('ADMIN_BRAND_LOGO_URL=', $envExample);
+        $this->assertStringContainsString("->path('admin')", $panelProvider);
     }
 
     public function test_admin_permission_tables_are_scoped(): void

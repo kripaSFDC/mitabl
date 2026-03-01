@@ -424,7 +424,7 @@ class SystemHealthService
 
     private function checkFcm(): array
     {
-        $fcmKey = (string) env('FCM_SERVER_KEY', '');
+        $fcmKey = (string) config('services.fcm.server_key', '');
 
         if ($fcmKey === '') {
             return [

@@ -504,6 +504,8 @@ class PlatformSettingsPage extends Page implements HasForms
             $normalized === 'stripe.client_id' => 'Stripe Connect client identifier for OAuth flows.',
             $normalized === 'stripe.redirect_uri' => 'OAuth callback URL. Use absolute URL or a relative path (for example /api/stripe/callback).',
             $normalized === 'stripe.dashboard_base_url' => 'Base URL used for admin links to Stripe dashboard payment pages.',
+            $normalized === 'integrations.google_maps.api_key' => 'Google Maps API key used for geocoding/address enrichment. Rotate with provider console and validate geocoding flows post-change.',
+            $normalized === 'integrations.fcm.server_key' => 'FCM server key used for push notifications. Treat as secret and validate push delivery after rotation.',
             default => 'Document intended use, safe values, and rollback steps before saving.',
         };
     }

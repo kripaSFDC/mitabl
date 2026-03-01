@@ -163,6 +163,18 @@ class PlatformSettingRegistry
             'description' => 'Base URL used for admin deep-links into Stripe dashboard payment views.',
             'value' => ['value' => 'https://dashboard.stripe.com/payments'],
         ],
+        [
+            'key' => 'integrations.google_maps.api_key',
+            'value_type' => 'string',
+            'description' => 'Google Maps API key used by geocoding/location workflows.',
+            'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'integrations.fcm.server_key',
+            'value_type' => 'string',
+            'description' => 'Firebase Cloud Messaging server key used to deliver push notifications.',
+            'value' => ['value' => ''],
+        ],
     ];
 
     /**

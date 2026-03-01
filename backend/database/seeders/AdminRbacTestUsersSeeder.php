@@ -20,8 +20,8 @@ class AdminRbacTestUsersSeeder extends Seeder
             return;
         }
 
-        $overrideExisting = filter_var((string) env('ADMIN_TEST_USERS_OVERRIDE_EXISTING', 'false'), FILTER_VALIDATE_BOOL);
-        $emailDomain = trim((string) env('ADMIN_TEST_USERS_EMAIL_DOMAIN', 'example.com'));
+        $overrideExisting = false;
+        $emailDomain = 'example.test';
 
         $usersByRole = [
             'super_admin' => 'Platform Super Admin',
@@ -56,34 +56,22 @@ class AdminRbacTestUsersSeeder extends Seeder
 
     private function shouldRunSeeder(): bool
     {
-        $seedEnabled = filter_var((string) env('ADMIN_TEST_USERS_ENABLED', 'false'), FILTER_VALIDATE_BOOL);
-
-        if ($seedEnabled) {
-            return true;
-        }
-
         if (app()->environment(['local', 'testing'])) {
             return true;
         }
 
-        Log::info('AdminRbacTestUsersSeeder skipped: ADMIN_TEST_USERS_ENABLED is false.');
+        Log::info('AdminRbacTestUsersSeeder skipped outside local/testing environments.');
 
         return false;
     }
 
     private function resolvePassword(): ?string
     {
-        $password = trim((string) env('ADMIN_TEST_USERS_PASSWORD', ''));
-
-        if ($password !== '') {
-            return $password;
-        }
-
         if (app()->environment(['local', 'testing'])) {
             return 'password';
         }
 
-        Log::warning('AdminRbacTestUsersSeeder skipped: ADMIN_TEST_USERS_PASSWORD is not configured.');
+        Log::warning('AdminRbacTestUsersSeeder skipped outside local/testing environments.');
 
         return null;
     }

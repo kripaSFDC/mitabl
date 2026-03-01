@@ -29,6 +29,8 @@ class PlatformRuntimeConfigService
         'stripe.client_id' => ['key' => 'stripe.client_id', 'type' => 'string', 'default' => ''],
         'stripe.redirect_uri' => ['key' => 'stripe.redirect_uri', 'type' => 'string', 'default' => '/api/stripe/callback'],
         'services.stripe.dashboard_base_url' => ['key' => 'stripe.dashboard_base_url', 'type' => 'string', 'default' => 'https://dashboard.stripe.com/payments'],
+        'services.google_maps.api_key' => ['key' => 'integrations.google_maps.api_key', 'type' => 'string', 'default' => ''],
+        'services.fcm.server_key' => ['key' => 'integrations.fcm.server_key', 'type' => 'string', 'default' => ''],
     ];
 
     public function apply(): void

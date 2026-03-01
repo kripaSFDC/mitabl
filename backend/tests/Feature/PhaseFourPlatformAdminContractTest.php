@@ -58,6 +58,8 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString("'onboarding.enabled'", $settingRegistry);
         $this->assertStringContainsString("'maintenance.read_only_mode'", $settingRegistry);
         $this->assertStringContainsString("'incident.degraded_mode'", $settingRegistry);
+        $this->assertStringContainsString("'integrations.google_maps.api_key'", $settingRegistry);
+        $this->assertStringContainsString("'integrations.fcm.server_key'", $settingRegistry);
         $this->assertStringContainsString('refreshChecks', $healthPage);
         $this->assertStringContainsString('runChecks', $healthService);
         $this->assertStringContainsString('checkDatabase', $healthService);
@@ -68,6 +70,7 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString('checkTicketIntake', $healthService);
         $this->assertStringContainsString('checkStorage', $healthService);
         $this->assertStringContainsString('checkFcm', $healthService);
+        $this->assertStringContainsString("config('services.fcm.server_key'", $healthService);
         $this->assertStringContainsString('checkStripe', $healthService);
         $this->assertStringContainsString('checkSchedulerHeartbeat', $healthService);
         $this->assertStringContainsString('checkDegradedMode', $healthService);

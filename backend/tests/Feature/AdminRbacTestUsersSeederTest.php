@@ -23,7 +23,7 @@ class AdminRbacTestUsersSeederTest extends TestCase
         $this->assertStringContainsString("'customer_service'", $seeder);
         $this->assertStringContainsString("'finance_readonly'", $seeder);
 
-        $this->assertStringContainsString("ADMIN_TEST_USERS_OVERRIDE_EXISTING", $seeder);
+        $this->assertStringContainsString('$overrideExisting = false', $seeder);
         $this->assertStringContainsString('firstOrNew', $seeder);
     }
 }
