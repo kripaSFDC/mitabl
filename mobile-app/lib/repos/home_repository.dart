@@ -5,28 +5,25 @@ import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
 
 class HomeRepository {
+  HomeRepository({http.Client? httpClient}) : _httpClient = httpClient ?? http.Client();
 
-  Future<dynamic?> recommendedRestaurants({required Map<String, dynamic> data,required UserModel? userModel}) async {
+  final http.Client _httpClient;
+
+  Future<http.Response> recommendedRestaurants(
+      {required Map<String, dynamic> data, required UserModel? userModel}) async {
     final url = ApiContract.uri('v1/recommendedrestaurant');
 
-    var headers = {
-      'Authorization': 'Bearer ${userModel!.data!.accessToken}',
-      'Content-Type': 'application/json'
-    };
-    var request = http.Request('POST', url);
-    request.body = json.encode(data);
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    var responsed = await http.Response.fromStream(response);
-    // if (response.statusCode == 200) {
-    //   print(json.decode(responsed.body));
-    // }
-    return responsed;
+    return _httpClient.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> topRatedRestaurants(
+  Future<http.Response> topRatedRestaurants(
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
     final url = ApiContract.uri(
@@ -34,24 +31,17 @@ class HomeRepository {
       queryParameters: {'page': 1, 'limit': 20},
     );
 
-    var headers = {
-      'Authorization': 'Bearer ${userModel!.data!.accessToken}',
-      'Content-Type': 'application/json'
-    };
-    var request = http.Request('POST', url);
-    request.body = json.encode(data);
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    var responsed = await http.Response.fromStream(response);
-    if (response.statusCode == 200) {
-      print(json.decode(responsed.body));
-    }
-    return responsed;
+    return _httpClient.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> nearByRestaurants(
+  Future<http.Response> nearByRestaurants(
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
     final url = ApiContract.uri(
@@ -59,20 +49,17 @@ class HomeRepository {
       queryParameters: {'page': 1, 'limit': 20},
     );
 
-    var headers = {
-      'Authorization': 'Bearer ${userModel!.data!.accessToken}',
-      'Content-Type': 'application/json'
-    };
-    var request = http.Request('POST', url);
-    request.body = json.encode(data);
-    request.headers.addAll(headers);
+    return _httpClient.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+  }
 
-    http.StreamedResponse response = await request.send();
-
-    var responsed = await http.Response.fromStream(response);
-    if (response.statusCode == 200) {
-      print('SunnyRes ${json.decode(responsed.body)}');
-    }
-    return responsed;
+  void dispose() {
+    _httpClient.close();
   }
 }

@@ -237,11 +237,12 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
               ),
               ListTile(
                 onTap: () {
-                  if (widget.routeArguments!.id == 'foodie') {
+                  final routeId = widget.routeArguments?.id;
+                  if (routeId == 'foodie') {
                     navigatorKey.currentState!.pushNamed('/EditProfileFoodie');
-                  } else {
-                    navigatorKey.currentState!.pushNamed('/ProfileCook');
+                    return;
                   }
+                  navigatorKey.currentState!.pushNamed('/ProfileCook');
                 },
                 minVerticalPadding: 0,
                 contentPadding: EdgeInsets.zero,

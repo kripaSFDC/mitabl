@@ -1,16 +1,20 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:global_configuration/global_configuration.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/app_logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../model/user_model.dart';
 
 final navigatorKeyHome = GlobalKey<NavigatorState>();
 
 class UserRepository {
+  UserRepository({http.Client? httpClient}) : _httpClient = httpClient ?? http.Client();
+
   UserModel? user;
+  final http.Client _httpClient;
 
   Future<String> _accessToken() async {
     final currentUser = user ?? await getUser();
@@ -23,19 +27,13 @@ class UserRepository {
     return token;
   }
 
-
   Future<UserModel?> getUser() async {
-    var prefs = await SharedPreferences.getInstance();
-    //await prefs.clear();
-    if (/*user == null &&*/ prefs.containsKey('current_user')) {
-      //  _user =User.fromJson( json.decode(await prefs.get('current_user'));
-      var userMap =
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('current_user')) {
+      final userMap =
           jsonDecode(prefs.getString('current_user')!) as Map<String, dynamic>;
       user = UserModel.fromJson(userMap);
-
-      //print("userfound ${user!.toJson()}");
     } else {
-      // print("user null");
       return user;
     }
     return user;
@@ -44,19 +42,16 @@ class UserRepository {
   Future<void> setCurrentUser(String jsonString) async {
     try {
       if (json.decode(jsonString) != null) {
-        var prefs = await SharedPreferences.getInstance();
-        // var user = User.fromJson(json.decode(jsonString)['result']);
-        // await prefs.setString("apiKey", user.apiKey!);
+        final prefs = await SharedPreferences.getInstance();
 
         await prefs
             .setString('current_user', json.encode(json.decode(jsonString)))
             .then((value) {
-          //print('user saved ');
           updateUserInstance();
         });
       }
     } catch (e) {
-      print(e.toString());
+      AppLogger.error('Failed to set current user', e);
       throw Exception(e);
     }
   }
@@ -67,253 +62,161 @@ class UserRepository {
   }
 
   void clearuserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     if (prefs.containsKey('current_user')) {
       prefs.remove('current_user');
-      // prefs.remove(AppConstants.VERSION_INFO);
     }
-    /* if (prefs.containsKey('disclosure')) {
-      prefs.remove('disclosure');
-    }*/
-    // prefs.clear();
   }
 
   Future<UserModel?> getCurrentUser() async {
     return user;
   }
 
-  Future<dynamic?> getCookProfile() async {
+  Future<http.Response> getCookProfile() async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getprofile';
 
-      print(url);
-      print(await _accessToken());
-      final client = http.Client();
-
-      final response = await client.get(
+      return _httpClient.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${await _accessToken()}",
-          "Accept": "application/json",
+          'Authorization': 'Bearer ${await _accessToken()}',
+          'Accept': 'application/json',
         },
       );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to get cook profile', e);
+      rethrow;
     }
   }
 
-  Future<dynamic?> getDashboardData() async {
+  Future<http.Response> getDashboardData() async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getdashboarddata';
 
-      print(url);
-      print(await _accessToken());
-      final client = http.Client();
-
-      final response = await client.get(
+      return _httpClient.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${await _accessToken()}",
-          "Accept": "application/json",
+          'Authorization': 'Bearer ${await _accessToken()}',
+          'Accept': 'application/json',
         },
       );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to get dashboard data', e);
+      rethrow;
     }
   }
 
-
-  Future<dynamic?> getFoodieProfile() async {
+  Future<http.Response> getFoodieProfile() async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getcustomerprofile';
 
-      print(url);
-      print(await _accessToken());
-      final client = http.Client();
-
-      final response = await client.get(
+      return _httpClient.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${await _accessToken()}",
-          "Accept": "application/json",
+          'Authorization': 'Bearer ${await _accessToken()}',
+          'Accept': 'application/json',
         },
       );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to get foodie profile', e);
+      rethrow;
     }
   }
 
-
-  Future<dynamic?> deleteImage({String? type, String? id}) async {
+  Future<http.Response> deleteImage({String? type, String? id}) async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/deleteimage';
 
-      print(url);
-      print(await _accessToken());
-      final client = http.Client();
-
-      var map = {};
-      map['id'] = id;
-      map['type'] = type;
-
-      final response = await client.post(Uri.parse(url),
-          headers: {
-          "Authorization": "Bearer ${await _accessToken()}",
-          "Accept": "application/json",
+      return _httpClient.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${await _accessToken()}',
+          'Accept': 'application/json',
         },
-          body: map);
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
+        body: {'id': id, 'type': type},
+      );
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to delete image', e);
+      rethrow;
     }
   }
 
-  //  v1/editprofile
-  Future<dynamic?> updateCookProfile(
+  Future<http.Response> updateCookProfile(
       {required Map<String, String> data, required String filePath}) async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/editprofile';
 
-      print(url);
-      print(data);
+      final request = http.MultipartRequest('POST', Uri.parse(url));
 
-      //for multipartrequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-
-      //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${await _accessToken()}",
-        "Accept": "application/json",
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
       });
 
-      //for image and videos and files
-
-      if (filePath.toString() != '') {
-        request.files
-            .add(await http.MultipartFile.fromPath("avatar", filePath));
+      if (filePath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
       }
 
       request.fields.addAll(data);
-      // request.fields['timings'] = '{}';
-      print('request ${request.url}  ${request.fields}');
-      //for completeing the request
-      var response = await request.send();
+      final response = await request.send();
 
-      //for getting and decoding the response into json format
-      var responsed = await http.Response.fromStream(response);
-      final responseData = json.decode(responsed.body);
-
-      print('response ${jsonDecode(responsed.body)}');
-      if (response.statusCode == 200) {
-        print("SUCCESS");
-        return responsed;
-      }
-      return responsed;
+      return http.Response.fromStream(response);
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to update cook profile', e);
+      rethrow;
     }
   }
 
-  //  v1/editprofile
-  Future<dynamic?> updateFoodieProfile(
+  Future<http.Response> updateFoodieProfile(
       {required Map<String, String> data, required String filePath}) async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/editprofile';
 
-      print(url);
-      print(data);
+      final request = http.MultipartRequest('POST', Uri.parse(url));
 
-      //for multipartrequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-
-      //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${await _accessToken()}",
-        "Accept": "application/json",
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
       });
 
-      //for image and videos and files
-
-      if (filePath.toString() != '') {
-        request.files
-            .add(await http.MultipartFile.fromPath("avatar", filePath));
+      if (filePath.isNotEmpty) {
+        request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
       }
 
       request.fields.addAll(data);
-      // request.fields['timings'] = '{}';
-      print('request ${request.url}  ${request.fields}');
-      //for completeing the request
-      var response = await request.send();
+      final response = await request.send();
 
-      //for getting and decoding the response into json format
-      var responsed = await http.Response.fromStream(response);
-      final responseData = json.decode(responsed.body);
-
-      print('response ${jsonDecode(responsed.body)}');
-      if (response.statusCode == 200) {
-        print("SUCCESS");
-        return responsed;
-      }
-      return responsed;
+      return http.Response.fromStream(response);
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to update foodie profile', e);
+      rethrow;
     }
   }
 
-  Future<dynamic?> vendorKitchenEditUpload(
+  Future<http.Response> vendorKitchenEditUpload(
       {required Map<String, dynamic> data,
       required List<String> filePaths}) async {
     try {
       final url =
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/mikitchn/editkitchen';
 
-      print(url);
-      print(data['name']);
+      final request = http.MultipartRequest('POST', Uri.parse(url));
 
-      //for multipartrequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-
-      //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${await _accessToken()}",
-        "Accept": "application/json",
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
       });
-
-      //for image and videos and files
 
       if (filePaths.isNotEmpty) {
         for (final element in filePaths) {
           request.files
-              .add(await http.MultipartFile.fromPath("images[]", element));
+              .add(await http.MultipartFile.fromPath('images[]', element));
         }
       }
 
@@ -327,23 +230,16 @@ class UserRepository {
         'dine_in': '${data['dine_in']}',
         'description': '${data['description']}',
       });
-      // request.fields['timings'] = '{}';
-      print('request ${request.url}  ${request.fields}');
-      //for completeing the request
-      var response = await request.send();
+      final response = await request.send();
 
-      //for getting and decoding the response into json format
-      var responsed = await http.Response.fromStream(response);
-      final responseData = json.decode(responsed.body);
-
-      print('response ${jsonDecode(responsed.body)}');
-      if (response.statusCode == 200) {
-        print("SUCCESS");
-        return responsed;
-      }
-      return responsed;
+      return http.Response.fromStream(response);
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Failed to update vendor kitchen', e);
+      rethrow;
     }
+  }
+
+  void dispose() {
+    _httpClient.close();
   }
 }
