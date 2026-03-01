@@ -20,12 +20,6 @@ class WebApiToCurlController extends Controller
 
     public function preRegister(Request $request)
     {
-        $payload = $request->all();
-        if (! isset($payload['mobile']) && isset($payload['phone'])) {
-            $payload['mobile'] = $payload['phone'];
-        }
-        $request->merge($payload);
-
         $honeypotField = (string) config('support.honeypot_field', 'website');
         $honeypotValue = $request->input($honeypotField);
         if (
@@ -45,11 +39,10 @@ class WebApiToCurlController extends Controller
             'consent_to_contact' => ['nullable', 'boolean'],
             'communication_preference' => ['nullable', Rule::in(['email', 'sms', 'phone', 'none'])],
             'captcha_token' => ['nullable', 'string'],
-            'g-recaptcha-response' => ['nullable', 'string'],
             $honeypotField => ['nullable'],
         ]);
 
-        $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
+        $this->validateCaptchaToken($validated['captcha_token'] ?? null);
 
         $result = $this->preRegistrationService->create([
             'first_name' => $validated['first_name'] ?? null,

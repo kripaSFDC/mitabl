@@ -15,7 +15,7 @@ This assessment validates `mitabl_enhancement_plan.md` against the current repos
 
 The codebase contains substantial implementation across the proposed architecture and module footprint (Filament resources/pages/widgets, CRM models/tables, policy/platform admin surfaces), but there are critical delivery gaps and broken/fragile areas that block a “fully delivered” sign-off:
 
-1. **Legacy compatibility regression on `/api/mobcontact`** (returns `410` instead of preserving intake behavior with deprecation bridge).
+1. **Legacy endpoint `/api/mobcontact` is intentionally removed for greenfield scope** (no fallback/alias maintained).
 2. **Contract/integration breakages reflected by broad failing test suite** (unit + feature).
 3. **Operational verification artifacts expected by tests are missing** (e.g., `docs/phase6_hardening_runbook.md`).
 4. **Implementation naming/contract drift vs plan** on selected module artifacts (mailables/widgets/pages naming and some behavior deltas).
@@ -56,11 +56,11 @@ The codebase contains substantial implementation across the proposed architectur
 - **Module 1 – Dashboard naming and contract drift:** plan expects specific widget class names and a custom dashboard page footprint; implementation uses a different set of widget class names and relies on Filament dashboard registration via provider. Functional intent is mostly there, but parity is naming/contract-drifted.
 - **Mailables list drift:** plan names include `SupportTicketConfirmation` and `SlaEscalationAlert`; implementation has `SupportTicketEscalated` and no direct `SupportTicketConfirmation` class by that exact name.
 
-## Critical functional gap
+## Greenfield surface decision
 
-- **Legacy `/api/mobcontact` replacement behavior is broken by hard removal.**
-  - Plan/compatibility expectation: replace legacy CRM case flow with local support ticket flow and preserve intake behavior during cutover.
-  - Current behavior: route returns `410` with “endpoint removed” message, which breaks backward compatibility callers.
+- **Legacy `/api/mobcontact` endpoint should remain removed for greenfield implementation.**
+  - Only `/api/support/ticket` is treated as the supported ticket intake contract.
+  - No compatibility alias or deprecation bridge is required.
 
 ---
 
@@ -84,7 +84,7 @@ The codebase contains substantial implementation across the proposed architectur
 
 ---
 
-## 4) API and behavioral compatibility validation
+## 4) API and behavioral contract validation
 
 ## Confirmed
 
@@ -93,8 +93,8 @@ The codebase contains substantial implementation across the proposed architectur
 
 ## Broken / risky
 
-- `/api/mobcontact` currently responds with `410` instead of aliasing to support ticket flow with deprecation headers and preserved success contract.
-- This directly conflicts with compatibility test expectations and increases risk of production intake drops for old clients.
+- `/api/mobcontact` is out of contract for greenfield scope and should not be exposed.
+- `/api/support/ticket` and `/api/preregister` are the only supported public intake contracts.
 
 ---
 
@@ -104,7 +104,7 @@ A full `php artisan test` run executed after dependency installation and reporte
 
 ### High-signal failures (likely real defects/gaps)
 
-- API compatibility tests around preregister/mobcontact contracts.
+- API contract tests around preregister/support-ticket surface definitions.
 - Admin action log immutability and sanitization tests.
 - System health service contract tests.
 - CRM service lifecycle and SLA workflow tests.
@@ -119,20 +119,17 @@ A full `php artisan test` run executed after dependency installation and reporte
 
 ## 6) Recommended remediation plan (priority order)
 
-1. **Restore legacy compatibility bridge immediately**
-   - Change `/api/mobcontact` to internally call support ticket intake contract.
-   - Return existing success payload shape plus deprecation headers.
-2. **Stabilize contract tests first**
+1. **Stabilize contract tests first**
    - Fix Phase 3/4/5/6 unit tests with highest business impact (intake, audit immutability, health checks, ticket SLA transitions).
-3. **Resolve missing artifact/document references**
+2. **Resolve missing artifact/document references**
    - Add missing hardening runbook/report files expected by tests or update tests to canonical paths.
-4. **Close naming/contract drift**
+3. **Close naming/contract drift**
    - Align class names or map them in documentation to avoid future maintenance ambiguity.
-5. **Run complete verification in CI-equivalent environment**
+4. **Run complete verification in CI-equivalent environment**
    - Execute full suite with MySQL + Redis + queue worker + scheduler + mail driver stubs.
 
 ---
 
 ## Final assessment statement
 
-The enhancement plan is **substantially implemented but not fully delivered**. The repo demonstrates broad architectural execution, yet current compatibility regressions and failing contract tests indicate unresolved functional debt that should be closed before declaring production-complete parity with the plan.
+The enhancement plan is **substantially implemented but not fully delivered**. The repo demonstrates broad architectural execution, yet remaining contract failures and environment-constrained test outcomes indicate unresolved functional debt that should be closed before declaring production-complete parity with the plan.
