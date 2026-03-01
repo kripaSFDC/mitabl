@@ -16,7 +16,7 @@ class PhaseThreeApiCompatibilityTest extends TestCase
         Mail::fake();
     }
 
-    public function test_preregister_persists_phone_when_client_uses_phone_key_alias(): void
+    public function test_preregister_requires_mobile_field_without_phone_alias_fallback(): void
     {
         $response = $this->postJson('/api/preregister', [
             'first_name' => 'Alias',
@@ -28,12 +28,11 @@ class PhaseThreeApiCompatibilityTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('isSuccess', true)
-            ->assertJsonPath('message', 'Your Registration Created Successfully');
+            ->assertJsonPath('isSuccess', true);
 
         $this->assertDatabaseHas('pre_registrations', [
             'email' => 'alias-phone@example.com',
-            'phone' => '0400123456',
+            'phone' => null,
             'source' => 'website',
         ]);
     }
@@ -76,7 +75,7 @@ class PhaseThreeApiCompatibilityTest extends TestCase
         ]);
     }
 
-    public function test_mobcontact_alias_preserves_ticket_contract_and_sets_deprecation_headers(): void
+    public function test_mobcontact_route_is_removed_for_greenfield_api_surface(): void
     {
         $response = $this->postJson('/api/mobcontact', [
             'requester_name' => 'Legacy Contact',
@@ -86,17 +85,12 @@ class PhaseThreeApiCompatibilityTest extends TestCase
             'description' => 'Need help from legacy contact endpoint.',
         ]);
 
-        $response->assertStatus(200)
-            ->assertJsonPath('isSuccess', true)
-            ->assertJsonPath('message', 'Contact Message Sent Successfully')
-            ->assertHeader('Deprecation', 'true')
-            ->assertHeader('X-Deprecated-Endpoint', '/api/mobcontact')
-            ->assertHeader('X-Replacement-Endpoint', '/api/support/ticket');
+        $response->assertStatus(404);
 
-        $this->assertDatabaseHas('support_tickets', [
+        $this->assertDatabaseMissing('support_tickets', [
             'requester_email' => 'mobcontact@example.com',
             'subject' => 'Legacy alias support intake',
-            'source' => 'website',
         ]);
     }
+
 }

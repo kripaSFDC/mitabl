@@ -42,11 +42,10 @@ class SupportTicketController extends Controller
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'max:' . (int) config('support.attachments.max_size_kb', 5120)],
             'captcha_token' => ['nullable', 'string'],
-            'g-recaptcha-response' => ['nullable', 'string'],
             $honeypotField => ['nullable'],
         ]);
 
-        $this->validateCaptchaToken($validated['captcha_token'] ?? $validated['g-recaptcha-response'] ?? null);
+        $this->validateCaptchaToken($validated['captcha_token'] ?? null);
 
         try {
             $actor = $request->user();

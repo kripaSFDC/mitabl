@@ -108,7 +108,7 @@ class PhaseSixHardeningUnitTest extends TestCase
         }
     }
 
-    public function test_phase_six_preregister_accepts_grecaptcha_response_alias_on_success(): void
+    public function test_phase_six_preregister_requires_captcha_token_field_when_secret_is_configured(): void
     {
         config(['services.recaptcha.secret' => 'phase6-test-secret']);
         Http::fake([
@@ -140,7 +140,7 @@ class PhaseSixHardeningUnitTest extends TestCase
             'last_name' => 'Captcha',
             'email' => 'alias@example.com',
             'interested_as' => 'cook',
-            'g-recaptcha-response' => 'valid-token',
+            'captcha_token' => 'valid-token',
         ]);
 
         $response = $controller->preRegister($request);
@@ -178,22 +178,7 @@ class PhaseSixHardeningUnitTest extends TestCase
             $this->assertArrayHasKey('captcha_token', $exception->errors());
         }
 
-        $legacyFieldRequest = Request::create('/api/support/ticket', 'POST', [
-            'requester_email' => 'captcha-support-legacy@example.com',
-            'subject' => 'Captcha support legacy field',
-            'description' => 'Legacy recaptcha response field should also be validated.',
-            'g-recaptcha-response' => 'invalid-token',
-        ]);
-
-        try {
-            $controller->store($legacyFieldRequest);
-            $this->fail('Expected support/ticket legacy captcha field validation to fail.');
-        } catch (ValidationException $exception) {
-            $this->assertSame(422, $exception->status);
-            $this->assertArrayHasKey('captcha_token', $exception->errors());
-        }
-
-        Http::assertSentCount(2);
+        Http::assertSentCount(1);
     }
 
     public function test_phase_six_horizon_gate_safely_denies_non_admin_users(): void
