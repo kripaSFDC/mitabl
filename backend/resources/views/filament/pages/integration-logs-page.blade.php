@@ -2,8 +2,8 @@
     <x-filament::section class="mb-4">
         <x-slot name="heading">Integration monitoring guide</x-slot>
         <x-slot name="description">
-            Review failed outbound events first, then validate retry counts and response snapshots. Use this as the
-            primary page for third-party delivery troubleshooting.
+            Review failed outbound events first, then validate retry counts and response snapshots. You can now replay
+            failed support integrations directly from this page.
         </x-slot>
     </x-filament::section>
 
@@ -29,6 +29,7 @@
                         <th class="px-3 py-2">Retries</th>
                         <th class="px-3 py-2">Error snapshot</th>
                         <th class="px-3 py-2">Created</th>
+                        <th class="px-3 py-2">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -42,10 +43,19 @@
                             <td class="px-3 py-2">{{ $log['retry_attempts'] }}</td>
                             <td class="px-3 py-2">{{ str($log['error_body'])->limit(150) }}</td>
                             <td class="px-3 py-2">{{ $log['created_at'] }}</td>
+                            <td class="px-3 py-2">
+                                @if ($canManage && in_array($log['status'], ['failed', 'error']))
+                                    <x-filament::button size="xs" color="warning" wire:click="replayFailed({{ $log['id'] }})">
+                                        Replay
+                                    </x-filament::button>
+                                @else
+                                    <span class="text-xs text-gray-500">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-3 py-4 text-center text-gray-600 dark:text-gray-300">
+                            <td colspan="9" class="px-3 py-4 text-center text-gray-600 dark:text-gray-300">
                                 No integration logs available.
                             </td>
                         </tr>

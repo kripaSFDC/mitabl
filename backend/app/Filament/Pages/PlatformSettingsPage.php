@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\PlatformSetting;
+use App\Models\PlatformSettingChangeRequest;
 use App\Services\AdminAuditLogService;
 use App\Services\AdminStepUpService;
 use App\Services\PlatformSettingRegistry;
@@ -31,6 +32,7 @@ class PlatformSettingsPage extends Page implements HasForms
     protected static string $view = 'filament.pages.platform-settings-page';
 
     public ?array $data = [];
+    public array $pendingApprovals = [];
 
     public function mount(): void
     {
@@ -38,6 +40,8 @@ class PlatformSettingsPage extends Page implements HasForms
             'settings' => app(PlatformSettingRegistry::class)->forAdminForm(),
             'change_reason' => '',
         ]);
+
+        $this->loadPendingApprovals();
     }
 
     public function form(Form $form): Form
@@ -196,10 +200,26 @@ class PlatformSettingsPage extends Page implements HasForms
 
             if (! app(AdminStepUpService::class)->validateCurrentPassword(
                 is_string($currentPassword) ? $currentPassword : null,
-                'Step-up authentication failed. Enter your admin password to apply high-risk platform setting changes.'
+                'Step-up authentication failed during high-risk validation stage.'
             )) {
                 return;
             }
+
+            $this->createApprovalRequests($rows, $highRiskCandidates->all(), $deletedKeys, $changeReason);
+
+            Notification::make()
+                ->title('High-risk changes validated and submitted for approval. Activate after approver sign-off.')
+                ->warning()
+                ->send();
+
+            app(AdminAuditLogService::class)->log('platform_settings.validated', request(), [
+                'high_risk_keys' => $highRiskCandidates->all(),
+                'change_reason' => $changeReason,
+            ]);
+
+            $this->mount();
+
+            return;
         }
 
         try {
@@ -277,6 +297,150 @@ class PlatformSettingsPage extends Page implements HasForms
 
         Notification::make()->title('Platform settings saved.')->success()->send();
         $this->mount();
+    }
+
+    public function approveRequest(int $requestId): void
+    {
+        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            Notification::make()->title('You do not have permission to approve high-risk settings changes.')->danger()->send();
+            return;
+        }
+
+        $request = PlatformSettingChangeRequest::query()->find($requestId);
+        if (! $request || $request->status !== PlatformSettingChangeRequest::STATUS_VALIDATED) {
+            return;
+        }
+
+        $actorId = Filament::auth()->id();
+        if ((int) $request->requested_by === (int) $actorId) {
+            Notification::make()->title('Two-person control: requester cannot approve their own high-risk change.')->danger()->send();
+            return;
+        }
+
+        $request->status = PlatformSettingChangeRequest::STATUS_APPROVED;
+        $request->approved_by = $actorId;
+        $request->approved_at = now();
+        $request->save();
+
+        app(AdminAuditLogService::class)->log('platform_settings.approved', request(), [
+            'request_id' => $request->id,
+            'setting_key' => $request->setting_key,
+        ]);
+
+        Notification::make()->title('High-risk change approved.')->success()->send();
+        $this->loadPendingApprovals();
+    }
+
+    public function activateRequest(int $requestId): void
+    {
+        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            Notification::make()->title('You do not have permission to activate high-risk settings changes.')->danger()->send();
+            return;
+        }
+
+        $request = PlatformSettingChangeRequest::query()->find($requestId);
+        if (! $request || $request->status !== PlatformSettingChangeRequest::STATUS_APPROVED) {
+            return;
+        }
+
+        DB::transaction(function () use ($request): void {
+            $setting = PlatformSetting::query()->firstOrNew([
+                'key' => $request->setting_key,
+            ]);
+
+            $isDeletion = $request->proposed_value === null;
+            if ($isDeletion) {
+                if ($setting->exists) {
+                    $setting->delete();
+                }
+            } else {
+                $setting->value = $request->proposed_value;
+                $setting->value_type = $request->value_type;
+                $setting->updated_by = Filament::auth()->id();
+                $setting->version = $setting->exists ? ((int) $setting->version + 1) : 1;
+                $setting->save();
+            }
+
+            $request->status = PlatformSettingChangeRequest::STATUS_ACTIVATED;
+            $request->activated_by = Filament::auth()->id();
+            $request->activated_at = now();
+            $request->save();
+        });
+
+        app(AdminAuditLogService::class)->log('platform_settings.activated', request(), [
+            'request_id' => $request->id,
+            'setting_key' => $request->setting_key,
+        ]);
+
+        Notification::make()->title('Approved high-risk change activated.')->success()->send();
+        $this->mount();
+    }
+
+    private function createApprovalRequests(array $rows, array $keys, array $deletedKeys, string $changeReason): void
+    {
+        $highRisk = array_map('strtolower', $keys);
+
+        DB::transaction(function () use ($rows, $highRisk, $deletedKeys, $changeReason): void {
+            foreach ($rows as $row) {
+                $key = trim((string) ($row['key'] ?? ''));
+                if ($key === '' || ! in_array(strtolower($key), $highRisk, true)) {
+                    continue;
+                }
+
+                $valueType = (string) ($row['value_type'] ?? 'json');
+                $normalizedValue = $this->normalizeValue($valueType, $row);
+
+                PlatformSettingChangeRequest::query()->create([
+                    'setting_key' => $key,
+                    'proposed_value' => $normalizedValue,
+                    'value_type' => $valueType,
+                    'change_reason' => $changeReason,
+                    'risk_level' => 'high',
+                    'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
+                    'requested_by' => Filament::auth()->id(),
+                    'validated_at' => now(),
+                ]);
+            }
+
+            foreach ($deletedKeys as $deletedKey) {
+                $normalizedDeletedKey = strtolower(trim((string) $deletedKey));
+                if ($normalizedDeletedKey === '' || ! in_array($normalizedDeletedKey, $highRisk, true)) {
+                    continue;
+                }
+
+                PlatformSettingChangeRequest::query()->create([
+                    'setting_key' => (string) $deletedKey,
+                    'proposed_value' => null,
+                    'value_type' => 'json',
+                    'change_reason' => $changeReason,
+                    'risk_level' => 'high',
+                    'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
+                    'requested_by' => Filament::auth()->id(),
+                    'validated_at' => now(),
+                ]);
+            }
+        });
+    }
+
+    private function loadPendingApprovals(): void
+    {
+        $this->pendingApprovals = PlatformSettingChangeRequest::query()
+            ->whereIn('status', [
+                PlatformSettingChangeRequest::STATUS_VALIDATED,
+                PlatformSettingChangeRequest::STATUS_APPROVED,
+            ])
+            ->latest('id')
+            ->limit(50)
+            ->get()
+            ->map(fn (PlatformSettingChangeRequest $request): array => [
+                'id' => $request->id,
+                'setting_key' => $request->setting_key,
+                'status' => $request->status,
+                'reason' => (string) $request->change_reason,
+                'requested_by' => (int) ($request->requested_by ?? 0),
+                'approved_by' => (int) ($request->approved_by ?? 0),
+                'validated_at' => optional($request->validated_at)?->toDateTimeString(),
+            ])->all();
     }
 
     private function normalizeValue(string $valueType, array $row): array
@@ -388,4 +552,3 @@ class PlatformSettingsPage extends Page implements HasForms
         return $retained->unique()->values()->all();
     }
 }
-

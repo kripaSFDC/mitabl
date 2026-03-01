@@ -544,3 +544,16 @@ To move to enterprise delivery:
 The Mitabl mobile app is a substantial dual-persona Flutter application with clear functional breadth and a workable architecture foundation. It is production-capable but not yet enterprise-optimized. The highest-value improvements are concentrated in security hardening, reliability controls, test depth, and operational governance.
 
 This document is intended to be the baseline reference for executing that transition.
+
+---
+
+## Contact endpoint migration (2026)
+
+- **Deprecated now**: `/api/mobcontact` and `/api/v1/mob-contact`.
+- **Current endpoint**: `/api/v2/mob-contact` (authenticated route group).
+- **Deprecation behavior**:
+  - old endpoints now return **HTTP 410 Gone**
+  - include `Deprecation: true`
+  - include `Sunset: Wed, 01 Jul 2026 00:00:00 GMT`
+  - include successor `Link` header pointing to `/api/v2/mob-contact`
+- Mobile clients should stop calling `v1/mob-contact` immediately and migrate to the v2 path in their API contracts.
