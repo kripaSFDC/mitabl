@@ -35,6 +35,7 @@ It reflects a code-first audit across app entry points, routing, feature modules
 1. `main.dart`
    - Calls `WidgetsFlutterBinding.ensureInitialized()`.
    - Loads `GlobalConfiguration().loadFromAsset('configuration')`.
+   - Creates one shared `http.Client` and injects it into `UserRepository` and `AuthenticationRepository`.
    - Starts `App(authenticationRepository, userRepository)`.
 
 2. `app.dart`
@@ -90,6 +91,7 @@ This section captures **every major code/config file class** under `mobile-app/`
 
 - `lib/helper/api_contract.dart`
 - `lib/helper/app_config.dart`
+- `lib/helper/app_logger.dart`
 - `lib/helper/appconstants.dart`
 - `lib/helper/common_appbar.dart`
 - `lib/helper/common_progress.dart`
@@ -274,8 +276,17 @@ This section captures **every major code/config file class** under `mobile-app/`
   - top-rated restaurants
   - nearby restaurants
   - filter toggles (dine-in / take-away, cooking style, distance)
-- Home network operations are in `HomeRepository`.
+  - debounced filter re-application and stale-response dropping to reduce race conditions
+  - location query parsing (`latitude, longitude`) with range validation and fallback coordinates
+- Home network operations are in `HomeRepository` with bearer-token validation before request dispatch.
 - Foodie profile fetch/update paths are in `ProfileFoodieCubit` + `UserRepository`.
+
+### Recently implemented mobile fixes (current branch baseline)
+
+- Home feed now uses `CustomScrollView` slivers instead of one large `SingleChildScrollView` column, improving section-level rendering behavior.
+- `SystemChrome.setSystemUIOverlayStyle` was moved out of rebuild-prone paths to state init.
+- Home location input is now actionable: users can submit `latitude, longitude`, with parsing + bounds checks and debounced filter refresh.
+- Settings profile navigation now uses null-safe route argument checks to avoid force-unwrapped crash paths.
 
 ## 4.3 Cook/vendor operations
 
@@ -349,11 +360,15 @@ Strengths:
 - Central URI helper (`ApiContract.uri`) handles path/query normalization.
 - Modern support ticket repository has better header + parsing discipline.
 
-Weak points:
-- Widespread `dynamic` response contracts.
-- Inconsistent use of `http.Client` lifecycle handling.
-- Limited unified exception taxonomy.
-- Verbose `print` logging in production paths.
+Weak points (remaining):
+- `dynamic` response contracts still exist in several repository/cubit boundaries outside the recently refactored paths.
+- Timeout/retry/backoff policy is still not centralized across all repositories.
+- Unified typed exception taxonomy is still incomplete.
+
+Recent improvements:
+- Auth/user/home repositories now support injected `http.Client` usage and explicit disposal for owned clients.
+- Sensitive raw `print` usage was reduced by introducing a debug-gated `AppLogger` helper.
+- Home feed request construction is centralized (`_buildFilterMap`) with debounce + stale response protection.
 
 ---
 
@@ -388,7 +403,7 @@ Add a domain abstraction layer for high-change business domains (orders/menu/sup
 - Access token persisted in `SharedPreferences` instead of secure keystore/keychain storage.
 - Android manifest enables `usesCleartextTraffic=true`.
 - Legacy storage permissions still requested (`WRITE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`, legacy external storage mode).
-- Production code logs request/response details via `print`, risking sensitive data exposure.
+- Sensitive logging exposure risk has been reduced in key paths by replacing raw `print` with debug-gated logging (`AppLogger`), but full-codebase redaction governance is still an ongoing hardening area.
 - Permission UX appears partial (dialog helper exists, but not all permission lifecycles are centrally managed).
 
 ## 7.3 Enterprise controls to prioritize
@@ -458,9 +473,9 @@ Current automated test reality:
 ## 11. Observability and operability
 
 Current:
-- No central telemetry abstraction.
+- Lightweight central logging abstraction exists (`AppLogger`) with debug/error helpers gated by build mode.
 - No crash/performance pipeline described in code.
-- Diagnostic output mostly raw `print` calls.
+- No request correlation/trace IDs are propagated yet.
 
 Required for enterprise operation:
 - Structured logs with environment-aware levels.
@@ -490,7 +505,7 @@ To move to enterprise delivery:
 - Secure storage migration.
 - Remove cleartext transport and legacy storage where possible.
 - Standardize HTTP timeout/error handling.
-- Replace sensitive `print` logging.
+- Complete migration to redaction-safe structured logging across all features (beyond auth/user/home/app-level paths).
 
 ## Phase 2 (Reliability + quality)
 - Expand test suite (bloc, repository, widget, integration).
