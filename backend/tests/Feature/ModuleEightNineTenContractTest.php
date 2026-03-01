@@ -28,7 +28,7 @@ class ModuleEightNineTenContractTest extends TestCase
     {
         $paymentResource = (string) file_get_contents(app_path('Filament/Resources/PaymentResource.php'));
         $refundService = (string) file_get_contents(app_path('Services/AdminPaymentRefundService.php'));
-        $servicesConfig = (string) file_get_contents(config_path('services.php'));
+        $registry = (string) file_get_contents(app_path('Services/PlatformSettingRegistry.php'));
 
         $this->assertStringContainsString("Action::make('open_in_stripe')", $paymentResource);
         $this->assertStringContainsString("Action::make('refund_full')", $paymentResource);
@@ -37,7 +37,7 @@ class ModuleEightNineTenContractTest extends TestCase
         $this->assertStringContainsString('stripePaymentUrl', $paymentResource);
         $this->assertStringContainsString('admin_full_refund_order_', $refundService);
         $this->assertStringContainsString('payments.refund_full', $refundService);
-        $this->assertStringContainsString('STRIPE_DASHBOARD_BASE_URL', $servicesConfig);
+        $this->assertStringContainsString("'stripe.dashboard_base_url'", $registry);
     }
 
     public function test_module_ten_platform_admin_includes_template_governance_and_policy_activation_validation(): void

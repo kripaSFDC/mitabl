@@ -73,7 +73,10 @@ class SecurityAdminPage extends Page
 
     public static function canAccess(): bool
     {
-        return (bool) Filament::auth()->user()?->can('iam.manage');
+        $user = Filament::auth()->user();
+
+        return (bool) ($user?->can('iam.manage')
+            && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
     }
 }
 

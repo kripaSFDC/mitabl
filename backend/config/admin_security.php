@@ -12,5 +12,5 @@ return [
     | avoid repeated prompts while still enforcing re-authentication frequently.
     |
     */
-    'reauth_minutes' => env('ADMIN_REAUTH_MINUTES', 15),
+    'reauth_minutes' => 15,
 ];

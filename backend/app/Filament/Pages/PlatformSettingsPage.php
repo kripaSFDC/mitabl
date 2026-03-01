@@ -113,7 +113,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function save(): void
     {
-        if (! Filament::auth()->user()?->can('platform_settings.edit')) {
+        if (! $this->canManagePlatformConfiguration()) {
             Notification::make()->title('You do not have permission to modify platform settings.')->danger()->send();
             return;
         }
@@ -182,7 +182,7 @@ class PlatformSettingsPage extends Page implements HasForms
             ->values();
 
         if ($highRiskCandidates->isNotEmpty()) {
-            if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
                 Notification::make()
                     ->title('High-risk settings require publish-level approval permission.')
                     ->danger()
@@ -301,7 +301,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function approveRequest(int $requestId): void
     {
-        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+        if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
             Notification::make()->title('You do not have permission to approve high-risk settings changes.')->danger()->send();
             return;
         }
@@ -333,7 +333,7 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function activateRequest(int $requestId): void
     {
-        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+        if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
             Notification::make()->title('You do not have permission to activate high-risk settings changes.')->danger()->send();
             return;
         }
@@ -469,7 +469,19 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return (bool) Filament::auth()->user()?->can('platform_settings.view');
+        $user = Filament::auth()->user();
+
+        return (bool) ($user?->can('platform_settings.view')
+            && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
+    }
+
+
+    private function canManagePlatformConfiguration(): bool
+    {
+        $user = Filament::auth()->user();
+
+        return (bool) ($user?->can('platform_settings.edit')
+            && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
     }
 
     private function isHighRiskKey(string $key): bool

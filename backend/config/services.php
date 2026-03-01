@@ -36,7 +36,7 @@ return [
     ],
 
     'stripe' => [
-        'dashboard_base_url' => env('STRIPE_DASHBOARD_BASE_URL', 'https://dashboard.stripe.com/payments'),
+        'dashboard_base_url' => 'https://dashboard.stripe.com/payments',
     ],
 
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\PlatformRuntimeConfigService;
 use Illuminate\Support\ServiceProvider;
 use App\Observers\OrderObserver;
 use App\Observers\MikitchnObserver;
@@ -39,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url)
     {
+        app(PlatformRuntimeConfigService::class)->apply();
+
         $this->applyServiceLogContext();
 
         if (app()->environment('production', 'staging')) {
