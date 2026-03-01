@@ -30,10 +30,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'backend_api' => [
+        'base_url' => env('BACKEND_API_BASE_URL', 'http://localhost:8000'),
+    ],
 
     'stripe' => [
         'publishable_key' => env('STRIPE_PUBLISHABLE_KEY'),
     ],
 
+    'recaptcha' => [
+        'site_key' => env('RECAPTCHA_SITE_KEY'),
+    ],
 
 ];
