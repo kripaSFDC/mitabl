@@ -202,18 +202,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           ListTile(
-                            onTap: () async {
-                              try {
-                                final user = await context.read<UserRepository>().getUser();
-                                final payload = await MobileContactRepository().fetch(user);
-                                final message = payload['message']?.toString() ?? 'Contact information loaded.';
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-                              } catch (error) {
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
-                              }
-                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
@@ -318,6 +306,18 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
+                            onTap: () async {
+                              try {
+                                final user = await context.read<UserRepository>().getUser();
+                                final payload = await MobileContactRepository().fetch(user);
+                                final message = payload['message']?.toString() ?? 'Contact information loaded.';
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                              } catch (error) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
+                              }
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(

@@ -205,7 +205,7 @@ class PlatformSettingsPage extends Page implements HasForms
                 return;
             }
 
-            $this->createApprovalRequests($rows, $highRiskCandidates->all(), $changeReason);
+            $this->createApprovalRequests($rows, $highRiskCandidates->all(), $deletedKeys, $changeReason);
 
             Notification::make()
                 ->title('High-risk changes validated and submitted for approval. Activate after approver sign-off.')
@@ -301,6 +301,11 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function approveRequest(int $requestId): void
     {
+        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            Notification::make()->title('You do not have permission to approve high-risk settings changes.')->danger()->send();
+            return;
+        }
+
         $request = PlatformSettingChangeRequest::query()->find($requestId);
         if (! $request || $request->status !== PlatformSettingChangeRequest::STATUS_VALIDATED) {
             return;
@@ -328,6 +333,11 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function activateRequest(int $requestId): void
     {
+        if (! Filament::auth()->user()?->can('policy_changes.publish')) {
+            Notification::make()->title('You do not have permission to activate high-risk settings changes.')->danger()->send();
+            return;
+        }
+
         $request = PlatformSettingChangeRequest::query()->find($requestId);
         if (! $request || $request->status !== PlatformSettingChangeRequest::STATUS_APPROVED) {
             return;
@@ -338,11 +348,18 @@ class PlatformSettingsPage extends Page implements HasForms
                 'key' => $request->setting_key,
             ]);
 
-            $setting->value = $request->proposed_value;
-            $setting->value_type = $request->value_type;
-            $setting->updated_by = Filament::auth()->id();
-            $setting->version = $setting->exists ? ((int) $setting->version + 1) : 1;
-            $setting->save();
+            $isDeletion = $request->proposed_value === null;
+            if ($isDeletion) {
+                if ($setting->exists) {
+                    $setting->delete();
+                }
+            } else {
+                $setting->value = $request->proposed_value;
+                $setting->value_type = $request->value_type;
+                $setting->updated_by = Filament::auth()->id();
+                $setting->version = $setting->exists ? ((int) $setting->version + 1) : 1;
+                $setting->save();
+            }
 
             $request->status = PlatformSettingChangeRequest::STATUS_ACTIVATED;
             $request->activated_by = Filament::auth()->id();
@@ -359,11 +376,11 @@ class PlatformSettingsPage extends Page implements HasForms
         $this->mount();
     }
 
-    private function createApprovalRequests(array $rows, array $keys, string $changeReason): void
+    private function createApprovalRequests(array $rows, array $keys, array $deletedKeys, string $changeReason): void
     {
         $highRisk = array_map('strtolower', $keys);
 
-        DB::transaction(function () use ($rows, $highRisk, $changeReason): void {
+        DB::transaction(function () use ($rows, $highRisk, $deletedKeys, $changeReason): void {
             foreach ($rows as $row) {
                 $key = trim((string) ($row['key'] ?? ''));
                 if ($key === '' || ! in_array(strtolower($key), $highRisk, true)) {
@@ -377,6 +394,24 @@ class PlatformSettingsPage extends Page implements HasForms
                     'setting_key' => $key,
                     'proposed_value' => $normalizedValue,
                     'value_type' => $valueType,
+                    'change_reason' => $changeReason,
+                    'risk_level' => 'high',
+                    'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
+                    'requested_by' => Filament::auth()->id(),
+                    'validated_at' => now(),
+                ]);
+            }
+
+            foreach ($deletedKeys as $deletedKey) {
+                $normalizedDeletedKey = strtolower(trim((string) $deletedKey));
+                if ($normalizedDeletedKey === '' || ! in_array($normalizedDeletedKey, $highRisk, true)) {
+                    continue;
+                }
+
+                PlatformSettingChangeRequest::query()->create([
+                    'setting_key' => (string) $deletedKey,
+                    'proposed_value' => null,
+                    'value_type' => 'json',
                     'change_reason' => $changeReason,
                     'risk_level' => 'high',
                     'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
