@@ -36,12 +36,11 @@ This confirms backend should remain the only persistence authority.
 2. Support ticket intake removed from public website integration path:
    - Registration/contact frontend forms removed from `website/`.
    - Public intake proxy endpoints removed from `website/routes/api.php`.
-3. Backend public intake routes disabled:
+3. Backend public intake routes remain backend-owned on `/api/*`:
    - `POST /api/support/ticket`
    - `GET /api/support/ticket/{id}`
    - `POST /api/support/ticket/{id}/reply`
-4. System health route audit updated to assert legacy public intake routes are disabled.
-5. Deployment simplified:
+4. Deployment simplified:
    - `website-db-migrate` service removed from compose files.
    - Marketing-web environment templates no longer include website DB or backend proxy variables.
 

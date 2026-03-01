@@ -40,3 +40,15 @@ Same-domain routing is split by path prefix:
 
 - Cutover plan and operational expectations: [`docs/website-stateless-cutover-plan.md`](../docs/website-stateless-cutover-plan.md)
 - Ingress policy/source of routing truth: [`deploy/nginx/mitabl.phase0.conf`](../deploy/nginx/mitabl.phase0.conf)
+
+
+## Internal content review checklist (FAQ and public claims)
+
+Before merging edits to `website/public/faq.html` (or similar public informational pages), verify every non-trivial claim maps to a repository source:
+
+- Confirm platform-level positioning and product boundaries against `README.md`.
+- Confirm support/CRM workflow terminology against `docs/crm_playbook_and_training.md`.
+- Confirm website stateless and ownership language against `docs/website-stateless-cutover-plan.md`.
+- Confirm ingress path boundaries and admin network controls against `deploy/nginx/mitabl.phase0.conf`.
+- Confirm backend capability statements using `backend/routes/api.php` at a high level (route groups, public endpoints, and middleware patterns), without documenting unstable implementation minutiae.
+- If a claim cannot be mapped to these files, either remove it or add/update the authoritative documentation first.
