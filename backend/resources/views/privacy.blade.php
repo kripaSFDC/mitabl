@@ -42,7 +42,7 @@
 <section class="privacy-sec">
    <div class="container">
       <h3>MITABL PRIVACY POLICY</h3>
-      <p>This website is owned and operated by mitablpvtltd and will be referred to as "We", "our" and "us" in this Internet Privacy Policy. By using this site, you agree to the Internet Privacy Policy of our software application or our web site ("the web site"), which is set out on our app or web site page. The Internet Privacy Policy relates to the collection and use of personal information you may supply to us through your conduct on the app or the web site.</p>
+      <p>This website is owned and operated by mitabl pvt ltd and is referred to as "we", "our", and "us" in this Internet Privacy Policy. By using this site, you agree to the Internet Privacy Policy of our software application or our web site ("the web site"), which is set out on our app or web site page. The Internet Privacy Policy relates to the collection and use of personal information you may supply to us through your conduct on the app or the web site.</p>
       <p>We reserve the right, at our discretion, to modify or remove portions of this Internet Privacy Policy at any time. This Internet Privacy Policy is in addition to any other terms and conditions applicable to the app or the web site. We do not make any representations about third party web sites that may be linked to the app or the web site.</p>
       <p>We recognise the importance of protecting the privacy of information collected about visitors to our web site, in particular information that is capable of identifying an individual ("personal information"). This Internet Privacy Policy governs the manner in which your personal information, obtained through the app or the web site, will be dealt with. This Internet Privacy Policy should be reviewed periodically so that you are updated on any changes. We welcome your comments and feedback. </p>
       <div class="outer-privacy">
@@ -52,10 +52,10 @@
             <li> Personal information about visitors to our site is collected only when knowingly and voluntarily submitted. For example, we may need to collect such information to provide you with further services or to answer or forward any requests or enquiries. It is our intention that this policy will protect your personal information from being dealt with in any way that is inconsistent with applicable privacy laws in Australia. </li>
             <h4>Use of Information</h4>
             <li> Personal information that visitors submit to our site is used only for the purpose for which it is submitted or for such other secondary purposes that are related to the primary purpose, unless we disclose other uses in this Internet Privacy Policy or at the time of collection. Copies of correspondence sent from the app or the web site, that may contain personal information, are stored as archives for record-keeping and back-up purposes only.</li>
-            <h4>Collecting information on Registered members</h4>
+            <h4>Collecting Information for Registered Members</h4>
             <li> As part of registering with us, we collect personal information about you in order for you to take full advantage of our services. To do this it may be necessary for you to provide additional information to us as detailed below.</li>
             <h4>Registration</h4>
-            <li> Registration is completely optional. Registration may include submitting your name, email address, address, telephone numbers, option on receiving updates and promotional material and other information. You may access this information at any time by logging in and going to your account.</li>
+            <li> Account registration is optional and may include your name, email address, address, phone number, communication preferences, and other profile details. You may access and update this information at any time from your account settings.</li>
             <h4>Credit Card Details</h4>
             <li>Credit Card details are only stored for the processing of payment </li>
             <h4>Disclosure</h4>

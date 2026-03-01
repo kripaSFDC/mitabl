@@ -11,16 +11,13 @@
               <a class="nav-link" href="/">HOME</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/about">ABOUT US</a>
+              <a class="nav-link" href="/about">ABOUT</a>
             </li>
             <li class="nav-item">
-                <a href="https://www.instagram.com/_mitabl_/" class="nav-link" target="_blank"><i class="fa-brands fa-instagram" style="font-size: 22px;"></i></a>
-            </li>
-            <li class="nav-item">
-                <a href="https://twitter.com/mitablReal" class="nav-link" target="_blank"><i class="fa-brands fa-twitter" style="font-size: 22px;"></i></a>
+              <a class="nav-link" href="/faq">FAQ</a>
             </li>
           </ul>
-        </div>  
+        </div>
       </nav>
    </div>
 

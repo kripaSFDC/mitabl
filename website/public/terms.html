@@ -46,9 +46,9 @@
          
          <ul>
             <h4>Registered Users</h4>
-            <li>  In order to access the services provided on ourApp or website, you must become a registered user.  You must complete registration by providing certain information as set out on our membership/registration page.  Please refer to our Privacy Policy linked on our home page for information relating to our collection, storage and use of the details you provide on registration.</li>
+            <li>In order to access services on our App or website, you must be a registered user. Registration is completed through the applicable in-app account setup flow. Please refer to our Privacy Policy on our home page for information about collection, storage, and use of registration details.</li>
             <li>  You agree to ensure that your registration details are true and accurate at all times and you undertake to update your registration details from time to time when they change.</li>
-            <li> On registration, we provide you with a password andaccount number. On registration you agree to pay for our services as set out on our App or website.</li>
+            <li> On registration, we provide you with account credentials. By registering, you agree to pay for services as set out on our App or website.</li>
             <li>  We reserve the right to terminate your registration at any timeif you breach these terms and conditions.</li>
             <li>  Our services are intended to be used by registered users only.</li>
             <h4>Our App or website Services</h4>
@@ -97,7 +97,7 @@
             </li>
             <li> We do not provide any warranty for any goods or services of a third party ordered through our App or website.  By ordering goods or services of a third party through our App or website, you agree that we will not be responsible for any issue of the goods or services of a third party.  You also agree to waive all legal responsibilities, to the extent permitted by law, against us in relation to any goods or services provided by a third party.</li>
             <h4>Limitation of Liability</h4>
-            <li> TheseTerms and Conditionsare between you and us, and not Apple, Inc. or Google Inc (jointly and separately referred to as “Marketplaces”). Notwithstanding the foregoing, you acknowledge that Apple and its subsidiaries are third party beneficiaries of this Agreement and Marketplaces has the right to enforce this Agreement against you. Apple, Inc. or Google Inc are not responsible for the App and its content.</li>
+            <li> These Terms and Conditions are between you and us, and not Apple, Inc. or Google Inc (jointly and separately referred to as “Marketplaces”). Notwithstanding the foregoing, you acknowledge that Apple and its subsidiaries are third party beneficiaries of this Agreement and Marketplaces has the right to enforce this Agreement against you. Apple, Inc. or Google Inc are not responsible for the App and its content.</li>
             <li> If you are not a consumer within the meaning of Schedule 2 of the C&C Act then this clause applies to you.  If you are a consumer within the meaning of the C&C Act then this clause has no effect whatsoever to in any way limit our liability or your rights.  If you are not a consumer:-<br>
                 a.  To the full extent permitted by law, our liability for breach of an implied warranty or condition is limited to the supply of the services again or payment of the costs of having those services supplied again. <br>
                 b.  We accept no liability for any loss whatsoever including consequential loss suffered by you arising from services we have supplied. <br>
