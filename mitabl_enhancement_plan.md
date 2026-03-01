@@ -55,15 +55,15 @@ By: Usman Saleem
 
 ## Current State - What Legacy CRM Does (today and will be replaced)
 
-| Legacy CRM Capability          | Current implementation                                | Status after this plan                                                 |
-| ------------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| Kitchen certificate approval   | `PUT /api/kitchen/{id}/certificate` called from legacy CRM UI | Replaced by Filament `CertificateResource` with Approve/Reject actions |
-| User lookup (mifoodi details)  | `GET /api/legacy/mifoodi` called from legacy CRM       | Replaced by Filament `UserResource`                                    |
-| Pre-registration lead capture  | `POST /api/preregister` -> legacy CRM lead            | Replaced by local `pre_registrations` + Filament                       |
-| Contact/support case creation  | `POST /api/mobcontact` -> legacy CRM case             | Replaced by local `support_tickets` + Filament                         |
-| Kitchen profile sync (Account) | `LegacyKitchenSyncListener` listener -> legacy CRM account | Listener removed; data remains in mitabl DB                            |
-| Legacy CRM account ID storage  | `legacy_kitchen_mappings` table                       | Table dropped after cutover                                            |
-| Legacy CRM OAuth token workflow| `WebApiToCurlController::getAccToken()`               | Removed entirely                                                       |
+| Legacy CRM Capability           | Current implementation                                        | Status after this plan                                                 |
+| ------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Kitchen certificate approval    | `PUT /api/kitchen/{id}/certificate` called from legacy CRM UI | Replaced by Filament `CertificateResource` with Approve/Reject actions |
+| User lookup (mifoodi details)   | `GET /api/legacy/mifoodi` called from legacy CRM              | Replaced by Filament `UserResource`                                    |
+| Pre-registration lead capture   | `POST /api/preregister` -> legacy CRM lead                    | Replaced by local `pre_registrations` + Filament                       |
+| Contact/support case creation   | `POST /api/mobcontact` -> legacy CRM case                     | Replaced by local `support_tickets` + Filament                         |
+| Kitchen profile sync (Account)  | `LegacyKitchenSyncListener` listener -> legacy CRM account    | Listener removed; data remains in mitabl DB                            |
+| Legacy CRM account ID storage   | `legacy_kitchen_mappings` table                               | Table dropped after cutover                                            |
+| Legacy CRM OAuth token workflow | `WebApiToCurlController::getAccToken()`                       | Removed entirely                                                       |
 
 ---
 
@@ -459,8 +459,8 @@ CRM edge cases to support:
 - Spam/abuse throttling and spam state
 - Collision handling when two agents edit same ticket
 - SLA breach alerts/escalation routing
-- Attachment size/type malware scanning policy
-- PII redaction policy for exports and notifications
+  
+  
 
 ---
 
@@ -563,7 +563,6 @@ Recommended data model:
 Edge cases:
 
 - Policy draft/publish workflow
-- Rollback to previous policy version
 - Validation by JSON schema before activation
 - Blast-radius warning for high-impact policy changes
 
@@ -629,7 +628,7 @@ Cross-module productivity features:
 | `create_policies`                     | Versioned policy definitions                                                  |
 | `create_policy_change_log`            | Policy audit trail                                                            |
 | `create_admin_users`                  | Separate admin identity table                                                 |
-| `drop_legacy_kitchen_mappings`                 | Remove legacy CRM mapping table after cutover                                 |
+| `drop_legacy_kitchen_mappings`        | Remove legacy CRM mapping table after cutover                                 |
 
 ---
 
@@ -704,347 +703,27 @@ app/Mail/
 
 ### New/Modified API Endpoints
 
-| Method | Route                           | Change                                                              |
-| ------ | ------------------------------- | ------------------------------------------------------------------- |
-| `POST` | `/api/support/ticket`           | New ticket intake (replaces legacy CRM case path)                    |
-| `GET`  | `/api/support/ticket/{id}`      | User-side status lookup (scoped access)                             |
-| `POST` | `/api/preregister`              | Modified to store local lead                                        |
-| `POST` | `/api/mobcontact`               | Deprecated endpoint; responds with 410                              |
-| `PUT`  | `/api/kitchen/{id}/certificate` | Removed (legacy CRM inbound)                                        |
-| `GET`  | `/api/legacy/mifoodi`            | Removed (legacy CRM inbound)                                        |
+| Method | Route                           | Change                                            |
+| ------ | ------------------------------- | ------------------------------------------------- |
+| `POST` | `/api/support/ticket`           | New ticket intake (replaces legacy CRM case path) |
+| `GET`  | `/api/support/ticket/{id}`      | User-side status lookup (scoped access)           |
+| `POST` | `/api/preregister`              | Modified to store local lead                      |
+| `POST` | `/api/mobcontact`               | Deprecated endpoint; responds with 410            |
+| `PUT`  | `/api/kitchen/{id}/certificate` | Removed (legacy CRM inbound)                      |
+| `GET`  | `/api/legacy/mifoodi`           | Removed (legacy CRM inbound)                      |
 
 Backward compatibility:
 
 - No compatibility alias required for greenfield deployments.
 - `/api/mobcontact` responds with 410 and deprecation headers when called.
 
-### Code to Delete (Legacy CRM removal)
-
-```text
-app/Listeners/LegacyKitchenSyncListener.php
-app/Http/Controllers/Api/Sales/...
-app/Http/Middleware/LegacyCrm.php
-app/Models/LegacyKitchenMapping.php
-Legacy CRM logic inside WebApiToCurlController
-EventServiceProvider legacy CRM listener bindings
-Kernel legacy CRM middleware alias
-Legacy CRM route group in routes/api.php
-```
-
-Note: remove `KitchenVerified` event only if no non-legacy CRM listeners remain.
-
-### Env Variables to Remove
-
-```text
-LEGACY_CRM_AUTH
-LEGACY_CRM_CLIENT_ID
-LEGACY_CRM_CLIENT_SECRET
-LEGACY_CRM_USERNAME
-LEGACY_CRM_PASSWORD
-```
-
-## Legacy CRM Dependency Eradication Checklist (Mandatory)
-
-Goal: remove Legacy CRM completely while preserving existing mitabl behavior for cooks, foodies, ops, and support.
-
-### 1) Contract Parity Matrix
-
-- Define old -> new ownership for each Legacy CRM capability and endpoint:
-  - Certificate approval: `PUT /api/kitchen/{id}/certificate` (legacy CRM inbound) -> Filament `CertificateResource` actions.
-  - User lookup: `GET /api/legacy/mifoodi` (legacy CRM inbound) -> Filament `UserResource` search.
-  - Lead intake: `POST /api/preregister` (legacy CRM outbound) -> local `pre_registrations`.
-  - Support intake: `POST /api/mobcontact` (legacy CRM outbound) -> `/api/support/ticket` only.
-  - Kitchen sync: `LegacyKitchenSyncListener` listener -> removed, local DB remains source of truth.
-- For each mapping, define acceptance tests and data invariants before deletion.
-
-### 2) Compatibility and No-Impact Guardrails
-
-- Preserve client-facing API contracts during transition:
-  - keep request/response shape and status codes for `/api/preregister` and `/api/support/ticket`.
-- Add deprecation headers and structured logs for legacy endpoints if required.
-- Add idempotency protection for intake endpoints to avoid duplicate ticket/lead records.
-- Add background retries only for internal notifications; do not make intake synchronous.
-
-### 3) Data Integrity and Migration
-
-- Backfill or map required Legacy CRM-originated operational fields into local tables before cutover.
-- Create one-time reconciliation job:
-  - detect duplicates in leads/tickets,
-  - normalize email/phone,
-  - enforce foreign key consistency for ticket links (`user_id`, `order_id`, `mikitchn_id`).
-- Produce pre/post cutover record counts and mismatch reports for sign-off.
-
-### 4) Security and Secret Cleanup
-
-- Remove hardcoded Legacy CRM tokens/credentials from source code.
-- Remove Legacy CRM secrets from env and secret manager after cutover completion.
-- Rotate any credentials that were previously committed.
-- Add CI secret scanning gate to block token reintroduction.
-
-### 5) Code and Infrastructure Removal
-
-- Delete:
-  - `LegacyKitchenSyncListener` listener and event binding,
-  - Legacy CRM middleware and middleware alias,
-  - Legacy CRM route group and controllers,
-  - `legacy_kitchen_mappings` model/table after validation window,
-  - Legacy CRM helper logic from `WebApiToCurlController`.
-- Remove Legacy CRM-specific runbooks, dashboards, and alerts; replace with local CRM observability.
-
-### 6) Cutover Exit Criteria (Must Pass)
-
-- 0 unresolved P1/P2 defects in certificate, support, and lead flows.
-- 100% pass rate on contract parity tests for legacy touched endpoints.
-- No increase in failed intake requests or ticket creation latency vs baseline.
-- No remaining Legacy CRM calls in runtime logs for 7 consecutive days.
-
----
-
-
-
-
-
 
 
 ---
 
-# IMPLEMENTATION PLAN
+## 
 
----
-
-## Implementation Tasks
-
-## Phase 0 - Repository and Deployment Foundations (Week 0)
-
-| #   | Task                                       | Notes                                                         |
-| --- | ------------------------------------------ | ------------------------------------------------------------- |
-| 0.1 | Finalize repo boundaries                   | `backend` owns ops portal; marketing remains separate repo    |
-| 0.2 | Define same-domain ingress routes          | `/` marketing, `/api/*` backend, `/admin/*` ops portal        |
-| 0.3 | Decide runtime split                       | one shared image with 2 services (`backend-api`, `ops-admin`) |
-| 0.4 | Configure TLS and path-based gateway rules | certs + HSTS + strict rules on `/admin/*`                     |
-| 0.5 | Configure admin network controls           | IP allowlist/VPN and MFA policy                               |
-| 0.6 | Add deployment environments                | dev, staging, prod parity for all 3 services                  |
-| 0.7 | Add secrets management plan                | remove hardcoded secrets, use vault/secret store              |
-
-## Phase 0.5 - Platform Hardening Baseline (Week 0-1, Mandatory Gate)
-
-Purpose: remove known production blockers before building Filament modules. No feature/module work should start until this phase is complete.
-
-| #      | Task                                                           | Notes                                                                                                                    |
-| ------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 0.5.1  | Upgrade PHP runtime baseline to 8.2+                           | Update runtime images/hosts and composer platform settings; validate all environments use the same minor line            |
-| 0.5.2  | Upgrade Laravel from 8 to 12                                   | Execute incremental framework upgrade path with dependency compatibility checks and smoke tests after each major step    |
-| 0.5.3  | Upgrade mobile toolchain to Dart 3+                            | Update Flutter/Dart SDK constraints, refresh locked dependencies, and resolve null-safety/type breakages                 |
-| 0.5.4  | Enforce asynchronous queue in non-test environments            | Set `QUEUE_CONNECTION=redis` for dev/staging/prod; keep `sync` only for selected local/test cases                        |
-| 0.5.5  | Deploy dedicated queue workers                                 | Run managed workers (`queue:work`/Horizon) with restart/health checks, retry policy, and dead-letter handling            |
-| 0.5.6  | Switch cache backend to Redis                                  | Set `CACHE_DRIVER=redis` (or `CACHE_STORE=redis` on newer Laravel config style) and validate Redis connectivity/failover |
-| 0.5.7  | Add cache wrappers for discovery endpoints                     | Add `Cache::remember` to nearest/top-rated/recommended discovery queries with scoped cache keys and short TTL            |
-| 0.5.8  | Remove wasteful double-fetch pagination patterns               | Replace `get()->count()` on full result sets with query-level counts/pagination metadata                                 |
-| 0.5.9  | Add cache invalidation hooks                                   | Invalidate discovery caches on kitchen/profile/certificate/review/menu changes via events/listeners                      |
-| 0.5.10 | Extract payment logic from `StripeTrait` into `PaymentService` | Use container-injected services in controllers/listeners; remove direct SDK initialization from controllers              |
-| 0.5.11 | Introduce core service layer for large controllers             | Create `AuthService`, `KitchenService`, `OrderService`, `DiscoveryService`; thin controllers to validate + delegate      |
-| 0.5.12 | Remove Legacy CRM secrets and static tokens from source        | Delete hardcoded OAuth/token values; move remaining integration secrets to secure env/secret manager during transition   |
-| 0.5.13 | Add observability for async + cache behavior                   | Track queue latency, failed jobs, cache hit ratio, and p95 endpoint latency for discovery APIs                           |
-| 0.5.14 | Add regression tests for hardening work                        | Feature tests for async behavior, discovery response parity, cache invalidation, and key payment flows                   |
-| 0.5.15 | Define hardening exit criteria                                 | Gate: queue async confirmed, Redis cache live, no hardcoded secrets, discovery p95 improved, no P1 regressions           |
-
-## Phase 1 - Foundation (Week 1)
-
-| #    | Task                                      | Notes                                       |
-| ---- | ----------------------------------------- | ------------------------------------------- |
-| 1.1  | Install Filament panel                    | `composer require filament/filament:"^3.0"` |
-| 1.2  | Scaffold admin panel                      | `php artisan filament:install --panels`     |
-| 1.3  | Create `AdminUser` model/migration/seeder | Separate from mobile `User`                 |
-| 1.4  | Install Spatie permission                 | Define role/permission matrix               |
-| 1.5  | Configure panel branding                  | Logo/colors/navigation                      |
-| 1.6  | Add certificate migration changes         | reject metadata fields                      |
-| 1.7  | Add user suspension fields                |                                             |
-| 1.8  | Create support ticket tables              | tickets/messages/events/attachments         |
-| 1.9  | Create pre-registration table             |                                             |
-| 1.10 | Create platform settings/policy tables    |                                             |
-
-## Phase 2 - Core Resources (Weeks 2-3)
-
-| #   | Task                                               | Notes                          |
-| --- | -------------------------------------------------- | ------------------------------ |
-| 2.1 | Build `CertificateResource` with approve/reject    | include concurrency protection |
-| 2.2 | Build certificate mail/notification templates      | queue-based                    |
-| 2.3 | Build `UserResource` with suspension controls      | audited actions                |
-| 2.4 | Build `MikitchnResource` with embedded cert panel  |                                |
-| 2.5 | Build `OrderResource` and controlled refund action | idempotent                     |
-| 2.6 | Build `PromoCodeResource`                          |                                |
-
-## Phase 3 - CRM (Weeks 3-4)
-
-| #    | Task                                                                | Notes                                                                                       |
-| ---- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 3.1  | Build ticket models + relationships + indexes                       | include SLA fields, assignment, linkage to user/order/kitchen                               |
-| 3.2  | Build `SupportTicketResource` with full agent workflow              | inbox, assignment, priority, status machine, merge/split, resolution summary                |
-| 3.3  | Build intake and conversation APIs                                  | `POST /api/support/ticket`, `GET /api/support/ticket/{id}`, reply endpoints, scoped auth    |
-| 3.4  | Build spam/abuse protections for CRM intake                         | rate limits, honeypot/captcha hooks, duplicate detection                                    |
-| 3.5  | Build ticket automations                                            | SLA timers, breach escalation jobs, queue-driven notifications                              |
-| 3.6  | Build `PreRegistrationResource` with operator workflow              | triage queue, status transitions, conversion linking                                        |
-| 3.7  | Replace legacy CRM behavior inside `/api/preregister` and `/api/mobcontact` | local persistence + compatibility response contract                                         |
-| 3.8  | Build CRM communications layer                                      | confirmation/reply/escalation/lead acknowledgement templates + delivery tracking            |
-| 3.9  | Build Customer Service UX flows in Filament                         | triage-first inbox, saved filters/views, one-click assignment, keyboard-first actions       |
-| 3.10 | Build Operations UX flows in Filament                               | certificate review workspace, side-by-side doc preview, bulk approve/reject with safeguards |
-| 3.11 | Build user-friendly data presentation                               | clear status badges, SLA countdown chips, sticky context panels, empty/error states         |
-| 3.12 | Add accessibility and usability standards                           | WCAG AA contrast, visible focus states, responsive lawet, low-click-path interaction        |
-| 3.13 | Build CRM analytics widgets                                         | queue depth, aging buckets, first-response SLA, resolution SLA, reopened ticket rate        |
-| 3.14 | UAT with CS/Ops and iterate UX                                      | task-based usability tests, record friction points, apply prioritized fixes                 |
-| 3.15 | Finalize CRM playbooks and training assets                          | SOPs, macro templates, escalation ladder, handoff guidelines                                |
-
-## Phase 4 - Platform Admin and Health (Week 4)
-
-| #   | Task                                         | Notes                                   |
-| --- | -------------------------------------------- | --------------------------------------- |
-| 4.1 | Build `PlatformSettingsPage`                 | runtime toggles/config                  |
-| 4.2 | Build `PolicyResource` + versioning workflow | draft/publish/rollback                  |
-| 4.3 | Build `SystemHealthPage`                     | DB/queue/mail/storage/FCM/Stripe checks |
-| 4.4 | Build `QueueOpsPage`                         | retry/discard/requeue                   |
-| 4.5 | Build dashboard widgets for SLA/health       |                                         |
-| 4.6 | Add immutable audit logs for admin actions   |                                         |
-
-## Phase 5 - Legacy CRM Cutover (Week 5)
-
-| #   | Task                                                         | Notes                                                                      |
-| --- | ------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| 5.1 | Execute contract parity suite in staging                     | approval, lead, support, user lookup paths                                 |
-| 5.2 | Run shadow-read/dual-observe period (no legacy CRM write dependence) | compare outcomes and latency without legacy CRM as source of truth         |
-| 5.3 | Cut traffic to internal modules only                         | freeze Legacy CRM integration endpoints from operational use               |
-| 5.4 | Keep `/api/mobcontact` as compatibility alias                | same response contract, mapped to local ticket creation                    |
-| 5.5 | Remove legacy CRM runtime dependencies from code             | middleware, routes, controllers, listeners, helper calls                   |
-| 5.6 | Remove legacy CRM persistence artifacts                      | deprecate then drop `legacy_kitchen_mappings` after verification window    |
-| 5.7 | Remove legacy CRM secrets and rotate exposed credentials     | env + secret store cleanup, key rotation evidence                          |
-| 5.8 | Verify zero legacy CRM traffic in production logs            | monitor for 7 days, alert on any outbound legacy CRM call                  |
-| 5.9 | Sign-off on no-impact outcomes                               | no data loss, no workflow regression, SLA and response times within target |
-
-## Phase 5.5 - Deployment and Release Tasks (parallel to cutover)
-
-| #      | Task                                                 | Notes                                                |
-| ------ | ---------------------------------------------------- | ---------------------------------------------------- |
-| 5.5.1  | Build container image(s) for backend and ops         | same artifact, separate services recommended         |
-| 5.5.2  | Deploy `ops-admin` to staging under same-domain path | e.g. `staging.mitabl.com/admin/*`, restricted access |
-| 5.5.3  | Configure ingress and WAF rules                      | tighter rules for admin than public/api              |
-| 5.5.4  | Configure horizontal scaling policies                | api and admin tuned separately                       |
-| 5.5.5  | Queue worker deployment separation                   | dedicate workers for CRM notifications/escalations   |
-| 5.5.6  | Add health probes                                    | liveness/readiness/startup probes per service        |
-| 5.5.7  | Add zero-downtime DB migration steps                 | pre-deploy, deploy, post-deploy phases               |
-| 5.5.8  | Configure centralized logs/metrics/traces            | tagged by `marketing`, `api`, `admin`                |
-| 5.5.9  | Define rollback runbook                              | route rollback + migration rollback strategy         |
-| 5.5.10 | Production cutover rehearsal                         | full dry-run in staging with timing and owners       |
-
-## Phase 6 - Hardening (Week 6)
-
-| #   | Task                                          | Notes                   |
-| --- | --------------------------------------------- | ----------------------- |
-| 6.1 | Redis queue + Horizon                         | async stability         |
-| 6.2 | Add intake throttles and abuse controls       | API + captcha if needed |
-| 6.3 | Feature tests: certificate flow               | approve/reject/resubmit |
-| 6.4 | Feature tests: ticket lifecycle + SLA         |                         |
-| 6.5 | Feature tests: policy permissions             | role boundary checks    |
-| 6.6 | Load tests on ticket intake and admin lists   |                         |
-| 6.7 | Disaster recovery runbook + backup validation |                         |
-
----
-
-## Strict Dependency Timeline (Predecessors + Critical Path)
-
-Execution rule:
-
-- A task cannot start until all listed predecessors are completed.
-- Any task marked `Critical Path = Yes` blocks production cutover if incomplete.
-
-### Milestone Gates
-
-| Gate | Definition                                   | Blocks                    |
-| ---- | -------------------------------------------- | ------------------------- |
-| G0   | Phase 0 foundations complete                 | All build phases          |
-| G0.5 | Platform hardening gate complete             | Phase 1+ feature delivery |
-| G1   | Admin foundation complete                    | Core resources/CRM UI     |
-| G3   | CRM functionally complete + UX accepted      | Legacy CRM cutover        |
-| G5   | Legacy CRM eradication verification complete | Production sign-off       |
-| G6   | Hardening regression/perf gates complete     | Project closure           |
-
-### Dependency Matrix
-
-| ID       | Task                                             | Predecessors                 | Critical Path |
-| -------- | ------------------------------------------------ | ---------------------------- | ------------- |
-| 0.1-0.7  | Repository/deployment foundations                | none                         | Yes           |
-| 0.5.1    | PHP 8.2+ baseline                                | 0.1-0.7                      | Yes           |
-| 0.5.2    | Laravel 8 -> 12      | 0.5.1                        | Yes           |
-| 0.5.3    | Dart 3+ upgrade                                  | 0.1-0.7                      | No            |
-| 0.5.4    | Enforce `QUEUE_CONNECTION=redis`                 | 0.5.2                        | Yes           |
-| 0.5.5    | Deploy queue workers/Horizon                     | 0.5.4                        | Yes           |
-| 0.5.6    | Switch cache backend to Redis                    | 0.5.2                        | Yes           |
-| 0.5.7    | Add discovery caching                            | 0.5.6                        | Yes           |
-| 0.5.8    | Remove double-fetch pagination patterns          | 0.5.2                        | Yes           |
-| 0.5.9    | Cache invalidation hooks                         | 0.5.7                        | Yes           |
-| 0.5.10   | Extract `StripeTrait` -> `PaymentService`        | 0.5.2                        | Yes           |
-| 0.5.11   | Service layer extraction                         | 0.5.2                        | Yes           |
-| 0.5.12   | Remove hardcoded legacy CRM secrets from source  | 0.5.2                        | Yes           |
-| 0.5.13   | Async/cache observability                        | 0.5.4, 0.5.6                 | Yes           |
-| 0.5.14   | Hardening regression tests                       | 0.5.7, 0.5.9, 0.5.10, 0.5.11 | Yes           |
-| 0.5.15   | Hardening exit criteria gate                     | 0.5.4-0.5.14                 | Yes           |
-| 1.1      | Install Filament                                 | 0.5.15                       | Yes           |
-| 1.2      | Scaffold panel                                   | 1.1                          | Yes           |
-| 1.3      | `AdminUser` model/migration/seeder               | 1.2                          | Yes           |
-| 1.4      | Spatie permission + role matrix                  | 1.3                          | Yes           |
-| 1.5      | Panel branding                                   | 1.2                          | No            |
-| 1.6-1.10 | Core migrations (cert/user/ticket/lead/settings) | 1.3                          | Yes           |
-| 2.1      | `CertificateResource`                            | 1.4, 1.6                     | Yes           |
-| 2.2      | Certificate notifications                        | 2.1, 0.5.5                   | Yes           |
-| 2.3      | `UserResource`                                   | 1.4, 1.7                     | Yes           |
-| 2.4      | `MikitchnResource`                               | 1.4, 2.1                     | Yes           |
-| 2.5      | `OrderResource` + refund controls                | 1.4, 0.5.10                  | Yes           |
-| 2.6      | `PromoCodeResource`                              | 1.4                          | No            |
-| 3.1      | Ticket schema/index readiness                    | 1.8                          | Yes           |
-| 3.2      | `SupportTicketResource` workflow                 | 3.1, 1.4                     | Yes           |
-| 3.3      | Support APIs (create/get/reply)                  | 3.1, 0.5.11                  | Yes           |
-| 3.4      | Spam/abuse protection                            | 3.3                          | Yes           |
-| 3.5      | SLA timers/escalation jobs                       | 3.1, 0.5.5                   | Yes           |
-| 3.6      | `PreRegistrationResource` workflow               | 1.9, 1.4                     | Yes           |
-| 3.7      | Replace legacy CRM behavior in prereg/mobcontact | 3.3, 3.6                     | Yes           |
-| 3.8      | CRM communications layer                         | 3.2, 3.3, 0.5.5              | Yes           |
-| 3.9      | CS UX flows                                      | 3.2                          | Yes           |
-| 3.10     | Ops UX flows                                     | 2.1, 2.4, 3.2                | Yes           |
-| 3.11     | User-friendly UI states/components               | 3.9, 3.10                    | Yes           |
-| 3.12     | Accessibility/usability standards                | 3.11                         | Yes           |
-| 3.13     | CRM analytics widgets                            | 3.1, 3.5                     | No            |
-| 3.14     | UAT for CS/Ops workflows                         | 3.8, 3.11, 3.12              | Yes           |
-| 3.15     | SOPs/training/playbooks                          | 3.14                         | Yes           |
-| 4.1-4.6  | Platform admin/health modules                    | 1.10, 1.4, 0.5.13            | No            |
-| 5.1      | Staging contract parity suite                    | 2.1-2.5, 3.1-3.15            | Yes           |
-| 5.2      | Shadow-read/dual-observe period                  | 5.1                          | Yes           |
-| 5.3      | Cut traffic to internal modules only             | 5.2                          | Yes           |
-| 5.4      | `/api/mobcontact` compatibility alias live       | 3.7, 5.3                     | Yes           |
-| 5.5      | Remove legacy CRM runtime dependencies from code | 5.3                          | Yes           |
-| 5.6      | Remove legacy CRM persistence artifacts          | 5.5                          | Yes           |
-| 5.7      | Remove legacy CRM secrets + credential rotation  | 5.5                          | Yes           |
-| 5.8      | Zero legacy CRM traffic verification (7 days)    | 5.5, 5.7                     | Yes           |
-| 5.9      | No-impact final sign-off                         | 5.8, 3.14                    | Yes           |
-| 6.1-6.7  | Final hardening validation                       | 5.9                          | Yes           |
-
-### Critical Path Sequence
-
-1. `0.1-0.7` -> `0.5.1` -> `0.5.2` -> `0.5.4` -> `0.5.5` -> `0.5.6` -> `0.5.7` -> `0.5.9` -> `0.5.10` -> `0.5.11` -> `0.5.14` -> `0.5.15`
-2. `1.1` -> `1.2` -> `1.3` -> `1.4` -> `1.6-1.10`
-3. `2.1` -> `2.2` and `2.3` -> `2.4` -> `2.5`
-4. `3.1` -> `3.2` and `3.3` -> `3.4` and `3.5` -> `3.7` -> `3.8` -> `3.9` and `3.10` -> `3.11` -> `3.12` -> `3.14` -> `3.15`
-5. `5.1` -> `5.2` -> `5.3` -> `5.5` -> `5.6` and `5.7` -> `5.8` -> `5.9`
-6. `6.1-6.7`
-
-### Parallel Workstreams (Allowed)
-
-| Workstream                              | Can run in parallel after |
-| --------------------------------------- | ------------------------- |
-| Mobile Dart 3 migration (`0.5.3`)       | `0.1-0.7`                 |
-| Panel branding (`1.5`)                  | `1.2`                     |
-| PromoCode resource (`2.6`)              | `1.4`                     |
-| Platform admin health pages (`4.1-4.6`) | `1.10`, `1.4`, `0.5.13`   |
-| CRM analytics widgets (`3.13`)          | `3.1`, `3.5`              |
-
-## CRM Functional Specification (Detailed)
+## CRM Functional Specification (Delivered)
 
 ### CRM Agent UX Requirements (Customer Service + Operations)
 
@@ -1113,7 +792,7 @@ Execution rule:
 
 ---
 
-## Platform Admin Functional Specification (Detailed)
+## Platform Admin Functional Specification (Delivered)
 
 ### Configurations
 
@@ -1169,22 +848,9 @@ composer require owen-it/laravel-auditing
 
 No separate hosting tier is required for the internal portal.
 
----
 
-## Security Considerations
 
-| Risk                                             | Mitigation                                                      |
-| ------------------------------------------------ | --------------------------------------------------------------- |
-| Admin session and mobile JWT cross-contamination | Separate `AdminUser` guard/provider                             |
-| Brute-force on `/admin/login`                    | Login throttling + optional IP allowlisting + MFA               |
-| Unauthorized approval/refund actions             | Permission-gated actions + policy checks + step-up confirmation |
-| Sensitive docs exposure                          | Signed temporary URLs + strict storage access policy            |
-| Ticket spam abuse                                | Rate limits + honeypot/captcha on public forms + spam status    |
-| Duplicate action execution                       | Idempotency keys + DB transaction locks                         |
-| Lost auditability                                | Immutable audit log with actor, before/after, correlation ID    |
-| PII overexposure                                 | Field-level masking and export redaction by role                |
-
----
+--- 
 
 ## Testing, UAT, and Cutover Acceptance
 
@@ -1208,5 +874,151 @@ No separate hosting tier is required for the internal portal.
 - No data loss for prereg/support submissions
 - Ticket SLA timers accurate in production timezone
 - Zero unresolved P1 security findings
+
+---
+
+
+
+* * *
+
+# IMPLEMENTATION DONE
+
+* * *
+
+## Tasks Implemented
+
+## Phase 0 - Repository and Deployment Foundations
+
+| #   | Task                                       |
+| --- | ------------------------------------------ |
+| 0.1 | Finalize repo boundaries                   |
+| 0.2 | Define same-domain ingress routes          |
+| 0.3 | Decide runtime split                       |
+| 0.4 | Configure TLS and path-based gateway rules |
+| 0.5 | Configure admin network controls           |
+| 0.6 | Add deployment environments                |
+| 0.7 | Add secrets management plan                |
+
+## Phase 0.5 - Platform Hardening Baseline
+
+Purpose: remove known production blockers before building Filament modules. No feature/module work should start until this phase is complete.
+
+| #      | Task                                                           |
+| ------ | -------------------------------------------------------------- |
+| 0.5.1  | Upgrade PHP runtime baseline to 8.2+                           |
+| 0.5.2  | Upgrade Laravel from 8 to 12                                   |
+| 0.5.3  | Upgrade mobile toolchain to Dart 3+                            |
+| 0.5.4  | Enforce asynchronous queue in non-test environments            |
+| 0.5.5  | Deploy dedicated queue workers                                 |
+| 0.5.6  | Switch cache backend to Redis                                  |
+| 0.5.7  | Add cache wrappers for discovery endpoints                     |
+| 0.5.8  | Remove wasteful double-fetch pagination patterns               |
+| 0.5.9  | Add cache invalidation hooks                                   |
+| 0.5.10 | Extract payment logic from `StripeTrait` into `PaymentService` |
+| 0.5.11 | Introduce core service layer for large controllers             |
+| 0.5.12 | Remove Legacy CRM secrets and static tokens from source        |
+| 0.5.13 | Add observability for async + cache behavior                   |
+| 0.5.14 | Add regression tests for hardening work                        |
+| 0.5.15 | Define hardening exit criteria                                 |
+
+## Phase 1 - Foundation
+
+| #    | Task                                      |
+| ---- | ----------------------------------------- |
+| 1.1  | Install Filament panel                    |
+| 1.2  | Scaffold admin panel                      |
+| 1.3  | Create `AdminUser` model/migration/seeder |
+| 1.4  | Install Spatie permission                 |
+| 1.5  | Configure panel branding                  |
+| 1.6  | Add certificate migration changes         |
+| 1.7  | Add user suspension fields                |
+| 1.8  | Create support ticket tables              |
+| 1.9  | Create pre-registration table             |
+| 1.10 | Create platform settings/policy tables    |
+
+## Phase 2 - Core Resources
+
+| #   | Task                                               |
+| --- | -------------------------------------------------- |
+| 2.1 | Build `CertificateResource` with approve/reject    |
+| 2.2 | Build certificate mail/notification templates      |
+| 2.3 | Build `UserResource` with suspension controls      |
+| 2.4 | Build `MikitchnResource` with embedded cert panel  |
+| 2.5 | Build `OrderResource` and controlled refund action |
+| 2.6 | Build `PromoCodeResource`                          |
+
+## Phase 3 - CRM
+
+| #    | Task                                                                        |
+| ---- | --------------------------------------------------------------------------- |
+| 3.1  | Build ticket models + relationships + indexes                               |
+| 3.2  | Build `SupportTicketResource` with full agent workflow                      |
+| 3.3  | Build intake and conversation APIs                                          |
+| 3.4  | Build spam/abuse protections for CRM intake                                 |
+| 3.5  | Build ticket automations                                                    |
+| 3.6  | Build `PreRegistrationResource` with operator workflow                      |
+| 3.7  | Replace legacy CRM behavior inside `/api/preregister` and `/api/mobcontact` |
+| 3.8  | Build CRM communications layer                                              |
+| 3.9  | Build Customer Service UX flows in Filament                                 |
+| 3.10 | Build Operations UX flows in Filament                                       |
+| 3.11 | Build user-friendly data presentation                                       |
+| 3.12 | Add accessibility and usability standards                                   |
+| 3.13 | Build CRM analytics widgets                                                 |
+| 3.14 | UAT with CS/Ops and iterate UX                                              |
+| 3.15 | Finalize CRM playbooks and training assets                                  |
+
+## Phase 4 - Platform Admin and Health
+
+| #   | Task                                         |
+| --- | -------------------------------------------- |
+| 4.1 | Build `PlatformSettingsPage`                 |
+| 4.2 | Build `PolicyResource` + versioning workflow |
+| 4.3 | Build `SystemHealthPage`                     |
+| 4.4 | Build `QueueOpsPage`                         |
+| 4.5 | Build dashboard widgets for SLA/health       |
+| 4.6 | Add immutable audit logs for admin actions   |
+
+## Phase 5 - Legacy CRM Cutover
+
+| #   | Task                                                                 |
+| --- | -------------------------------------------------------------------- |
+| 5.1 | Execute contract parity suite in staging                             |
+| 5.2 | Run shadow-read/dual-observe period (no legacy CRM write dependence) |
+| 5.3 | Cut traffic to internal modules only                                 |
+| 5.4 | Keep `/api/mobcontact` as compatibility alias                        |
+| 5.5 | Remove legacy CRM runtime dependencies from code                     |
+| 5.6 | Remove legacy CRM persistence artifacts                              |
+| 5.7 | Remove legacy CRM secrets and rotate exposed credentials             |
+| 5.8 | Verify zero legacy CRM traffic in production logs                    |
+| 5.9 | Sign-off on no-impact outcomes                                       |
+
+## Phase 5.5 - Deployment and Release Tasks
+
+| #      | Task                                                 |
+| ------ | ---------------------------------------------------- |
+| 5.5.1  | Build container image(s) for backend and ops         |
+| 5.5.2  | Deploy `ops-admin` to staging under same-domain path |
+| 5.5.3  | Configure ingress and WAF rules                      |
+| 5.5.4  | Configure horizontal scaling policies                |
+| 5.5.5  | Queue worker deployment separation                   |
+| 5.5.6  | Add health probes                                    |
+| 5.5.7  | Add zero-downtime DB migration steps                 |
+| 5.5.8  | Configure centralized logs/metrics/traces            |
+| 5.5.9  | Define rollback runbook                              |
+| 5.5.10 | Production cutover rehearsal                         |
+
+## Phase 6 - Hardening
+
+| #   | Task                                          |
+| --- | --------------------------------------------- |
+| 6.1 | Redis queue + Horizon                         |
+| 6.2 | Add intake throttles and abuse controls       |
+| 6.3 | Feature tests: certificate flow               |
+| 6.4 | Feature tests: ticket lifecycle + SLA         |
+| 6.5 | Feature tests: policy permissions             |
+| 6.6 | Load tests on ticket intake and admin lists   |
+| 6.7 | Disaster recovery runbook + backup validation |
+
+
 
 ---
