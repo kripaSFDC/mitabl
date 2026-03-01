@@ -19,6 +19,12 @@ It reflects a code-first audit across app entry points, routing, feature modules
 - **Session persistence**: `SharedPreferences` with serialized `current_user` payload.
 - **Environment config**: Runtime JSON config (`assets/cfg/configuration.json`) loaded on startup.
 
+### FAQ content source policy
+
+- The canonical FAQ source for all clients is the public website page: `https://mitabl.com/faq`.
+- The mobile app must not ship duplicated static FAQ copy as native text content.
+- Any FAQ content updates are website-owned changes and should be done only in the website FAQ source files.
+
 ### Scale indicators
 
 - `118` Dart source files.
