@@ -10,8 +10,6 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FcmController;
-use App\Http\Controllers\Api\WebApiToCurlController;
-use App\Http\Controllers\Api\SupportTicketController;
 use App\Http\Controllers\Controller;
 use App\Services\SystemHealthService;
 /*
@@ -60,13 +58,6 @@ Route::post('resendotp', [UserController::class, 'resendOtp']);
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 
-Route::post('preregister', [WebApiToCurlController::class, 'preRegister'])->middleware('throttle:support-intake');
-Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
-Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
-Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
-
-Route::post('mobcontact', [SupportTicketController::class, 'deprecatedMobcontact'])
-    ->middleware(['throttle:support-intake', 'mobcontact.deprecation']);
 
 // Route::group(['prefix' => 'v1/kitchen', 'namespace' => 'Api'], function ($router) { 
 // });

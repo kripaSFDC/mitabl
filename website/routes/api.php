@@ -1,23 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\WebApiToCurlController;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-Route::post('preregister', [WebApiToCurlController::class, 'preRegister']);
 
-Route::post('support/ticket', [WebApiToCurlController::class, 'supportTicket']);
-Route::get('v1/mob-contact', [WebApiToCurlController::class, 'mobileContact']);
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
+Route::fallback(function () {
+    return response()->json([
+        'status' => 404,
+        'isSuccess' => false,
+        'message' => 'No public website API endpoints are available.',
+        'data' => [],
+    ], 404);
+});
