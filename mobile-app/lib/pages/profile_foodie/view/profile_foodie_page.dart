@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/pages/common/view/faq_webview_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/mobile_contact_repository.dart';
@@ -202,6 +203,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(FaqWebviewPage.route());
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
@@ -228,6 +232,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(FaqWebviewPage.route());
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
@@ -280,6 +287,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(FaqWebviewPage.route());
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
