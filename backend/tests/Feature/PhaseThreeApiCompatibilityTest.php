@@ -75,7 +75,7 @@ class PhaseThreeApiCompatibilityTest extends TestCase
         ]);
     }
 
-    public function test_mobcontact_route_is_removed_for_greenfield_api_surface(): void
+    public function test_mobcontact_route_returns_gone_with_deprecation_headers(): void
     {
         $response = $this->postJson('/api/mobcontact', [
             'requester_name' => 'Legacy Contact',
@@ -85,7 +85,10 @@ class PhaseThreeApiCompatibilityTest extends TestCase
             'description' => 'Need help from legacy contact endpoint.',
         ]);
 
-        $response->assertStatus(404);
+        $response->assertStatus(410)
+            ->assertHeader('Deprecation', 'true')
+            ->assertHeader('X-Deprecated-Endpoint', '/api/mobcontact')
+            ->assertHeader('X-Replacement-Endpoint', '/api/support/ticket');
 
         $this->assertDatabaseMissing('support_tickets', [
             'requester_email' => 'mobcontact@example.com',
