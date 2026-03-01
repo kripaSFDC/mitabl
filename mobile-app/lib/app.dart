@@ -15,6 +15,7 @@ import 'package:mitabl_user/route_generator.dart';
 
 import 'auth_bloc/authentication/authentication_bloc.dart';
 import 'helper/app_config.dart' as config;
+import 'helper/app_logger.dart';
 import 'helper/appconstants.dart';
 
 class App extends StatelessWidget {
@@ -111,7 +112,7 @@ class _AppViewState extends State<AppView> {
         builder: (context, child) {
           return BlocListener<AuthenticationBloc, AuthenticationState>(
             listener: (context, state) async {
-              print('checkStatus ${state.status}');
+              AppLogger.debug('Authentication status: ${state.status}');
               switch (state.status) {
                 case AuthenticationStatus.authenticated:
                   state.user!.data!.user!.role ==
@@ -123,8 +124,6 @@ class _AppViewState extends State<AppView> {
                   break;
 
                 case AuthenticationStatus.unauthenticated:
-                  print('app:-unauthenticated');
-
                   _navigator!.pushNamedAndRemoveUntil(
                       '/LandingPage', (route) => false);
 

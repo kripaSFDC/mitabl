@@ -10,6 +10,9 @@ class HomeState extends Equatable {
       this.serverMessage = '',
       this.cookingStyleList = const [],
       this.selectDineTake = '',
+      this.locationQuery = '',
+      this.latitude,
+      this.longitude,
       this.nearByRestaurants,
       this.selectedDistance = 15,
       this.recommendedRestResponse,
@@ -25,6 +28,9 @@ class HomeState extends Equatable {
   final List<CookingStyleData>? cookingStyleList;
   final String? serverMessage;
   final String? selectDineTake;
+  final String? locationQuery;
+  final double? latitude;
+  final double? longitude;
   final double? selectedDistance;
   final CookingStyleData? selectedCookingData;
   final NearByRestaurantsResponse? nearByRestaurants;
@@ -38,6 +44,9 @@ class HomeState extends Equatable {
       FormzStatus? statusCooking,
       FormzStatus? statusRecommRes,
       String? serverMessage,
+      String? locationQuery,
+      double? latitude,
+      double? longitude,
       double? selectedDistance,
       CookingStyleData? selectedCookingData,
       List<CookingStyleData>? cookingStyleList,
@@ -49,6 +58,9 @@ class HomeState extends Equatable {
         status: status ?? this.status,
         selectedCookingData: selectedCookingData ?? this.selectedCookingData,
         selectDineTake: selectDineTake ?? this.selectDineTake,
+        locationQuery: locationQuery ?? this.locationQuery,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
         cookingStyleList: cookingStyleList ?? this.cookingStyleList,
         statusTopRes: statusTopRes ?? this.statusTopRes,
         selectedDistance: selectedDistance ?? this.selectedDistance,
@@ -70,6 +82,9 @@ class HomeState extends Equatable {
         selectDineTake,
         selectedCookingData,
         serverMessage,
+        locationQuery,
+        latitude,
+        longitude,
         statusTopRes,
         statusRecommRes,
         statusCooking,
