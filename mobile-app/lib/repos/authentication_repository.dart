@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -19,6 +19,14 @@ final navigatorKey = GlobalKey<NavigatorState>();
 class AuthenticationRepository {
   final controller = StreamController<AuthenticationStatus>();
   final UserRepository _userRepository = UserRepository();
+  String _accessToken(UserModel? userModel) {
+    final token = userModel?.data?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token unavailable. Please login again.');
+    }
+    return token;
+  }
+
 
   Stream<AuthenticationStatus> get status async* {
     await Future<void>.delayed(const Duration(seconds: 3));
@@ -39,14 +47,13 @@ class AuthenticationRepository {
   }) async {
     // try {
 
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}login';
+    final url = ApiContract.uri('login');
 
     print(url);
 
     final client = http.Client();
 
-    final response = await client.post(Uri.parse(url),
+    final response = await client.post(url,
         // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
         headers: {
           'Content-Type': 'application/json',
@@ -67,14 +74,13 @@ class AuthenticationRepository {
     required Map<String, dynamic> data,
   }) async {
     // try {
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}password/reset';
+    final url = ApiContract.uri('password/reset');
 
     print(url);
 
     final client = http.Client();
 
-    final response = await client.post(Uri.parse(url),
+    final response = await client.post(url,
         // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
         headers: {
           'Content-Type': 'application/json',
@@ -89,18 +95,17 @@ class AuthenticationRepository {
   }
 
   Future<dynamic?> logOutApi({required UserModel? userModel}) async {
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}v1/logout';
+    final url = ApiContract.uri('v1/logout');
 
     print(url);
 
     final client = http.Client();
 
     final response = await client.post(
-      Uri.parse(url),
+      url,
       headers: {
         'Accept': 'application/json',
-        'Authorization': 'Bearer ${userModel!.data!.accessToken}'
+        'Authorization': 'Bearer ${_accessToken(userModel)}'
       },
     );
 
@@ -120,15 +125,14 @@ class AuthenticationRepository {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}register';
+      final url = ApiContract.uri('register');
 
       print(url);
       print(data);
 
       final client = http.Client();
 
-      final response = await client.post(Uri.parse(url),
+      final response = await client.post(url,
           // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
           headers: {
             'Content-Type': 'application/json',
@@ -153,15 +157,14 @@ class AuthenticationRepository {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}verifyOtp';
+      final url = ApiContract.uri('verifyOtp');
 
       print(url);
       print(data);
 
       final client = http.Client();
 
-      final response = await client.post(Uri.parse(url),
+      final response = await client.post(url,
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -183,14 +186,13 @@ class AuthenticationRepository {
       required RouteArguments? routeArguments,
       required List<String> filePaths}) async {
     try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/mikitchn/store';
+      final url = ApiContract.uri('v1/mikitchn/store');
 
       print(url);
       print(data['name']);
 
       //for multipartrequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
+      var request = http.MultipartRequest('POST', url);
 
       //for token
       request.headers.addAll({
