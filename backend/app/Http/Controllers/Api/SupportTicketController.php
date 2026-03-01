@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Services\SupportTicketService;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
@@ -58,7 +59,9 @@ class SupportTicketController extends Controller
                 'attachments' => $request->file('attachments', []),
                 'actor_type' => 'user',
                 'actor_id' => $actor?->id,
-            ], 'public_api');
+                'authenticated_guard' => $request->user('api') ? 'api' : null,
+                'authenticated_channel' => $this->resolveAuthenticatedChannel($request),
+            ], $this->resolveIntakeSource($request));
         } catch (InvalidArgumentException $exception) {
             return response()->json([
                 'status' => 422,
@@ -76,6 +79,32 @@ class SupportTicketController extends Controller
             'duplicate' => $result['duplicate'],
             'token' => $ticket->requester_token,
         ], 'Contact Message Sent Successfully');
+    }
+
+    private function resolveIntakeSource(Request $request): string
+    {
+        $channel = $this->resolveAuthenticatedChannel($request);
+
+        return match ($channel) {
+            SupportTicket::SOURCE_MOBILE_APP => SupportTicket::SOURCE_MOBILE_APP,
+            SupportTicket::SOURCE_WEBSITE => SupportTicket::SOURCE_WEBSITE,
+            default => 'public_api',
+        };
+    }
+
+    private function resolveAuthenticatedChannel(Request $request): ?string
+    {
+        $header = Str::lower(trim((string) $request->header('X-Authenticated-Channel', $request->header('X-Client-Channel', ''))));
+
+        if (in_array($header, [SupportTicket::SOURCE_MOBILE_APP, SupportTicket::SOURCE_WEBSITE], true)) {
+            return $header;
+        }
+
+        if ($request->user('api')) {
+            return SupportTicket::SOURCE_MOBILE_APP;
+        }
+
+        return null;
     }
 
     public function show(Request $request, int $id)

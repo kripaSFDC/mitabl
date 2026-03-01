@@ -43,7 +43,7 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
             'priority' => 'high',
             'actor_type' => 'user',
             'actor_id' => $user->id,
-        ], 'public_api');
+        ], 'website');
 
         $ticket = $result['ticket'];
 
@@ -76,8 +76,8 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
             'priority' => 'normal',
         ];
 
-        $first = $this->service->createTicket($payload, 'public_api');
-        $second = $this->service->createTicket($payload, 'public_api');
+        $first = $this->service->createTicket($payload, 'website');
+        $second = $this->service->createTicket($payload, 'website');
         $third = $this->service->createTicket(array_merge($payload, [
             'skip_duplicate_check' => true,
         ]), 'admin_panel');
@@ -87,6 +87,37 @@ class PhaseThreeSupportTicketServiceTest extends TestCase
         $this->assertSame($first['ticket']->id, $second['ticket']->id);
         $this->assertFalse($third['duplicate']);
         $this->assertNotSame($first['ticket']->id, $third['ticket']->id);
+    }
+
+    public function test_mobile_authenticated_public_api_requests_store_mobile_app_source(): void
+    {
+        $ticket = $this->service->createTicket([
+            'requester_name' => 'Mobile Intake',
+            'requester_email' => 'mobile-intake@example.com',
+            'subject' => 'Mobile source check',
+            'description' => 'Ensure mobile app requests are tagged correctly.',
+            'authenticated_channel' => SupportTicket::SOURCE_MOBILE_APP,
+            'authenticated_guard' => 'api',
+        ], 'public_api')['ticket'];
+
+        $this->assertSame(SupportTicket::SOURCE_MOBILE_APP, $ticket->source);
+        $this->assertDatabaseHas('support_tickets', [
+            'id' => $ticket->id,
+            'source' => SupportTicket::SOURCE_MOBILE_APP,
+        ]);
+    }
+
+    public function test_public_api_source_requires_explicit_mapping_or_authenticated_context(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Support ticket source "public_api" is ambiguous');
+
+        $this->service->createTicket([
+            'requester_name' => 'Unknown Channel',
+            'requester_email' => 'unknown-channel@example.com',
+            'subject' => 'Ambiguous source',
+            'description' => 'Should reject ambiguous source mapping.',
+        ], 'public_api');
     }
 
 
