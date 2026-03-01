@@ -69,6 +69,21 @@ body{
 p {
     font-size: 17px;
 }
+.privacy-sec {
+    padding: 50px 0;
+}
+.privacy-sec h3 {
+    text-align: center;
+    font-size: 30px;
+}
+.outer-privacy h4 {
+    margin-bottom: 6px;
+    font-size: 18px;
+}
+.outer-privacy li {
+    list-style: auto;
+    margin-bottom: 10px;
+}
 .sec-padd {
     padding: 50px 0px;
 }

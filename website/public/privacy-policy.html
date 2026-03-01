@@ -1,43 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <title>Privacy Policy</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500&display=swap" rel="stylesheet">
- <style>
+  <head>
 
-    
-   .outer-privacy li {
-       list-style: auto;
-       margin-bottom: 10px;
-   }
-   .outer-privacy h4 {
-       margin-bottom: 6px;
-       font-size: 18px;
-   }
-   .privacy-sec h3 {
-       text-align: center;
-       font-size: 30px;
-   }
-   *{
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-    .container {
-        max-width: 1170px;
-        margin: 0 auto;
-    }
-    @media screen and (max-width: 767px){
-        .privacy-sec h3 {
-            display: none;
-        }
-    }
- </style> 
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+
+     <!-- CSRF Token -->
+
+        <title>Privacy Policy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
+    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/frontend/css/style.css">
+
 </head>
-<body>
+
+  <body>
+
+   <header>
+   <div class="container">
+      <nav class="navbar navbar-expand-md navbar-dark">
+        <a class="navbar-brand" href="/"><img src="/frontend/images/logo.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+          <ul id="lu-ID" class="navbar-nav ml-auto">
+            <li class="nav-item" id="home">
+              <a class="nav-link" href="/">HOME</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">ABOUT</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/faq">FAQ</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+   </div>
+
+</header>
 
 <section class="privacy-sec">
    <div class="container">
@@ -81,5 +84,51 @@
    </div>
 </section>
 
-</body>
+<footer>
+   <div class="container">
+      <div class="row align-items-center">
+         <div class="col-md-12">
+            <div class="footer-menu">
+               <ul class="d-flex">
+                  <li><a href="/terms">Terms</a></li>
+                  <li><a href="/privacy-policy">Privacy Policy</a></li>
+               </ul>
+            </div>
+         </div>
+      </div>
+   </div>
+   <div class="copyright-area text-center">
+      <p>&copy; 2026 mitabl All rights reserved.</p>
+   </div>
+</footer>
+
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script> -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+       $(document).ready(function() {
+
+                var CurrentUrl= document.URL;
+                var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
+                if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
+                  $('#home').addClass('active')
+                } else {
+                  $( "#lu-ID li a" ).each(function() {
+                      var ThisUrl = $(this).attr('href');
+                      var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
+
+                      if(ThisUrlEnd == CurrentUrlEnd){
+                        $(this).closest('li').addClass('active')
+                      }
+                  });
+                }
+
+
+       });
+  </script>
+
+  </body>
 </html>
