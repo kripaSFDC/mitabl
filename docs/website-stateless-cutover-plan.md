@@ -45,6 +45,17 @@ This confirms backend should remain the only persistence authority.
    - `website-db-migrate` service removed from compose files.
    - Marketing-web environment templates no longer include website DB or backend proxy variables.
 
+## Route ownership and ingress boundaries
+
+At runtime, route ownership is intentionally split on the same domain:
+
+- Website (`website/`) serves public pages only.
+- Backend (`backend/`) serves `/api/*`.
+- Admin (`ops-admin`) is served at `/admin`.
+
+Ingress routing source of truth: [`deploy/nginx/mitabl.phase0.conf`](../deploy/nginx/mitabl.phase0.conf).
+Website developer docs: [`website/README.md`](../website/README.md).
+
 ## Target structure alignment
 
 The repository is now moving toward:
