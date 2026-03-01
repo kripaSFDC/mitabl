@@ -25,21 +25,33 @@ return new class extends Migration
             Schema::create('pre_registrations', function (Blueprint $table): void {
                 $table->id();
                 $table->string('first_name');
-                $table->string('last_name')->nullable();
+                $table->string('last_name');
                 $table->string('email')->nullable();
-                $table->string('phone', 32)->nullable();
+                $table->string('phone')->nullable();
                 $table->string('city')->nullable();
-                $table->string('interested_as', 32);
-                $table->string('source', 32)->default('website');
-                $table->string('status', 32)->default('new');
+                $table->string('interested_as');
+                $table->string('source');
+                $table->string('status')->default('new');
                 $table->text('notes')->nullable();
+                $table->boolean('consent_to_contact')->default(false);
+                $table->string('communication_preference', 20)->default('email');
+                $table->timestamp('consent_captured_at')->nullable();
                 $table->foreignId('followed_up_by')->nullable()->constrained('admin_users')->nullOnDelete();
+                $table->foreignId('assigned_to')->nullable()->constrained('admin_users')->nullOnDelete();
                 $table->timestamp('followed_up_at')->nullable();
+                $table->foreignId('converted_user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->string('duplicate_fingerprint', 64)->nullable();
+                $table->unsignedSmallInteger('spam_score')->default(0);
+                $table->timestamp('spam_detected_at')->nullable();
+                $table->timestamp('last_contacted_at')->nullable();
                 $table->json('metadata')->nullable();
                 $table->timestamps();
 
                 $table->index(['status', 'source'], 'pre_registrations_status_source_idx');
                 $table->index(['email', 'phone'], 'pre_registrations_email_phone_idx');
+                $table->index(['communication_preference'], 'pre_registrations_comm_pref_idx');
+                $table->index(['assigned_to', 'status'], 'pre_registrations_assigned_status_idx');
+                $table->index(['duplicate_fingerprint', 'created_at'], 'pre_registrations_duplicate_fingerprint_created_idx');
             });
         }
 
