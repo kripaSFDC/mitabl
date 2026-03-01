@@ -1,6 +1,9 @@
 # Website (Static Marketing Site)
 
-The `website/` project is a static site that serves public marketing pages only.
+The `website/` project is a **static site** that serves public marketing pages only.
+
+- **No runtime JavaScript build chain is required** to run or deploy this site.
+- **No local database or API dependency is required** for website pages to render.
 
 ## Build
 
