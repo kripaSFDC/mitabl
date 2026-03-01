@@ -40,5 +40,19 @@ bootstrap/cache/
 /public/mix-manifest.json
 /public/css/app.css
 /public/js/app.js
+!website/bootstrap/cache/
+!website/bootstrap/cache/.gitignore
+!website/storage/
+!website/storage/framework/
+!website/storage/framework/cache/
+!website/storage/framework/cache/.gitignore
+!website/storage/framework/cache/data/
+!website/storage/framework/cache/data/.gitignore
+!website/storage/framework/sessions/
+!website/storage/framework/sessions/.gitignore
+!website/storage/framework/views/
+!website/storage/framework/views/.gitignore
+!website/storage/logs/
+!website/storage/logs/.gitignore
 # Docker
 *.pid
