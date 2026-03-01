@@ -69,6 +69,37 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
 
+  support-ticket-contract:
+    runs-on: ubuntu-latest
+    needs: [secret-scan]
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+      - name: Copy backend env template
+        run: |
+          cp .env.example .env
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+      - name: Finalize backend test environment
+        run: |
+          php artisan key:generate --force
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Run support-ticket contract gate
+        run: |
+          php artisan test tests/Feature/SupportTicketIntakeCrmEndToEndContractTest.php tests/Unit/PhaseThreeSupportTicketServiceTest.php
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+
   website:
     runs-on: ubuntu-latest
     needs: [secret-scan]
