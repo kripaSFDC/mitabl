@@ -1,5 +1,6 @@
-# Simple Flutter development/build container
-FROM cirrusci/flutter:stable
+# Simple Flutter development/build container.
+# Use the maintained CirrusLabs registry to get a modern Flutter/Dart toolchain.
+FROM ghcr.io/cirruslabs/flutter:stable
 
 WORKDIR /app
 

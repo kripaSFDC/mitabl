@@ -1,9 +1,9 @@
 FROM php:8.2-fpm
 
-RUN apt-get update && apt-get install -y unzip nodejs npm git curl libonig-dev libzip-dev \
+RUN apt-get update && apt-get install -y unzip nodejs npm git curl libonig-dev libzip-dev libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install mysqli pdo pdo_mysql mbstring bcmath pcntl zip && docker-php-ext-enable pdo_mysql
+RUN docker-php-ext-install mysqli pdo pdo_mysql mbstring bcmath pcntl zip intl && docker-php-ext-enable pdo_mysql
 
 RUN curl -sS https://getcomposer.org/installer | php -- \
      --install-dir=/usr/local/bin --filename=composer
