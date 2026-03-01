@@ -54,6 +54,8 @@ services:
     restart: unless-stopped
 
   mobile-app:
+    profiles:
+      - mobile-devtools
     build:
       context: ./mobile-app
       dockerfile: Dockerfile
@@ -62,6 +64,7 @@ services:
       - FLUTTER_ENV=production
     volumes:
       - ./mobile-app:/app
+    command: ["sleep", "infinity"]
 
   db:
     image: mysql:8.0
