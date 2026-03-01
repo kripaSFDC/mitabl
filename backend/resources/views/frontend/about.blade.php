@@ -19,17 +19,18 @@
          <div class="col-md-12">
             <div class="img-about2">
                <!-- <img src="{{url('frontend/images/logo4.png')}}"> -->
-               <p>mitabl is where micook and mifoodi go to connect - people who create delicious food for people who enjoy delicious food!</p>
-               <p>Our mission is to build your community by creating connections through food. In doing so, we seek to generate opportunities to support new and upcoming cooks and create possibilities like never before.</p>
-               <p>We are achieving our goal of boosting and empowering local economies by creating the final link between the consumer and the local supplier. For people who are interested in embracing their path in the culinary sector, mitabl introduces the idea of home cooking and sharing. </p>
+               <p>mitabl connects micooks and mifoodi through a mobile-first food marketplace designed for real local discovery.</p>
+               <p>Our mission is to grow stronger food communities by combining delightful app experiences with trusted backend operations.</p>
+               <p>We help local economies thrive by making it easier for cooks to serve nearby diners with confidence, clarity, and operational support.</p>
 
-               <h3>Real Life Community Connections</h3>
-               <p>mitabl celebrates the fact that everyone needs to eat, by channelling our passion for food and creating real life community connections. We do this through </p>
+               <h3>Real Local Connections</h3>
+               <p>mitabl turns everyday food moments into meaningful connections through:</p>
                <ul>
-                  <li>Meals cooked for neighbours by neighbours: sometimes you want the comfort of a home cooked meal but don’t have the time, skills and family nearby.  micook are here to help, offering you an extension of their home through a meal or two. As a mifoodi, your also helping your micook reduce food waste, pursue their love of cooking and nurturing others through food. </li>
-                  <li> At home dining experiences: Sometimes dining at home just won’t cut it, you want to get out and reconnect with the world after lockdown. We created this opportunity to allow you to connect with you micook neighbours, grow your social circles, and enrich your life and your community. </li>
+                  <li><b>Neighbourhood meal access:</b> discover home-cooked options near you and order in just a few taps.</li>
+                  <li><b>Reliable fulfilment:</b> backend-supported workflows help cooks and customers stay in sync from order to handoff.</li>
+                  <li><b>Community growth:</b> every order supports local talent and strengthens the people around you.</li>
                </ul>
-               <p><b>mitabl : cook| eat| talk| share| connect</b></p>
+               <p><b>mitabl: cook | discover | share | connect</b></p>
             </div>
          </div>
          
@@ -44,14 +45,14 @@
             <div class="inner-content">
                <img src="{{url('frontend/images/mission.png')}}">
                <h4>Our Mission</h4>
-               <p>To build the world's largest home cook community.</p>
+               <p>To build the world's most trusted mobile marketplace for local home-cooked food.</p>
             </div>
          </div>
          <div class="col-lg-6">
             <div class="inner-content">
                <img src="{{url('frontend/images/vision.png')}}">
                <h4>Our Vision</h4>
-               <p>To Become the world’s largest platform for passionate home cooks and food lovers.</p>
+               <p>To become the leading platform where local cooks and food lovers connect through dependable digital experiences.</p>
             </div>
          </div>
       </div>
