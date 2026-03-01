@@ -24,13 +24,14 @@ docker compose --profile mobile-devtools up --build -d mobile-app
 
 ### Phase0 stack (`deploy/docker-compose.phase0.yml`)
 Services:
-- `db` (MySQL)
 - `db-migrate`
 - `backend-api`
 - `ops-admin`
 - `queue-worker`
 - `marketing-web`
 - `redis`
+
+> Note: Phase0 does **not** provision MySQL. Use a managed/external database and set `DB_HOST` in `deploy/environments/*.env`.
 
 Start:
 ```bash

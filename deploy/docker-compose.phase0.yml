@@ -16,9 +16,6 @@ services:
     env_file:
       - ./environments/backend-api.env
     restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
 
 
   marketing-web:
@@ -146,21 +143,3 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-
-
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: mitabl
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-
-volumes:
-  db_data:
