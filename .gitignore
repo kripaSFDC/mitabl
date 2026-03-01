@@ -1,6 +1,7 @@
 # Root .gitignore
 # Node
 node_modules/
+website/node_modules/
 # Composer
 vendor/
 # Python
@@ -25,6 +26,12 @@ Thumbs.db
 *.swo
 # Coverage
 coverage/
+
+# Website generated artifacts
+website/.cache/
+website/.parcel-cache/
+website/dist/
+website/build/
 # Laravel
 storage/
 bootstrap/cache/
