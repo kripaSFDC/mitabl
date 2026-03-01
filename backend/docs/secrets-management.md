@@ -234,7 +234,6 @@ This document is the authoritative Platform Admin + Security Admin reference for
 | `SUPPORT_ATTACHMENT_MAX_SIZE_KB` | `5120` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
 | `SUPPORT_DUPLICATE_WINDOW_MINUTES` | `10` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
 | `SUPPORT_HONEYPOT_FIELD` | `'website'` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
-| `SUPPORT_MOBCONTACT_ALIAS_REPLACEMENT_PATH` | `'/api/support/ticket'` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
 | `SUPPORT_MOBCONTACT_ALIAS_SUNSET` | `'2026-12-31'` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
 | `SUPPORT_PII_REDACTION_ENABLED` | `true` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |
 | `SUPPORT_REOPEN_WINDOW_HOURS` | `72` | Support/ticketing SLA windows, intake controls, routing, attachment, and privacy policies. Example source: `config/support.php`. |

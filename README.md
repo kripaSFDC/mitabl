@@ -4,7 +4,7 @@
 
 - A Laravel backend API and operations console.
 - A Flutter mobile app serving both Foodie and Cook journeys.
-- A Laravel marketing website and intake proxy endpoints.
+- A Laravel marketing website serving static public pages (no website-side persistence).
 - Deployment manifests, operational scripts, and runbooks.
 
 This document is intentionally detailed and aligned to the **current codebase state**.
@@ -41,7 +41,7 @@ This document is intentionally detailed and aligned to the **current codebase st
 ### High-level runtime topology
 
 - Mobile app -> Backend API (`backend/routes/api.php`)
-- Website public forms -> Website API proxy -> Backend intake APIs
+- Website public pages are static marketing content (no website->backend runtime integration)
 - Admin operators -> Filament panel in backend (`/admin` by default)
 - MySQL datastore + queue/Horizon-backed async operations
 
@@ -53,7 +53,7 @@ This document is intentionally detailed and aligned to the **current codebase st
 mitabl/
 ├── backend/                      # Laravel API + Filament admin + business services
 ├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
-├── website/                      # Laravel marketing web and intake forwarding APIs
+├── website/                      # Laravel static marketing web frontend
 ├── deploy/                       # Docker, env templates, nginx/supervisor, load tests
 ├── docs/                         # SOPs, validation reports, secrets management docs
 ├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
@@ -63,7 +63,7 @@ mitabl/
 ### Additional important folders
 
 - `deploy/environments/{dev,staging,prod}`: app-specific environment templates.
-- `deploy/load-tests`: k6 performance scripts for support intake and admin list pages.
+- `deploy/load-tests`: k6 performance scripts for admin list pages.
 - `deploy/nginx`: reverse-proxy configuration.
 - `deploy/supervisor`: queue worker supervision config.
 - `docs/`: CRM playbook, legacy cutover validation, and secret-handling guidance.
@@ -92,7 +92,7 @@ mitabl/
 `backend/routes/api.php` includes:
 
 - **Health endpoints**: `/health`, `/health/live`, `/health/startup`, `/health/ready`.
-- **Public endpoints**: login/register/OTP/password-reset, preregistration, support ticket create/reply/read.
+- **Public endpoints**: login/register/OTP/password-reset and support ticket create/reply/read.
 - **Authenticated v1 group** with middleware: `auth:api` + `api.user.active`.
 - **Role-gated route groups**:
   - `customer` middleware: discovery, favorites, ordering, customer payments, customer reviews.
@@ -178,24 +178,13 @@ mobile-app/lib/
 
 ### Responsibilities
 
-- Serves public marketing pages and legal pages (`home/about/register/contact/privacy/terms`).
+- Serves public marketing pages and legal pages (`home/about/privacy/terms`).
 - Exposes a simple health endpoint (`/health`).
-- Provides intake API forwarding endpoints:
-  - `POST /api/preregister`
-  - `POST /api/support/ticket`
-
-### Intake forwarding behavior
-
-`App\Http\Controllers\Api\WebApiToCurlController`:
-- Reads backend API base URL from config.
-- Forwards payloads to backend intake endpoints.
-- Handles upstream timeout/unavailability with a graceful 503 JSON envelope.
-- Forwards selected deprecation/sunset headers when present.
+- Contains no website-owned database models/migrations and no intake proxy API surface.
 
 ### Website role in platform architecture
 
-- Public acquisition surface (landing/contact/register).
-- Thin proxy facade for intake continuity and endpoint abstraction.
+- Public, static marketing surface for brand and product messaging.
 
 ---
 
@@ -205,8 +194,6 @@ The current CRM footprint is fully represented in this repository via backend mo
 
 ### CRM capabilities implemented
 
-- **Lead intake**: pre-registration records with admin triage/edit workflows.
-- **Support intake**: support tickets with threaded messages/events/attachments.
 - **Ops workflows**: assignment, response, resolution status progression.
 - **SLA/operations visibility**: dashboard widgets and list views in admin.
 - **Auditability**: action logs and auditable resources.
@@ -267,7 +254,7 @@ Backend ships a dedicated Filament panel provider with grouped navigation and pe
 
 1. **Guest**
    - Unauthenticated public website access.
-   - Can invoke public API endpoints such as login/register/preregister/support create.
+   - Can invoke public API endpoints such as login/register and support ticket create/read/reply.
 2. **Foodie (customer)**
    - Authorized through `customer` middleware.
    - Discovery, favorites, order placement, payment, and customer-side reviews.
@@ -380,7 +367,7 @@ docker compose up --build
 
 Compose includes:
 - `db` (MySQL)
-- `db-migrate` + `website-db-migrate`
+- `db-migrate`
 - `backend` on `:8000`
 - `website` on `:8080`
 - `mobile-app` build container

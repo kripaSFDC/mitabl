@@ -16,8 +16,6 @@ This runbook captures the operational checks required to validate the Phase 6 ha
 ## 6.2 Public intake hardening (throttle + honeypot)
 
 - Validate throttles are attached to:
-  - `POST /api/preregister`
-  - `POST /api/support/ticket`
   - `POST /api/mobcontact` (deprecated alias)
 - Validate bot honeypot acceptance path returns success without persisting records.
 
@@ -43,9 +41,6 @@ This runbook captures the operational checks required to validate the Phase 6 ha
 Run support intake load test:
 
 ```bash
-k6 run deploy/load-tests/support-intake-load-test.js \
-  -e BASE_URL=https://staging.mitabl.com \
-  -e CAPTCHA_TOKEN="<valid-captcha-token>"
 ```
 
 Capture p50/p95/p99 latency, error rate, and threshold pass/fail.

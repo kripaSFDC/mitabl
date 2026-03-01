@@ -14,13 +14,10 @@
               <a class="nav-link" href="/about">ABOUT US</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/register">registration</a>
-            </li>  
-            <!-- <li class="nav-item contact-btn">
-              <a class="nav-link" href="/contact">CONTACT US</a>
-            </li>  -->   
+              <a class="nav-link" href="/faq">FAQ</a>
+            </li>
           </ul>
-        </div>  
+        </div>
       </nav>
    </div>
 
