@@ -13,7 +13,6 @@ import 'package:mitabl_user/model/near_by_restaurants_response.dart';
 import 'package:mitabl_user/model/recommended_rest_response.dart';
 import 'package:mitabl_user/model/top_rated_rest_response.dart';
 import 'package:mitabl_user/model/user_model.dart';
-import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -22,12 +21,10 @@ part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit(
-      {required AuthenticationRepository authenticationRepository,
-      required UserRepository userRepository,
-      HomeRepository? homeRepository})
-      : _authenticationRepository = authenticationRepository,
-        userRepository = userRepository,
+      {required UserRepository userRepository, HomeRepository? homeRepository})
+      : userRepository = userRepository,
         _homeRepository = homeRepository ?? HomeRepository(),
+        _ownsHomeRepository = homeRepository == null,
         super(const HomeState()) {
     _fetchHomeFeeds();
   }
@@ -35,13 +32,15 @@ class HomeCubit extends Cubit<HomeState> {
   static const double _fallbackLat = 30.6754;
   static const double _fallbackLon = 76.7405;
 
-  final AuthenticationRepository _authenticationRepository;
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
+  final bool _ownsHomeRepository;
   Timer? _filterDebounce;
   int _requestToken = 0;
 
   Future<void> _fetchHomeFeeds() async {
+    await userRepository.getUser();
+
     emit(state.copyWith(
       latitude: _fallbackLat,
       longitude: _fallbackLon,
@@ -112,6 +111,13 @@ class HomeCubit extends Cubit<HomeState> {
       return;
     }
 
+    final isLatitudeValid = latitude >= -90 && latitude <= 90;
+    final isLongitudeValid = longitude >= -180 && longitude <= 180;
+    if (!isLatitudeValid || !isLongitudeValid) {
+      Helper.showToast('Coordinates are out of range.');
+      return;
+    }
+
     emit(state.copyWith(latitude: latitude, longitude: longitude));
     onApplyFilter();
   }
@@ -147,8 +153,9 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> onRecommendedRestaurants() async {
     try {
       emit(state.copyWith(statusRecommRes: FormzStatus.submissionInProgress));
+      final userModel = await userRepository.getUser();
       final response = await _homeRepository.recommendedRestaurants(
-          data: _buildFilterMap(), userModel: userRepository.user);
+          data: _buildFilterMap(), userModel: userModel);
       if (response.statusCode == 200) {
         final recommendedRestResponse =
             RecommendedRestResponse.fromJson(jsonDecode(response.body));
@@ -239,6 +246,9 @@ class HomeCubit extends Cubit<HomeState> {
   @override
   Future<void> close() {
     _filterDebounce?.cancel();
+    if (_ownsHomeRepository) {
+      _homeRepository.dispose();
+    }
     return super.close();
   }
 }

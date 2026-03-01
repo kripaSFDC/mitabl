@@ -9,6 +9,14 @@ class HomeRepository {
 
   final http.Client _httpClient;
 
+  String _bearerToken(UserModel? userModel) {
+    final token = userModel?.data?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token unavailable. Please login again.');
+    }
+    return token;
+  }
+
   Future<http.Response> recommendedRestaurants(
       {required Map<String, dynamic> data, required UserModel? userModel}) async {
     final url = ApiContract.uri('v1/recommendedrestaurant');
@@ -16,7 +24,7 @@ class HomeRepository {
     return _httpClient.post(
       url,
       headers: {
-        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Authorization': 'Bearer ${_bearerToken(userModel)}',
         'Content-Type': 'application/json',
       },
       body: json.encode(data),
@@ -34,7 +42,7 @@ class HomeRepository {
     return _httpClient.post(
       url,
       headers: {
-        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Authorization': 'Bearer ${_bearerToken(userModel)}',
         'Content-Type': 'application/json',
       },
       body: json.encode(data),
@@ -52,7 +60,7 @@ class HomeRepository {
     return _httpClient.post(
       url,
       headers: {
-        'Authorization': 'Bearer ${userModel!.data!.accessToken}',
+        'Authorization': 'Bearer ${_bearerToken(userModel)}',
         'Content-Type': 'application/json',
       },
       body: json.encode(data),

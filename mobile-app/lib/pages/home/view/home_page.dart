@@ -13,7 +13,6 @@ import 'package:mitabl_user/pages/home/element/near_by_restaurant.dart';
 import 'package:mitabl_user/pages/home/element/recomm_rest_widget.dart';
 import 'package:mitabl_user/pages/home/element/top_rated.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
-import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,8 +24,6 @@ class HomePage extends StatefulWidget {
     return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
               create: (context) => HomeCubit(
-                  authenticationRepository:
-                      context.read<AuthenticationRepository>(),
                   userRepository: context.read<UserRepository>()),
               child: const HomePage(),
             ));
@@ -98,14 +95,11 @@ class _HomePage extends State<HomePage> {
                             enlargeCenterPage: true,
                             autoPlayCurve: Curves.fastOutSlowIn,
                           ),
-                          items: state.recommendedRestResponse!
-                                  .recommendedResturantList!
-                                  .isEmpty
-                              ? []
-                              : state.recommendedRestResponse!
-                                  .recommendedResturantList!
-                                  .map((item) => RecommRestWidget(data: item))
-                                  .toList(),
+                          items: (state.recommendedRestResponse
+                                      ?.recommendedResturantList ??
+                                  const [])
+                              .map((item) => RecommRestWidget(data: item))
+                              .toList(),
                         ),
                 ),
                 _SectionTitle(title: 'top rated restaurants'),
@@ -186,7 +180,12 @@ class _LocationInputState extends State<_LocationInput> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(builder: (context, state) {
       if (_controller.text != state.locationQuery) {
-        _controller.text = state.locationQuery ?? '';
+        final value = state.locationQuery ?? '';
+        _controller.value = _controller.value.copyWith(
+          text: value,
+          selection: TextSelection.collapsed(offset: value.length),
+          composing: TextRange.empty,
+        );
       }
       return TextFormField(
         controller: _controller,
@@ -206,6 +205,7 @@ class _LocationInputState extends State<_LocationInput> {
               color: Theme.of(context).hintColor,
               fontSize: config.AppConfig(context).appWidth(4)),
           hintText: 'latitude, longitude',
+          helperText: 'Enter coordinates and tap search',
           contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
           fillColor: config.AppColors().textFieldBackgroundColor(1),
           filled: true,
