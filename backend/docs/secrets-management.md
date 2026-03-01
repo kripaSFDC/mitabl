@@ -218,8 +218,6 @@ This document is the authoritative Platform Admin + Security Admin reference for
 |---|---|---|
 | `FCM_SERVER_KEY` | `''` | Mobile push, geocoding/maps, and bot-protection integration credentials. Example source: `app/Http/Controllers/Api/FcmController.php, app/Services/SystemHealthService.php`. |
 | `GOOGLE_MAPS_API_KEY` | `—` | Mobile push, geocoding/maps, and bot-protection integration credentials. Example source: `config/services.php`. |
-| `RECAPTCHA_SECRET` | `—` | Mobile push, geocoding/maps, and bot-protection integration credentials. Example source: `config/services.php`. |
-| `RECAPTCHA_SITE_KEY` | `—` | Mobile push, geocoding/maps, and bot-protection integration credentials. Example source: `config/services.php`. |
 | `STRIPE_CLIENT_ID` | `null` | Stripe API keys/OAuth/redirect/dashboard links for payments and onboarding. Example source: `config/stripe.php`. |
 | `STRIPE_DASHBOARD_BASE_URL` | `'https://dashboard.stripe.com/payments'` | Stripe API keys/OAuth/redirect/dashboard links for payments and onboarding. Example source: `config/services.php`. |
 | `STRIPE_PUBLISHABLE_KEY` | `null` | Stripe API keys/OAuth/redirect/dashboard links for payments and onboarding. Example source: `config/stripe.php`. |
