@@ -65,6 +65,9 @@ Route::post('support/ticket', [SupportTicketController::class, 'store'])->middle
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
 
+Route::post('mobcontact', [SupportTicketController::class, 'deprecatedMobcontact'])
+    ->middleware(['throttle:support-intake', 'mobcontact.deprecation']);
+
 // Route::group(['prefix' => 'v1/kitchen', 'namespace' => 'Api'], function ($router) { 
 // });
 // add card to customer

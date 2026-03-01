@@ -36,10 +36,10 @@ class PhaseFiveCutoverUnitTest extends TestCase
                     && $payload['first_name'] === 'Legacy'
                     && $payload['last_name'] === 'Lead'
                     && $payload['email'] === 'legacy@example.com'
-                    && $payload['phone'] === '0400111222'
+                    && $payload['phone'] === null
                     && $payload['city'] === 'Sydney'
                     && $payload['interested_as'] === 'cook'
-                    && $payload['consent_to_contact'] === true;
+                    && $payload['consent_to_contact'] === false;
             })
             ->andReturn([
                 'registration' => $registration,

@@ -33,7 +33,7 @@ class AddMobcontactDeprecationHeaders
             'replacement_path' => $replacementPath,
             'sunset' => $sunset,
             'ip' => $request->ip(),
-            'user_id' => $request->user()?->id,
+            'user_id' => null,
             'request_id' => $request->header('X-Request-Id'),
             'user_agent' => (string) $request->userAgent(),
         ]);
