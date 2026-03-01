@@ -6,7 +6,7 @@
       <div class="row">
          <div class="col-md-12">
             <h2>Frequently Asked Questions</h2>
-            <p>Find quick answers about how mitabl works today across mobile experiences and backend operations.</p>
+            <p>Everything you need to know about discovering and enjoying local food with mitabl.</p>
          </div>
       </div>
    </div>
@@ -17,20 +17,20 @@
       <div class="row">
          <div class="col-md-12">
             <h3>Platform Basics</h3>
-            <p><strong>What is mitabl?</strong><br>mitabl is a local food marketplace connecting Foodies (customers) with micooks through a mobile-first experience.</p>
-            <p><strong>Which products are currently active?</strong><br>The mobile app is the primary customer channel. The website provides marketing information, while operational workflows run in mitabl's backend systems.</p>
+            <p><strong>What is mitabl?</strong><br>mitabl is a mobile-first marketplace that connects local micooks with nearby food lovers.</p>
+            <p><strong>Where does the experience happen?</strong><br>The mobile app is where customers browse menus, place orders, and manage their account.</p>
 
-            <h3>Foodie FAQs</h3>
-            <p><strong>What can Foodies do?</strong><br>Discover local kitchens, browse menus, place orders, manage payments, and leave reviews in the mobile app.</p>
-            <p><strong>Can I order from the website?</strong><br>No. Ordering and account workflows are managed in the mobile app.</p>
+            <h3>For Foodies</h3>
+            <p><strong>What can I do in the app?</strong><br>Discover local kitchens, explore menus, place secure orders, and leave reviews after your meal.</p>
+            <p><strong>Can I order directly from the website?</strong><br>No. The website is for marketing and information, while ordering is managed in the mitabl app.</p>
 
-            <h3>micook FAQs</h3>
-            <p><strong>What can micooks manage?</strong><br>micooks can maintain kitchen profiles, publish menus, manage incoming orders, and update fulfilment progress.</p>
-            <p><strong>How are compliance and approvals handled?</strong><br>Operational review and approval processes are handled by mitabl teams through authenticated backend tools.</p>
+            <h3>For micooks</h3>
+            <p><strong>What can micooks manage?</strong><br>micooks can maintain kitchen profiles, update menus, and manage order fulfilment through mitabl platform workflows.</p>
+            <p><strong>How is day-to-day reliability supported?</strong><br>mitabl's backend operations support order tracking, payment flow, and operational visibility for trusted service delivery.</p>
 
-            <h3>Support & Operations</h3>
-            <p><strong>Is customer support available?</strong><br>Yes. Support and CRM workflows are maintained through backend tooling used by authorized mitabl staff.</p>
-            <p><strong>Where is platform data stored?</strong><br>Application data is handled by backend services. The public marketing website does not own transactional customer data.</p>
+            <h3>Support</h3>
+            <p><strong>How do I get help?</strong><br>Support is handled by mitabl's customer operations team through internal service tools.</p>
+            <p><strong>Where is customer data managed?</strong><br>Customer and order data are managed by mitabl backend systems that power the app experience.</p>
          </div>
       </div>
    </div>
