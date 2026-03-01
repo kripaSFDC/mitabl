@@ -533,7 +533,7 @@ class SupportTicketService
             'requester_phone' => $this->normalizePhone(Arr::get($payload, 'requester_phone')),
             'subject' => trim((string) Arr::get($payload, 'subject', 'General enquiry')),
             'description' => trim((string) Arr::get($payload, 'description', '')),
-            'source' => $this->normalizeSource($source),
+            'source' => $this->normalizeSource($source, $payload),
             'category' => $category,
             'priority' => $priority,
             'status' => $status,
@@ -665,16 +665,33 @@ class SupportTicketService
         return $mapped;
     }
 
-    private function normalizeSource(string $source): string
+    private function normalizeSource(string $source, array $payload = []): string
     {
         $normalized = Str::lower(trim($source));
         $map = [
-            'public_api' => SupportTicket::SOURCE_WEBSITE,
+            'api' => SupportTicket::SOURCE_WEBSITE,
             'admin_panel' => SupportTicket::SOURCE_ADMIN,
             SupportTicket::SOURCE_WEBSITE => SupportTicket::SOURCE_WEBSITE,
             SupportTicket::SOURCE_MOBILE_APP => SupportTicket::SOURCE_MOBILE_APP,
             SupportTicket::SOURCE_ADMIN => SupportTicket::SOURCE_ADMIN,
         ];
+
+        if ($normalized === 'public_api') {
+            $authenticatedChannel = Str::lower(trim((string) Arr::get($payload, 'authenticated_channel', '')));
+            if (in_array($authenticatedChannel, [SupportTicket::SOURCE_WEBSITE, SupportTicket::SOURCE_MOBILE_APP], true)) {
+                return $authenticatedChannel;
+            }
+
+            $authenticatedGuard = Str::lower(trim((string) Arr::get($payload, 'authenticated_guard', '')));
+            if ($authenticatedGuard === 'admin') {
+                return SupportTicket::SOURCE_ADMIN;
+            }
+            if ($authenticatedGuard === 'api') {
+                return SupportTicket::SOURCE_MOBILE_APP;
+            }
+
+            throw new InvalidArgumentException('Support ticket source "public_api" is ambiguous. Provide an explicit source or authenticated channel context.');
+        }
 
         return $map[$normalized] ?? SupportTicket::SOURCE_WEBSITE;
     }
