@@ -95,18 +95,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       emit(state.copyWith(addFoodStatus: FormzStatus.submissionInProgress));
 
       List<String> diets = [];
-      String dietString = '', deleteImageString = '';
+      String deleteImageString = '';
       state.specialDietDataList!
           .where((element) => element.isSelected!)
           .toList()
           .forEach((element) {
         diets.add(element.id.toString());
 
-        if (dietString == '') {
-          dietString = element.id.toString();
-        } else {
-          dietString = dietString + ',' + element.id.toString();
-        }
       });
 
       state.deleteImagesId.forEach((element) {
@@ -126,7 +121,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       map['price'] = state.price!.value;
       map['cookingstyle'] = state.selectedCookingStyle!.id;
       map['description'] = state.description!.value;
-      map['specialDiet[]'] = dietString.toString();
+      map['specialDietIds'] = diets;
       map['delete_images'] = deleteImageString.toString();
 
       print('data ${map.toString()}');

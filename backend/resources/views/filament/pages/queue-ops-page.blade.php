@@ -1,4 +1,11 @@
 <x-filament-panels::page>
+    <x-filament::section class="mb-4">
+        <x-slot name="heading">Queue operations guide</x-slot>
+        <x-slot name="description">
+            Retry single jobs first, then use bulk retry only after validating root cause. Discard jobs only for
+            known poison payloads that cannot be safely replayed.
+        </x-slot>
+    </x-filament::section>
     <div class="mb-4 flex flex-wrap gap-2">
         <x-filament::button wire:click="refresh" color="info">
             Refresh
