@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
 
         if (Schema::hasTable('admin_users') && Schema::hasTable($rolesTable)) {
             $this->call(AdminUserSeeder::class);
+            $this->call(AdminRbacTestUsersSeeder::class);
         }
 
         if (Schema::hasTable('tags')) {

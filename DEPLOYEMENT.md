@@ -133,21 +133,31 @@ docker compose exec website php artisan key:generate --force
 docker compose exec website php artisan migrate --force
 ```
 
-## 2.7 Admin access setup
+## 2.7 Admin access setup (simplified)
 
-1. Seed admin data (`AdminUserSeeder`) if not already seeded.
-2. Access Filament admin at:
+1. Enable seeders for deployment bootstrap:
+   - `RUN_SEEDERS_ON_BOOT=true`
+   - `ADMIN_TEST_USERS_ENABLED=true`
+   - `ADMIN_TEST_USERS_PASSWORD=<strong-password>`
+   - Optional: `ADMIN_TEST_USERS_OVERRIDE_EXISTING=true` to rotate existing seeded accounts.
+2. Run backend seeders (if not run by job):
 
-```text
-http://localhost:8000/admin
+```powershell
+docker compose exec backend php artisan db:seed --force
 ```
 
-3. Validate role permissions using seeded roles:
+3. This creates/updates one admin test user for each RBAC role (without duplicates):
 - super_admin
 - platform_admin
 - operations
 - customer_service
 - finance_readonly
+
+4. Access Filament admin at:
+
+```text
+http://localhost:8000/admin
+```
 
 ## 2.8 Logs and troubleshooting
 
