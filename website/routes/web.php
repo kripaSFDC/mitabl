@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'frontend.home');
 Route::view('/about', 'frontend.about');
+Route::view('/faq', 'frontend.faq');
 Route::view('/privacy-policy', 'privacy');
 Route::view('/terms', 'terms');
 

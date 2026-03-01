@@ -2,11 +2,4 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::fallback(function () {
-    return response()->json([
-        'status' => 404,
-        'isSuccess' => false,
-        'message' => 'No public website API endpoints are available.',
-        'data' => [],
-    ], 404);
-});
+// Public marketing website is fully stateless and exposes no website-owned API routes.

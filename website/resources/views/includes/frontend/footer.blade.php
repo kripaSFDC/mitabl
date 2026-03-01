@@ -4,8 +4,6 @@
          <div class="col-md-6">
             <div class="footer-menu">
                <ul class="d-flex">
-                  <li><a href="/about">About Us</a></li>
-                  <!-- <li><a href="/contact">Contact Us</a></li> -->
                   <li><a href="/terms">Terms And Conditions</a></li>
                   <li><a href="/privacy-policy">Privacy Policy</a></li>
                </ul>
