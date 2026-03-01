@@ -11,6 +11,8 @@ import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
+import 'package:mitabl_user/repos/mobile_contact_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 
 class PersonalTabView extends StatefulWidget {
   const PersonalTabView({Key? key}) : super(key: key);
@@ -127,6 +129,18 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     ListTile(
+                      onTap: () async {
+                        try {
+                          final user = await context.read<UserRepository>().getUser();
+                          final payload = await MobileContactRepository().fetch(user);
+                          final message = payload['message']?.toString() ?? 'Contact information loaded.';
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                        } catch (error) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
+                        }
+                      },
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
                       leading: Row(

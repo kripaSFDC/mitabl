@@ -57,6 +57,18 @@ Route::post('resendotp', [UserController::class, 'resendOtp']);
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 
+
+Route::any('/mobcontact', function () {
+    return response()->json([
+        'message' => 'Deprecated endpoint. Use /api/v2/mob-contact.',
+        'migration_guide' => '/docs/MOBILE_APP.md#contact-endpoint-migration',
+    ], 410)
+        ->header('Deprecation', 'true')
+        ->header('Sunset', 'Wed, 01 Jul 2026 00:00:00 GMT')
+        ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
+});
+
+
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
@@ -67,13 +79,27 @@ Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply
 // add card to customer
 	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
+
+Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) {
+    Route::get('mob-contact', [UserController::class, 'mobileContact']);
+});
+
 Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
 
 	Route::post('changepassword', [UserController::class, 'changePassword']);
 
 	Route::get('getmerchant', [UserController::class, 'getMerchantacc']);
 
-	Route::get('mob-contact', [UserController::class, 'mobileContact']);
+	Route::get('mob-contact', function () {
+		return response()->json([
+			'message' => 'v1/mob-contact has been sunset. Use v2/mob-contact before 2026-07-01.',
+			'migration_guide' => '/docs/MOBILE_APP.md#contact-endpoint-migration',
+		], 410)
+			->header('Deprecation', 'true')
+			->header('Sunset', 'Wed, 01 Jul 2026 00:00:00 GMT')
+			->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
+	});
+
 
 	Route::post('logout', [UserController::class, 'logout']);
 
