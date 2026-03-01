@@ -1,29 +1,39 @@
-Marketing Website (Static)
-==========================
+# Website (Static Marketing Site)
 
-This directory now contains a static frontend for the mitabl marketing site.
+The `website/` project is a static site that serves public marketing pages only.
 
-## Local preview
+## Build
 
 From the repository root:
 
 ```bash
-docker compose up --build website
+npm --prefix website run build
+```
+
+Current behavior: this command validates static-site packaging and performs no application-server or database build steps.
+
+## Serve locally
+
+Use any static file server pointed at `website/public`.
+
+Example with Python:
+
+```bash
+cd website/public
+python3 -m http.server 8080
 ```
 
 Then open `http://localhost:8080`.
 
-## Routes
+## Route ownership and boundaries
 
-- `/`
-- `/about`
-- `/faq`
-- `/privacy-policy`
-- `/terms`
-- `/health`
+Same-domain routing is split by path prefix:
 
-## Notes
+- Website (`website/`) serves public pages only (`/`, `/about`, `/faq`, `/privacy-policy`, `/terms`).
+- Backend (`backend/`) serves API traffic at `/api/*`.
+- Admin (`ops-admin`) is served at `/admin` on the same domain.
 
-- No Laravel runtime is required for `website/`.
-- No PHP/composer setup is required.
-- Static assets are served from `website/public/` via nginx.
+## Operational references
+
+- Cutover plan and operational expectations: [`docs/website-stateless-cutover-plan.md`](../docs/website-stateless-cutover-plan.md)
+- Ingress policy/source of routing truth: [`deploy/nginx/mitabl.phase0.conf`](../deploy/nginx/mitabl.phase0.conf)
