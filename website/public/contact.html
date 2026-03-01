@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+
+    <title>Contact mitabl</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
+    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/frontend/css/style.css">
+
+</head>
+
+  <body>
+
+   <header>
+   <div class="container">
+      <nav class="navbar navbar-expand-md navbar-dark">
+        <a class="navbar-brand" href="/"><img src="/frontend/images/logo.png"></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+          <ul id="lu-ID" class="navbar-nav ml-auto">
+            <li class="nav-item" id="home">
+              <a class="nav-link" href="/">HOME</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">ABOUT</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/faq">FAQ</a>
+            </li>
+            <li class="nav-item contact-btn">
+              <a class="nav-link" href="/contact">CONTACT</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+   </div>
+
+</header>
+
+<section class="about-section">
+   <div class="container">
+      <div class="row">
+         <div class="col-md-8">
+            <h2>Contact mitabl</h2>
+            <p>Connecting local cooks and food lovers with confidence, care, and community.</p>
+         </div>
+      </div>
+   </div>
+</section>
+
+<section class="contact-sec">
+   <div class="container">
+      <div class="row">
+         <div class="col-lg-5">
+            <div class="contact-data">
+               <h2>Let's build better local food moments</h2>
+               <p><strong>mitabl</strong> is where local flavour meets modern reliability.</p>
+               <p>Whether you're a foodie, a micook, or a partner, we'd love to hear from you.</p>
+               <p><strong>Email:</strong> <a href="mailto:mitablinfo@gmail.com">mitablinfo@gmail.com</a></p>
+               <p><strong>Follow mitabl:</strong></p>
+               <ul class="social-links">
+                  <li><a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+                  <li><a href="https://www.facebook.com/mitabl" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+                  <li><a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+                  <li><a href="https://x.com/mitabl" target="_blank" rel="noopener noreferrer">X (Twitter)</a></li>
+               </ul>
+            </div>
+         </div>
+         <div class="col-lg-7">
+            <div class="contact-data">
+               <h2>Send us a message</h2>
+               <p>Use the form below to email our team directly at <a href="mailto:mitablinfo@gmail.com">mitablinfo@gmail.com</a>.</p>
+               <form class="contact-form" action="mailto:mitablinfo@gmail.com" method="post" enctype="text/plain">
+                  <div class="form-outer">
+                     <input type="text" name="Name" placeholder="Your full name" required>
+                  </div>
+                  <div class="form-outer">
+                     <input type="email" name="Email" placeholder="Your email address" required>
+                  </div>
+                  <div class="form-outer">
+                     <input type="text" name="Subject" placeholder="Subject" required>
+                  </div>
+                  <div class="form-outer">
+                     <textarea name="Message" placeholder="How can we help you?" required></textarea>
+                  </div>
+                  <div class="form-outer">
+                     <input type="submit" value="Send Email">
+                  </div>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>
+
+<footer>
+   <div class="container">
+      <div class="row align-items-center">
+         <div class="col-md-6">
+            <div class="footer-menu">
+               <ul class="d-flex">
+                  <li><a href="/terms">Terms</a></li>
+                  <li><a href="/privacy-policy">Privacy Policy</a></li>
+                  <li><a href="/contact">Contact</a></li>
+               </ul>
+            </div>
+         </div>
+         <div class="col-md-2">
+            <div class="footer-logo">
+               <a href="/"><img src="/frontend/images/logo.png"></a>
+            </div>
+         </div>
+         <div class="col-md-4">
+            <div class="footer-app">
+               <a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer">Instagram</a>
+               <a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
+         </div>
+      </div>
+   </div>
+   <div class="copyright-area text-center">
+      <p>&copy; 2026 mitabl All rights reserved.</p>
+   </div>
+</footer>
+
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+       $(document).ready(function() {
+
+                var CurrentUrl= document.URL;
+                var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
+                if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
+                  $('#home').addClass('active')
+                } else {
+                  $( "#lu-ID li a" ).each(function() {
+                      var ThisUrl = $(this).attr('href');
+                      var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
+
+                      if(ThisUrlEnd == CurrentUrlEnd){
+                        $(this).closest('li').addClass('active')
+                      }
+                  });
+                }
+
+
+       });
+  </script>
+
+  </body>
+</html>
