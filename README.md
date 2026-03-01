@@ -53,7 +53,7 @@ This document is intentionally detailed and aligned to the **current codebase st
 mitabl/
 ├── backend/                      # Laravel API + Filament admin + business services
 ├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
-├── website/                      # Laravel marketing web and intake forwarding APIs
+├── website/                      # Laravel static marketing web frontend
 ├── deploy/                       # Docker, env templates, nginx/supervisor, load tests
 ├── docs/                         # SOPs, validation reports, secrets management docs
 ├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
@@ -63,7 +63,7 @@ mitabl/
 ### Additional important folders
 
 - `deploy/environments/{dev,staging,prod}`: app-specific environment templates.
-- `deploy/load-tests`: k6 performance scripts for support intake and admin list pages.
+- `deploy/load-tests`: k6 performance scripts for admin list pages.
 - `deploy/nginx`: reverse-proxy configuration.
 - `deploy/supervisor`: queue worker supervision config.
 - `docs/`: CRM playbook, legacy cutover validation, and secret-handling guidance.
@@ -254,7 +254,7 @@ Backend ships a dedicated Filament panel provider with grouped navigation and pe
 
 1. **Guest**
    - Unauthenticated public website access.
-   - Can invoke public API endpoints such as login/register/preregister/support create.
+   - Can invoke public API endpoints such as login/register.
 2. **Foodie (customer)**
    - Authorized through `customer` middleware.
    - Discovery, favorites, order placement, payment, and customer-side reviews.

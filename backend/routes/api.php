@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\MikitchnController;
@@ -10,7 +9,6 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FcmController;
-use App\Http\Controllers\Controller;
 use App\Services\SystemHealthService;
 /*
 |--------------------------------------------------------------------------
