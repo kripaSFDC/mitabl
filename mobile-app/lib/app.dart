@@ -10,6 +10,7 @@ import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dar
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/repos/support_ticket_repository.dart';
 import 'package:mitabl_user/route_generator.dart';
 
 import 'auth_bloc/authentication/authentication_bloc.dart';
@@ -32,6 +33,10 @@ class App extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (context) => authenticationRepository),
         RepositoryProvider(create: (context) => userRepository),
+        RepositoryProvider(
+          create: (context) =>
+              SupportTicketRepository(userRepository: userRepository),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
