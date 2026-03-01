@@ -2,7 +2,7 @@
 
 ## Active Environment Variable Inventory
 
-Total active env variables: **173**.
+Total active env variables: **171**.
 
 > Keep `.env.example` (production template) and `.env.text` (test deployment template) in sync with this list.
 
@@ -65,10 +65,8 @@ Total active env variables: **173**.
 - `DB_USERNAME`
 - `DYNAMODB_CACHE_TABLE`
 - `DYNAMODB_ENDPOINT`
-- `FCM_SERVER_KEY`
 - `FILESYSTEM_DISK`
 - `FILESYSTEM_DRIVER`
-- `GOOGLE_MAPS_API_KEY`
 - `HORIZON_DOMAIN`
 - `HORIZON_PATH`
 - `HORIZON_PREFIX`
