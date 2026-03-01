@@ -84,21 +84,21 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
     Route::get('mob-contact', [UserController::class, 'mobileContact']);
 });
 
+Route::get('v1/mob-contact', function () {
+    return response()->json([
+        'message' => 'v1/mob-contact has been sunset. Use v2/mob-contact before 2026-07-01.',
+        'migration_guide' => '/docs/MOBILE_APP.md#contact-endpoint-migration',
+    ], 410)
+        ->header('Deprecation', 'true')
+        ->header('Sunset', 'Wed, 01 Jul 2026 00:00:00 GMT')
+        ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
+});
+
 Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
 
 	Route::post('changepassword', [UserController::class, 'changePassword']);
 
 	Route::get('getmerchant', [UserController::class, 'getMerchantacc']);
-
-	Route::get('mob-contact', function () {
-		return response()->json([
-			'message' => 'v1/mob-contact has been sunset. Use v2/mob-contact before 2026-07-01.',
-			'migration_guide' => '/docs/MOBILE_APP.md#contact-endpoint-migration',
-		], 410)
-			->header('Deprecation', 'true')
-			->header('Sunset', 'Wed, 01 Jul 2026 00:00:00 GMT')
-			->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
-	});
 
 
 	Route::post('logout', [UserController::class, 'logout']);
