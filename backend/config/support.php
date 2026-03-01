@@ -31,35 +31,48 @@ return [
     ],
 
     'attachments' => [
-        'max_files' => (int) env('SUPPORT_ATTACHMENT_MAX_FILES', 5),
-        'max_size_kb' => (int) env('SUPPORT_ATTACHMENT_MAX_SIZE_KB', 5120),
-        'allowed_mime_types' => explode(',', (string) env(
-            'SUPPORT_ATTACHMENT_ALLOWED_MIME_TYPES',
-            'image/jpeg,image/png,application/pdf,text/plain'
-        )),
-        'blocked_extensions' => explode(',', (string) env(
-            'SUPPORT_ATTACHMENT_BLOCKED_EXTENSIONS',
-            'exe,bat,cmd,com,scr,ps1,php,phar,phtml,js,vbs,jar,msi'
-        )),
+        'max_files' => 5,
+        'max_size_kb' => 5120,
+        'allowed_mime_types' => [
+            'image/jpeg',
+            'image/png',
+            'application/pdf',
+            'text/plain',
+        ],
+        'blocked_extensions' => [
+            'exe',
+            'bat',
+            'cmd',
+            'com',
+            'scr',
+            'ps1',
+            'php',
+            'phar',
+            'phtml',
+            'js',
+            'vbs',
+            'jar',
+            'msi',
+        ],
     ],
 
     'pii_redaction' => [
-        'enabled' => (bool) env('SUPPORT_PII_REDACTION_ENABLED', true),
+        'enabled' => true,
     ],
 
     'routing' => [
-        'default_assignee_id' => env('SUPPORT_ROUTING_DEFAULT_ASSIGNEE_ID'),
+        'default_assignee_id' => null,
         'rules' => [
             'category' => [
-                'payment' => env('SUPPORT_ROUTING_PAYMENT_ASSIGNEE_ID'),
-                'order_dispute' => env('SUPPORT_ROUTING_ORDER_ASSIGNEE_ID'),
-                'account' => env('SUPPORT_ROUTING_ACCOUNT_ASSIGNEE_ID'),
-                'general' => env('SUPPORT_ROUTING_GENERAL_ASSIGNEE_ID'),
-                'other' => env('SUPPORT_ROUTING_OTHER_ASSIGNEE_ID'),
+                'payment' => null,
+                'order_dispute' => null,
+                'account' => null,
+                'general' => null,
+                'other' => null,
             ],
             'priority' => [
-                'urgent' => env('SUPPORT_ROUTING_URGENT_ASSIGNEE_ID'),
-                'high' => env('SUPPORT_ROUTING_HIGH_ASSIGNEE_ID'),
+                'urgent' => null,
+                'high' => null,
             ],
         ],
     ],

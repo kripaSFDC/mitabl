@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->id('admin')
-            ->path(env('ADMIN_PANEL_PATH', 'admin'))
+            ->path('admin')
             ->authGuard('admin')
             ->authPasswordBroker('admin_users')
             ->login()
@@ -45,8 +45,6 @@ class AdminPanelProvider extends PanelProvider
                 'gray' => Color::Slate,
             ])
             ->brandName(config('app.name').' Admin')
-            ->brandLogo(env('ADMIN_BRAND_LOGO_URL') ?: null)
-            ->darkModeBrandLogo(env('ADMIN_BRAND_LOGO_URL') ?: null)
             ->navigationGroups([
                 NavigationGroup::make()->label('Operations'),
                 NavigationGroup::make()->label('Customer Support'),

@@ -113,9 +113,6 @@ jobs:
         with:
           php-version: '8.2'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
-      - name: Copy website env template
-        run: |
-          cp .env.example .env
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
       - name: Finalize website test environment

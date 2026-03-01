@@ -11,31 +11,19 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = trim((string) env('ADMIN_DEFAULT_EMAIL', ''));
-        $name = trim((string) env('ADMIN_DEFAULT_NAME', 'Platform Admin'));
-        $password = (string) env('ADMIN_DEFAULT_PASSWORD', '');
+        if (! app()->environment(['local', 'testing'])) {
+            Log::info('AdminUserSeeder skipped outside local/testing environments.');
 
-        if ($email === '') {
-            if (app()->environment(['local', 'testing'])) {
-                $email = 'admin@example.com';
-            } else {
-                Log::warning('AdminUserSeeder skipped: ADMIN_DEFAULT_EMAIL is not configured.');
-                return;
-            }
-        }
-
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            Log::warning('AdminUserSeeder skipped: ADMIN_DEFAULT_EMAIL is invalid.', ['email' => $email]);
             return;
         }
 
-        if ($password === '') {
-            if (app()->environment(['local', 'testing'])) {
-                $password = 'password';
-            } else {
-                Log::warning('AdminUserSeeder skipped: ADMIN_DEFAULT_PASSWORD is not configured.');
-                return;
-            }
+        $email = 'admin@example.com';
+        $name = 'Platform Admin';
+        $password = 'password';
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('AdminUserSeeder skipped: default email is invalid.', ['email' => $email]);
+            return;
         }
 
         if (app()->environment('production') && in_array(strtolower($password), ['password', 'admin', '12345678'], true)) {
