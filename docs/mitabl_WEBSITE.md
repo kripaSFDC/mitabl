@@ -133,7 +133,7 @@ Recent templating updates include:
 
 ### FAQ canonical-source policy
 
-- **Canonical FAQ source = website route `https://mitabl.com/faq` (Option A).**
+- **Canonical FAQ source = website route `https://mitabl.com/faq`**
 - FAQ edits must be made in the website FAQ source files (`website/src/pages/faq.html`, then rebuilt to `website/public/faq.html`).
 - Mobile clients must not duplicate FAQ content as static in-app text; they should load the canonical website FAQ URL in WebView.
 
