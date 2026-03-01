@@ -12,6 +12,18 @@ final navigatorKeyHome = GlobalKey<NavigatorState>();
 class UserRepository {
   UserModel? user;
 
+  Future<String> _accessToken() async {
+    final currentUser = user ?? await getUser();
+    final token = currentUser?.data?.accessToken;
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token unavailable. Please login again.');
+    }
+
+    return token;
+  }
+
+
   Future<UserModel?> getUser() async {
     var prefs = await SharedPreferences.getInstance();
     //await prefs.clear();
@@ -51,7 +63,7 @@ class UserRepository {
 
   void updateUserInstance() {
     user = null;
-    getCurrentUser();
+    getUser();
   }
 
   void clearuserData() async {
@@ -76,12 +88,15 @@ class UserRepository {
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getprofile';
 
       print(url);
-      print(user!.data!.accessToken);
+      print(await _accessToken());
       final client = http.Client();
 
       final response = await client.get(
         Uri.parse(url),
-        headers: {"Authorization": "Bearer ${user!.data!.accessToken}"},
+        headers: {
+          "Authorization": "Bearer ${await _accessToken()}",
+          "Accept": "application/json",
+        },
       );
 
       print('response ${response.body}');
@@ -100,12 +115,15 @@ class UserRepository {
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getdashboarddata';
 
       print(url);
-      print(user!.data!.accessToken);
+      print(await _accessToken());
       final client = http.Client();
 
       final response = await client.get(
         Uri.parse(url),
-        headers: {"Authorization": "Bearer ${user!.data!.accessToken}"},
+        headers: {
+          "Authorization": "Bearer ${await _accessToken()}",
+          "Accept": "application/json",
+        },
       );
 
       print('response ${response.body}');
@@ -125,12 +143,15 @@ class UserRepository {
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getcustomerprofile';
 
       print(url);
-      print(user!.data!.accessToken);
+      print(await _accessToken());
       final client = http.Client();
 
       final response = await client.get(
         Uri.parse(url),
-        headers: {"Authorization": "Bearer ${user!.data!.accessToken}"},
+        headers: {
+          "Authorization": "Bearer ${await _accessToken()}",
+          "Accept": "application/json",
+        },
       );
 
       print('response ${response.body}');
@@ -150,7 +171,7 @@ class UserRepository {
           '${GlobalConfiguration().getValue<String>('api_base_url')}v1/deleteimage';
 
       print(url);
-      print(user!.data!.accessToken);
+      print(await _accessToken());
       final client = http.Client();
 
       var map = {};
@@ -158,7 +179,10 @@ class UserRepository {
       map['type'] = type;
 
       final response = await client.post(Uri.parse(url),
-          headers: {"Authorization": "Bearer ${user!.data!.accessToken}"},
+          headers: {
+          "Authorization": "Bearer ${await _accessToken()}",
+          "Accept": "application/json",
+        },
           body: map);
 
       print('response ${response.body}');
@@ -185,8 +209,10 @@ class UserRepository {
       var request = http.MultipartRequest('POST', Uri.parse(url));
 
       //for token
-      request.headers
-          .addAll({"Authorization": "Bearer ${user!.data!.accessToken}"});
+      request.headers.addAll({
+        "Authorization": "Bearer ${await _accessToken()}",
+        "Accept": "application/json",
+      });
 
       //for image and videos and files
 
@@ -230,8 +256,10 @@ class UserRepository {
       var request = http.MultipartRequest('POST', Uri.parse(url));
 
       //for token
-      request.headers
-          .addAll({"Authorization": "Bearer ${user!.data!.accessToken}"});
+      request.headers.addAll({
+        "Authorization": "Bearer ${await _accessToken()}",
+        "Accept": "application/json",
+      });
 
       //for image and videos and files
 
@@ -275,8 +303,10 @@ class UserRepository {
       var request = http.MultipartRequest('POST', Uri.parse(url));
 
       //for token
-      request.headers
-          .addAll({"Authorization": "Bearer ${user!.data!.accessToken}"});
+      request.headers.addAll({
+        "Authorization": "Bearer ${await _accessToken()}",
+        "Accept": "application/json",
+      });
 
       //for image and videos and files
 

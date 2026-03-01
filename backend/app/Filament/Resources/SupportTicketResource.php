@@ -29,6 +29,10 @@ class SupportTicketResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    protected static ?string $navigationLabel = 'Support Inbox';
+
+    protected static ?string $modelLabel = 'Support ticket';
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -36,12 +40,14 @@ class SupportTicketResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('user_id')
                         ->label('Linked user')
+                        ->helperText('Attach an existing account if the requester already registered.')
                         ->relationship('user', 'email')
                         ->searchable()
                         ->preload()
                         ->nullable(),
                     Forms\Components\TextInput::make('requester_name')->maxLength(255),
-                    Forms\Components\TextInput::make('requester_email')->email()->required()->maxLength(255),
+                    Forms\Components\TextInput::make('requester_email')->email()->required()->maxLength(255)
+                        ->helperText('Primary contact email used for replies and SLA notifications.'),
                     Forms\Components\TextInput::make('requester_phone')->maxLength(40),
                 ])
                 ->columns(4),
@@ -50,6 +56,7 @@ class SupportTicketResource extends Resource
                     Forms\Components\TextInput::make('subject')->required()->maxLength(255),
                     Forms\Components\Textarea::make('description')->rows(4)->required(),
                     Forms\Components\FileUpload::make('attachments')
+                        ->helperText('Upload screenshots, receipts, or logs. Sensitive data is auto-redacted in admin views.')
                         ->multiple()
                         ->maxFiles((int) config('support.attachments.max_files', 5))
                         ->disk('public')
@@ -69,6 +76,7 @@ class SupportTicketResource extends Resource
                         ->default(SupportTicket::CATEGORY_GENERAL)
                         ->required(),
                     Forms\Components\Select::make('priority')
+                        ->helperText('Urgent tickets appear at the top of triage lists.')
                         ->options([
                             'low' => 'Low',
                             'normal' => 'Normal',
@@ -78,6 +86,7 @@ class SupportTicketResource extends Resource
                         ->default('normal')
                         ->required(),
                     Forms\Components\Select::make('status')
+                        ->helperText('Use Pending user when waiting for customer response to pause internal SLA pressure.')
                         ->options([
                             SupportTicket::STATUS_OPEN => 'Open',
                             SupportTicket::STATUS_IN_PROGRESS => 'In progress',
@@ -495,6 +504,7 @@ class SupportTicketResource extends Resource
                     ->visible(fn (SupportTicket $record): bool => static::canResolve() && ! $record->isTerminal())
                     ->form([
                         Forms\Components\Select::make('status')
+                        ->helperText('Use Pending user when waiting for customer response to pause internal SLA pressure.')
                             ->required()
                             ->options(function (SupportTicket $record): array {
                                 return match ($record->status) {
@@ -562,6 +572,7 @@ class SupportTicketResource extends Resource
                     ->visible(fn (SupportTicket $record): bool => static::canAssign() && ! $record->isTerminal())
                     ->form([
                         Forms\Components\Select::make('priority')
+                        ->helperText('Urgent tickets appear at the top of triage lists.')
                             ->required()
                             ->options([
                                 'low' => 'Low',

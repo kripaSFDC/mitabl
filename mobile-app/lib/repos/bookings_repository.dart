@@ -8,14 +8,14 @@ class BookingRepository {
   BookingRepository(this.userRepository);
 
   Future<dynamic?> getBookings(
-      {int? page, int? limit, bool? isUpcoming, String? sortBy, String? status = ''}) async {
+      {int? page, int? limit, bool isUpcoming = false, String? sortBy, String? status = ''}) async {
     try {
       final resolvedPage = page ?? 1;
       final resolvedLimit = limit ?? 10;
       final safeSortBy = sortBy ?? '';
       final safeStatus = status ?? '';
 
-      final url = isUpcoming!
+      final url = isUpcoming
           ? '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenupcomingorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}'
           : '${GlobalConfiguration().getValue<String>('api_base_url')}v1/allorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}${safeStatus.isNotEmpty ? '&status=$safeStatus' : ''}';
 
@@ -26,7 +26,8 @@ class BookingRepository {
       final response = await client.post(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -53,7 +54,8 @@ class BookingRepository {
 
       final response = await client.post(Uri.parse(url),
           headers: {
-            "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+            "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+            "Accept": "application/json",
           },
           body: data);
 
@@ -69,8 +71,11 @@ class BookingRepository {
 
   Future<dynamic?> getRequests({int? page, int? limit}) async {
     try {
+      final resolvedPage = page ?? 1;
+      final resolvedLimit = limit ?? 10;
+
       final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenorderrequest?page=${page}&limit=${limit}';
+          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenorderrequest?page=$resolvedPage&limit=$resolvedLimit';
 
       print(url);
 
@@ -79,7 +84,8 @@ class BookingRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 

@@ -1,4 +1,12 @@
 <x-filament-panels::page>
+    <x-filament::section class="mb-4">
+        <x-slot name="heading">Integration monitoring guide</x-slot>
+        <x-slot name="description">
+            Review failed outbound events first, then validate retry counts and response snapshots. Use this as the
+            primary page for third-party delivery troubleshooting.
+        </x-slot>
+    </x-filament::section>
+
     <div class="mb-4">
         <x-filament::button wire:click="refresh" color="info">
             Refresh

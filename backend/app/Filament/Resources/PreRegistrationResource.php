@@ -27,6 +27,10 @@ class PreRegistrationResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    protected static ?string $navigationLabel = 'Lead Intake';
+
+    protected static ?string $modelLabel = 'Lead';
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -34,11 +38,13 @@ class PreRegistrationResource extends Resource
                 ->schema([
                     Forms\Components\TextInput::make('first_name')->required()->maxLength(255),
                     Forms\Components\TextInput::make('last_name')->required()->maxLength(255),
-                    Forms\Components\TextInput::make('email')->email()->maxLength(255),
+                    Forms\Components\TextInput::make('email')->email()->maxLength(255)
+                        ->helperText('Optional if the lead provided phone-only contact details.'),
                     Forms\Components\TextInput::make('phone')->maxLength(40),
                     Forms\Components\TextInput::make('city')->maxLength(120),
                     Forms\Components\Select::make('interested_as')
                         ->required()
+                        ->helperText('Captures intent for routing to foodie onboarding or cook enablement.')
                         ->options([
                             'cook' => 'Cook',
                             'foodie' => 'Foodie',
@@ -46,6 +52,7 @@ class PreRegistrationResource extends Resource
                         ]),
                     Forms\Components\Select::make('source')
                         ->required()
+                        ->helperText('Use Admin when the lead was entered manually from offline channels.')
                         ->options([
                             'website' => 'Website',
                             'referral' => 'Referral',
@@ -61,7 +68,8 @@ class PreRegistrationResource extends Resource
                             PreRegistration::STATUS_SPAM => 'Spam',
                         ])
                         ->required(),
-                    Forms\Components\Toggle::make('consent_to_contact'),
+                    Forms\Components\Toggle::make('consent_to_contact')
+                        ->helperText('Disable if user opted out of outreach to keep communications compliant.'),
                     Forms\Components\Select::make('communication_preference')
                         ->options([
                             'email' => 'Email',
@@ -69,7 +77,8 @@ class PreRegistrationResource extends Resource
                             'phone' => 'Phone',
                             'none' => 'Do not contact',
                         ]),
-                    Forms\Components\Textarea::make('notes')->rows(4),
+                    Forms\Components\Textarea::make('notes')->rows(4)
+                        ->helperText('Add concise timeline notes so handoffs between agents stay clear.'),
                 ])
                 ->columns(2),
         ]);

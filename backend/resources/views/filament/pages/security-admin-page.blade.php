@@ -1,4 +1,11 @@
 <x-filament-panels::page>
+    <x-filament::section class="mb-4">
+        <x-slot name="heading">Security controls overview</x-slot>
+        <x-slot name="description">
+            Use this page for periodic access reviews. Dormant accounts should be deactivated or re-certified
+            according to the IAM and secret-rotation runbooks.
+        </x-slot>
+    </x-filament::section>
     <div class="grid gap-4 md:grid-cols-2">
         <x-filament::section>
             <x-slot name="heading">

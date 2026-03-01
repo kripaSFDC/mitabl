@@ -21,7 +21,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -47,7 +48,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -73,7 +75,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
@@ -105,7 +108,8 @@ class CookRepository {
 
       //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+        "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+        "Accept": "application/json",
       });
 
       //for image and videos and files
@@ -121,10 +125,18 @@ class CookRepository {
         'food_name': '${data['food_name']}',
         'price': '${data['price']}',
         'cookingstyle': '${data['cookingstyle']}',
-        'specialDiet[]': data['specialDiet[]'],
         'delete_images': data['delete_images'],
         'description': '${data['description']}',
       });
+
+      final specialDietIds = (data['specialDietIds'] as List<dynamic>? ?? [])
+          .map((value) => value.toString())
+          .where((value) => value.isNotEmpty)
+          .toList();
+
+      for (var i = 0; i < specialDietIds.length; i++) {
+        request.fields['specialDiet[$i]'] = specialDietIds[i];
+      }
 
       if (isEdit) {
         request.fields.addAll({'food_id': '${data['food_id']}'});
@@ -171,7 +183,8 @@ class CookRepository {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}"
+          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Accept": "application/json",
         },
       );
 
