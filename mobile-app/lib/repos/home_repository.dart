@@ -1,24 +1,19 @@
-import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
-import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
-import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
-import 'package:mitabl_user/repos/user_repository.dart';
 
 class HomeRepository {
 
   Future<dynamic?> recommendedRestaurants({required Map<String, dynamic> data,required UserModel? userModel}) async {
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}v1/recommendedrestaurant';
+    final url = ApiContract.uri('v1/recommendedrestaurant');
 
     var headers = {
       'Authorization': 'Bearer ${userModel!.data!.accessToken}',
       'Content-Type': 'application/json'
     };
-    var request = http.Request('POST', Uri.parse(url));
+    var request = http.Request('POST', url);
     request.body = json.encode(data);
     request.headers.addAll(headers);
 
@@ -34,14 +29,16 @@ class HomeRepository {
   Future<dynamic?> topRatedRestaurants(
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}v1/topRatedRestaurant?page=1&limit=20';
+    final url = ApiContract.uri(
+      'v1/topRatedRestaurant',
+      queryParameters: {'page': 1, 'limit': 20},
+    );
 
     var headers = {
       'Authorization': 'Bearer ${userModel!.data!.accessToken}',
       'Content-Type': 'application/json'
     };
-    var request = http.Request('POST', Uri.parse(url));
+    var request = http.Request('POST', url);
     request.body = json.encode(data);
     request.headers.addAll(headers);
 
@@ -57,14 +54,16 @@ class HomeRepository {
   Future<dynamic?> nearByRestaurants(
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
-    final url =
-        '${GlobalConfiguration().getValue<String>('api_base_url')}v1/nearestRestaurant?page=1&limit=20';
+    final url = ApiContract.uri(
+      'v1/nearestRestaurant',
+      queryParameters: {'page': 1, 'limit': 20},
+    );
 
     var headers = {
       'Authorization': 'Bearer ${userModel!.data!.accessToken}',
       'Content-Type': 'application/json'
     };
-    var request = http.Request('POST', Uri.parse(url));
+    var request = http.Request('POST', url);
     request.body = json.encode(data);
     request.headers.addAll(headers);
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LandingPage extends StatefulWidget {
@@ -112,7 +113,7 @@ class _LandingPageState extends State<LandingPage> {
                   recognizer: new TapGestureRecognizer()
                     ..onTap = () async {
                       _launchInBrowser(
-                          Uri.parse('https://mitabl.xcelanceweb.com/terms'));
+                          Uri.parse(ApiContract.webUrl('terms')));
                     },
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark,
@@ -127,7 +128,7 @@ class _LandingPageState extends State<LandingPage> {
                     text: ' privacy policy',recognizer: new TapGestureRecognizer()
                   ..onTap = () async {
                     _launchInBrowser(
-                        Uri.parse('https://mitabl.xcelanceweb.com/privacy-policy'));
+                        Uri.parse(ApiContract.webUrl('privacy-policy')));
                   },
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,

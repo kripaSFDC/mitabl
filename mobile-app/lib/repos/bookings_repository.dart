@@ -1,4 +1,4 @@
-import 'package:global_configuration/global_configuration.dart';
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:http/http.dart' as http;
 
@@ -6,6 +6,14 @@ class BookingRepository {
   final UserRepository? userRepository;
 
   BookingRepository(this.userRepository);
+
+  String _accessToken() {
+    final token = userRepository?.user?.data?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token unavailable. Please login again.');
+    }
+    return token;
+  }
 
   Future<dynamic?> getBookings(
       {int? page, int? limit, bool isUpcoming = false, String? sortBy, String? status = ''}) async {
@@ -15,18 +23,25 @@ class BookingRepository {
       final safeSortBy = sortBy ?? '';
       final safeStatus = status ?? '';
 
-      final url = isUpcoming
-          ? '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenupcomingorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}'
-          : '${GlobalConfiguration().getValue<String>('api_base_url')}v1/allorders?page=$resolvedPage&limit=$resolvedLimit${safeSortBy.isNotEmpty ? '&sortby=$safeSortBy' : ''}${safeStatus.isNotEmpty ? '&status=$safeStatus' : ''}';
+      final endpoint = isUpcoming ? 'v1/kitchenupcomingorders' : 'v1/allorders';
+      final url = ApiContract.uri(
+        endpoint,
+        queryParameters: {
+          'page': resolvedPage,
+          'limit': resolvedLimit,
+          'sortby': safeSortBy,
+          if (!isUpcoming) 'status': safeStatus,
+        },
+      );
 
       print(url);
 
       final client = http.Client();
 
       final response = await client.post(
-        Uri.parse(url),
+        url,
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Authorization": "Bearer ${_accessToken()}",
           "Accept": "application/json",
         },
       );
@@ -44,17 +59,16 @@ class BookingRepository {
   Future<dynamic?> updateOrderStatus(
       {bool? isUpcoming, Map<String, dynamic>? data}) async {
     try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/updateorderstatus';
+      final url = ApiContract.uri('v1/updateorderstatus');
 
       print(url);
       print(data);
 
       final client = http.Client();
 
-      final response = await client.post(Uri.parse(url),
+      final response = await client.post(url,
           headers: {
-            "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+            "Authorization": "Bearer ${_accessToken()}",
             "Accept": "application/json",
           },
           body: data);
@@ -74,17 +88,19 @@ class BookingRepository {
       final resolvedPage = page ?? 1;
       final resolvedLimit = limit ?? 10;
 
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/kitchenorderrequest?page=$resolvedPage&limit=$resolvedLimit';
+      final url = ApiContract.uri(
+        'v1/kitchenorderrequest',
+        queryParameters: {'page': resolvedPage, 'limit': resolvedLimit},
+      );
 
       print(url);
 
       final client = http.Client();
 
       final response = await client.get(
-        Uri.parse(url),
+        url,
         headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
+          "Authorization": "Bearer ${_accessToken()}",
           "Accept": "application/json",
         },
       );
