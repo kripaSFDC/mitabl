@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\SupportTicketController;
+use App\Http\Controllers\Api\PreRegistrationController;
 use App\Services\SystemHealthService;
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,8 @@ Route::post('resendotp', [UserController::class, 'resendOtp']);
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 
+
+Route::post('preregister', [PreRegistrationController::class, 'store'])->middleware('throttle:pre-register-intake');
 
 Route::any('/mobcontact', function () {
     return response()->json([

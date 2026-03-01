@@ -1,6 +1,6 @@
 # Migration Notes
 
-## Legacy pre-registration migrations
+## Pre-registration migrations
 
 This repository intentionally retains historical pre-registration migrations:
 
@@ -10,6 +10,4 @@ This repository intentionally retains historical pre-registration migrations:
 
 Governance decision: **retain full migration history** for auditability and deterministic replay of historical schema evolution.
 
-Product status: pre-registration intake is **retired and unsupported**. The retirement migration drops pre-registration schema artifacts so they are not present in active runtime functionality for fresh environments.
-
-Do not treat retained pre-registration migration files as active feature surface; current intake workflows are support-ticket based.
+Current product status: pre-registration intake is active and backed by the `pre_registrations` table (Module 7 in `mitabl_enhancement_plan.md`). The `2026_03_01_000021_retire_pre_registrations.php` migration is intentionally a no-op to preserve ordering while keeping the feature enabled.

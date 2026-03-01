@@ -71,6 +71,15 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(8)->by($key);
         });
 
+
+        RateLimiter::for('pre-register-intake', function (Request $request) {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $phone = preg_replace('/\D+/', '', (string) $request->input('phone', ''));
+            $keySeed = $email !== '' ? $email : ($phone !== '' ? $phone : (string) $request->ip());
+
+            return Limit::perMinute(10)->by('pre-register-intake:' . $keySeed);
+        });
+
         RateLimiter::for('support-read', function (Request $request) {
             return Limit::perMinute(30)->by($this->resolveRateLimitActorKey($request, 'support-read'));
         });
