@@ -65,7 +65,7 @@ should not be reintroduced.
 
 Same-domain routing is split by path prefix:
 
-- Website (`website/`) serves public pages only (`/`, `/about`, `/faq`, `/privacy-policy`, `/terms`).
+- Website (`website/`) serves public pages only (`/`, `/about`, `/faq`, `/contact`, `/privacy-policy`, `/terms`).
 - Backend (`backend/`) serves API traffic at `/api/*`.
 - Admin (`ops-admin`) is served at `/admin` on the same domain.
 
