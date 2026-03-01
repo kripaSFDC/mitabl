@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/email.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
@@ -26,7 +27,6 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
     if (response.statusCode == 200) {
       GetCookProfileModel foodieProfile =
           GetCookProfileModel.fromJson(jsonDecode(response.body));
-      print('SunnyProfileRes ${foodieProfile.message}');
 
       emit(state.copyWith(
         firstName: Name.dirty(foodieProfile.data!.firstName!),
@@ -119,7 +119,7 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
       map['description'] = state.description!.value;
 
       var response = await userRepository!
-          .updateCookProfile(data: map, filePath: state.avatarPath ?? '');
+          .updateFoodieProfile(data: map, filePath: state.avatarPath ?? '');
 
       if (response.statusCode == 200) {
         getFoodieProfile();
@@ -143,7 +143,6 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
       Response response = await authenticationRepository!
           .logOutApi(userModel: userRepository!.user);
 
-      print('Respomse ${jsonDecode(response.body)}');
 
       if (response.statusCode == 200) {
         authenticationRepository!.logOut();
@@ -154,7 +153,7 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
         authenticationRepository!.logOut();
       }
     } catch (e) {
-      print('exceptionLogin $e');
+      AppLogger.error('Logout failed', e);
       emit(state.copyWith(
         status: FormzStatus.submissionFailure,
       ));

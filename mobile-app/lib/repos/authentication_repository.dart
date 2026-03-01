@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -17,8 +18,16 @@ enum AuthenticationStatus {
 final navigatorKey = GlobalKey<NavigatorState>();
 
 class AuthenticationRepository {
+  AuthenticationRepository({http.Client? httpClient, UserRepository? userRepository})
+      : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null,
+        _userRepository = userRepository ?? UserRepository(httpClient: httpClient);
+
   final controller = StreamController<AuthenticationStatus>();
-  final UserRepository _userRepository = UserRepository();
+  final UserRepository _userRepository;
+  final http.Client _httpClient;
+  final bool _ownsHttpClient;
+
   String _accessToken(UserModel? userModel) {
     final token = userModel?.data?.accessToken;
     if (token == null || token.isEmpty) {
@@ -26,7 +35,6 @@ class AuthenticationRepository {
     }
     return token;
   }
-
 
   Stream<AuthenticationStatus> get status async* {
     await Future<void>.delayed(const Duration(seconds: 3));
@@ -42,165 +50,88 @@ class AuthenticationRepository {
     yield* controller.stream;
   }
 
-  Future<dynamic?> logIn({
-    required Map<String, dynamic> data,
-  }) async {
-    // try {
-
+  Future<http.Response> logIn({required Map<String, dynamic> data}) async {
     final url = ApiContract.uri('login');
 
-    print(url);
-
-    final client = http.Client();
-
-    final response = await client.post(url,
-        // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode(data));
-    print(response.body);
-    if (response.statusCode == 200) {
-      return response;
-    }
-    return response;
-    // } catch (e) {
-    //   print('exception $e');
-    // }
+    return _httpClient.post(
+      url,
+      headers: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> forgot({
-    required Map<String, dynamic> data,
-  }) async {
-    // try {
+  Future<http.Response> forgot({required Map<String, dynamic> data}) async {
     final url = ApiContract.uri('password/reset');
 
-    print(url);
-
-    final client = http.Client();
-
-    final response = await client.post(url,
-        // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode(data));
-
-    if (response.statusCode == 200) {
-      return response;
-    }
-    return response;
+    return _httpClient.post(
+      url,
+      headers: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> logOutApi({required UserModel? userModel}) async {
+  Future<http.Response> logOutApi({required UserModel? userModel}) async {
     final url = ApiContract.uri('v1/logout');
 
-    print(url);
-
-    final client = http.Client();
-
-    final response = await client.post(
+    return _httpClient.post(
       url,
       headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer ${_accessToken(userModel)}'
       },
     );
-
-    if (response.statusCode == 200) {
-      return response;
-    }
-    return response;
   }
 
   void logOut() {
     _userRepository.clearuserData();
-    //print('app:-unauthenticated_logOut');
     controller.add(AuthenticationStatus.unauthenticated);
   }
 
-  Future<dynamic?> signUp({
-    required Map<String, dynamic> data,
-  }) async {
-    try {
-      final url = ApiContract.uri('register');
+  Future<http.Response> signUp({required Map<String, dynamic> data}) async {
+    final url = ApiContract.uri('register');
 
-      print(url);
-      print(data);
-
-      final client = http.Client();
-
-      final response = await client.post(url,
-          // headers: {HttpHeaders.contentTypeHeader: 'application/json'},
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            // 'Content-Type': 'multipart/form-data',
-            // 'Accept': 'application/json',
-            // 'X-CSRF-TOKEN':''
-          },
-          body: json.encode(data));
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
+    return _httpClient.post(
+      url,
+      headers: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> otpVerify({
-    required Map<String, dynamic> data,
-  }) async {
-    try {
-      final url = ApiContract.uri('verifyOtp');
+  Future<http.Response> otpVerify({required Map<String, dynamic> data}) async {
+    final url = ApiContract.uri('verifyOtp');
 
-      print(url);
-      print(data);
-
-      final client = http.Client();
-
-      final response = await client.post(url,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: json.encode(data));
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
+    return _httpClient.post(
+      url,
+      headers: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode(data),
+    );
   }
 
-  Future<dynamic?> vendorKitchnUpload(
+  Future<http.Response> vendorKitchnUpload(
       {required Map<String, dynamic> data,
       required RouteArguments? routeArguments,
       required List<String> filePaths}) async {
     try {
       final url = ApiContract.uri('v1/mikitchn/store');
 
-      print(url);
-      print(data['name']);
+      final request = http.MultipartRequest('POST', url);
 
-      //for multipartrequest
-      var request = http.MultipartRequest('POST', url);
-
-      //for token
       request.headers.addAll({
-        "Authorization": "Bearer ${routeArguments!.data!.accessToken}",
-        "Accept": "application/json",
+        'Authorization': 'Bearer ${routeArguments!.data!.accessToken}',
+        'Accept': 'application/json',
       });
-
-      //for image and videos and files
 
       for (final element in filePaths) {
         request.files.add(await http.MultipartFile.fromPath('images[]', element));
@@ -211,29 +142,24 @@ class AuthenticationRepository {
         'address': '${data['address']}',
         'no_of_seats': '${data['no_of_seats']}',
         'timings': data['timings'],
-        // '{\n    \'mon\':{\n        \'isOn\':1,\n        \'timing\': {\n            \'start_time\': \'07:00\',\n            \'end_time\': \'08:00\',\n        }\n    },\n    \'tue\':1,\n    \'wed\':1\n}',
         'phone': '${data['phone']}',
         'user_id': '${data['user_id']}'
       });
-      // request.fields['timings'] = '{}';
-      print('request ${request.url}  ${request.fields}');
-      //for completeing the request
-      var response = await request.send();
 
-      //for getting and decoding the response into json format
-      var responsed = await http.Response.fromStream(response);
-      final responseData = json.decode(responsed.body);
+      final response = await request.send();
+      final responsed = await http.Response.fromStream(response);
 
-      print('response ${jsonDecode(responsed.body)}');
-      if (response.statusCode == 200) {
-        print("SUCCESS");
-        return responsed;
-      }
       return responsed;
     } catch (e) {
-      print('exception $e');
+      AppLogger.error('Vendor kitchen upload failed', e);
+      rethrow;
     }
   }
 
-  void dispose() => controller.close();
+  void dispose() {
+    controller.close();
+    if (_ownsHttpClient) {
+      _httpClient.close();
+    }
+  }
 }
