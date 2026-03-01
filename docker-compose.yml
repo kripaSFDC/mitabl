@@ -47,10 +47,6 @@ services:
     container_name: mitabl-website
     ports:
       - "8080:8080"
-    env_file:
-      - ./website/.env
-    volumes:
-      - ./website:/app
     restart: unless-stopped
 
   mobile-app:

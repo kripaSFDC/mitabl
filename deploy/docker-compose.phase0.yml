@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile
     labels:
       com.mitabl.service: marketing
-    env_file:
-      - ./environments/marketing-web.env
     ports:
       - "8080:8080"
     healthcheck:

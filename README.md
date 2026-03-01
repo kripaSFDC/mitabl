@@ -4,7 +4,7 @@
 
 - A Laravel backend API and operations console.
 - A Flutter mobile app serving both Foodie and Cook journeys.
-- A Laravel marketing website serving static public pages (no website-side persistence).
+- A static marketing website served by nginx.
 - Deployment manifests, operational scripts, and runbooks.
 
 This document is intentionally detailed and aligned to the **current codebase state**.
@@ -53,7 +53,7 @@ This document is intentionally detailed and aligned to the **current codebase st
 mitabl/
 ├── backend/                      # Laravel API + Filament admin + business services
 ├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
-├── website/                      # Laravel static marketing web frontend
+├── website/                      # Static marketing web frontend (nginx-served)
 ├── deploy/                       # Docker, env templates, nginx/supervisor, load tests
 ├── docs/                         # SOPs, validation reports, secrets management docs
 ├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
@@ -395,12 +395,10 @@ php artisan queue:work
 ### Option C: website local run
 
 ```bash
-cd website
-cp .env.example .env
-composer install
-php artisan key:generate
-php artisan serve --host=0.0.0.0 --port=8080
+docker compose up --build website
 ```
+
+Then open `http://localhost:8080`.
 
 ### Option D: mobile local run
 
@@ -418,14 +416,14 @@ The monorepo GitHub workflow performs:
 
 1. Secret scan gate.
 2. Backend setup + tests.
-3. Website setup + tests.
+3. Website static checks.
 4. Flutter dependency install + tests.
 
 Primary local checks:
 
 ```bash
 cd backend && php artisan test
-cd website && php artisan test
+cd website && npm run test
 cd mobile-app && flutter test
 ```
 
