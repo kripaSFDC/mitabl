@@ -5,9 +5,12 @@ import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
 
 class HomeRepository {
-  HomeRepository({http.Client? httpClient}) : _httpClient = httpClient ?? http.Client();
+  HomeRepository({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null;
 
   final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
   String _bearerToken(UserModel? userModel) {
     final token = userModel?.data?.accessToken;
@@ -68,6 +71,8 @@ class HomeRepository {
   }
 
   void dispose() {
-    _httpClient.close();
+    if (_ownsHttpClient) {
+      _httpClient.close();
+    }
   }
 }

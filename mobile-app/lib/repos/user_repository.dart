@@ -11,10 +11,13 @@ import '../model/user_model.dart';
 final navigatorKeyHome = GlobalKey<NavigatorState>();
 
 class UserRepository {
-  UserRepository({http.Client? httpClient}) : _httpClient = httpClient ?? http.Client();
+  UserRepository({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null;
 
   UserModel? user;
   final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
   Future<String> _accessToken() async {
     final currentUser = user ?? await getUser();
@@ -240,6 +243,8 @@ class UserRepository {
   }
 
   void dispose() {
-    _httpClient.close();
+    if (_ownsHttpClient) {
+      _httpClient.close();
+    }
   }
 }

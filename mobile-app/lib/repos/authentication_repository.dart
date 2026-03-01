@@ -20,11 +20,13 @@ final navigatorKey = GlobalKey<NavigatorState>();
 class AuthenticationRepository {
   AuthenticationRepository({http.Client? httpClient, UserRepository? userRepository})
       : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null,
         _userRepository = userRepository ?? UserRepository(httpClient: httpClient);
 
   final controller = StreamController<AuthenticationStatus>();
   final UserRepository _userRepository;
   final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
   String _accessToken(UserModel? userModel) {
     final token = userModel?.data?.accessToken;
@@ -156,6 +158,8 @@ class AuthenticationRepository {
 
   void dispose() {
     controller.close();
-    _httpClient.close();
+    if (_ownsHttpClient) {
+      _httpClient.close();
+    }
   }
 }
