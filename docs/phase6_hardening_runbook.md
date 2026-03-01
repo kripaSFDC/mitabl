@@ -13,14 +13,11 @@ This runbook captures the operational checks required to validate the Phase 6 ha
   - `crm-escalations`
   - `crm-communications`
 
-## 6.2 Public intake hardening (captcha + throttle + honeypot)
+## 6.2 Public intake hardening (throttle + honeypot)
 
 - Validate throttles are attached to:
   - `POST /api/mobcontact` (deprecated alias)
 - Validate bot honeypot acceptance path returns success without persisting records.
-- Validate captcha behavior with `RECAPTCHA_SECRET` set:
-  - bad token returns `422`
-  - transport outages return `422` (not `500`)
 
 ## 6.3 Certificate workflow resilience
 
