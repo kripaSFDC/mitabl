@@ -24,6 +24,6 @@ class Restaurant
             return $next($request);
         }
         // return response()->json('Your account is Unauthorize for this request.'); 
-        return Controller::responser([],'Your account is Unauthorize for this request. Login with Restaurant account.');   
+        return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);   
     }
 }

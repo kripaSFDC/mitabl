@@ -15,12 +15,12 @@ class OrderData extends JsonResource
      */
     public function toArray($request)
     {
-        // return parent::toArray($request);
+        $food = $this->relationLoaded('food') ? $this->food : null;
 
         return [
-            'food' => $this->food->food_name,
+            'food' => $food?->food_name,
             'quantity' => $this->quantity,
-            'price' => $this->food->price,
+            'price' => $food?->price,
             'total_price' => $this->price,
         ];
     }

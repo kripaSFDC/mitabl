@@ -20,7 +20,13 @@ class Order extends Model
     public const STATUS_CONFIRMED = 3;
     public const STATUS_CANCELLED = 4;
 
-    protected $appends = ['items','orderId'];
+    protected $casts = [
+        'item_total_price' => 'decimal:2',
+        'taxes' => 'decimal:2',
+        'total_price' => 'decimal:2',
+        'discounted_amount' => 'decimal:2',
+        'refund_percentage' => 'integer',
+    ];
 
     /**
      * The attributes that should be mutated to dates.

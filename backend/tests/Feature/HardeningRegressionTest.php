@@ -59,13 +59,14 @@ class HardeningRegressionTest extends TestCase
         $this->assertFileExists(app_path('Services/PaymentService.php'));
     }
 
-    public function test_root_compose_runs_migrations_before_backend_boot(): void
+    public function test_root_compose_uses_backend_startup_for_migrations_and_seeding(): void
     {
         $compose = (string) file_get_contents(base_path('../docker-compose.yml'));
 
-        $this->assertStringContainsString('db-migrate:', $compose);
-        $this->assertStringContainsString('php artisan migrate --force', $compose);
-        $this->assertStringContainsString('condition: service_completed_successfully', $compose);
+        $this->assertStringContainsString('image: mitabl-backend:latest', $compose);
+        $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT=true', $compose);
+        $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT=true', $compose);
+        $this->assertStringNotContainsString('db-migrate:', $compose);
     }
 
     public function test_critical_crm_and_policy_migrations_define_tables_indexes_and_constraints(): void

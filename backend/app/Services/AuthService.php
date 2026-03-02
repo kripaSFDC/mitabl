@@ -9,13 +9,25 @@ class AuthService
 {
     public function sendOtp(int $userId, string $email): array
     {
-        $otp = rand(1000, 9999);
+        $otp = random_int(100000, 999999);
+        $expiresAt = now()->addMinutes((int) config('auth.passwords.users.expire', 10));
 
         $existing = verifyOtp::where('user_id', $userId)->first();
         if ($existing) {
-            $saved = verifyOtp::where('user_id', $userId)->update(['otp' => $otp]);
+            $saved = verifyOtp::where('user_id', $userId)->update([
+                'otp' => $otp,
+                'expires_at' => $expiresAt,
+                'attempts' => 0,
+                'locked_until' => null,
+            ]);
         } else {
-            $saved = verifyOtp::create(['user_id' => $userId, 'otp' => $otp]);
+            $saved = verifyOtp::create([
+                'user_id' => $userId,
+                'otp' => $otp,
+                'expires_at' => $expiresAt,
+                'attempts' => 0,
+                'locked_until' => null,
+            ]);
         }
 
         if (!$saved) {

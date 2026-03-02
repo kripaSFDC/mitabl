@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use App\Models\PlatformSetting;
 
 class SystemHealthService
@@ -135,14 +136,32 @@ class SystemHealthService
 
     private function checkQueueProcessing(): array
     {
+        $missingTables = [];
+
         try {
-            $jobsCount = DB::table('jobs')->count();
-            $failedJobsCount = DB::table('failed_jobs')->count();
-            $oldestPending = DB::table('jobs')->min('created_at');
-            $poisonCount = DB::table('failed_jobs')
-                ->get(['payload', 'exception'])
-                ->filter(fn ($job): bool => $this->isPoisonFailedJob((string) $job->payload, (string) $job->exception))
-                ->count();
+            $hasJobsTable = Schema::hasTable('jobs');
+            $hasFailedJobsTable = Schema::hasTable('failed_jobs');
+
+            if (! $hasJobsTable) {
+                $missingTables[] = 'jobs';
+            }
+            if (! $hasFailedJobsTable) {
+                $missingTables[] = 'failed_jobs';
+            }
+
+            if (! $hasJobsTable && ! $hasFailedJobsTable) {
+                throw new \RuntimeException('jobs and failed_jobs tables are not available');
+            }
+
+            $jobsCount = $hasJobsTable ? DB::table('jobs')->count() : 0;
+            $oldestPending = $hasJobsTable ? DB::table('jobs')->min('created_at') : null;
+            $failedJobsCount = $hasFailedJobsTable ? DB::table('failed_jobs')->count() : 0;
+            $poisonCount = $hasFailedJobsTable
+                ? DB::table('failed_jobs')
+                    ->get(['payload', 'exception'])
+                    ->filter(fn ($job): bool => $this->isPoisonFailedJob((string) $job->payload, (string) $job->exception))
+                    ->count()
+                : 0;
         } catch (\Throwable $throwable) {
             return [
                 'key' => 'queue_processing',
@@ -171,6 +190,11 @@ class SystemHealthService
         if ($poisonCount > 0) {
             $status = $status === 'error' ? 'error' : 'warning';
             $message .= ' Potential poison-message retries: ' . $poisonCount . '.';
+        }
+
+        if ($missingTables !== []) {
+            $status = $status === 'error' ? 'error' : 'warning';
+            $message .= ' Limited visibility; missing table(s): ' . implode(', ', $missingTables) . '.';
         }
 
         return [
@@ -446,6 +470,8 @@ class SystemHealthService
     private function checkStripe(): array
     {
         $secret = (string) config('stripe.api_keys.secret_key');
+        $webhookSecret = (string) config('stripe.webhook_signing_secret', '');
+        $currency = strtolower((string) config('stripe.currency', ''));
 
         if ($secret === '') {
             return [
@@ -456,11 +482,29 @@ class SystemHealthService
             ];
         }
 
+        if ($webhookSecret === '') {
+            return [
+                'key' => 'stripe',
+                'label' => 'Stripe',
+                'status' => 'warning',
+                'message' => 'Stripe webhook signing secret is not configured. Webhook signature verification is disabled.',
+            ];
+        }
+
+        if ($currency === '' || strlen($currency) !== 3) {
+            return [
+                'key' => 'stripe',
+                'label' => 'Stripe',
+                'status' => 'warning',
+                'message' => 'Stripe currency is not configured as a valid 3-letter ISO code.',
+            ];
+        }
+
         return [
             'key' => 'stripe',
             'label' => 'Stripe',
             'status' => 'ok',
-            'message' => 'Stripe credentials are configured.',
+            'message' => 'Stripe credentials and webhook configuration are set.',
         ];
     }
 

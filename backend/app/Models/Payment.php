@@ -12,7 +12,7 @@ class Payment extends Model
     protected $casts = [
         'confirm' => 'boolean',
         'confirm_date_time' => 'datetime',
-        'amount' => 'float',
+        'amount' => 'decimal:2',
     ];
 
     public function order()

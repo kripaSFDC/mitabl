@@ -73,9 +73,10 @@ class ResetPasswordController extends Controller
             return response(['errors'=>$validator->errors()->all()], 422);
         }
 
-        $user = User::where('email',$input)->get()->first();
+        $email = (string) ($input['email'] ?? '');
+        $user = User::where('email', $email)->first();
         if (!$user) {
-            return $this->responser([],"user not exist");
+            return $this->responser([],"user not exist", 404);
         }
         
         $token = Str::random(60);
@@ -83,27 +84,29 @@ class ResetPasswordController extends Controller
         // $response =  Password::sendResetLink($input);
 
         try {
-            $rstTbl = DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->get()->first();
+            $rstTbl = DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->first();
             // print_r($rstTbl); die();
             if ($rstTbl) {
                 DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->update([ 
-                    'token' => $token
+                    'token' => $token,
+                    'created_at' => now(),
                 ]);
             }else{
                 DB::table(config('auth.passwords.users.table'))->insert([
                     'email' => $user->email, 
-                    'token' => $token
+                    'token' => $token,
+                    'created_at' => now(),
                 ]);
             }
 
-            Mail::to($input)->send(new ResetPassword($user->name, $token));
+            Mail::to($user->email)->send(new ResetPassword(trim($user->first_name . ' ' . $user->last_name), $token));
             // $message = "Mail send successfully";
             // $response = ['isSuccess'=>true,'message' => $message,'data'=>json_encode([])];
             return $this->responser(['sendmail'=>1],'Mail send successfully');
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             // $message = "Email could not be sent to this email address";
             // $response = ['isSuccess'=>false,'isError' => $message,'data'=>json_encode([])];
-            return $this->responser([],'Email could not be sent to this email address');
+            return $this->responser([],'Email could not be sent to this email address', 422);
         }
 
         // if($response == Password::RESET_LINK_SENT){

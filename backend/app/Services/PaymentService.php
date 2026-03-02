@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Card;
 use App\Models\Mikitchn;
 use App\Models\Order;
 use App\Models\Payment;
@@ -16,10 +17,14 @@ class PaymentService
     private ?StripeClient $stripe = null;
 
     private string $secretKey;
+    private string $currency;
+    private string $connectedAccountCountry;
 
     public function __construct()
     {
         $this->secretKey = trim((string) config('stripe.api_keys.secret_key'));
+        $this->currency = strtolower(trim((string) config('stripe.currency', 'aud')));
+        $this->connectedAccountCountry = strtoupper(trim((string) config('stripe.connected_account_country', 'AU')));
     }
 
     public function getMerchantAccountClient(): StripeClient
@@ -66,26 +71,31 @@ class PaymentService
             throw new RuntimeException('Customer Stripe account not found.');
         }
 
-        $expDate = explode('/', $data['exp_date']);
+        $customerId = (string) $user->customer->account_id;
+        $paymentMethodId = trim((string) ($data['payment_method_id'] ?? ''));
+        if (! str_starts_with($paymentMethodId, 'pm_')) {
+            throw new RuntimeException('A valid Stripe payment_method_id (pm_...) is required.');
+        }
 
-        $card = $this->stripe()->paymentMethods->create([
-            'type' => 'card',
-            'card' => [
-                'number' => $data['card_number'],
-                'exp_month' => $expDate[0] ?? null,
-                'exp_year' => $expDate[1] ?? null,
-                'cvc' => $data['cvc'],
-            ],
-        ]);
+        $paymentMethod = $this->stripe()->paymentMethods->retrieve($paymentMethodId, []);
+        $attachedCustomer = (string) ($paymentMethod->customer ?? '');
 
-        return $this->stripe()->paymentMethods->attach($card->id, ['customer' => $user->customer->account_id]);
+        if ($attachedCustomer !== '' && $attachedCustomer !== $customerId) {
+            throw new RuntimeException('Selected payment method is already attached to another customer.');
+        }
+
+        if ($attachedCustomer === $customerId) {
+            return $paymentMethod;
+        }
+
+        return $this->stripe()->paymentMethods->attach($paymentMethodId, ['customer' => $customerId]);
     }
 
     public function createVendor(User $user)
     {
         return $this->stripe()->accounts->create([
             'type' => 'express',
-            'country' => 'AU',
+            'country' => $this->connectedAccountCountry,
             'email' => $user->email,
             'capabilities' => [
                 'card_payments' => ['requested' => true],
@@ -115,8 +125,8 @@ class PaymentService
             [
                 'external_account' => [
                     'object' => 'bank_account',
-                    'country' => 'AU',
-                    'currency' => 'aud',
+                    'country' => $this->connectedAccountCountry,
+                    'currency' => $this->currency,
                     'account_holder_name' => $data['holder_name'],
                     'routing_number' => $data['bsb'],
                     'account_number' => $data['number'],
@@ -134,10 +144,15 @@ class PaymentService
 
         return $this->stripe()->paymentIntents->create([
             'amount' => (int) round(((float) $order->total_price) * 100),
-            'currency' => 'aud',
+            'currency' => $this->currency,
             'payment_method_types' => ['card'],
             'customer' => $customerId,
             'capture_method' => 'automatic',
+            'metadata' => [
+                'order_id' => (string) $order->id,
+                'customer_user_id' => (string) $order->user_id,
+                'kitchen_id' => (string) $order->mikitchn_id,
+            ],
             'payment_method_options' => [
                 'card' => [
                     'request_three_d_secure' => 'automatic',
@@ -149,6 +164,42 @@ class PaymentService
     public function confirmPaymentIntent(Payment $payment)
     {
         return $this->stripe()->paymentIntents->confirm($payment->payment_id, ['payment_method' => $payment->card_id]);
+    }
+
+    public function resolveCustomerPaymentMethodId(User $user, string $cardReference): string
+    {
+        $customerId = optional($user->customer)->account_id;
+        if (! $customerId) {
+            throw new RuntimeException('Customer Stripe account not found.');
+        }
+
+        $reference = trim($cardReference);
+        if ($reference === '') {
+            throw new RuntimeException('card_id is required.');
+        }
+
+        if (str_starts_with($reference, 'pm_')) {
+            return $this->assertPaymentMethodBelongsToCustomer($reference, $customerId);
+        }
+
+        $cardRecord = Card::query()
+            ->where('user_id', $user->id)
+            ->where(function ($query) use ($reference): void {
+                if (ctype_digit($reference)) {
+                    $query->where('id', (int) $reference)
+                        ->orWhere('stripe_card_id', $reference);
+                    return;
+                }
+
+                $query->where('stripe_card_id', $reference);
+            })
+            ->first();
+
+        if (! $cardRecord || ! $cardRecord->stripe_card_id) {
+            throw new RuntimeException('No saved card matched the provided card_id.');
+        }
+
+        return $this->assertPaymentMethodBelongsToCustomer((string) $cardRecord->stripe_card_id, $customerId);
     }
 
     public function updateConnectedAccount(string $accountId)
@@ -238,20 +289,10 @@ class PaymentService
 
         return $this->stripe()->transfers->create([
             'amount' => $amountInCents,
-            'currency' => 'aud',
+            'currency' => $this->currency,
             'destination' => $accountId,
             'transfer_group' => 'ORDER_' . $orderId,
             'description' => $description,
-        ]);
-    }
-
-    public function topups()
-    {
-        return $this->stripe()->topups->create([
-            'amount' => 2000,
-            'currency' => 'aud',
-            'description' => 'Top-up for operations',
-            'statement_descriptor' => 'Weekly top-up',
         ]);
     }
 
@@ -288,5 +329,19 @@ class PaymentService
         StripeBase::setApiKey($this->secretKey);
 
         return $this->stripe;
+    }
+
+    private function assertPaymentMethodBelongsToCustomer(string $paymentMethodId, string $customerId): string
+    {
+        if (! str_starts_with($paymentMethodId, 'pm_')) {
+            throw new RuntimeException('Invalid payment method reference.');
+        }
+
+        $paymentMethod = $this->stripe()->paymentMethods->retrieve($paymentMethodId, []);
+        if ((string) ($paymentMethod->customer ?? '') !== $customerId) {
+            throw new RuntimeException('Selected payment method is not attached to this customer.');
+        }
+
+        return $paymentMethodId;
     }
 }

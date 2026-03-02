@@ -7,6 +7,7 @@ use App\Models\Tag;
 use App\Models\InternalNote;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Overtrue\LaravelFavorite\Traits\Favoriteable;
 use Auth;
 
@@ -18,7 +19,10 @@ class Mikitchn extends Model
         'user_id','name', 'address', 'no_of_seats', 'timings', 'phone','images','dine_in','take_away','description','latitude','longitude'
     ];
 // ,'is_favourited'
-    protected $appends = ['is_available','certificate_no','abn','rating_count','images'];
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
 
     /**
      * Get the reviews of the product.
@@ -95,6 +99,11 @@ class Mikitchn extends Model
     
     public static function closest($lat, $lng, $units = 'kilometers')
     {
+        if (! is_numeric($lat) || ! is_numeric($lng)) {
+            throw new \InvalidArgumentException('Latitude and longitude must be numeric.');
+        }
+        $lat = (float) $lat;
+        $lng = (float) $lng;
         /*
          *  Allow for changing of units of measurement
          */
@@ -108,10 +117,10 @@ class Mikitchn extends Model
                 break;
         }
         $distance_select = sprintf(
-            " ( %d * acos( cos( radians(%s) ) " .
+            " ( %d * acos( cos( radians(%F) ) " .
             " * cos( radians( latitude ) ) " .
-            " * cos( radians( longitude ) - radians(%s) ) " .
-            " + sin( radians(%s) ) * sin( radians( latitude ) ) " .
+            " * cos( radians( longitude ) - radians(%F) ) " .
+            " + sin( radians(%F) ) * sin( radians( latitude ) ) " .
             ") " .
             ") " .
             "AS distance",
@@ -130,12 +139,16 @@ class Mikitchn extends Model
 
     public static function haversine($lat, $lng)
     {
-        return '(6371 * acos(cos(radians(' . $lat . ')) 
-        * cos(radians(`latitude`)) 
-        * cos(radians(`longitude`) 
-        - radians(' . $lng . ')) 
-        + sin(radians(' . $lat . ')) 
-        * sin(radians(`latitude`)))) AS distance';
+        if (! is_numeric($lat) || ! is_numeric($lng)) {
+            throw new \InvalidArgumentException('Latitude and longitude must be numeric.');
+        }
+
+        return sprintf(
+            '(6371 * acos(cos(radians(%F)) * cos(radians(`latitude`)) * cos(radians(`longitude`) - radians(%F)) + sin(radians(%F)) * sin(radians(`latitude`)))) AS distance',
+            (float) $lat,
+            (float) $lng,
+            (float) $lat
+        );
     }
 
     public function orders(){
@@ -147,13 +160,15 @@ class Mikitchn extends Model
     }
 
     public function delete() {
-        $this->weektimings()->delete();
-        $this->reviews()->delete();
-        $this->certificate()->delete();
-        $this->addedimage()->delete();
-        $this->foods()->delete();
-        $this->orders()->delete();
-        parent::delete();
+        return DB::transaction(function () {
+            $this->weektimings()->delete();
+            $this->reviews()->delete();
+            $this->certificate()->delete();
+            $this->addedimage()->delete();
+            $this->foods()->delete();
+            $this->orders()->delete();
+            return parent::delete();
+        });
     }
 
 

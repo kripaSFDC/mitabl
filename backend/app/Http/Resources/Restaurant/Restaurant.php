@@ -15,9 +15,44 @@ class Restaurant extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
-        // $return = [
-            
-        // ];
+        $images = $this->relationLoaded('addedimage')
+            ? $this->addedimage->pluck('path')->values()
+            : [];
+
+        $rating = null;
+        if (isset($this->rating_count)) {
+            $rating = $this->rating_count;
+        } elseif (isset($this->reviews_avg_rating)) {
+            $rating = $this->reviews_avg_rating;
+        }
+
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'name' => $this->name,
+            'address' => $this->address,
+            'phone' => $this->phone,
+            'no_of_seats' => $this->no_of_seats,
+            'description' => $this->description,
+            'dine_in' => (int) ($this->dine_in ?? 0),
+            'take_away' => (int) ($this->take_away ?? 0),
+            'status' => $this->status,
+            'open' => (int) ($this->open ?? 0),
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'distance' => isset($this->distance) ? (float) $this->distance : null,
+            'rating_count' => $rating,
+            'orders_count' => isset($this->orders_count) ? (int) $this->orders_count : null,
+            'images' => $images,
+            'certificate' => $this->whenLoaded('certificate', function () {
+                return [
+                    'id' => $this->certificate?->id,
+                    'status' => $this->certificate?->status,
+                    'abn' => $this->certificate?->abn,
+                    'abn_gst' => $this->certificate?->abn_gst,
+                ];
+            }),
+            'is_favourited' => (bool) ($this->is_favourited ?? false),
+        ];
     }
 }

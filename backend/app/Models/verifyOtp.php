@@ -17,5 +17,14 @@ class verifyOtp extends Model
     protected $fillable = [
         'user_id',
         'otp',
+        'expires_at',
+        'attempts',
+        'locked_until',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'locked_until' => 'datetime',
+        'attempts' => 'integer',
     ];
 }

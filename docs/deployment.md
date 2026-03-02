@@ -7,7 +7,7 @@ This is the canonical deployment runbook for Docker-based environments.
 ### Local full-stack (`docker-compose.yml`)
 Services:
 - `db` (MySQL)
-- `db-migrate` (one-off migrations + optional seeding)
+- `redis` (Redis `7.2-alpine`)
 - `backend` (Laravel API + admin)
 - `website` (Nginx static site)
 - `mobile-app` (optional dev-tools container, profile `mobile-devtools`)
@@ -24,12 +24,11 @@ docker compose --profile mobile-devtools up --build -d mobile-app
 
 ### Target architecture stack (`deploy/docker-compose.architecture.yml`)
 Services:
-- `db-migrate`
 - `backend-api`
 - `ops-admin`
 - `queue-worker`
 - `marketing-web`
-- `redis`
+- `redis` (Redis `7.2-alpine`)
 
 > Note: The target architecture stack does **not** provision MySQL. Use a managed/external database and set `DB_HOST` in `deploy/environments/*.env`.
 
@@ -64,7 +63,7 @@ docker compose exec backend php artisan key:generate --force
 docker compose exec backend php artisan jwt:secret --force
 ```
 
-`db-migrate` already runs migrations at startup. Seeders can be enabled with:
+`backend` runs migrations at startup. Seeders can be enabled with:
 - `RUN_SEEDERS_ON_BOOT=true`
 
 ## 5) Health verification
@@ -86,9 +85,9 @@ curl -fsS http://localhost:8080/health
 
 ## 6) Troubleshooting
 
-- If `db-migrate` fails, inspect logs and rerun after DB is healthy:
+- If startup migrations fail, inspect backend logs and rerun after DB is healthy:
 ```bash
-docker compose logs db-migrate
+docker compose logs backend
 ```
 - If API fails boot, verify `APP_KEY`, `JWT_SECRET`, DB/Redis connectivity.
 - If queue is unhealthy in the target architecture stack, verify Redis health and Horizon process logs.

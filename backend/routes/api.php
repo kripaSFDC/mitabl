@@ -9,8 +9,12 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\FcmController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\SupportTicketController;
 use App\Http\Controllers\Api\PreRegistrationController;
+use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
+use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
+use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Services\SystemHealthService;
 /*
 |--------------------------------------------------------------------------
@@ -53,10 +57,11 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
 });
 Route::post('login', [UserController::class, 'login']);
 Route::post('register', [UserController::class, 'register']);
-Route::post('verifyOtp', [UserController::class, 'verifyOtp']);
-Route::post('resendotp', [UserController::class, 'resendOtp']);
+Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:10,1');
+Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:5,1');
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 
 Route::post('preregister', [PreRegistrationController::class, 'store'])->middleware('throttle:pre-register-intake');
@@ -85,6 +90,32 @@ Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply
 
 Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) {
     Route::get('mob-contact', [UserController::class, 'mobileContact']);
+
+	Route::prefix('account')->group(function () {
+		Route::get('profile', [V2AccountController::class, 'show']);
+		Route::put('profile', [V2AccountController::class, 'update']);
+		Route::post('password/change', [V2AccountController::class, 'changePassword']);
+		Route::post('device-token', [V2AccountController::class, 'updateDeviceToken']);
+		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);
+		Route::get('mobile-contact', [V2AccountController::class, 'mobileContact']);
+	});
+
+	Route::prefix('discovery')->group(function () {
+		Route::post('filtered', [V2DiscoveryController::class, 'filtered']);
+		Route::post('nearest', [V2DiscoveryController::class, 'nearest']);
+		Route::post('top-rated', [V2DiscoveryController::class, 'topRated']);
+		Route::post('recommended', [V2DiscoveryController::class, 'recommended']);
+		Route::get('restaurants/{id}', [V2DiscoveryController::class, 'show']);
+	});
+
+	Route::prefix('payments')->group(function () {
+		Route::get('cards', [V2PaymentsController::class, 'cards']);
+		Route::post('cards', [V2PaymentsController::class, 'addCard']);
+		Route::post('checkout-session', [V2PaymentsController::class, 'checkoutSession']);
+		Route::post('intent', [V2PaymentsController::class, 'createIntent']);
+		Route::post('intent/confirm', [V2PaymentsController::class, 'confirmIntent']);
+		Route::post('vendor-transfer', [V2PaymentsController::class, 'vendorTransfer']);
+	});
 });
 
 Route::get('v1/mob-contact', function () {
@@ -119,7 +150,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']]
 
 	Route::get('getnotifications', [FcmController::class, 'getAllNotifications']);
 
-	Route::get('togglenotifications', [UserController::class, 'toggleNotifications']);
+	Route::post('togglenotifications', [UserController::class, 'toggleNotifications']);
 	
 	Route::delete('deleteuser', [UserController::class, 'delete']);
 
@@ -146,7 +177,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('food/add', [FoodsController::class, 'store']);
 		Route::post('food/editfood', [FoodsController::class, 'store']);
 		Route::delete('food/{id}', [FoodsController::class, 'destroy']);
-		Route::get('food/status/{id}', [FoodsController::class, 'statusUpdate']);
+		Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
 		Route::get('getprofile', [UserController::class, 'myProfile']);
 
 		//orders
@@ -173,7 +204,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']]
 		
 		Route::get('getvendorbankacc', [UserController::class, 'getVendorBankAcc']);
 
-		Route::get('becomefoodie', [UserController::class, 'becomeFoodie']);
+		Route::post('becomefoodie', [UserController::class, 'becomeFoodie']);
 
 		Route::post('transfertovendor', [UserController::class, 'transferToVendor']);
 
@@ -228,14 +259,68 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('paymentintent', [UserController::class, 'createPaymentIntent']);
 		Route::post('confirmpaymentintent', [UserController::class, 'confirmPaymentIntent']);
 
-		Route::get('createCheckoutsession', [UserController::class, 'createCheckoutsession']);
+		Route::post('createCheckoutsession', [UserController::class, 'createCheckoutsession']);
 		Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
-		Route::get('becomecook', [UserController::class, 'becomeCook']);
+		Route::post('becomecook', [UserController::class, 'becomeCook']);
 
 		Route::get('checkdiscounteduser', [OrderController::class, 'checkDiscountedUser']);
 
 	});
 	// Route::get('mob-contact', [UserController::class, 'mobileContact']);
 
+});
+
+Route::get('v1/togglenotifications', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v1/togglenotifications.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v1/food/status/{id}', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v1/food/status/{id}.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v1/createCheckoutsession', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v1/createCheckoutsession.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v1/becomefoodie', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v1/becomefoodie.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v1/becomecook', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v1/becomecook.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v2/payments/checkout-session', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v2/payments/checkout-session.',
+        'data' => [],
+    ], 405);
 });

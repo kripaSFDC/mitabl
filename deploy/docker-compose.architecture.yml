@@ -1,23 +1,4 @@
 services:
-  db-migrate:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    labels:
-      com.mitabl.service: migrations
-    command:
-      - sh
-      - -c
-      - |
-        php artisan migrate --force
-        if [ "${RUN_SEEDERS_ON_BOOT:-false}" = "true" ]; then
-          php artisan db:seed --force
-        fi
-    env_file:
-      - ./environments/backend-api.env
-    restart: "no"
-
-
   marketing-web:
     build:
       context: ../website
@@ -47,7 +28,10 @@ services:
       dockerfile: Dockerfile
     labels:
       com.mitabl.service: api
-    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+    command: ["sh", "start-server.sh"]
+    environment:
+      - RUN_MIGRATIONS_ON_BOOT=true
+      - RUN_SEEDERS_ON_BOOT=${RUN_SEEDERS_ON_BOOT:-false}
     env_file:
       - ./environments/backend-api.env
     ports:
@@ -67,8 +51,6 @@ services:
           cpus: "1.50"
           memory: 1536M
     depends_on:
-      db-migrate:
-        condition: service_completed_successfully
       redis:
         condition: service_healthy
 
@@ -98,8 +80,6 @@ services:
           cpus: "1.00"
           memory: 1024M
     depends_on:
-      db-migrate:
-        condition: service_completed_successfully
       redis:
         condition: service_healthy
 
@@ -129,13 +109,11 @@ services:
           cpus: "1.00"
           memory: 1024M
     depends_on:
-      db-migrate:
-        condition: service_completed_successfully
       redis:
         condition: service_healthy
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     ports:
       - "6379:6379"
     healthcheck:

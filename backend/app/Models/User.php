@@ -193,13 +193,15 @@ class User extends Authenticatable implements JWTSubject
                 return;
             }
 
-            $user->vendor()->delete();
-            $user->customer()->delete();
-            DB::table('reviews')->where('user_id', $user->id)->delete();
-            $user->restaurant()->delete();
-            $user->card()->delete();
-            $user->stripeBankAccount()->delete();
-            $user->orders()->delete();
+            DB::transaction(function () use ($user): void {
+                $user->vendor()->delete();
+                $user->customer()->delete();
+                DB::table('reviews')->where('user_id', $user->id)->delete();
+                $user->restaurant()->delete();
+                $user->card()->delete();
+                $user->stripeBankAccount()->delete();
+                $user->orders()->delete();
+            });
         });
     }
 

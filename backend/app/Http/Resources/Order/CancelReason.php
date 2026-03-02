@@ -4,7 +4,6 @@ namespace App\Http\Resources\Order;
 
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\User;
 
 class CancelReason extends JsonResource
 {
@@ -17,9 +16,10 @@ class CancelReason extends JsonResource
     public function toArray($request)
     {
         // return parent::toArray($request);
-        $user = User::find($this->ref_id);
-        $username = $user->first_name.' '.$user->last_name;
-        if ($this->by_user == 'mikitchen') {
+        $user = $this->relationLoaded('actor') ? $this->actor : null;
+        $username = $user ? ($user->first_name.' '.$user->last_name) : null;
+
+        if ($this->by_user == 'mikitchen' && $user && $user->relationLoaded('restaurant') && $user->restaurant) {
             $username = $user->restaurant->name;
         }
 

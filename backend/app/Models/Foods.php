@@ -12,7 +12,9 @@ class Foods extends Model
         'restaurant_id','food_name', 'cookingstyle', 'specialDiet', 'price', 'description','pictures'
     ];
 
-    protected $appends = ['added_images'];
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
 
     public function addedimage()
     {

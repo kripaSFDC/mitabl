@@ -1,15 +1,10 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use App\Models\Mikitchn;
-use App\Models\User;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
-use Storage;
-use Carbon\Carbon;
-use App\Http\Resources\Restaurant\Review as ReviewResource;
 use App\Http\Resources\Reviews\Reviews as ReviewsResource;
 
 class ReviewController extends Controller
@@ -27,7 +22,7 @@ class ReviewController extends Controller
         ]);
 
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
         $review = new Review;
@@ -83,7 +78,7 @@ class ReviewController extends Controller
         ]);
 
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
         $review = new Review;
@@ -99,47 +94,4 @@ class ReviewController extends Controller
         return $this->responser($rvw, 'Review Added Successfully.');
     }
 
-    public function reviewOfFoodie(Request $request){
-
-        $review = Review::where('user_id', auth()->user()->id)->where('by_user','kitchen')->orderBy('id', 'desc')->get();
-        // $reviews = auth()->user()->restaurant->reviews();
-        // print_r($review); die();
-        $data = ReviewResource::collection($review);
-
-        return $this->responser($data, 'Foodie Reviews');
-
-    }
-
-    public function show()
-    {
-        $restaurant = Auth::user()->restaurant;
-        if ($restaurant) {
-            $review = Review::where('restaurant_id', $restaurant->id)->orderBy('restaurant_id', 'asc')->paginate(15);
-            return view('restaurant.reviews.show', ['reviews' => $review, 'restaurants' => $restaurant]);
-        } else {
-            $restaurant = Restaurant::all();
-            $review = Review::orderBy('restaurant_id', 'asc')->paginate(15);
-            return view('restaurant.reviews.show', ['reviews' => $review, 'restaurants' => $restaurant]);
-        }
-    }
-
-    public function search(Request $r)
-    {
-        $id = $r->restaurant_id;
-
-        $review = Review::orderBy('id', 'asc')->where('restaurant_id', $id)->paginate(15);
-
-        $restaurant = Restaurant::all();
-
-        return view('restaurant.reviews.show')->with('restaurants', $restaurant)->with('reviews', $review);
-
-    }
-
-    public function destroy($id){
-        $review = Review::where('id', $id)->first();
-        $review->delete();
-
-        Session::flash('success', 'Review deleted successfully');
-        return redirect()->route('reviews.show');
-    }
 }

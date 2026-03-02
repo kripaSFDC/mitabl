@@ -51,7 +51,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3, xdebug
+          coverage: xdebug
       - name: Copy backend env template
         run: |
           cp .env.example .env
@@ -62,8 +63,8 @@ jobs:
           php artisan key:generate --force
           mkdir -p database
           touch database/database.sqlite
-      - name: Run backend tests
-        run: php artisan test
+      - name: Run backend tests with coverage gate
+        run: composer test:coverage:check
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite

@@ -39,14 +39,26 @@ class ForgotPasswordController extends Controller
         //     //$user->setRememberToken(Str::random(60));
         //     event(new PasswordReset($user));
         // });
-        $rstTbl = DB::table(config('auth.passwords.users.table'))->where('email',$request->email)->where('token',$request->token)->get()->first();
+        $rstTbl = DB::table(config('auth.passwords.users.table'))
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
         
         if ($rstTbl) {
-            $user = User::where('email',$request->email)->get()->first();
+            $expiresAt = now()->subMinutes((int) config('auth.passwords.users.expire', 60));
+            $createdAt = isset($rstTbl->created_at) ? \Carbon\Carbon::parse((string) $rstTbl->created_at) : null;
+            if ($createdAt && $createdAt->lt($expiresAt)) {
+                return redirect()->back()->with('message', 'Token expired');
+            }
+
+            $user = User::where('email',$request->email)->first();
             if ($user) {
                 $user->forceFill([
                 'password' => Hash::make($request->password)
                 ])->save();
+                DB::table(config('auth.passwords.users.table'))
+                    ->where('email', $request->email)
+                    ->delete();
                 $message = "Password reset successfully";
             } else {
                 $message = "User not exist";

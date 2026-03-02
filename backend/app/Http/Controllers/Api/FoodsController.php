@@ -56,7 +56,11 @@ class FoodsController extends Controller
         $mikitchen = Mikitchn::where('id',$resturantId)->first();
         $data = []; $msg = 'Restaurant Not Found';
         if ($mikitchen) {
-            $foods = Foods::where('restaurant_id', $resturantId)->where('status', 1)->orderBy('id', 'desc')->get();
+            $foods = Foods::with('addedimage:id,ref_id,model_name,path')
+                ->where('restaurant_id', $resturantId)
+                ->where('status', 1)
+                ->orderBy('id', 'desc')
+                ->get();
 
              $data = FoodResource::collection($foods);
              
@@ -66,26 +70,6 @@ class FoodsController extends Controller
 
         return $this->responser($data, $msg);
 
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index($resturantId)
-    {
-        
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -107,7 +91,7 @@ class FoodsController extends Controller
         ]);
         // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
             
         }
 
@@ -137,7 +121,7 @@ class FoodsController extends Controller
         $kitchnExist = Mikitchn::find($restaurant->id);
 
         if (!$kitchnExist) {
-            return $this->responser([],'Unauthorized kitchen not found.');
+            return $this->responser([],'Unauthorized kitchen not found.', 403);
             
         }
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
@@ -166,7 +150,7 @@ class FoodsController extends Controller
 
         } else {
             if (!$request->hasFile('pictures')) {
-                return $this->responser($this->data,'Pictures required.');
+                return $this->responser($this->data,'Pictures required.', 422);
             }
             $foodId = Foods::create([
                 'restaurant_id' => $restaurant->id,
@@ -179,7 +163,11 @@ class FoodsController extends Controller
             ])->id;
             $msg = 'Food item created succesfully.';
         }
-        $food = Foods::where('id',$foodId)->get()->first()->makeHidden(['addedimage']);
+        $food = Foods::with('addedimage:id,ref_id,model_name,path')
+            ->where('id', $foodId)
+            ->get()
+            ->first()
+            ->makeHidden(['addedimage']);
         if (!empty($files)) {
 
             $addedImages = $this->addImages($files,'kitchen/food','food',$foodId);
@@ -239,15 +227,20 @@ class FoodsController extends Controller
     public function statusUpdate($id)
     {
         $data = [];
-        if(Foods::find($id)){
+        $restaurant = Auth::user()->restaurant;
+        $foodModel = Foods::where('id', $id)
+            ->where('restaurant_id', optional($restaurant)->id)
+            ->first();
+
+        if($foodModel){
             $staus = 1;
-            $fExist = Foods::where('id',$id)->where('status',1)->first();
+            $fExist = Foods::where('id',$id)->where('restaurant_id', optional($restaurant)->id)->where('status',1)->first();
             if ($fExist) {
               $staus = 0;  
             }
-            Foods::where('id',$id)->update(['status' => $staus]);
+            Foods::where('id',$id)->where('restaurant_id', optional($restaurant)->id)->update(['status' => $staus]);
             // $food = Foods::where('id',$id)->get()->first();
-            $food = Foods::where('id',$id)->get();
+            $food = Foods::with('addedimage:id,ref_id,model_name,path')->where('id',$id)->where('restaurant_id', optional($restaurant)->id)->get();
             $data = $food[0];
             $msg = 'Food Status Updated Succesfully.'; 
 
@@ -260,40 +253,6 @@ class FoodsController extends Controller
     }
     
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Foods  $foods
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Foods $foods)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Foods  $foods
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Foods $foods)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Foods  $foods
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Foods $foods)
-    {
-        return $this->responser([], 'Not implemented.');
-    }
-
-    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Foods  $foods
@@ -302,7 +261,10 @@ class FoodsController extends Controller
     public function destroy(Foods $foods,$id)
     {
 
-        $food=Foods::find($id);
+        $restaurant = Auth::user()->restaurant;
+        $food = Foods::where('id', $id)
+            ->where('restaurant_id', optional($restaurant)->id)
+            ->first();
         if($food){
             // delete related   
             $images = $food->addedimage->pluck('path')->toArray();
@@ -315,6 +277,6 @@ class FoodsController extends Controller
             $data = new FoodResource($food);
             return $this->responser($data,"Food item deleted succesfully.");
         }
-        return $this->responser([],"Food item not exist.");
+        return $this->responser([],"Food item not exist.", 404);
     }
 }

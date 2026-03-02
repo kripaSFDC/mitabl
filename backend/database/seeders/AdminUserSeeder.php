@@ -34,7 +34,7 @@ class AdminUserSeeder extends Seeder
         $admin->name = $name !== '' ? $name : 'Platform Admin';
         $admin->is_active = true;
 
-        if (! $admin->exists || app()->environment(['local', 'testing'])) {
+        if (! $admin->exists) {
             $admin->password = Hash::make($password);
         }
 

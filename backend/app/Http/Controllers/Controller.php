@@ -7,9 +7,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Carbon\Carbon;
-use App\Models\Mikitchn;
 use App\Models\Image;
-use File,Storage,DateTime;
+use File,DateTime;
 /**
  * @OA\Info(
  *    title="Mitabl eComm API",
@@ -29,26 +28,23 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function responser($data,$msg)
+    public static function responser($data, $msg, int $status = 200)
     {
+        $isSuccess = $status >= 200 && $status < 300;
 
-        // $num = $item->count();
+        $response = [
+            'status' => $status,
+            'isSuccess' => $isSuccess,
+            'data' => $data ?? [],
+        ];
 
-        if(!empty($data)){
-            return response()->json([ 
-                'status' => 200,
-                'isSuccess' => true,
-                'message' => $msg,
-                'data' => $data
-            ], 200);
+        if ($isSuccess) {
+            $response['message'] = $msg;
         } else {
-            return response()->json([
-                'status' => 404,
-                'isSuccess' => false,
-                'isError' => $msg,
-                // 'data' => $data
-            ], 404);
+            $response['isError'] = $msg;
         }
+
+        return response()->json($response, $status);
     }
 
     public function uploadImage($mediaFile,$folderPathOrName){
@@ -122,45 +118,9 @@ class Controller extends BaseController
         return ['status'=>true,'id'=>$id,'msg'=>'Image Deleted.'];
     }
     
-    public static function closest($lat, $lng, $max_distance = 50, $max_locations = 50, $units = 'kilometers')
-    {
-        /*
-         *  Allow for changing of units of measurement
-         */
-        switch ( $units ) {
-            default:
-            case 'miles':
-                $gr_circle_radius = 3959;
-                break;
-            case 'kilometers':
-                $gr_circle_radius = 6371;
-                break;
-        }
-        $distance_select = sprintf(
-            "*, ( %d * acos( cos( radians(%s) ) " .
-            " * cos( radians( latitude ) ) " .
-            " * cos( radians( longitude ) - radians(%s) ) " .
-            " + sin( radians(%s) ) * sin( radians( latitude ) ) " .
-            ") " .
-            ") " .
-            "AS distance",
-            $gr_circle_radius,
-            $lat,
-            $lng,
-            $lat
-        );
-
-
-        return  selectraw($distance_select)
-            ->having( 'distance', '<', $max_distance )
-            // ->take( $max_locations )
-            ->orderBy( 'distance', 'ASC' );
-            // ->get();
-    }
-
     public function getPendingHoursInOrderD($order)
     {
-        $todayCurrnt = Carbon::now()->format('Y-m-d H:s:i');
+        $todayCurrnt = Carbon::now()->format('Y-m-d H:i:s');
         $merge = new DateTime($order->delivery_date->format('Y-m-d') .' ' .$order->delivery_time_from->format('H:i:s'));
         $orderTime = $merge->format('Y-m-d H:i:s');
 
@@ -168,8 +128,8 @@ class Controller extends BaseController
         // echo '------';
         // echo $orderTime; die();
 
-        $to = Carbon::createFromFormat('Y-m-d H:s:i', $todayCurrnt);
-        $from = Carbon::createFromFormat('Y-m-d H:s:i', $orderTime);
+        $to = Carbon::createFromFormat('Y-m-d H:i:s', $todayCurrnt);
+        $from = Carbon::createFromFormat('Y-m-d H:i:s', $orderTime);
 
         return $to->diffInHours($from);
 

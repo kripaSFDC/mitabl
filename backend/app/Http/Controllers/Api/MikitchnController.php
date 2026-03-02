@@ -76,21 +76,6 @@ class MikitchnController extends Controller
         return $this->responser($this->data, 'restaurants filtered.');
     }
 
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -175,7 +160,7 @@ class MikitchnController extends Controller
         // |image|mimes:jpg,png,jpeg,gif,svg
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         // print_r(Auth::user()->restaurant->id);
         $timings = json_decode($request->timings)->days;
@@ -195,7 +180,7 @@ class MikitchnController extends Controller
         $user = Auth::user();
         $userExist = User::find($user->id);
         if (!$userExist) {
-            return $this->responser([],'Unauthorized user not found.');
+            return $this->responser([],'Unauthorized user not found.', 401);
         }
         
         $existKitchen = Mikitchn::where('user_id',$user->id)->first();
@@ -263,7 +248,7 @@ class MikitchnController extends Controller
         } else {
 
             if (!$request->hasFile('images')) {
-                return $this->responser([],'Images required.');
+                return $this->responser([],'Images required.', 422);
             }
 
             $mikitchn = Mikitchn::create([
@@ -351,7 +336,7 @@ class MikitchnController extends Controller
         $getRestaurant = (new Mikitchn)->newQuery();
         $searchQuerey = $request->query();
 
-        if(!empty($searchQuerey['lat']) && !empty($searchQuerey['lon'])){
+        if (isset($searchQuerey['lat'], $searchQuerey['lon']) && is_numeric($searchQuerey['lat']) && is_numeric($searchQuerey['lon'])) {
 
             $closest = Mikitchn::closest($searchQuerey['lat'], $searchQuerey['lon']);
             $getRestaurant = $getRestaurant->select('mikitchns.*',
@@ -360,14 +345,20 @@ class MikitchnController extends Controller
 
         } 
 
-        $restaurant = $getRestaurant->where('id', $id )->get()->makeHidden(['addedimage','reviews','certificate'])->first();
+        $restaurant = $getRestaurant
+            ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status', 'weektimings'])
+            ->withAvg('reviews', 'rating')
+            ->where('id', $id )
+            ->get()
+            ->makeHidden(['addedimage','reviews','certificate'])
+            ->first();
         if (!$restaurant) {
-            return $this->responser([], 'restaurant not found.');
+            return $this->responser([], 'restaurant not found.', 404);
         }
         // echo "<pre>"; print_r(expression)
         $cock = User::find($restaurant->user_id);
         if (!$cock) {
-            return $this->responser([], 'cook profile not found.');
+            return $this->responser([], 'cook profile not found.', 404);
         }
 
         $restaurant['weektimings'] = $restaurant->weektimings;
@@ -384,8 +375,9 @@ class MikitchnController extends Controller
                         'gst_amount' => 10
                     ];
                     
-        $restaurant->append(
-            'is_favourited'
+        $restaurant->setAttribute(
+            'is_favourited',
+            Auth::guard('api')->check() ? Auth::guard('api')->user()->hasFavorited($restaurant) : false
         );
 
         $data = new RestaurantResource($restaurant);
@@ -405,7 +397,10 @@ class MikitchnController extends Controller
         $mikitchen = Auth::user()->restaurant;
         $data = []; $msg = 'Menu Foods Not Found';
         if ($mikitchen) {
-            $foods = Foods::where('restaurant_id', $mikitchen->id)->orderBy('id', 'desc')->get();
+            $foods = Foods::with('addedimage:id,ref_id,model_name,path')
+                ->where('restaurant_id', $mikitchen->id)
+                ->orderBy('id', 'desc')
+                ->get();
 
              $data = FoodResource::collection($foods);
 
@@ -423,7 +418,7 @@ class MikitchnController extends Controller
     {
         $image = Image::where('id',$request->id)->where('model_name',$request->type)->get()->first();
         if (!$image) {
-            return $this->responser([],'Image Not found.');
+            return $this->responser([],'Image Not found.', 404);
         }
         if(File::exists($image->path)) {
             File::delete($image->path);
@@ -448,7 +443,7 @@ class MikitchnController extends Controller
         ]);
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
         }
 
         $status = 0;
@@ -601,58 +596,12 @@ class MikitchnController extends Controller
         ]);
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first());
+            return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         $kitchen = Auth::guard('api')->user()->restaurant;
         $kitchen->open = $request->open;
         $kitchen->save();
         return $this->responser($kitchen, "Open status updated.");
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Mikitchn  $mikitchn
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Mikitchn $mikitchn)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Mikitchn  $mikitchn
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Mikitchn $mikitchn)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Mikitchn  $mikitchn
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Mikitchn $mikitchn)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Mikitchn  $mikitchn
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Mikitchn $mikitchn)
-    {
-        //
-    }
-
 
 }

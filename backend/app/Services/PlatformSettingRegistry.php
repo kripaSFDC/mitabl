@@ -164,6 +164,24 @@ class PlatformSettingRegistry
             'value' => ['value' => 'https://dashboard.stripe.com/payments'],
         ],
         [
+            'key' => 'stripe.webhook_signing_secret',
+            'value_type' => 'string',
+            'description' => 'Stripe webhook signing secret used to verify webhook signatures.',
+            'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'stripe.currency',
+            'value_type' => 'string',
+            'description' => 'Default Stripe currency (ISO 4217 lowercase, for example aud, usd).',
+            'value' => ['value' => 'aud'],
+        ],
+        [
+            'key' => 'stripe.connected_account_country',
+            'value_type' => 'string',
+            'description' => 'Country code used when creating Stripe Connect external accounts (ISO 3166-1 alpha-2).',
+            'value' => ['value' => 'AU'],
+        ],
+        [
             'key' => 'integrations.google_maps.api_key',
             'value_type' => 'string',
             'description' => 'Google Maps API key used by geocoding/location workflows.',

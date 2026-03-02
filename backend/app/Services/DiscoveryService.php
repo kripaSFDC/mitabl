@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
-use App\Models\Foods;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +31,7 @@ class DiscoveryService
                 ->get()
                 ->makeHidden(['reviews', 'addedimage', 'certificate']);
 
-            $data->each->append('is_favourited');
+            $this->annotateFavorites($data);
             return RestaurantResource::collection($data)->resolve();
         });
 
@@ -42,7 +42,7 @@ class DiscoveryService
 
     public function nearest(Request $request): array
     {
-        if (!$request->has('lat') || !$request->has('lon')) {
+        if (! $this->hasValidCoordinates($request)) {
             return ['data' => ['total_count' => 0, 'kitchens' => []]];
         }
 
@@ -65,7 +65,7 @@ class DiscoveryService
                 ->get()
                 ->makeHidden(['reviews', 'addedimage', 'certificate']);
 
-            $kitchens->each->append('is_favourited');
+            $this->annotateFavorites($kitchens);
 
             return [
                 'total_count' => $totalCount,
@@ -99,7 +99,7 @@ class DiscoveryService
                 ->get()
                 ->makeHidden(['reviews', 'addedimage', 'certificate']);
 
-            $data->each->append('is_favourited');
+            $this->annotateFavorites($data);
 
             return [
                 'total_count' => $totalCount,
@@ -121,7 +121,7 @@ class DiscoveryService
         $query = $this->buildBaseDiscoveryQuery($request, true, false)
             ->where('mikitchns.status', 1);
 
-        if ($request->has('lat') && $request->has('lon')) {
+        if ($this->hasValidCoordinates($request)) {
             $query->orderBy('distance', 'ASC');
         } else {
             $query->orderBy('mikitchns.id', 'DESC');
@@ -136,7 +136,7 @@ class DiscoveryService
                 ->get()
                 ->makeHidden(['reviews', 'addedimage', 'certificate']);
 
-            $data->each->append('is_favourited');
+            $this->annotateFavorites($data);
 
             return [
                 'total_count' => $totalCount,
@@ -163,7 +163,7 @@ class DiscoveryService
             $select[] = DB::raw('AVG(reviews.rating) as rating_count');
         }
 
-        if ($withDistance && $request->has('lat') && $request->has('lon')) {
+        if ($withDistance && $this->hasValidCoordinates($request)) {
             $select[] = DB::raw(Mikitchn::closest($request->lat, $request->lon));
         }
 
@@ -172,6 +172,10 @@ class DiscoveryService
         }
 
         $query->select($select);
+        $query->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status']);
+        if (! $withReviews) {
+            $query->withAvg('reviews', 'rating');
+        }
 
         $this->applyFilters($request, $query);
 
@@ -182,8 +186,12 @@ class DiscoveryService
     {
         if ($request->has('cooking_styles')) {
             $styles = explode(',', (string) $request->cooking_styles);
-            $kitchenIds = Foods::whereIn('cookingstyle', $styles)->pluck('restaurant_id');
-            $query->whereIn('mikitchns.id', $kitchenIds);
+            $query->whereExists(function ($subQuery) use ($styles): void {
+                $subQuery->selectRaw('1')
+                    ->from('foods')
+                    ->whereColumn('foods.restaurant_id', 'mikitchns.id')
+                    ->whereIn('foods.cookingstyle', $styles);
+            });
         }
 
         if ($request->has('dine_in')) {
@@ -236,5 +244,31 @@ class DiscoveryService
         $base = clone $query;
 
         return DB::query()->fromSub($base->toBase(), 'discovery_rows')->count();
+    }
+
+    private function annotateFavorites(Collection $kitchens): void
+    {
+        $user = Auth::user();
+        if (! $user || $kitchens->isEmpty()) {
+            foreach ($kitchens as $kitchen) {
+                $kitchen->setAttribute('is_favourited', false);
+            }
+            return;
+        }
+
+        $favoriteIds = $user->getFavoriteItems(Mikitchn::class)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        $favoriteLookup = array_flip($favoriteIds);
+        foreach ($kitchens as $kitchen) {
+            $kitchen->setAttribute('is_favourited', isset($favoriteLookup[(int) $kitchen->id]));
+        }
+    }
+
+    private function hasValidCoordinates(Request $request): bool
+    {
+        return is_numeric($request->input('lat')) && is_numeric($request->input('lon'));
     }
 }

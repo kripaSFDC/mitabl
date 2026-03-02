@@ -19,24 +19,48 @@ class Order extends JsonResource
      */
     public function toArray($request)
     {
-        
+        $orderTypeId = ($this->dine_in ? 'D' : 'T') . '-' . $this->id;
+
+        $kitchen = $this->relationLoaded('Mikitchn') ? $this->Mikitchn : null;
+        $customer = $this->relationLoaded('user') ? $this->user : null;
+        $items = $this->relationLoaded('orderdata') ? $this->orderdata : collect();
+
+        $kitchenImages = [];
+        if ($kitchen && $kitchen->relationLoaded('addedimage')) {
+            $kitchenImages = $kitchen->addedimage->pluck('path')->values();
+        }
+
+        $kitchenRating = null;
+        if ($kitchen) {
+            if (isset($kitchen->reviews_avg_rating)) {
+                $kitchenRating = $kitchen->reviews_avg_rating;
+            } elseif ($kitchen->relationLoaded('reviews')) {
+                $kitchenRating = $kitchen->reviews->avg('rating');
+            }
+        }
+
+        $customerRating = null;
+        if ($customer && $customer->relationLoaded('reviews')) {
+            $customerRating = $customer->reviews->avg('rating');
+        }
+
         return [
             'order_id' => $this->id,
-            'order_type_id' => $this->orderId,
+            'order_type_id' => $orderTypeId,
             'mikitchn' => [
-                    'id' => $this->Mikitchn->id,
-                    'name' => $this->Mikitchn->name,
-                    'address' => $this->Mikitchn->address,
-                    'rating' => $this->Mikitchn->reviews->avg('rating'),
-                    'images' => $this->Mikitchn->images,
+                    'id' => $kitchen?->id,
+                    'name' => $kitchen?->name,
+                    'address' => $kitchen?->address,
+                    'rating' => $kitchenRating,
+                    'images' => $kitchenImages,
                 ],
             'customer' => [
                     'id' => $this->user_id, 
-                    'name' => $this->user->first_name.' '.$this->user->last_name, 
-                    'phone' => $this->user->phone, 
-                    'avatar' => $this->user->avatar, 
-                    'description' => $this->user->description, 
-                    'rating' => $this->user->reviews->avg('rating'), 
+                    'name' => $customer ? ($customer->first_name.' '.$customer->last_name) : null,
+                    'phone' => $customer?->phone,
+                    'avatar' => $customer?->avatar,
+                    'description' => $customer?->description,
+                    'rating' => $customerRating,
                 ],
             'date' => $this->delivery_date->format('d M Y'),
             'time_from' => $this->delivery_time_from->format('H:i a'),
@@ -57,7 +81,7 @@ class Order extends JsonResource
             'refund_percentage' => $this->refund_percentage,
             'paid' => $this->paid,
             'rating_by_customer' => ($this->review) ? $this->review->rating : null,
-            'items' => OrderDataResource::collection($this->items)
+            'items' => OrderDataResource::collection($items)
         ];
     }
 }

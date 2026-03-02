@@ -1,7 +1,9 @@
 .git
 .github
 node_modules
+**/node_modules
 vendor
+**/vendor
 storage/logs
 storage/framework/cache
 storage/framework/sessions
@@ -12,3 +14,7 @@ bootstrap/cache/*.php
 Dockerfile*
 docker-compose*.yml
 docker-compose*.yaml
+myproject
+tests
+error_log
+*.md

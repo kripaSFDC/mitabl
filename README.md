@@ -373,10 +373,12 @@ docker compose up --build
 
 Compose includes:
 - `db` (MySQL)
-- `db-migrate`
+- `redis` (Redis `7.2-alpine`)
 - `backend` on `:8000`
 - `website` on `:8080`
 - `mobile-app` optional dev-tools container (profile: `mobile-devtools`)
+
+`backend` runs migrations at startup and can run seeders when `RUN_SEEDERS_ON_BOOT=true`.
 
 ### Option B: backend local run
 

@@ -2,12 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Events\Registered;
-
-use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
-use App\Events\UserMobileNotification;
 use App\Events\MakeOrderPaymentToVendor;
 use App\Events\CancelOrderRefund;
 use App\Listeners\MakeOrderPaymentToVendorListener;
@@ -31,9 +26,6 @@ class EventServiceProvider extends ServiceProvider
         'Illuminate\Mail\Events\MessageSent' => [
             MarkCrmCommunicationDelivered::class,
         ],
-        // UserMobileNotification::class => [
-        //     'App\Listeners\LogNotification',
-        // ],
         MakeOrderPaymentToVendor::class => [
             MakeOrderPaymentToVendorListener::class,
         ],
@@ -41,10 +33,6 @@ class EventServiceProvider extends ServiceProvider
             CancelOrderRefundListener::class,
         ],
     ];
-
-    // UserMobileNotification::class => [
-    //         'App\Listeners\LogNotification',
-    //     ],
     /**
      * Register any events for your application.
      *

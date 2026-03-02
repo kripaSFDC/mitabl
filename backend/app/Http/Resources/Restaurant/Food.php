@@ -15,7 +15,9 @@ class Food extends JsonResource
      */
     public function toArray($request)
     {
-        // return parent::toArray($request);
+        $pictures = $this->relationLoaded('addedimage')
+            ? $this->addedimage->pluck('path')->values()
+            : [];
 
         return [
             'id' => $this->id,
@@ -23,7 +25,7 @@ class Food extends JsonResource
             'specialDiet' => $this->specialDiet,
             'cookingstyle' => $this->cookingstyle,
             'food_name' => $this->food_name,
-            'pictures' => $this->addedimage,
+            'pictures' => $pictures,
             'price' => $this->price,
             'status' => $this->status,
             'description' => $this->description

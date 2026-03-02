@@ -10,7 +10,6 @@ use App\Mail\Invoice;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushOrderNotification;
 use Auth;
-use App\Events\UserMobileNotification;
 
 class OrderObserver
 {

@@ -9,6 +9,10 @@ class OrderData extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
+
     public function food()
     {
         return $this->belongsTo('App\Models\Foods');

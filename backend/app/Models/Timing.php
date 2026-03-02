@@ -4,13 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use DB;
 
 class Timing extends Model
 {
     use HasFactory;
-
-    protected $appends = ['avail_minutes'];
 
     public function user()
     {
@@ -19,12 +16,18 @@ class Timing extends Model
 
     public function getAvailMinutesAttribute($value='')
     {
-        $diff = Timing::select(
-                DB::raw('SUM(TIMESTAMPDIFF(minute, start_time, end_time)) AS diff'))
-                ->where('id',$this->id)
-                ->get()->first();
-        return abs($diff->diff);
-        // return 195;
+        if (! $this->start_time || ! $this->end_time) {
+            return 0;
+        }
+
+        $start = strtotime((string) $this->start_time);
+        $end = strtotime((string) $this->end_time);
+
+        if ($start === false || $end === false) {
+            return 0;
+        }
+
+        return (int) abs(($end - $start) / 60);
     }
 
 }

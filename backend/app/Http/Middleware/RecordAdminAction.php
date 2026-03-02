@@ -46,13 +46,14 @@ class RecordAdminAction
         $statusCode = $caught
             ? ($caught instanceof HttpExceptionInterface ? $caught->getStatusCode() : 500)
             : (method_exists($response, 'getStatusCode') ? $response->getStatusCode() : null);
+        $error = $caught?->getMessage() ?? $this->extractErrorFromResponse($response, $statusCode);
 
         $this->auditLogService->log(
             $action,
             $request,
             [
                 'response_status' => $statusCode,
-                'error' => $caught?->getMessage(),
+                'error' => $error,
             ],
             $payload,
             $statusCode
@@ -98,5 +99,29 @@ class RecordAdminAction
         }
 
         return $request->except(['_token']);
+    }
+
+    private function extractErrorFromResponse(mixed $response, ?int $statusCode): ?string
+    {
+        if ($statusCode === null || $statusCode < 400 || ! is_object($response) || ! method_exists($response, 'getContent')) {
+            return null;
+        }
+
+        $content = (string) $response->getContent();
+        if ($content === '') {
+            return null;
+        }
+
+        $decoded = json_decode($content, true);
+        if (is_array($decoded)) {
+            $message = (string) (data_get($decoded, 'message') ?? data_get($decoded, 'error') ?? '');
+            if ($message !== '') {
+                return $message;
+            }
+        }
+
+        $plain = trim(preg_replace('/\s+/', ' ', strip_tags($content)) ?? '');
+
+        return $plain !== '' ? $plain : null;
     }
 }
