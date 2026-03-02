@@ -37,34 +37,61 @@ class SupportTicketResource extends Resource
     {
         return $form->schema([
             Forms\Components\Section::make('Requester')
+                ->description('Identity of the person who submitted this ticket. Link to an existing account for full profile context.')
+                ->icon('heroicon-o-user-circle')
                 ->schema([
                     Forms\Components\Select::make('user_id')
-                        ->label('Linked user')
-                        ->helperText('Attach an existing account if the requester already registered.')
+                        ->label('Linked account')
+                        ->helperText('Attach an existing registered account to pull full profile context.')
                         ->relationship('user', 'email')
                         ->searchable()
                         ->preload()
-                        ->nullable(),
-                    Forms\Components\TextInput::make('requester_name')->maxLength(255),
-                    Forms\Components\TextInput::make('requester_email')->email()->required()->maxLength(255)
-                        ->helperText('Primary contact email used for replies and SLA notifications.'),
-                    Forms\Components\TextInput::make('requester_phone')->maxLength(40),
+                        ->nullable()
+                        ->columnSpan(2),
+                    Forms\Components\TextInput::make('requester_name')
+                        ->label('Name')
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('requester_email')
+                        ->label('Email')
+                        ->email()
+                        ->required()
+                        ->maxLength(255)
+                        ->helperText('Primary contact email used for all outbound replies and SLA breach notifications.'),
+                    Forms\Components\TextInput::make('requester_phone')
+                        ->label('Phone')
+                        ->tel()
+                        ->maxLength(40),
                 ])
-                ->columns(4),
-            Forms\Components\Section::make('Ticket')
+                ->columns(3),
+
+            Forms\Components\Section::make('Ticket Details')
+                ->description('Classification and content of the support request. Set priority and status accurately — they drive SLA clock logic.')
+                ->icon('heroicon-o-inbox-stack')
                 ->schema([
-                    Forms\Components\TextInput::make('subject')->required()->maxLength(255),
-                    Forms\Components\Textarea::make('description')->rows(4)->required(),
-                    Forms\Components\FileUpload::make('attachments')
-                        ->helperText('Upload screenshots, receipts, or logs. Sensitive data is auto-redacted in admin views.')
-                        ->multiple()
-                        ->maxFiles((int) config('support.attachments.max_files', 5))
-                        ->disk('public')
-                        ->directory('tmp/support-ticket-intake')
-                        ->acceptedFileTypes(array_values(array_filter(array_map(
-                            static fn ($mime): string => strtolower(trim((string) $mime)),
-                            (array) config('support.attachments.allowed_mime_types', [])
-                        )))),
+                    Forms\Components\TextInput::make('subject')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                    Forms\Components\Select::make('priority')
+                        ->helperText('Urgent tickets surface at the top of all triage queues.')
+                        ->options([
+                            'low' => 'Low',
+                            'normal' => 'Normal',
+                            'high' => 'High',
+                            'urgent' => 'Urgent',
+                        ])
+                        ->default('normal')
+                        ->required(),
+                    Forms\Components\Select::make('status')
+                        ->helperText('Set to Pending User when waiting on the customer — this pauses internal SLA pressure.')
+                        ->options([
+                            SupportTicket::STATUS_OPEN => 'Open',
+                            SupportTicket::STATUS_IN_PROGRESS => 'In progress',
+                            SupportTicket::STATUS_PENDING_USER => 'Pending user',
+                            SupportTicket::STATUS_SPAM => 'Spam',
+                        ])
+                        ->default(SupportTicket::STATUS_OPEN)
+                        ->required(),
                     Forms\Components\Select::make('category')
                         ->options([
                             SupportTicket::CATEGORY_ORDER_DISPUTE => 'Order dispute',
@@ -75,35 +102,45 @@ class SupportTicketResource extends Resource
                         ])
                         ->default(SupportTicket::CATEGORY_GENERAL)
                         ->required(),
-                    Forms\Components\Select::make('priority')
-                        ->helperText('Urgent tickets appear at the top of triage lists.')
-                        ->options([
-                            'low' => 'Low',
-                            'normal' => 'Normal',
-                            'high' => 'High',
-                            'urgent' => 'Urgent',
-                        ])
-                        ->default('normal')
-                        ->required(),
-                    Forms\Components\Select::make('status')
-                        ->helperText('Use Pending user when waiting for customer response to pause internal SLA pressure.')
-                        ->options([
-                            SupportTicket::STATUS_OPEN => 'Open',
-                            SupportTicket::STATUS_IN_PROGRESS => 'In progress',
-                            SupportTicket::STATUS_PENDING_USER => 'Pending user',
-                            SupportTicket::STATUS_SPAM => 'Spam',
-                        ])
-                        ->default(SupportTicket::STATUS_OPEN)
-                        ->required(),
+                    Forms\Components\Textarea::make('description')
+                        ->rows(5)
+                        ->required()
+                        ->columnSpanFull(),
+                    Forms\Components\FileUpload::make('attachments')
+                        ->helperText('Upload screenshots, receipts, or logs. Sensitive data is auto-redacted in admin views.')
+                        ->multiple()
+                        ->maxFiles((int) config('support.attachments.max_files', 5))
+                        ->disk('public')
+                        ->directory('tmp/support-ticket-intake')
+                        ->acceptedFileTypes(array_values(array_filter(array_map(
+                            static fn ($mime): string => strtolower(trim((string) $mime)),
+                            (array) config('support.attachments.allowed_mime_types', [])
+                        ))))
+                        ->columnSpanFull(),
+                ])
+                ->columns(3),
+
+            Forms\Components\Section::make('Assignment & Context')
+                ->description('Assign this ticket to an agent and optionally link to the related order or kitchen for cross-resource navigation.')
+                ->icon('heroicon-o-link')
+                ->schema([
                     Forms\Components\Select::make('assigned_to')
-                        ->label('Assigned to')
+                        ->label('Assigned agent')
                         ->relationship('assignee', 'name')
                         ->searchable()
-                        ->preload(),
-                    Forms\Components\TextInput::make('order_id')->numeric(),
-                    Forms\Components\TextInput::make('mikitchn_id')->numeric(),
+                        ->preload()
+                        ->helperText('Leave blank to keep in the unassigned queue.'),
+                    Forms\Components\TextInput::make('order_id')
+                        ->label('Linked order ID')
+                        ->numeric()
+                        ->helperText('Enter the order ID to cross-link with the Orders resource.'),
+                    Forms\Components\TextInput::make('mikitchn_id')
+                        ->label('Linked kitchen ID')
+                        ->numeric()
+                        ->helperText('Enter the kitchen ID to cross-link with the Kitchens resource.'),
                 ])
-                ->columns(2),
+                ->columns(3)
+                ->collapsible(),
         ]);
     }
 
@@ -144,36 +181,11 @@ class SupportTicketResource extends Resource
             })
             ->columns([
                 Tables\Columns\TextColumn::make('ticket_number')
-                    ->label('Ticket')
+                    ->label('Ticket #')
                     ->searchable()
                     ->sortable()
-                    ->copyable(),
-                Tables\Columns\TextColumn::make('requester_name')
-                    ->label('Requester')
-                    ->placeholder('Guest')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('requester_email')
-                    ->searchable()
-                    ->formatStateUsing(fn (?string $state): string => app(PiiRedactionService::class)->redact((string) $state))
-                    ->toggleable(),
-                Tables\Columns\TextColumn::make('user.email')
-                    ->label('Linked user')
-                    ->placeholder('-')
-                    ->url(fn (SupportTicket $record): ?string => $record->user_id ? '/admin/users/' . $record->user_id . '/edit' : null)
-                    ->openUrlInNewTab()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('subject')
-                    ->searchable()
-                    ->limit(40),
-                Tables\Columns\TextColumn::make('priority')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'low' => 'gray',
-                        'normal' => 'info',
-                        'high' => 'warning',
-                        'urgent' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->copyable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->title())
@@ -186,8 +198,30 @@ class SupportTicketResource extends Resource
                         SupportTicket::STATUS_SPAM => 'danger',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('priority')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'low' => 'gray',
+                        'normal' => 'info',
+                        'high' => 'warning',
+                        'urgent' => 'danger',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('requester_name')
+                    ->label('Requester')
+                    ->placeholder('Guest')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('requester_email')
+                    ->label('Email')
+                    ->searchable()
+                    ->formatStateUsing(fn (?string $state): string => app(PiiRedactionService::class)->redact((string) $state))
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('subject')
+                    ->searchable()
+                    ->limit(45)
+                    ->tooltip(fn (SupportTicket $record): ?string => strlen((string) $record->subject) > 45 ? $record->subject : null),
                 Tables\Columns\TextColumn::make('first_response_sla')
-                    ->label('First response SLA')
+                    ->label('1st Response')
                     ->state(fn (SupportTicket $record): string => str($record->firstResponseSlaState())->replace('_', ' ')->title())
                     ->badge()
                     ->color(fn (SupportTicket $record): string => match ($record->firstResponseSlaState()) {
@@ -197,7 +231,7 @@ class SupportTicketResource extends Resource
                         default => 'info',
                     }),
                 Tables\Columns\TextColumn::make('resolution_sla')
-                    ->label('Resolution SLA')
+                    ->label('Resolution')
                     ->state(fn (SupportTicket $record): string => str($record->resolutionSlaState())->replace('_', ' ')->title())
                     ->badge()
                     ->color(fn (SupportTicket $record): string => match ($record->resolutionSlaState()) {
@@ -209,15 +243,31 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->label('Assignee')
                     ->placeholder('Unassigned'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Opened')
+                    ->dateTime('d M H:i')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('last_message_at')
+                    ->label('Last message')
+                    ->dateTime('d M H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('watchers_count')
                     ->label('Watchers')
                     ->badge()
                     ->color('info')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('tags.name')
                     ->label('Tags')
                     ->badge()
                     ->separator(', ')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Linked account')
+                    ->placeholder('-')
+                    ->url(fn (SupportTicket $record): ?string => $record->user_id ? '/admin/users/' . $record->user_id . '/edit' : null)
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('Order')
@@ -231,8 +281,6 @@ class SupportTicketResource extends Resource
                     ->url(fn (SupportTicket $record): ?string => $record->mikitchn_id ? '/admin/mikitchns/' . $record->mikitchn_id . '/edit' : null)
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_at')->dateTime('d M H:i')->sortable()->toggleable(),
-                Tables\Columns\TextColumn::make('last_message_at')->dateTime('d M H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('my_queue')

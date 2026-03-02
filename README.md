@@ -363,7 +363,7 @@ Representative backend model groups:
 - **Backend (`backend/`)** is the main application runtime: API, business logic, workflows, CRM/admin portal.
 - **Website (`website/`)** is a separate static nginx-served public site (no app DB dependency).
 - **Mobile app (`mobile-app/`)** remains separate and is not part of production compose runtime.
-- Use `deploy/docker-compose.test.windows.yml` for Windows Docker test runs.
+- Use root `docker-compose.yml` for Windows Docker test runs.
 - Use `deploy/docker-compose.prod.contabo.yml` for Contabo Linux production.
 
 ### Option A: full stack with Docker

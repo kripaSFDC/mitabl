@@ -32,38 +32,63 @@ class CertificateResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Certificate Details')
+                Forms\Components\Section::make('Holder & Kitchen')
+                    ->description('The individual (cook) who owns this certificate and the kitchen they operate. ABN is required for GST-registered cooks.')
+                    ->icon('heroicon-o-user-circle')
                     ->schema([
                         Forms\Components\Select::make('mikitchn_id')
                             ->label('Kitchen')
                             ->relationship('mikitchn', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(),
-                        Forms\Components\TextInput::make('first_name')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('last_name')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('abn')->maxLength(255),
-                        Forms\Components\TextInput::make('certificate_no')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('certificate_doc')
-                            ->label('Certificate Document Path')
-                            ->maxLength(555)
-                            ->rule('regex:/\.(pdf|jpg|jpeg|png|webp)$/i')
-                            ->helperText('Stored file path for uploaded certificate document.'),
+                            ->required()
+                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('first_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('last_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('abn')
+                            ->label('ABN')
+                            ->maxLength(255)
+                            ->helperText('Australian Business Number — 11 digits.'),
                         Forms\Components\Select::make('abn_gst')
+                            ->label('GST Registered?')
                             ->options([
                                 0 => 'No',
                                 1 => 'Yes',
                             ])
                             ->required(),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Certificate & Review')
+                    ->description('Document reference and the current review outcome. Use the Approve / Reject row actions for safe status transitions with audit trail.')
+                    ->icon('heroicon-o-document-check')
+                    ->schema([
+                        Forms\Components\TextInput::make('certificate_no')
+                            ->label('Certificate number')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('certificate_doc')
+                            ->label('Document path')
+                            ->maxLength(555)
+                            ->rule('regex:/\.(pdf|jpg|jpeg|png|webp)$/i')
+                            ->helperText('Stored file path — accepted: pdf, jpg, jpeg, png, webp.'),
                         Forms\Components\Select::make('status')
                             ->options([
                                 0 => 'Pending',
                                 1 => 'Approved',
                                 2 => 'Rejected',
                             ])
-                            ->required(),
+                            ->required()
+                            ->helperText('Changing to Approved will allow the linked kitchen to be activated.'),
                         Forms\Components\Textarea::make('rejection_reason')
+                            ->label('Rejection reason')
                             ->rows(3)
+                            ->columnSpanFull()
+                            ->helperText('Required when rejecting. Emailed to the cook.')
                             ->visible(fn (Forms\Get $get): bool => (int) $get('status') === 2),
                     ])
                     ->columns(2),
@@ -75,30 +100,6 @@ class CertificateResource extends Resource
         return $table
             ->modifyQueryUsing(fn ($query) => $query->with(['mikitchn.user', 'reviewer']))
             ->columns([
-                Tables\Columns\TextColumn::make('mikitchn.name')
-                    ->label('Kitchen')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('full_name')
-                    ->label('Cook')
-                    ->state(fn (Certificate $record): string => trim($record->first_name . ' ' . $record->last_name))
-                    ->searchable(query: function ($query, string $search): void {
-                        $query->where(function ($innerQuery) use ($search): void {
-                            $innerQuery
-                                ->where('first_name', 'like', "%{$search}%")
-                                ->orWhere('last_name', 'like', "%{$search}%");
-                        });
-                    }),
-                Tables\Columns\TextColumn::make('mikitchn.phone')
-                    ->label('Phone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('abn')->label('ABN')->searchable(),
-                Tables\Columns\TextColumn::make('certificate_no')->label('Certificate #')->searchable(),
-                Tables\Columns\TextColumn::make('certificate_doc')
-                    ->label('Document')
-                    ->formatStateUsing(fn (?string $state): string => $state ? 'View' : 'Missing')
-                    ->url(fn (Certificate $record): ?string => static::resolveDocumentUrl($record->certificate_doc))
-                    ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => match ($state) {
@@ -112,7 +113,42 @@ class CertificateResource extends Resource
                         1 => 'success',
                         2 => 'danger',
                         default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('certificate_no')
+                    ->label('Certificate #')
+                    ->searchable()
+                    ->copyable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\TextColumn::make('mikitchn.name')
+                    ->label('Kitchen')
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Certificate $record): ?string => $record->mikitchn_id ? '/admin/mikitchns/' . $record->mikitchn_id . '/edit' : null)
+                    ->openUrlInNewTab(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label('Cook')
+                    ->state(fn (Certificate $record): string => trim($record->first_name . ' ' . $record->last_name))
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->where(function ($innerQuery) use ($search): void {
+                            $innerQuery
+                                ->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
+                        });
                     }),
+                Tables\Columns\TextColumn::make('mikitchn.phone')
+                    ->label('Phone')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('abn')
+                    ->label('ABN')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('certificate_doc')
+                    ->label('Document')
+                    ->formatStateUsing(fn (?string $state): string => $state ? 'View' : 'Missing')
+                    ->url(fn (Certificate $record): ?string => static::resolveDocumentUrl($record->certificate_doc))
+                    ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('reviewer.name')
                     ->label('Reviewer')
                     ->placeholder('-')

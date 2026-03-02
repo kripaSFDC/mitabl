@@ -35,32 +35,47 @@ class PromoCodeResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('Promo Code')
+                    ->description('Define the discount code, its discount percentage, and its validity window. Active codes can be used at checkout immediately.')
+                    ->icon('heroicon-o-ticket')
                     ->schema([
                         Forms\Components\TextInput::make('code')
                             ->required()
                             ->maxLength(255)
-                            ->unique(ignoreRecord: true),
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Uppercase codes recommended. Must be globally unique.')
+                            ->extraInputAttributes(['style' => 'font-family: monospace; letter-spacing: 0.05em;']),
                         Forms\Components\TextInput::make('percentage_value')
                             ->label('Discount (%)')
                             ->required()
                             ->numeric()
                             ->minValue(1)
-                            ->maxValue(100),
-                        Forms\Components\DateTimePicker::make('starts_at')
-                            ->label('Valid From')
-                            ->seconds(false)
-                            ->helperText('Leave empty for immediate validity.'),
-                        Forms\Components\DateTimePicker::make('ends_at')
-                            ->label('Valid Until')
-                            ->seconds(false)
-                            ->after('starts_at')
-                            ->helperText('Leave empty for no expiry.'),
+                            ->maxValue(100)
+                            ->suffix('%')
+                            ->helperText('Enter a value between 1 and 100.'),
                         Forms\Components\Toggle::make('status')
                             ->label('Active')
                             ->inline(false)
-                            ->default(true),
+                            ->default(true)
+                            ->helperText('Use the Activate / Deactivate row actions for safe status transitions with audit log.'),
                     ])
-                    ->columns(2),
+                    ->columns(3),
+
+                Forms\Components\Section::make('Validity Window')
+                    ->description('Optionally restrict the code to a specific date range. Outside this window the code will be rejected at checkout even if Active.')
+                    ->icon('heroicon-o-calendar-days')
+                    ->schema([
+                        Forms\Components\DateTimePicker::make('starts_at')
+                            ->label('Valid from')
+                            ->seconds(false)
+                            ->helperText('Leave empty for immediate validity.'),
+                        Forms\Components\DateTimePicker::make('ends_at')
+                            ->label('Valid until')
+                            ->seconds(false)
+                            ->after('starts_at')
+                            ->helperText('Leave empty for no expiry.'),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
             ]);
     }
 
@@ -69,30 +84,50 @@ class PromoCodeResource extends Resource
         return $table
             ->modifyQueryUsing(fn ($query) => $query->withCount('orders'))
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
-                Tables\Columns\TextColumn::make('code')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('percentage_value')
-                    ->label('Discount')
-                    ->formatStateUsing(fn ($state): string => (string) $state . '%')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('orders_count')
-                    ->label('Usage Count')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('starts_at')
-                    ->label('Valid From')
-                    ->dateTime('d M Y H:i')
-                    ->placeholder('Immediate')
-                    ->toggleable(),
-                Tables\Columns\TextColumn::make('ends_at')
-                    ->label('Valid Until')
-                    ->dateTime('d M Y H:i')
-                    ->placeholder('No expiry')
-                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => (int) $state === 1 ? 'Active' : 'Inactive')
                     ->color(fn ($state): string => (int) $state === 1 ? 'success' : 'gray'),
-                Tables\Columns\TextColumn::make('updated_at')->since(),
+                Tables\Columns\TextColumn::make('code')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\TextColumn::make('percentage_value')
+                    ->label('Discount')
+                    ->formatStateUsing(fn ($state): string => (string) $state . '%')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('validity')
+                    ->label('Validity window')
+                    ->state(function (PromoCode $record): string {
+                        $from = $record->starts_at ? \Carbon\Carbon::parse($record->starts_at)->format('d M Y') : 'Now';
+                        $until = $record->ends_at ? \Carbon\Carbon::parse($record->ends_at)->format('d M Y') : 'No expiry';
+                        return $from . ' → ' . $until;
+                    }),
+                Tables\Columns\TextColumn::make('orders_count')
+                    ->label('Usage')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('starts_at')
+                    ->label('Valid from')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('Immediate')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('ends_at')
+                    ->label('Valid until')
+                    ->dateTime('d M Y H:i')
+                    ->placeholder('No expiry')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last updated')
+                    ->since()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('status')

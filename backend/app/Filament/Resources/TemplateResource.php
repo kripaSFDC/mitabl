@@ -30,13 +30,16 @@ class TemplateResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make('Template')
+            Forms\Components\Section::make('Template Identity')
+                ->description('The name is the stable template key used in code. Channel controls routing (email, push notification, or internal system). Name is locked after creation to prevent orphan references in code.')
+                ->icon('heroicon-o-document-text')
                 ->schema([
                     Forms\Components\TextInput::make('name')
                         ->required()
                         ->maxLength(255)
                         ->disabled(fn (?Template $record): bool => $record !== null)
-                        ->dehydrated(fn (?Template $record): bool => $record === null),
+                        ->dehydrated(fn (?Template $record): bool => $record === null)
+                        ->helperText('Matches the template key used in application code. Cannot be changed after creation.'),
                     Forms\Components\Select::make('channel')
                         ->required()
                         ->options([
@@ -44,20 +47,34 @@ class TemplateResource extends Resource
                             'notification' => 'Notification',
                             'system' => 'System',
                         ])
-                        ->default('email'),
+                        ->default('email')
+                        ->helperText('Email = outbound mail; Notification = push/in-app; System = internal events.'),
                     Forms\Components\TextInput::make('subject')
                         ->maxLength(255)
-                        ->visible(fn (Forms\Get $get): bool => (string) $get('channel') === 'email'),
+                        ->visible(fn (Forms\Get $get): bool => (string) $get('channel') === 'email')
+                        ->helperText('Email subject line shown to the recipient.'),
+                    Forms\Components\Placeholder::make('current_version')
+                        ->label('Current version')
+                        ->content(fn (?Template $record): string => $record ? 'v' . $record->version : 'New template')
+                        ->visible(fn (?Template $record): bool => $record !== null),
+                ])
+                ->columns(2),
+
+            Forms\Components\Section::make('Template Body')
+                ->description('JSON payload defining the template content and variable placeholders. Use {{ variable }} syntax for interpolated values. Click "Create new draft" on the list to version this template safely.')
+                ->icon('heroicon-o-code-bracket')
+                ->schema([
                     Forms\Components\Textarea::make('body_json')
                         ->label('Body (JSON)')
-                        ->rows(12)
+                        ->rows(18)
                         ->required()
-                        ->helperText('Use valid JSON payload for template body and variables.')
+                        ->columnSpanFull()
+                        ->helperText('Must be valid JSON. Variables use {{ double braces }}. The "Create new draft" row action creates a versioned copy.')
                         ->formatStateUsing(function (?Template $record): string {
                             return json_encode($record?->body ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
                         }),
                 ])
-                ->columns(2),
+                ->columns(1),
         ]);
     }
 
@@ -67,13 +84,39 @@ class TemplateResource extends Resource
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['createdBy', 'updatedBy']))
             ->defaultSort('updated_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('version')->sortable(),
-                Tables\Columns\TextColumn::make('channel')->badge()->sortable(),
-                Tables\Columns\IconColumn::make('active')->boolean()->label('Published')->sortable(),
-                Tables\Columns\TextColumn::make('subject')->placeholder('-')->toggleable(),
-                Tables\Columns\TextColumn::make('updatedBy.name')->label('Updated by')->placeholder('-')->toggleable(),
-                Tables\Columns\TextColumn::make('updated_at')->dateTime('d M Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\IconColumn::make('active')
+                    ->label('Published')
+                    ->boolean()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('channel')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'email' => 'info',
+                        'notification' => 'warning',
+                        'system' => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('version')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('subject')
+                    ->placeholder('-')
+                    ->limit(40)
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('updatedBy.name')
+                    ->label('Updated by')
+                    ->placeholder('-')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Last updated')
+                    ->dateTime('d M Y H:i')
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('active')->label('Published'),

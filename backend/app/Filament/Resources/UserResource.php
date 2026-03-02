@@ -38,33 +38,86 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('User Profile')
+                Forms\Components\Section::make('Identity & Contact')
+                    ->description('Core user identity fields. Email is immutable after registration.')
+                    ->icon('heroicon-o-user')
                     ->schema([
-                        Forms\Components\TextInput::make('first_name')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('last_name')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('email')->email()->required()->maxLength(255)->disabled(),
-                        Forms\Components\TextInput::make('phone')->tel()->maxLength(255),
-                        Forms\Components\TextInput::make('address')->maxLength(255),
+                        Forms\Components\TextInput::make('first_name')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('last_name')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled()
+                            ->helperText('Email address is locked after registration.')
+                            ->columnSpan(2),
+                        Forms\Components\TextInput::make('phone')
+                            ->tel()
+                            ->maxLength(255)
+                            ->placeholder('+61 4xx xxx xxx')
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('address')
+                            ->maxLength(255)
+                            ->columnSpan(1),
                         Forms\Components\Select::make('role_id')
                             ->relationship('role', 'role')
                             ->required()
-                            ->disabled(),
+                            ->disabled()
+                            ->helperText('Role is managed via the Roles & Permissions panel.')
+                            ->columnSpan(1),
                         Forms\Components\Toggle::make('email_verified')
-                            ->label('Email verified')
-                            ->disabled(),
+                            ->label('Email Verified')
+                            ->disabled()
+                            ->helperText('Verified by OTP at registration.')
+                            ->columnSpan(1),
                     ])
                     ->columns(2),
+
                 Forms\Components\Section::make('Account Status')
+                    ->description('Suspension and deletion state. Use row actions (Suspend / Unsuspend / Delete / Restore) to modify status — these fields are read-only.')
+                    ->icon('heroicon-o-shield-exclamation')
                     ->schema([
-                        Forms\Components\Toggle::make('suspended')
-                            ->disabled(),
-                        Forms\Components\Textarea::make('suspension_reason')->disabled(),
-                        Forms\Components\DateTimePicker::make('suspended_at')->disabled(),
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\Toggle::make('suspended')
+                                ->label('Suspended')
+                                ->disabled(),
+                            Forms\Components\DateTimePicker::make('suspended_at')
+                                ->label('Suspended At')
+                                ->disabled(),
+                        ]),
+                        Forms\Components\Textarea::make('suspension_reason')
+                            ->label('Suspension Reason')
+                            ->disabled()
+                            ->rows(3)
+                            ->columnSpanFull(),
                         Forms\Components\DateTimePicker::make('deleted_at')
-                            ->label('Deleted at')
+                            ->label('Soft-Deleted At')
+                            ->disabled()
+                            ->helperText('If set, this account has been soft-deleted.'),
+                    ])
+                    ->columns(1)
+                    ->collapsible(),
+
+                Forms\Components\Section::make('System Timestamps')
+                    ->description('Read-only audit fields managed by the platform.')
+                    ->icon('heroicon-o-clock')
+                    ->schema([
+                        Forms\Components\DateTimePicker::make('created_at')
+                            ->label('Registered At')
+                            ->disabled(),
+                        Forms\Components\DateTimePicker::make('updated_at')
+                            ->label('Last Updated')
                             ->disabled(),
                     ])
-                    ->columns(1),
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -76,31 +129,12 @@ class UserResource extends Resource
                 ->with(['role', 'restaurant'])
                 ->withCount(['orders', 'supportTickets']))
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
-                Tables\Columns\TextColumn::make('full_name')
-                    ->label('Name')
-                    ->state(fn (User $record): string => trim($record->first_name . ' ' . $record->last_name))
-                    ->searchable(query: function ($query, string $search): void {
-                        $query->where(function ($innerQuery) use ($search): void {
-                            $innerQuery
-                                ->where('first_name', 'like', "%{$search}%")
-                                ->orWhere('last_name', 'like', "%{$search}%");
-                        });
-                    }),
-                Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('phone')->searchable(),
-                Tables\Columns\TextColumn::make('role.role')
-                    ->label('Role(s)')
-                    ->badge()
-                    ->sortable(),
-                Tables\Columns\IconColumn::make('email_verified')
-                    ->label('Verified')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('suspended')
-                    ->boolean()
-                    ->label('Suspended'),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('account_status')
-                    ->label('Account Status')
+                    ->label('Status')
                     ->badge()
                     ->state(fn (User $record): string => $record->trashed()
                         ? 'deleted'
@@ -110,25 +144,65 @@ class UserResource extends Resource
                         'suspended' => 'warning',
                         'deleted' => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label('Name')
+                    ->state(fn (User $record): string => trim($record->first_name . ' ' . $record->last_name))
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->where(function ($innerQuery) use ($search): void {
+                            $innerQuery
+                                ->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
+                        });
+                    })
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable()
+                    ->copyable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->searchable()
+                    ->placeholder('—')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('role.role')
+                    ->label('Role')
+                    ->badge()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('email_verified')
+                    ->label('Verified')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-badge')
+                    ->falseIcon('heroicon-o-x-circle'),
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Orders')
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color('info'),
                 Tables\Columns\TextColumn::make('support_tickets_count')
                     ->label('Tickets')
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color('gray'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Registered')
+                    ->dateTime('d M Y')
+                    ->sortable()
+                    ->since()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Activity')
-                    ->since(),
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('restaurant.name')
                     ->label('Kitchen')
-                    ->placeholder('-')
+                    ->placeholder('—')
                     ->url(fn (User $record): ?string => static::safeFilamentRoute(
                         'filament.admin.resources.mikitchns.edit',
                         ['record' => $record->restaurant?->id]
                     ))
                     ->openUrlInNewTab()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('suspended')

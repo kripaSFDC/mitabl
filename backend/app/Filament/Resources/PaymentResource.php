@@ -38,11 +38,27 @@ class PaymentResource extends Resource
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['order.user', 'order.Mikitchn', 'order.refunds']))
             ->defaultSort('id', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->sortable()
+                    ->color(fn (string $state): string => match (strtolower($state)) {
+                        'succeeded', 'paid', 'captured' => 'success',
+                        'pending', 'processing' => 'warning',
+                        'failed', 'cancelled', 'refunded' => 'danger',
+                        default => 'gray',
+                    }),
+                Tables\Columns\IconColumn::make('confirm')
+                    ->label('Confirmed')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('amount')
+                    ->money('AUD')
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
                 Tables\Columns\TextColumn::make('order_id')
-                    ->label('Order ID')
+                    ->label('Order #')
                     ->sortable()
                     ->searchable()
+                    ->copyable()
                     ->url(fn (Payment $record): ?string => static::safeFilamentRoute('filament.admin.resources.orders.edit', ['record' => $record->order_id]))
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('order.user.email')
@@ -57,31 +73,8 @@ class PaymentResource extends Resource
                     ->url(fn (Payment $record): ?string => static::safeFilamentRoute('filament.admin.resources.mikitchns.edit', ['record' => $record->order?->mikitchn_id]))
                     ->openUrlInNewTab()
                     ->placeholder('-'),
-                Tables\Columns\TextColumn::make('payment_id')
-                    ->label('Payment Intent')
-                    ->searchable()
-                    ->copyable(),
-                Tables\Columns\TextColumn::make('card_id')
-                    ->label('Card')
-                    ->formatStateUsing(function (?string $state): string {
-                        $value = (string) $state;
-                        if ($value === '') {
-                            return '-';
-                        }
-
-                        return '****' . substr($value, -4);
-                    }),
-                Tables\Columns\TextColumn::make('amount')
-                    ->money('AUD')
-                    ->sortable(),
-                Tables\Columns\IconColumn::make('confirm')
-                    ->label('Confirmed')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('refund_state')
-                    ->label('Refund State')
+                    ->label('Refund')
                     ->badge()
                     ->state(function (Payment $record): string {
                         $percentage = (int) ($record->order?->refund_percentage ?? 0);
@@ -101,8 +94,24 @@ class PaymentResource extends Resource
                         'Partial Refunded' => 'warning',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('card_id')
+                    ->label('Card')
+                    ->formatStateUsing(function (?string $state): string {
+                        $value = (string) $state;
+                        if ($value === '') {
+                            return '-';
+                        }
+
+                        return '****' . substr($value, -4);
+                    })
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('payment_id')
+                    ->label('Payment intent')
+                    ->searchable()
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('latest_refund')
-                    ->label('Latest Refund')
+                    ->label('Latest refund')
                     ->state(function (Payment $record): string {
                         $latest = $record->order?->refunds?->sortByDesc('refund_date')->first();
                         if (! $latest) {
@@ -113,7 +122,7 @@ class PaymentResource extends Resource
                     })
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('confirm_date_time')
-                    ->label('Confirmed At')
+                    ->label('Confirmed at')
                     ->dateTime('d M Y H:i')
                     ->placeholder('-')
                     ->toggleable(),
@@ -121,6 +130,9 @@ class PaymentResource extends Resource
                     ->label('Created')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('confirm')

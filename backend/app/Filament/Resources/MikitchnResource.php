@@ -32,30 +32,85 @@ class MikitchnResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Kitchen Profile')
+                Forms\Components\Section::make('Kitchen Identity')
+                    ->description('Core display information shown to customers in search results and on the kitchen profile page.')
+                    ->icon('heroicon-o-building-storefront')
                     ->schema([
-                        Forms\Components\TextInput::make('name')->required()->maxLength(255),
-                        Forms\Components\TextInput::make('phone')->tel()->required()->maxLength(255),
-                        Forms\Components\TextInput::make('address')->required()->minLength(8)->maxLength(255),
-                        Forms\Components\TextInput::make('latitude')->numeric()->minValue(-90)->maxValue(90)->required(),
-                        Forms\Components\TextInput::make('longitude')->numeric()->minValue(-180)->maxValue(180)->required(),
-                        Forms\Components\TextInput::make('no_of_seats')->numeric()->minValue(0),
-                        Forms\Components\Toggle::make('dine_in')->inline(false),
-                        Forms\Components\Toggle::make('take_away')->inline(false),
-                        Forms\Components\Toggle::make('open')->label('Open')->inline(false),
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('phone')
+                            ->tel()
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('Contact number visible to ops team only.'),
+                        Forms\Components\TextInput::make('address')
+                            ->required()
+                            ->minLength(8)
+                            ->maxLength(255)
+                            ->columnSpanFull()
+                            ->helperText('Full street address. Used for delivery radius calculations and customer-facing display.'),
+                        Forms\Components\Textarea::make('description')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->helperText('Short description shown on the kitchen profile card.'),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Geo & Capacity')
+                    ->description('GPS coordinates are required for proximity search. Seats are the max dine-in capacity.')
+                    ->icon('heroicon-o-map-pin')
+                    ->schema([
+                        Forms\Components\TextInput::make('latitude')
+                            ->numeric()
+                            ->minValue(-90)
+                            ->maxValue(90)
+                            ->required()
+                            ->helperText('-90 to 90'),
+                        Forms\Components\TextInput::make('longitude')
+                            ->numeric()
+                            ->minValue(-180)
+                            ->maxValue(180)
+                            ->required()
+                            ->helperText('-180 to 180'),
+                        Forms\Components\TextInput::make('no_of_seats')
+                            ->label('Seats')
+                            ->numeric()
+                            ->minValue(0)
+                            ->helperText('Max dine-in capacity. Leave 0 if not applicable.'),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Service & Status')
+                    ->description('Control which service modes are offered and whether the kitchen is active on the platform. Activation requires an approved certificate.')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->schema([
+                        Forms\Components\Toggle::make('dine_in')
+                            ->label('Dine-in available')
+                            ->inline(false),
+                        Forms\Components\Toggle::make('take_away')
+                            ->label('Take-away available')
+                            ->inline(false),
+                        Forms\Components\Toggle::make('open')
+                            ->label('Currently open')
+                            ->inline(false)
+                            ->helperText('Toggle off to pause all incoming orders.'),
                         Forms\Components\Select::make('status')
                             ->options([
                                 0 => 'Inactive',
                                 1 => 'Active',
                             ])
-                            ->required(),
-                        Forms\Components\Textarea::make('description')->columnSpanFull(),
+                            ->required()
+                            ->helperText('Use the Activate/Deactivate row actions on the list for safe status transitions.'),
                     ])
-                    ->columns(2),
+                    ->columns(4),
+
                 Forms\Components\Section::make('Certificate Review')
+                    ->description('Read-only summary of the current certificate attached to this kitchen. Use the Review Certificate row action on the Certificates resource for approve/reject.')
+                    ->icon('heroicon-o-document-check')
                     ->schema([
                         Forms\Components\Placeholder::make('certificate_status')
-                            ->label('Current Status')
+                            ->label('Certificate status')
                             ->content(function (?Mikitchn $record): string {
                                 if (! $record?->certificate) {
                                     return 'No certificate submitted';
@@ -69,19 +124,20 @@ class MikitchnResource extends Resource
                                 };
                             }),
                         Forms\Components\Placeholder::make('certificate_number')
-                            ->label('Certificate Number')
+                            ->label('Certificate number')
                             ->content(fn (?Mikitchn $record): string => (string) ($record?->certificate?->certificate_no ?? '-')),
                         Forms\Components\Placeholder::make('certificate_action')
-                            ->label('Review Action')
+                            ->label('Next step')
                             ->content(function (?Mikitchn $record): string {
                                 if (! $record?->certificate) {
                                     return 'No certificate available for review.';
                                 }
 
-                                return 'Open the "Review Certificate" row action to approve or reject.';
+                                return 'Go to the Certificates resource → find this kitchen → use the Review Workspace action.';
                             }),
                     ])
                     ->columns(3)
+                    ->collapsible()
                     ->visible(fn (?Mikitchn $record): bool => (bool) $record),
             ]);
     }
@@ -94,22 +150,10 @@ class MikitchnResource extends Resource
                 ->withAvg('reviews', 'rating')
                 ->withCount(['orders', 'reviews']))
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable(),
-                Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('user.first_name')
-                    ->label('Cook')
-                    ->formatStateUsing(fn (?string $state, Mikitchn $record): string => trim((optional($record->user)->first_name ?? '') . ' ' . (optional($record->user)->last_name ?? '')))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('location')
-                    ->label('Location')
-                    ->state(fn (Mikitchn $record): string => trim((string) $record->address))
-                    ->description(fn (Mikitchn $record): ?string => is_numeric($record->latitude) && is_numeric($record->longitude)
-                        ? number_format((float) $record->latitude, 5) . ', ' . number_format((float) $record->longitude, 5)
-                        : null)
-                    ->limit(40)
-                    ->searchable(query: function ($query, string $search): void {
-                        $query->where('address', 'like', "%{$search}%");
-                    }),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => (int) $state === 1 ? 'Active' : 'Inactive')
@@ -135,8 +179,26 @@ class MikitchnResource extends Resource
                             default => 'gray',
                         };
                     }),
-                Tables\Columns\IconColumn::make('dine_in')->boolean()->label('Dine-in'),
-                Tables\Columns\IconColumn::make('take_away')->boolean()->label('Take-away'),
+                Tables\Columns\TextColumn::make('user.first_name')
+                    ->label('Cook')
+                    ->formatStateUsing(fn (?string $state, Mikitchn $record): string => trim((optional($record->user)->first_name ?? '') . ' ' . (optional($record->user)->last_name ?? '')))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('location')
+                    ->label('Address')
+                    ->state(fn (Mikitchn $record): string => trim((string) $record->address))
+                    ->description(fn (Mikitchn $record): ?string => is_numeric($record->latitude) && is_numeric($record->longitude)
+                        ? number_format((float) $record->latitude, 5) . ', ' . number_format((float) $record->longitude, 5)
+                        : null)
+                    ->limit(40)
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->where('address', 'like', "%{$search}%");
+                    }),
+                Tables\Columns\IconColumn::make('dine_in')
+                    ->boolean()
+                    ->label('Dine-in'),
+                Tables\Columns\IconColumn::make('take_away')
+                    ->boolean()
+                    ->label('Take-away'),
                 Tables\Columns\TextColumn::make('rating_summary')
                     ->label('Rating')
                     ->state(function (Mikitchn $record): string {
@@ -149,7 +211,15 @@ class MikitchnResource extends Resource
 
                         return number_format((float) $average, 1) . ' / 5 (' . $count . ')';
                     }),
-                Tables\Columns\TextColumn::make('orders_count')->label('Orders')->sortable(),
+                Tables\Columns\TextColumn::make('orders_count')
+                    ->label('Orders')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

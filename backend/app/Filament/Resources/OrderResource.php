@@ -35,26 +35,74 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Order Details')
+                Forms\Components\Section::make('Order Summary')
+                    ->description('Core order identifiers and fulfillment type.')
+                    ->icon('heroicon-o-clipboard-document-list')
                     ->schema([
                         Forms\Components\Select::make('mikitchn_id')
+                            ->label('Kitchen')
                             ->relationship('Mikitchn', 'name')
-                            ->required(),
+                            ->required()
+                            ->searchable()
+                            ->preload(),
                         Forms\Components\Select::make('user_id')
+                            ->label('Customer')
                             ->relationship('user', 'email')
                             ->searchable()
                             ->required(),
-                        Forms\Components\DatePicker::make('delivery_date')->required(),
-                        Forms\Components\TimePicker::make('delivery_time_from')->required(),
-                        Forms\Components\TimePicker::make('delivery_time_to')->required(),
-                        Forms\Components\TextInput::make('item_total_price')->numeric()->required(),
-                        Forms\Components\TextInput::make('total_price')->numeric()->required(),
-                        Forms\Components\TextInput::make('taxes')->numeric(),
-                        Forms\Components\TextInput::make('refund_percentage')->numeric(),
                         Forms\Components\Select::make('status')
                             ->options(static::statusOptions(includeLegacy: true))
                             ->required(),
-                        Forms\Components\Toggle::make('paid'),
+                        Forms\Components\Toggle::make('paid')
+                            ->label('Payment Confirmed')
+                            ->inline(false),
+                        Forms\Components\Toggle::make('dine_in')
+                            ->label('Dine-in')
+                            ->inline(false),
+                        Forms\Components\Toggle::make('take_away')
+                            ->label('Take-away')
+                            ->inline(false),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Delivery Window')
+                    ->description('Scheduled delivery date and arrival window.')
+                    ->icon('heroicon-o-calendar-days')
+                    ->schema([
+                        Forms\Components\DatePicker::make('delivery_date')
+                            ->required(),
+                        Forms\Components\TimePicker::make('delivery_time_from')
+                            ->label('Window Start')
+                            ->required(),
+                        Forms\Components\TimePicker::make('delivery_time_to')
+                            ->label('Window End')
+                            ->required(),
+                    ])
+                    ->columns(3),
+
+                Forms\Components\Section::make('Pricing & Refund')
+                    ->description('Financial breakdown. Use the Refund action on the order row to issue refunds.')
+                    ->icon('heroicon-o-banknotes')
+                    ->schema([
+                        Forms\Components\TextInput::make('item_total_price')
+                            ->label('Item Subtotal (AUD)')
+                            ->numeric()
+                            ->required()
+                            ->prefix('$'),
+                        Forms\Components\TextInput::make('taxes')
+                            ->label('Taxes (AUD)')
+                            ->numeric()
+                            ->prefix('$'),
+                        Forms\Components\TextInput::make('total_price')
+                            ->label('Total (AUD)')
+                            ->numeric()
+                            ->required()
+                            ->prefix('$'),
+                        Forms\Components\TextInput::make('refund_percentage')
+                            ->label('Refund Applied (%)')
+                            ->numeric()
+                            ->suffix('%')
+                            ->helperText('Set via Refund action — manual edits here are for corrections only.'),
                     ])
                     ->columns(2),
             ]);
@@ -68,11 +116,49 @@ class OrderResource extends Resource
                 ->withCount(['orderdata', 'refunds'])
                 ->withMax('refunds', 'percentage'))
             ->columns([
-                Tables\Columns\TextColumn::make('id')->label('Order ID')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('Mikitchn.name')->label('Kitchen')->searchable(),
-                Tables\Columns\TextColumn::make('user.email')->label('Customer')->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->label('Order Date')->date()->sortable(),
-                Tables\Columns\TextColumn::make('delivery_date')->date()->sortable(),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('Order #')
+                    ->sortable()
+                    ->searchable()
+                    ->copyable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state): string => static::formatStatus((int) $state))
+                    ->color(fn ($state): string => static::statusColor((int) $state)),
+                Tables\Columns\TextColumn::make('Mikitchn.name')
+                    ->label('Kitchen')
+                    ->searchable()
+                    ->url(fn (Order $record): ?string => $record->mikitchn_id
+                        ? '/admin/mikitchns/' . $record->mikitchn_id . '/edit'
+                        : null)
+                    ->openUrlInNewTab(),
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Customer')
+                    ->searchable()
+                    ->url(fn (Order $record): ?string => $record->user_id
+                        ? '/admin/users/' . $record->user_id . '/edit'
+                        : null)
+                    ->openUrlInNewTab(),
+                Tables\Columns\TextColumn::make('total_price')
+                    ->label('Total')
+                    ->money('AUD')
+                    ->sortable()
+                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold),
+                Tables\Columns\IconColumn::make('paid')
+                    ->label('Paid')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-badge')
+                    ->falseIcon('heroicon-o-clock'),
+                Tables\Columns\TextColumn::make('refund_state')
+                    ->label('Refund')
+                    ->badge()
+                    ->state(fn (Order $record): string => static::refundStateLabel($record))
+                    ->color(fn (Order $record): string => static::refundStateColor($record)),
+                Tables\Columns\TextColumn::make('refund_percentage')
+                    ->label('Refund %')
+                    ->formatStateUsing(fn ($state): string => $state === null ? '—' : ((int) $state) . '%')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('order_type')
                     ->label('Type')
                     ->state(function (Order $record): string {
@@ -83,28 +169,23 @@ class OrderResource extends Resource
                             $isDineIn && $isTakeAway => 'Dine-in / Take-away',
                             $isDineIn => 'Dine-in',
                             $isTakeAway => 'Take-away',
-                            default => '-',
+                            default => '—',
                         };
                     })
-                    ->badge(),
-                Tables\Columns\TextColumn::make('total_price')->money('AUD')->sortable(),
-                Tables\Columns\IconColumn::make('paid')->boolean(),
-                Tables\Columns\TextColumn::make('refund_state')
-                    ->label('Refund State')
                     ->badge()
-                    ->state(fn (Order $record): string => static::refundStateLabel($record))
-                    ->color(fn (Order $record): string => static::refundStateColor($record)),
-                Tables\Columns\TextColumn::make('refund_percentage')
-                    ->label('Refund %')
-                    ->formatStateUsing(fn ($state): string => $state === null ? '-' : ((int) $state) . '%'),
-                Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->formatStateUsing(fn ($state): string => static::formatStatus((int) $state))
-                    ->color(fn ($state): string => static::statusColor((int) $state)),
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('delivery_date')
+                    ->label('Delivery')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Ordered')
+                    ->dateTime('d M Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('cancelreason.subject')
                     ->label('Cancel Reason')
-                    ->placeholder('-')
-                    ->toggleable(),
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
