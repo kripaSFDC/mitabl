@@ -15,6 +15,6 @@ class OrderData extends Model
 
     public function food()
     {
-        return $this->belongsTo('App\Models\Foods');
+        return $this->belongsTo(Foods::class);
     }
 }

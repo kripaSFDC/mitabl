@@ -14,7 +14,7 @@ class Review extends Model
      */
     public function mikitchn()
     {
-        return $this->belongsTo('App\Models\Mikitchn');
+        return $this->belongsTo(Mikitchn::class);
     }
 
     /**
@@ -22,7 +22,7 @@ class Review extends Model
      */
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 
 }

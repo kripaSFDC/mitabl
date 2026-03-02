@@ -17,8 +17,8 @@
 4. **Performance and cache policy**
    
    * Add asset fingerprinting and long-lived immutable cache headers for static media/CSS.
-
-
+     
+     
 
 ---
 
@@ -27,19 +27,17 @@
 1. Security improvements
 
 2. UI/UX improvements
-
-
-
-
+   
+   
 
 ---
 
 ## 3- Backend/API
 
-1. Attachment malware scanning pipeline and enforced attachment type/size policy are still not end-to-end wired (schema exists, but no upload/scanning workflow in these modules).
+1. **32. No real GPS integration: users type coordinates manually**home_cubit.dart:100-115 and home_page.dart: location is a text field accepting `"latitude, longitude"`. There is no call to `geolocator` or any platform location API. Users literally have to know and type their GPS coordinates.
 
-2. Styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website
+2. Hardcoded discount rules and amounts**`OrderService` has `if ($this->completedOrderCountForUser($user->id) < 5)` and `$order->discounted_amount = 50` ,  magic numbers with no config, feature flag, or admin control. The GST rate `10` is also hardcoded in at least two places (`checkDiscountedUser`, `DiscoveryController::show`).
 
+3. Attachment malware scanning pipeline and enforced attachment type/size policy are still not end-to-end wired (schema exists, but no upload/scanning workflow in these modules).
 
-
-
+4. Styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website

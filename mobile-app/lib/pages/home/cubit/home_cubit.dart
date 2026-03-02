@@ -34,9 +34,6 @@ class HomeCubit extends Cubit<HomeState> {
     _fetchHomeFeeds();
   }
 
-  static const double _fallbackLat = 30.6754;
-  static const double _fallbackLon = 76.7405;
-
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
   final CookRepository _cookRepository;
@@ -48,14 +45,16 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> _fetchHomeFeeds() async {
     await userRepository.getUser();
     final coordinates = await _resolveCoordinates();
-    final latitude = coordinates?.latitude ?? _fallbackLat;
-    final longitude = coordinates?.longitude ?? _fallbackLon;
+    final latitude = coordinates?.latitude;
+    final longitude = coordinates?.longitude;
+    final locationQuery = (latitude != null && longitude != null)
+        ? '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}'
+        : '';
 
     emit(state.copyWith(
       latitude: latitude,
       longitude: longitude,
-      locationQuery:
-          '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}',
+      locationQuery: locationQuery,
     ));
 
     await Future.wait([
@@ -96,9 +95,9 @@ class HomeCubit extends Cubit<HomeState> {
   Map<String, dynamic> _buildFilterMap({bool withLocation = false}) {
     final map = <String, dynamic>{};
 
-    if (withLocation) {
-      map['lat'] = (state.latitude ?? _fallbackLat).toString();
-      map['lon'] = (state.longitude ?? _fallbackLon).toString();
+    if (withLocation && state.latitude != null && state.longitude != null) {
+      map['lat'] = state.latitude!.toString();
+      map['lon'] = state.longitude!.toString();
       map['max_distance'] = state.selectedDistance!.toInt().toString();
     }
 

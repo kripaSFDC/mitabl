@@ -54,7 +54,7 @@ class AccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
-            'new_password' => 'required|different:current_password|min:8',
+            'new_password' => 'required|different:current_password|min:6',
         ]);
         if($validator->fails()){
             return $this->responser([],$validator->errors()->first(), 422);
@@ -72,13 +72,18 @@ class AccountController extends Controller
 
     public function updateDeviceToken(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        if ($request->has('device_token')) {
-            $user->device_token = $request->device_token;
-            $user->save();
+        $validator = Validator::make($request->all(), [
+            'device_token' => 'required|string|max:2048',
+        ]);
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        return $this->responser($user,'Device Token Updated.');
+        $user = Auth::guard('api')->user();
+        $user->device_token = $request->device_token;
+        $user->save();
+
+        return $this->responser(['updated' => true], 'Device Token Updated.');
     }
 
     public function notificationsToggle(Request $request)

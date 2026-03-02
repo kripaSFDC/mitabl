@@ -63,6 +63,6 @@ class ModuleEightNineTenContractTest extends TestCase
         $this->assertStringContainsString('class Template extends Model', $templateModel);
         $this->assertStringContainsString("'templates.view'", $permissionSeeder);
         $this->assertStringContainsString("'templates.edit'", $permissionSeeder);
-        $this->assertFileExists(database_path('migrations/2026_02_28_000016_create_templates_table.php'));
+        $this->assertFileExists(database_path('migrations/2026_02_28_000022_create_templates_table.php'));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +22,7 @@ class DiscoveryService
     {
         $searchQuery = $request->query();
         $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
-        $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
+        $page = max((int) ($searchQuery['page'] ?? 1), 1);
         $query = $this->buildBaseDiscoveryQuery($request, true)
             ->where('mikitchns.status', 1)
             ->has('orders')
@@ -30,12 +31,8 @@ class DiscoveryService
         $start = microtime(true);
 
         $result = $this->remember('recommended', $request, function () use ($query, $limit, $page) {
-            $totalCount = $this->countRows($query);
-            $data = $query
-                ->offset($page * $limit)
-                ->limit($limit)
-                ->get()
-                ->makeHidden(['reviews', 'addedimage', 'certificate']);
+            [$data, $totalCount] = $this->executePagedQuery($query, $limit, $page);
+            $data = $data->makeHidden(['reviews', 'addedimage', 'certificate']);
 
             $this->annotateFavorites($data);
             return [
@@ -57,7 +54,7 @@ class DiscoveryService
 
         $searchQuery = $request->query();
         $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
-        $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
+        $page = max((int) ($searchQuery['page'] ?? 1), 1);
         $maxDistance = max((float) $request->input('max_distance', 100), 0.1);
 
         $query = $this->buildBaseDiscoveryQuery($request, true)
@@ -67,12 +64,8 @@ class DiscoveryService
 
         $start = microtime(true);
         $result = $this->remember('nearest', $request, function () use ($query, $limit, $page) {
-            $totalCount = $this->countRows($query);
-
-            $kitchens = $query->offset($page * $limit)
-                ->limit($limit)
-                ->get()
-                ->makeHidden(['reviews', 'addedimage', 'certificate']);
+            [$kitchens, $totalCount] = $this->executePagedQuery($query, $limit, $page);
+            $kitchens = $kitchens->makeHidden(['reviews', 'addedimage', 'certificate']);
 
             $this->annotateFavorites($kitchens);
 
@@ -91,7 +84,7 @@ class DiscoveryService
     {
         $searchQuery = $request->query();
         $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
-        $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
+        $page = max((int) ($searchQuery['page'] ?? 1), 1);
 
         $query = $this->buildBaseDiscoveryQuery($request, true)
             ->where('mikitchns.status', 1)
@@ -99,13 +92,8 @@ class DiscoveryService
 
         $start = microtime(true);
         $result = $this->remember('top-rated', $request, function () use ($query, $limit, $page) {
-            $totalCount = $this->countRows($query);
-
-            $data = $query
-                ->offset($page * $limit)
-                ->limit($limit)
-                ->get()
-                ->makeHidden(['reviews', 'addedimage', 'certificate']);
+            [$data, $totalCount] = $this->executePagedQuery($query, $limit, $page);
+            $data = $data->makeHidden(['reviews', 'addedimage', 'certificate']);
 
             $this->annotateFavorites($data);
 
@@ -124,7 +112,7 @@ class DiscoveryService
     {
         $searchQuery = $request->query();
         $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
-        $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
+        $page = max((int) ($searchQuery['page'] ?? 1), 1);
 
         $query = $this->buildBaseDiscoveryQuery($request, true)
             ->where('mikitchns.status', 1);
@@ -137,12 +125,8 @@ class DiscoveryService
 
         $start = microtime(true);
         $result = $this->remember('filtered', $request, function () use ($query, $limit, $page) {
-            $totalCount = $this->countRows($query);
-
-            $data = $query->offset($page * $limit)
-                ->limit($limit)
-                ->get()
-                ->makeHidden(['reviews', 'addedimage', 'certificate']);
+            [$data, $totalCount] = $this->executePagedQuery($query, $limit, $page);
+            $data = $data->makeHidden(['reviews', 'addedimage', 'certificate']);
 
             $this->annotateFavorites($data);
 
@@ -240,6 +224,34 @@ class DiscoveryService
         }
 
         return DB::query()->fromSub($base->toBase(), 'discovery_rows')->count();
+    }
+
+    private function executePagedQuery($query, int $limit, int $page): array
+    {
+        $paged = clone $query;
+
+        try {
+            $rows = $paged
+                ->forPage($page, $limit)
+                ->selectRaw('COUNT(*) OVER() AS total_rows_window')
+                ->get();
+
+            $totalCount = (int) ($rows->first()->total_rows_window ?? 0);
+            foreach ($rows as $row) {
+                unset($row->total_rows_window);
+            }
+
+            return [$rows, $totalCount];
+        } catch (QueryException $exception) {
+            report($exception);
+        }
+
+        $fallbackTotal = $this->countRows($query);
+        $fallbackRows = (clone $query)
+            ->forPage($page, $limit)
+            ->get();
+
+        return [$fallbackRows, $fallbackTotal];
     }
 
     private function annotateFavorites(Collection $kitchens): void

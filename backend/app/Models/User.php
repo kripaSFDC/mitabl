@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
-// use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Notifications\MailResetPasswordNotification as ResetPassword;
 use Overtrue\LaravelFavorite\Traits\Favoriter;
@@ -21,35 +20,6 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, Favoriter, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    // protected $fillable = [
-    //     'first_name',
-    //     'email',
-    //     'password',
-    // ];
-
-    // /**
-    //  * The attributes that should be hidden for serialization.
-    //  *
-    //  * @var array<int, string>
-    //  */
-    // protected $hidden = [
-    //     'password',
-    //     'remember_token',
-    // ];
-
-    // /**
-    //  * The attributes that should be cast.
-    //  *
-    //  * @var array<string, string>
-    //  */
-    // // protected $casts = [
-    // //     'email_verified' => 'datetime',
-    // // ];
     /**
      * The attributes that are mass assignable.
      *
@@ -93,16 +63,9 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    /**
-    * Get the products the user has added.
-    */
-     // public function products()
-     // {
-     //     return $this->hasMany('App\Product');
-     // }
     public function notifyDisable()
     {
-        return $this->hasOne('App\Models\NotifyDisable');
+        return $this->hasOne(NotifyDisable::class);
     }
 
      /**
@@ -110,48 +73,40 @@ class User extends Authenticatable implements JWTSubject
      */
     public function reviews()
     {
-        return $this->hasMany('App\Models\Review')->where('by_user','kitchen');
+        return $this->hasMany(Review::class)->where('by_user', 'kitchen');
     }
 
     public function orders(){
-        return $this->hasMany('App\Models\Order');
+        return $this->hasMany(Order::class);
     }
 
     public function customer(){
-        return $this->hasOne('App\Models\StripeAccount')->where('account_type','customer');
+        return $this->hasOne(StripeAccount::class)->where('account_type', 'customer');
     }
 
     public function vendor()
     {
-        return $this->hasOne('App\Models\StripeAccount')->where('account_type','vendor');
+        return $this->hasOne(StripeAccount::class)->where('account_type', 'vendor');
     }
 
     public function card(){
-        return $this->hasMany('App\Models\Card');
+        return $this->hasMany(Card::class);
     }
 
     public function stripeBankAccount(){
-        return $this->hasMany('App\Models\StripeBankAccount');
+        return $this->hasMany(StripeBankAccount::class);
     }
 
     public function role(){
-        return $this->belongsTo('App\Models\Role');
+        return $this->belongsTo(Role::class);
     }
 
-    // public function favourite(){
-    //     return $this->hasMany('App\Favourites');
-    // }
-
-    // public function address(){
-    //     return $this->hasMany('App\Address');
-    // }
-
     public function restaurant(){
-        return $this->hasOne('App\Models\Mikitchn');
+        return $this->hasOne(Mikitchn::class);
     }
 
     public function Token(){
-        return $this->hasOne('App\Models\UserAuthToken');
+        return $this->hasOne(UserAuthToken::class);
     }
 
     public function suspendedBy()
@@ -163,9 +118,6 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(SupportTicket::class);
     }
-
-    
-
     public function is_superAdmin($id){
         $user = User::query()->find($id);
         return (bool) ($user && (int) $user->role_id === 1);

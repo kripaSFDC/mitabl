@@ -12,9 +12,17 @@ use InvalidArgumentException;
 
 class OrderService
 {
-    public function completedOrderCountForUser(int $userId): int
+    public function completedOrderCountForUser(int $userId, bool $lock = false): int
     {
-        return Order::where('user_id', $userId)->where('status', 1)->count();
+        $query = Order::query()
+            ->where('user_id', $userId)
+            ->where('status', 1);
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        return $query->count();
     }
 
     public function createOrder(User $user, array $payload): Order
@@ -25,6 +33,9 @@ class OrderService
         }
 
         return DB::transaction(function () use ($user, $payload, $items): Order {
+            // Serialize discount eligibility checks for concurrent order creation by the same user.
+            User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+
             $fromTime = Carbon::parse($payload['delivery_time_from'])->format('H:i:s');
             $toTime = Carbon::parse($payload['delivery_time_to'])->format('H:i:s');
             $kitchenId = (int) $payload['kitchen_id'];
@@ -52,7 +63,7 @@ class OrderService
                 throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
             }
 
-            $itemTotalPrice = 0.0;
+            $itemTotalCents = 0;
             $lineItems = [];
             foreach ($normalizedItems as $item) {
                 $food = $foods->get($item['food_id']);
@@ -60,18 +71,18 @@ class OrderService
                     throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
                 }
 
-                $unitPrice = round((float) $food->price, 2);
-                $lineTotal = round($unitPrice * (int) $item['quantity'], 2);
-                $itemTotalPrice = round($itemTotalPrice + $lineTotal, 2);
+                $unitPriceCents = $this->moneyToCents($food->price, 'food price');
+                $lineTotalCents = $unitPriceCents * (int) $item['quantity'];
+                $itemTotalCents += $lineTotalCents;
                 $lineItems[] = [
                     'food_id' => (int) $item['food_id'],
                     'quantity' => (int) $item['quantity'],
-                    'line_total' => $lineTotal,
+                    'line_total_cents' => $lineTotalCents,
                 ];
             }
 
-            $taxes = round((float) ($payload['taxes'] ?? 0), 2);
-            if ($taxes < 0) {
+            $taxesCents = $this->moneyToCents($payload['taxes'] ?? 0, 'taxes');
+            if ($taxesCents < 0) {
                 throw new InvalidArgumentException('taxes must be greater than or equal to 0.');
             }
 
@@ -82,18 +93,18 @@ class OrderService
             $order->delivery_time_from = $fromTime;
             $order->delivery_time_to = $toTime;
             $order->message = $payload['message'] ?? null;
-            $order->item_total_price = $itemTotalPrice;
+            $order->item_total_price = $this->centsToMoney($itemTotalCents);
             $order->promo_code = $payload['promo_code'] ?? null;
-            $order->taxes = $taxes;
+            $order->taxes = $this->centsToMoney($taxesCents);
             $order->dine_in = $payload['dine_in'];
             $order->take_away = $payload['take_away'];
 
-            $discountAmount = 0.0;
-            if ($this->completedOrderCountForUser($user->id) < 5) {
-                $order->discounted_amount = 50;
-                $discountAmount = 50.0;
+            $discountAmountCents = 0;
+            if ($this->completedOrderCountForUser($user->id, true) < 5) {
+                $discountAmountCents = 5000;
+                $order->discounted_amount = $this->centsToMoney($discountAmountCents);
             }
-            $order->total_price = max(round($itemTotalPrice + $taxes - $discountAmount, 2), 0);
+            $order->total_price = $this->centsToMoney(max($itemTotalCents + $taxesCents - $discountAmountCents, 0));
 
             if (!empty($payload['dine_in']) && (int) $payload['dine_in'] === 1) {
                 $order->persons = (int) ($payload['persons'] ?? 0);
@@ -101,14 +112,15 @@ class OrderService
 
             // If clients still send totals, enforce consistency rather than trusting request values.
             if (array_key_exists('item_total_price', $payload)) {
-                $providedItemTotal = round((float) $payload['item_total_price'], 2);
-                if (abs($providedItemTotal - $itemTotalPrice) > 0.01) {
+                $providedItemTotalCents = $this->moneyToCents($payload['item_total_price'], 'item_total_price');
+                if ($providedItemTotalCents !== $itemTotalCents) {
                     throw new InvalidArgumentException('item_total_price does not match server-calculated amount.');
                 }
             }
             if (array_key_exists('total_price', $payload)) {
-                $providedTotal = round((float) $payload['total_price'], 2);
-                if (abs($providedTotal - (float) $order->total_price) > 0.01) {
+                $providedTotalCents = $this->moneyToCents($payload['total_price'], 'total_price');
+                $computedTotalCents = $this->moneyToCents($order->total_price, 'total_price');
+                if ($providedTotalCents !== $computedTotalCents) {
                     throw new InvalidArgumentException('total_price does not match server-calculated amount.');
                 }
             }
@@ -120,11 +132,45 @@ class OrderService
                 $orderData->order_id = $order->id;
                 $orderData->food_id = $item['food_id'];
                 $orderData->quantity = $item['quantity'];
-                $orderData->price = $item['line_total'];
+                $orderData->price = $this->centsToMoney($item['line_total_cents']);
                 $orderData->save();
             }
 
             return $order;
         });
+    }
+
+    private function moneyToCents(mixed $amount, string $field): int
+    {
+        if (is_float($amount)) {
+            $amount = number_format($amount, 2, '.', '');
+        }
+
+        $normalized = trim((string) $amount);
+        if ($normalized === '') {
+            throw new InvalidArgumentException($field . ' must be a valid monetary amount.');
+        }
+        if (! preg_match('/^-?\d+(?:\.\d{1,2})?$/', $normalized)) {
+            throw new InvalidArgumentException($field . ' must have at most 2 decimal places.');
+        }
+
+        $negative = str_starts_with($normalized, '-');
+        if ($negative) {
+            $normalized = substr($normalized, 1);
+        }
+
+        [$units, $fraction] = array_pad(explode('.', $normalized, 2), 2, '0');
+        $fraction = str_pad($fraction, 2, '0');
+        $cents = ((int) $units * 100) + (int) $fraction;
+
+        return $negative ? -$cents : $cents;
+    }
+
+    private function centsToMoney(int $cents): string
+    {
+        $absCents = abs($cents);
+        $sign = $cents < 0 ? '-' : '';
+
+        return sprintf('%s%d.%02d', $sign, intdiv($absCents, 100), $absCents % 100);
     }
 }

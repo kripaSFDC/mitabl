@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('admin_action_logs')) {
+            return;
+        }
+
         Schema::create('admin_action_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('admin_user_id')->nullable()->constrained('admin_users')->nullOnDelete();
@@ -30,6 +34,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('admin_action_logs');
+        if (! Schema::hasTable('admin_action_logs')) {
+            return;
+        }
+
+        Schema::drop('admin_action_logs');
     }
 };

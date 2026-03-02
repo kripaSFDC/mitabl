@@ -11,6 +11,6 @@ class CompletedOrder extends Model
 
     public function Order()
     {
-        return $this->belongsTo('App\Models\Order');
+        return $this->belongsTo(Order::class);
     }
 }

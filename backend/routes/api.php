@@ -84,12 +84,12 @@ $registerLegacyMobileRoutes = function (): void {
     Route::get('getspecialdiets', [UserController::class, 'getSpecialDiets']);
 
     Route::group(['middleware' => ['restaurant']], function () {
-        Route::post('mikitchn/store', [MikitchnController::class, 'store']);
-        Route::post('mikitchn/editkitchen', [MikitchnController::class, 'store']);
+        Route::post('mikitchn/store', [MikitchnController::class, 'createKitchen']);
+        Route::post('mikitchn/editkitchen', [MikitchnController::class, 'updateKitchen']);
         Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
         Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
-        Route::post('food/add', [FoodsController::class, 'store']);
-        Route::post('food/editfood', [FoodsController::class, 'store']);
+        Route::post('food/add', [FoodsController::class, 'createFood']);
+        Route::post('food/editfood', [FoodsController::class, 'updateFood']);
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
         Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
         Route::get('getprofile', [UserController::class, 'myProfile']);
@@ -115,7 +115,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
     Route::get('mob-contact', [UserController::class, 'mobileContact']);
     Route::post('logout', [UserController::class, 'logout']);
 
-    // Legacy-mobile compatibility routes migrated to versioned pathing.
+    // Legacy-mobile compatibility aliases retained under /v2 during migration.
     $registerLegacyMobileRoutes();
 
 	Route::prefix('account')->group(function () {
@@ -160,8 +160,10 @@ Route::get('v1/mob-contact', function () {
         ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
 });
 
-Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
-	Route::post('logout', [UserController::class, 'logout']);
+Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
+    // Canonical legacy-mobile route surface.
+    $registerLegacyMobileRoutes();
+    Route::post('logout', [UserController::class, 'logout']);
 });
 
 Route::get('v1/food/status/{id}', function () {

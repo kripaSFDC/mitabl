@@ -36,7 +36,7 @@ class PhaseFourPlatformAdminScaffoldTest extends TestCase
             'app/Models/InternalNote.php',
             'app/Models/Tag.php',
             'app/Models/WatchSubscription.php',
-            'database/migrations/2026_02_28_000015_create_admin_action_logs_table.php',
+            'database/migrations/2026_02_28_000021_create_admin_action_logs_table.php',
             'database/migrations/2026_02_28_000016_create_collaboration_tables.php',
         ];
 

@@ -8,7 +8,6 @@ use App\Models\InternalNote;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Review;
 
 class Order extends Model
 {
@@ -19,6 +18,24 @@ class Order extends Model
     public const STATUS_REQUESTED = 2;
     public const STATUS_CONFIRMED = 3;
     public const STATUS_CANCELLED = 4;
+
+    protected $fillable = [
+        'mikitchn_id',
+        'user_id',
+        'dine_in',
+        'take_away',
+        'persons',
+        'delivery_date',
+        'delivery_time_from',
+        'delivery_time_to',
+        'message',
+        'item_total_price',
+        'promo_code',
+        'taxes',
+        'total_price',
+        'discounted_amount',
+        'paymentmethod_id',
+    ];
 
     protected $casts = [
         'item_total_price' => 'decimal:2',
@@ -40,12 +57,12 @@ class Order extends Model
      */
     public function orderdata()
     {
-        return $this->hasMany('App\Models\OrderData');
+        return $this->hasMany(OrderData::class);
     }
 
     public function Mikitchn()
     {
-        return $this->belongsTo('App\Models\Mikitchn');
+        return $this->belongsTo(Mikitchn::class);
     }
 
     public function getItemsAttribute()
@@ -64,38 +81,38 @@ class Order extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 
     public function promocode()
     {
-        return $this->belongsTo('App\Models\PromoCode','promo_code');
+        return $this->belongsTo(PromoCode::class, 'promo_code');
     }
 
 
     public function review()
     {
-        return $this->hasOne('App\Models\Review');
+        return $this->hasOne(Review::class);
     }
 
     public function payment()
     {
-        return $this->hasOne('App\Models\Payment');
+        return $this->hasOne(Payment::class);
     }
 
     public function cancelreason()
     {
-        return $this->hasOne('App\Models\CancelReason');
+        return $this->hasOne(CancelReason::class);
     }
 
     public function completedorder()
     {
-        return $this->hasOne('App\Models\CompletedOrder');
+        return $this->hasOne(CompletedOrder::class);
     }
 
     public function refunds()
     {
-        return $this->hasMany('App\Models\Refund');
+        return $this->hasMany(Refund::class);
     }
 
     public static function cancelledStatuses(): array

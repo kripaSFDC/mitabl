@@ -156,18 +156,6 @@ class OrderController extends Controller
                 ['order_id' => (int) $request->order_id],
                 ['completed_date_time' => Carbon::now()]
             );
-             // $transferToVendor = $this->transferToVendor($order->Mikitchn,$order->total_price,$order->id);
-            // event(new ());
-
-            // $cOrder = CompletedOrder::where('completed_date_time','>=',Carbon::now()->subDay()->toDateTimeString())->get();
-            // $cOrders = CompletedOrder::where('completed',0)->where('completed_date_time','<=',Carbon::now()->subDay())->get();
-
-            // foreach ($cOrders as $key => $cOrder) {
-            //     event(new MakeOrderPaymentToVendor($cOrder));
-            // }
-
-             // print_r($cOrder);
-             // die();
         }
         
 
@@ -222,10 +210,8 @@ class OrderController extends Controller
         } else {
             $orders->whereIn('status',$statusArry);
         }
-        // echo $orders->toSql();
         $orders = $orders->orderBy('id','desc')->paginate($limit);
         $this->data['total_count'] = $orders->total();
-        // $this->data['total_count'] = $kitchen->orders->whereIn('status',$statusArry)->count();
         $this->data['bookings'] = OrderResource::collection($orders);
 
         if ($this->data['total_count'] == 0) {
@@ -253,8 +239,6 @@ class OrderController extends Controller
             return $this->responser($this->data,'Promo code is invalid, inactive, or expired.', 422);
         }
 
-        // $this->data = new OrderResource($promocode);
-
         return $this->responser($promocode,'Promo code founded.');
     }
 
@@ -273,52 +257,40 @@ class OrderController extends Controller
 
     public function getBookedDates(Request $request,$restaurantId)
     {
-        
         $restaurant = Mikitchn::find($restaurantId);
         if (!$restaurant) {
             return $this->responser([], 'restaurant not found.', 404);
         }
 
         $statusArry = [Order::STATUS_CONFIRMED];
+        $weekOff = Timing::query()
+            ->where('mikitchn_id', $restaurantId)
+            ->where('status', 0)
+            ->pluck('day')
+            ->values()
+            ->all();
 
-        $timings = $restaurant->weektimings->makeHidden(['created_at','updated_at','id','mikitchn_id'])->toArray();
-        $TotalSeats = $restaurant->no_of_seats;
+        $bookedDates = Order::query()
+            ->join('timings', function ($join): void {
+                $join->on('timings.mikitchn_id', '=', 'orders.mikitchn_id')
+                    ->whereRaw('timings.day = DAYNAME(orders.delivery_date)')
+                    ->where('timings.status', 1);
+            })
+            ->where('orders.mikitchn_id', $restaurantId)
+            ->where('orders.dine_in', 1)
+            ->whereDate('orders.delivery_date', '>=', date('Y-m-d'))
+            ->whereIn('orders.status', $statusArry)
+            ->groupBy('orders.delivery_date')
+            ->havingRaw('SUM(TIMESTAMPDIFF(minute, orders.delivery_time_from, orders.delivery_time_to)) >= MAX(TIMESTAMPDIFF(minute, timings.start_time, timings.end_time))')
+            ->orderBy('orders.delivery_date')
+            ->selectRaw('DATE_FORMAT(orders.delivery_date, "%d-%m-%Y") as bookedDate')
+            ->pluck('bookedDate')
+            ->all();
 
-        // print_r($timings); 
-        // die;
-        $orders = Order::join('mikitchns', 'mikitchns.id', '=', 'orders.mikitchn_id')
-            ->where('orders.mikitchn_id', $restaurantId)->where('orders.dine_in',1)->where('orders.delivery_date', '>=', date('Y-m-d'))->whereIn('orders.status',$statusArry)
-                    ->selectRaw('DATE_FORMAT(orders.delivery_date, "%d-%m-%Y") as bookedDate, DAYNAME(orders.delivery_date) as dayN, SUM(TIMESTAMPDIFF(minute, orders.delivery_time_from, orders.delivery_time_to)) as bookedmins, SUM(orders.persons) as bookedseats')
-                    ->groupBy('orders.delivery_date')
-                    // ->having('bookedseats','=', $TotalSeats)
-                    // ->toSql();
-                    ->get()
-                    ->makeHidden(['items','orderId'])->toArray();
-
-        $data['weekOff'] = array();
-        $data['bookedDates'] = array();
-        // print_r($orders); 
-        // die;  
-
-        foreach ($timings as $key => $timing){
-            
-            if (!$timing['status']) {
-                array_push($data['weekOff'],$timing['day']);
-                 
-            } 
-            
-        }
-
-        foreach ($orders as $key11 => $order) {
-
-            $findKey = array_search($order['dayN'], array_column($timings, 'day'));
-            if ($findKey !== false && $order['bookedmins'] >= $timings[$findKey]['avail_minutes']) {
-                array_push($data['bookedDates'],$order['bookedDate']);
-                
-            }
-        }
-
-        $this->data = $data;
+        $this->data = [
+            'weekOff' => $weekOff,
+            'bookedDates' => $bookedDates,
+        ];
         return $this->responser($this->data,'booked dates list.');
     }
 
@@ -386,9 +358,7 @@ class OrderController extends Controller
         $user = Auth::user();
         if ($user->role_id == 2) {
             $by_user = 'mikitchen';
-            // $user = $user->restaurant;
         }
-        // print_r($user); die();
         $order = Order::find($request->order_id);
         if (! $order) {
             return $this->responser([], 'Order not found.', 404);
@@ -472,8 +442,6 @@ class OrderController extends Controller
             report($throwable);
             return $this->responser([], 'Invalid card reference.', 422);
         }
-
-        // $diffInHrs = $this->getPendingHoursInOrderD($order);
 
         $existingPayment = Payment::query()->where('order_id', $order->id)->latest('id')->first();
         if ($existingPayment && ! in_array((string) $existingPayment->status, ['failed', 'canceled'], true)) {

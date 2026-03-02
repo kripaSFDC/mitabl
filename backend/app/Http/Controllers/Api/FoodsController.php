@@ -82,6 +82,29 @@ class FoodsController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('food_id')) {
+            return $this->updateFood($request);
+        }
+
+        return $this->createFood($request);
+    }
+
+    public function createFood(Request $request)
+    {
+        return $this->saveFood($request, false);
+    }
+
+    public function updateFood(Request $request)
+    {
+        if (! $request->filled('food_id')) {
+            return $this->responser([], 'food_id is required for updating food item.', 422);
+        }
+
+        return $this->saveFood($request, true);
+    }
+
+    private function saveFood(Request $request, bool $isUpdate)
+    {
         $validator = Validator::make($request->all(), [
             'food_name' => 'required',
             'cookingstyle' => 'required|integer',
@@ -123,11 +146,11 @@ class FoodsController extends Controller
             
         }
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
-        // if (!$existFood) {
-        //     return $this->responser([],'Unauthorized Food not found for this restaurant.');
-        // }
+        if ($isUpdate && ! $existFood) {
+            return $this->responser([], 'Food item not found for this restaurant.', 404);
+        }
         $foodId = null;
-        if ($existFood && !empty($request->food_id)) {
+        if ($isUpdate) {
             Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->update([
                 'food_name' => $request->food_name,
                 'cookingstyle' => $request->cookingstyle,

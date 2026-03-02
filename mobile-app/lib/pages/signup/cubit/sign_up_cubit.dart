@@ -30,6 +30,8 @@ class SignUpCubit extends Cubit<SignUpState> {
       map['last_name'] = state.nameLast!.value;
       map['email'] = state.email!.value;
       map['password'] = state.confirmPassword.value['password'];
+      map['password_confirmation'] =
+          state.confirmPassword.value['confirmPassword'];
       map['role_id'] = state.selectedRole;
       map['phone'] = state.phone.value;
       map['address'] = state.address!.value;

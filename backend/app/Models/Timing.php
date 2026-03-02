@@ -11,7 +11,7 @@ class Timing extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\Models\Mikitchn');
+        return $this->belongsTo(Mikitchn::class);
     }
 
     public function getAvailMinutesAttribute($value='')

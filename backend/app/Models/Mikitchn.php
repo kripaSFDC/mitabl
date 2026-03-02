@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\WatchSubscription;
 use App\Models\Tag;
 use App\Models\InternalNote;
+use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,6 @@ class Mikitchn extends Model
     protected $fillable = [
         'user_id','name', 'address', 'no_of_seats', 'timings', 'phone','images','dine_in','take_away','description','latitude','longitude'
     ];
-// ,'is_favourited'
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
@@ -29,7 +29,7 @@ class Mikitchn extends Model
      */
     public function reviews()
     {
-        return $this->hasMany('App\Models\Review')->where('by_user','customer');
+        return $this->hasMany(Review::class)->where('by_user', 'customer');
     }
 
     public function getIsAvailableAttribute()
@@ -48,14 +48,24 @@ class Mikitchn extends Model
             });
         }
 
-        return ! $this->orders()
-            ->whereDate('delivery_date', '>=', today()->toDateString())
-            ->where('status', 3)
-            ->exists();
+        static $busyKitchenLookup = null;
+        if ($busyKitchenLookup === null) {
+            $busyKitchenLookup = array_flip(
+                Order::query()
+                    ->whereDate('delivery_date', '>=', today()->toDateString())
+                    ->where('status', 3)
+                    ->distinct()
+                    ->pluck('mikitchn_id')
+                    ->map(fn ($id): int => (int) $id)
+                    ->all()
+            );
+        }
+
+        return ! isset($busyKitchenLookup[(int) $this->id]);
     }
 
     public function certificate(){
-        return $this->hasOne('App\Models\Certificate');
+        return $this->hasOne(Certificate::class);
     }
 
     public function getCertificateNoAttribute()
@@ -76,7 +86,7 @@ class Mikitchn extends Model
 
     public function addedimage()
     {
-        return $this->hasMany('App\Models\Image','ref_id')->where('model_name','mikitchns');
+        return $this->hasMany(Image::class, 'ref_id')->where('model_name', 'mikitchns');
     }
 
     public function getImagesAttribute()
@@ -86,12 +96,16 @@ class Mikitchn extends Model
 
     public function getRatingCountAttribute()
     {
-        return $this->reviews->avg('rating');
+        if (array_key_exists('reviews_avg_rating', $this->attributes)) {
+            return $this->attributes['reviews_avg_rating'];
+        }
+
+        return $this->reviews()->avg('rating');
     }
 
     public function foods()
     {
-        return $this->hasMany('App\Models\Foods','restaurant_id');
+        return $this->hasMany(Foods::class, 'restaurant_id');
     }
 
     /**
@@ -99,23 +113,32 @@ class Mikitchn extends Model
      */
     public function user()
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 
-    // public function hasUserFavourited()
-    // {
-    //     return Auth::guard('api')->user()->hasFavorited($this);
-    // }
     public function getIsFavouritedAttribute(){
         if (array_key_exists('is_favourited', $this->attributes)) {
             return (bool) $this->attributes['is_favourited'];
         }
 
-        if (! Auth::guard('api')->check()) {
+        $guard = Auth::guard('api');
+        if (! $guard->check()) {
             return false;
         }
 
-        return Auth::guard('api')->user()->hasFavorited($this);
+        $userId = (int) $guard->id();
+        static $favoriteLookupByUser = [];
+        if (! array_key_exists($userId, $favoriteLookupByUser)) {
+            $favoriteLookupByUser[$userId] = array_flip(
+                $guard->user()
+                    ->getFavoriteItems(self::class)
+                    ->pluck('id')
+                    ->map(fn ($id): int => (int) $id)
+                    ->all()
+            );
+        }
+
+        return isset($favoriteLookupByUser[$userId][(int) $this->id]);
     }
     
     public static function closest($lat, $lng, $units = 'kilometers')
@@ -151,33 +174,14 @@ class Mikitchn extends Model
             $lat
         );
         return $distance_select;
-        // return (new static)::selectraw($distance_select)
-            // ->having( 'distance', '<', $max_distance );
-            // ->take( $max_locations )
-            // ->orderBy( 'distance', 'ASC' );
-            // ->get();
-    }
-
-    public static function haversine($lat, $lng)
-    {
-        if (! is_numeric($lat) || ! is_numeric($lng)) {
-            throw new \InvalidArgumentException('Latitude and longitude must be numeric.');
-        }
-
-        return sprintf(
-            '(6371 * acos(cos(radians(%F)) * cos(radians(`latitude`)) * cos(radians(`longitude`) - radians(%F)) + sin(radians(%F)) * sin(radians(`latitude`)))) AS distance',
-            (float) $lat,
-            (float) $lng,
-            (float) $lat
-        );
     }
 
     public function orders(){
-        return $this->hasMany('App\Models\Order');
+        return $this->hasMany(Order::class);
     }
 
     public function weektimings(){
-        return $this->hasMany('App\Models\Timing');
+        return $this->hasMany(Timing::class);
     }
 
     public function delete() {

@@ -228,7 +228,6 @@
     UserController.php handles: authentication, OTP, registration, profile update, password change, role switching, Stripe customer/vendor provisioning, bank account management, onboarding, notifications, and card management. Every new payment or auth concern ends up here.
     **2. Controller-injecting-Controller anti-pattern**  
     `UserController` constructor injects `V2AccountController` and `V2PaymentsController` and then delegates to them:
-    
     Six methods in `UserController` are pure pass-throughs to V2 controllers. Controller-to-controller coupling should be resolved by pushing shared logic down into services, not by injecting controllers into other controllers.
     **3. `mikitchn/store` and `mikitchn/editkitchen` share one method**  
     Both routes api.php:88-89 point to `MikitchnController@store`, which branches internally. Similarly `food/add` and `food/editfood` both hit `FoodsController@store`. These should be separate Create/Update methods. The internal branching (`if ($existFood && !empty($request->food_id))`) makes validation and intent ambiguous.
@@ -243,11 +242,9 @@
     
     **7. N+1 on `getIsAvailableAttribute` in `Mikitchn`**  
     Mikitchn.php:35-41:
-    
     This fires a `COUNT` query per kitchen in a list. Any list endpoint that accesses `is_available` on a collection triggers N+1.
     **8. N+1 on `getIsFavouritedAttribute` in `Mikitchn`**  
     Mikitchn.php:90-92:
-    
     One query per kitchen per user per list — pure N+1. `DiscoveryService::annotateFavorites()` exists specifically to batch this, but the attribute still exists and will fire if called outside that path.
     **9. `getRatingCountAttribute` loads all reviews into memory**  
     Mikitchn.php:76-79 calls `$this->reviews->avg('rating')`, which hydrates all `Review` models for the kitchen, then computes the average in PHP. The discovery queries already use `withAvg('reviews', 'rating')` for this, but if this accessor triggers elsewhere it's a silent memory hog.
@@ -260,12 +257,10 @@
     **13. `completedOrderCountForUser` in `OrderService` is a scalar query inside a transaction**  
     OrderService.php:16-18 runs a separate `COUNT` query to determine discount eligibility, inside the order creation transaction, without any locking. A user placing concurrent orders could get the discount applied multiple times.
     
-     
-    
     ### 🔴 Security Issues
     
     **14. Password validation missing on `register`**  
-    UserController.php:329-335: `'password' => 'required'` only. The `login()` method enforces `min:8` but registration does not. A user can register with a 1-character password. **implement a simple and easy password validation i.e. 6 char long only with all caps, all small etc.** make sure data seeding script creating initial users is also updated to match the password policy IF required. 
+    UserController.php:329-335: `'password' => 'required'` only. The `login()` method enforces `min:8` but registration does not. A user can register with a 1-character password. implement a simple and easy password validation i.e. 6 char long only with all caps, all small etc.
     **15. OTP verification dual-path is fragile**  
     UserController.php:470:
     
@@ -279,37 +274,15 @@
     **19. `completedOnBoarding` has no role guard**  
     Any authenticated user (customer) can call `/v2/mikitchn/editkitchen`-adjacent paths and trigger `completedOnBoarding`. It only fails gracefully because `Auth::user()->restaurant` returns null for non-cooks, but the endpoint has no explicit middleware role check.
     
-     
+    
     
     ### 🟡 Code Quality Issues
     
-    **20. Typo: `myUpcomingOrderss`**  
-    OrderController.php:38 — method is named with double-s. The route and mobile client both call this, so changing it requires coordinated updates.
-    **21. `public $data = []` mutable instance property**  
-    Both `OrderController` and `MikitchnController` declare `public $data = []`. This property is mutated across method calls and read back at the end. Between `myUpcomingOrderss` and `myRequestedOrders`, the same instance property could carry data between requests if the container ever reused the controller (it doesn't in practice, but it's poor hygiene and makes reasoning harder).
-    **22. Hardcoded discount rules and amounts**  
-    `OrderService` has `if ($this->completedOrderCountForUser($user->id) < 5)` and `$order->discounted_amount = 50` — magic numbers with no config, feature flag, or admin control. The GST rate `10` is also hardcoded in at least two places (`checkDiscountedUser`, `DiscoveryController::show`).
-    **23. Both `closest()` and `haversine()` on `Mikitchn` model**  
-    Mikitchn.php:96-155 has two static methods that compute the exact same great-circle distance using the same formula. `haversine()` appears to be unused dead code.
-    **24. String-based relationship references**  
-    Models use `$this->hasMany('App\Models\Review')` instead of `Review::class`. Old-style class strings bypass IDE analysis and refactoring tools, and miss typos at parse time.
-    **25. `Order` model has no `$fillable` or `$guarded`**  
-    Order.php defines no mass-assignment protection. Any attribute can be mass-assigned via `Order::create($untrustedInput)`.
-    **26. Extensive commented-out dead code throughout**  
-    `OrderController`, `MikitchnController`, `UserController`, and models contain large blocks of commented-out code including `echo "<pre>"; print_r(); die();` debug statements, old routing comments, and entire alternative implementations. This clutters every code review.
-    **27. Inconsistent HTTP response format**  
-    Some responses use `$this->responser()`, some use `response()->json($return, $return['status'])` with the status code embedded in the payload AND as the HTTP status, some use `response()->json([...], 405)`. There is no single enforced response contract.
-    **28. `login()` manually builds response array with `$return['status']` used as HTTP code**  
-    UserController.php:215-222: `return response()->json($return, $return['status'])`. If the payload's `status` key ever diverges from the intended HTTP code (e.g., a 200 vs 201 ambiguity), it silently sends the wrong code.
-    **29. Float arithmetic for money**  
-    `OrderService` uses `round((float) $food->price * (int) $item['quantity'], 2)` etc. PHP floats cannot represent all decimal values exactly. A proper implementation uses integer cents throughout.
-    **30. Two duplicate migration files with the same timestamp**  
-    The migrations directory has both 2026_02_28_000015_add_active_window_to_promo_codes_table.php and 2026_02_28_000015_create_admin_action_logs_table.php with identical timestamps. Similarly for `_000016`. Duplicate timestamps can cause non-deterministic migration order.
     
-     
     
-    MOBILE APP
-    --------------------
+    
+    
+    ## MOBILE APP
     
     ### 🔴 Architecture / Design Problems
     
@@ -317,8 +290,7 @@
     home_cubit.dart:38-39:
     
     On first load, and whenever the user hasn't entered coordinates, all discovery requests are centred on a hardcoded Indian city. Irrelevant for any non-Indian user and reveals the origin geography of the app.
-    **32. No real GPS integration — users type coordinates manually**  
-    home_cubit.dart:100-115 and home_page.dart: location is a text field accepting `"latitude, longitude"`. There is no call to `geolocator` or any platform location API. Users literally have to know and type their GPS coordinates.
+    
     **33. `BookingRepository._accessToken()` is synchronous with no storage fallback**  
     bookings_repository.dart:17-21:
     
@@ -340,7 +312,7 @@
     **40. `UserRepository.user` is a public mutable field**  
     Other repositories access `userRepository?.user` directly (bookings_repository.dart:18, cook_repository.dart:22). This bypasses the repository abstraction — callers depend on in-memory state being freshly populated, with no guarantee.
     
-     
+    
     
     ### 🔴 API Contract Issues
     
@@ -359,12 +331,10 @@
     
     Two separate non-RESTful POST endpoints for what should be `POST /foods` and `PUT /foods/{id}`.
     
-     
+    
     
     ### 🟡 UX / State Management Issues
     
-    **44. Five separate `FormzStatus` loading states in `HomeState`**  
-    home_state.dart: `status`, `statusApi`, `statusTopRes`, `statusCooking`, `statusRecommRes`. Any new feed requires adding another field to state, the copyWith, and the props list.
     **45. Empty carousel auto-plays**  
     home_page.dart:86-101: `CarouselSlider` is always rendered with `autoPlay: true`. When the restaurant list is empty (on failure or empty data), the carousel still ticks at 3-second intervals — polling UI that renders nothing.
     **46. All API errors show "Something went wrong..."**  
@@ -373,3 +343,5 @@
     No `dio` interceptor retry, no `hive`/`drift` local store, no cached state between sessions. Every cold start fires three separate network requests to the backend before showing anything. If any fails (poor signal), the section shows empty with a generic error.
     **48. `HomeState` cannot reset individual status fields**  
     `HomeState.copyWith` uses `?? this.field` null-coalescing, meaning you can never explicitly clear a field back to `null` using `copyWith`. To reset `nearByRestaurants` to null you'd need to reconstruct the state object manually.
+
+

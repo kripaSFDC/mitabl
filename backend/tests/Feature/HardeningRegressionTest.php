@@ -94,7 +94,7 @@ class HardeningRegressionTest extends TestCase
                 'crm_comm_logs_status_channel_idx',
                 'support_tickets_status_resolution_due_idx',
             ],
-            '2026_02_28_000016_create_templates_table.php' => [
+            '2026_02_28_000022_create_templates_table.php' => [
                 "Schema::create('templates'",
                 "->unique(['name', 'version'])",
                 'templates_name_active_idx',

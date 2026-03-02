@@ -24,7 +24,7 @@ trait HandlesUserAuthentication
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:6',
         ]);
         if ($validator->fails()) {
             return $this->responser([], $validator->errors()->first(), 422);
@@ -100,20 +100,15 @@ trait HandlesUserAuthentication
                 'role_id' => $user->role_id,
             ];
 
-            if ($user->role_id == 2) {
-                $uData['is_kitchen_added'] = Mikitchn::where('user_id', $user->id)->exists() ? 1 : 0;
+            if ((int) $user->role_id === 2) {
+                $uData['is_kitchen_added'] = $this->resolveKitchenAddedFlag($user);
             }
 
-            return response()->json([
-                'status' => 200,
-                'isSuccess' => true,
-                'message' => '',
-                'data' => [
-                    'access_token' => $token,
-                    'token_type' => 'bearer',
-                    'user' => $uData,
-                ],
-            ], 200);
+            return $this->responser([
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'user' => $uData,
+            ], '');
         }
 
         $responseOtp = $this->sendOtp($user->id, $user->email);
@@ -129,8 +124,8 @@ trait HandlesUserAuthentication
             'is_email_verfied' => 0,
         ];
 
-        if ($user->role_id == 2) {
-            $uData['is_kitchen_added'] = Mikitchn::where('user_id', $user->id)->exists() ? 1 : 0;
+        if ((int) $user->role_id === 2) {
+            $uData['is_kitchen_added'] = $this->resolveKitchenAddedFlag($user);
         }
 
         return $this->responser(['user' => $uData], $msg);
@@ -142,7 +137,8 @@ trait HandlesUserAuthentication
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:6',
+            'password_confirmation' => 'nullable|string|same:password',
             'role_id' => 'nullable|integer|in:2,3',
             'phone' => 'required|numeric',
         ]);
@@ -181,12 +177,7 @@ trait HandlesUserAuthentication
 
         $this->sendOtp($user->id, $user->email);
 
-        return response()->json([
-            'status' => 200,
-            'isSuccess' => true,
-            'message' => 'Registered Successfully.',
-            'data' => $userData,
-        ], 200);
+        return $this->responser($userData, 'Registered Successfully.');
     }
 
     public function resendOtp(Request $request)
@@ -237,7 +228,7 @@ trait HandlesUserAuthentication
         $response = DB::transaction(function () use ($request, &$verifiedUserId) {
             $otpRecord = verifyOtp::where('user_id', (int) $request->id)->lockForUpdate()->first();
             if (! $otpRecord) {
-                return response()->json(['status' => 401, 'isSuccess' => false, 'isError' => 'Invalid Otp.', 'data' => []], 401);
+                return $this->responser([], 'Invalid Otp.', 401);
             }
 
             if ($otpRecord->locked_until && $otpRecord->locked_until->isFuture()) {
@@ -248,9 +239,8 @@ trait HandlesUserAuthentication
                 return $this->responser([], 'OTP expired. Please request a new code.', 422);
             }
 
-            $storedOtp = (string) $otpRecord->otp;
             $providedOtp = (string) $request->otp;
-            $otpMatched = Hash::check($providedOtp, $storedOtp) || hash_equals($storedOtp, $providedOtp);
+            $otpMatched = $this->otpMatches($otpRecord, $providedOtp);
 
             if (! $otpMatched) {
                 $attempts = ((int) $otpRecord->attempts) + 1;
@@ -263,7 +253,7 @@ trait HandlesUserAuthentication
                 }
                 $otpRecord->save();
 
-                return response()->json(['status' => 401, 'isSuccess' => false, 'isError' => 'Invalid Otp.', 'data' => []], 401);
+                return $this->responser([], 'Invalid Otp.', 401);
             }
 
             $user = User::where('id', (int) $request->id)->lockForUpdate()->first();
@@ -276,12 +266,7 @@ trait HandlesUserAuthentication
             }
 
             if (! in_array((int) $user->role_id, [2, 3], true)) {
-                return response()->json([
-                    'status' => 422,
-                    'isSuccess' => false,
-                    'isError' => 'Unsupported account role for mobile authentication.',
-                    'data' => [],
-                ], 422);
+                return $this->responser([], 'Unsupported account role for mobile authentication.', 422);
             }
 
             if ((bool) $user->suspended) {
@@ -290,19 +275,14 @@ trait HandlesUserAuthentication
 
             $verifiedUserId = (int) $user->id;
 
-            return response()->json([
-                'status' => 200,
-                'isSuccess' => true,
-                'message' => 'OTP Verified',
-                'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email,
-                        'role' => $user->role->role,
-                    ],
+            return $this->responser([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'email' => $user->email,
+                    'role' => $user->role->role,
                 ],
-            ], 200);
+            ], 'OTP Verified');
         });
 
         if ($verifiedUserId === null || $response->getStatusCode() !== 200) {
@@ -339,7 +319,7 @@ trait HandlesUserAuthentication
         $decoded = $response->getData(true);
         $decoded['data']['access_token'] = $accessToken;
 
-        return response()->json($decoded, 200);
+        return $this->responser($decoded['data'] ?? [], (string) ($decoded['message'] ?? ''), 200);
     }
 
     public function logout(Request $request)
@@ -402,7 +382,7 @@ trait HandlesUserAuthentication
             return $this->responser([], (string) $stripeProvisionError, 422);
         }
 
-        $isKitchen = Mikitchn::where('user_id', $user->id)->exists() ? 1 : 0;
+        $isKitchen = $this->resolveKitchenAddedFlag($user);
 
         $data = [
             'access_token' => $accessToken,
@@ -441,22 +421,12 @@ trait HandlesUserAuthentication
 
     private function forbiddenAdminIdentityResponse(): JsonResponse
     {
-        return response()->json([
-            'status' => 403,
-            'isSuccess' => false,
-            'isError' => 'Forbidden. Admin identities must authenticate via the web admin panel.',
-            'data' => [],
-        ], 403);
+        return $this->responser([], 'Forbidden. Admin identities must authenticate via the web admin panel.', 403);
     }
 
     private function suspendedAccountResponse(): JsonResponse
     {
-        return response()->json([
-            'status' => 403,
-            'isSuccess' => false,
-            'isError' => 'Your account is suspended. Please contact support.',
-            'data' => [],
-        ], 403);
+        return $this->responser([], 'Your account is suspended. Please contact support.', 403);
     }
 
     private function ensureStripeAccountForRole(User $user): ?string
@@ -535,5 +505,31 @@ trait HandlesUserAuthentication
         }
 
         return false;
+    }
+
+    private function resolveKitchenAddedFlag(User $user): int
+    {
+        return Mikitchn::query()->where('user_id', $user->id)->exists() ? 1 : 0;
+    }
+
+    private function otpMatches(verifyOtp $otpRecord, string $providedOtp): bool
+    {
+        $storedOtp = (string) $otpRecord->otp;
+        $hashInfo = Hash::info($storedOtp);
+        $isHashed = ($hashInfo['algo'] ?? null) !== null;
+
+        if ($isHashed) {
+            return Hash::check($providedOtp, $storedOtp);
+        }
+
+        if (! hash_equals($storedOtp, $providedOtp)) {
+            return false;
+        }
+
+        // Legacy plaintext OTP support: migrate to hash on successful match.
+        $otpRecord->otp = Hash::make($providedOtp);
+        $otpRecord->save();
+
+        return true;
     }
 }

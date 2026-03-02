@@ -18,7 +18,7 @@ class Foods extends Model
 
     public function addedimage()
     {
-        return $this->hasMany('App\Models\Image','ref_id')->where('model_name','food');
+        return $this->hasMany(Image::class, 'ref_id')->where('model_name', 'food');
     }
 
     public function getAddedImagesAttribute()

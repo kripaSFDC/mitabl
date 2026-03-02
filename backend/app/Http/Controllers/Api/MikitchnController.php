@@ -17,7 +17,6 @@ use Validator,DB,Auth;
 use Storage,File;
 use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
-// use App\Http\Resources\Order\Order as OrderResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 use App\Http\Resources\User\User as UserResource;
 use App\Traits\GoogleAddress;
@@ -26,7 +25,6 @@ use App\Services\KitchenService;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
-use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 
 class MikitchnController extends Controller
 {
@@ -51,29 +49,6 @@ class MikitchnController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-
-
-    public function recommendedRestaurant(Request $request)
-    {
-        return app(V2DiscoveryController::class)->recommended($request);
-
-    }
-
-    public function nearestRestaurant(Request $request)
-    {
-        return app(V2DiscoveryController::class)->nearest($request);
-    }
-
-
-    public function topRatedRestaurant(Request $request)
-    {
-        return app(V2DiscoveryController::class)->topRated($request);
-    }
-
-    public function filterRestaurant(Request $request)
-    {
-        return app(V2DiscoveryController::class)->filtered($request);
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -136,21 +111,46 @@ class MikitchnController extends Controller
     */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $hasKitchen = Mikitchn::query()->where('user_id', $user->id)->exists();
+
+        if ($hasKitchen) {
+            return $this->updateKitchen($request);
+        }
+
+        return $this->createKitchen($request);
+    }
+
+    public function createKitchen(Request $request)
+    {
+        $user = Auth::user();
+        if (Mikitchn::query()->where('user_id', $user->id)->exists()) {
+            return $this->responser([], 'Kitchen already exists. Use editkitchen endpoint.', 409);
+        }
+
+        return $this->saveKitchen($request, false);
+    }
+
+    public function updateKitchen(Request $request)
+    {
+        $user = Auth::user();
+        if (! Mikitchn::query()->where('user_id', $user->id)->exists()) {
+            return $this->responser([], 'Kitchen not found for this user.', 404);
+        }
+
+        return $this->saveKitchen($request, true);
+    }
+
+    private function saveKitchen(Request $request, bool $isUpdate)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'address' => 'required',
             'no_of_seats' => 'required|integer',
             'timings' => 'required|string',
             'phone' => 'required|string',
-            // 'lat' => 'required|numeric|unique:mikitchns,latitude,'.$user->id,
-            // 'lng' => 'required|numeric|unique:mikitchns,longitude,'.$user->id,
         ]
-        // ,[
-        //     'lat.unique'=> 'Address already taken', // custom message
-        //     'lng.unique'=> 'Address already taken'
-        //    ]
        );
-        // |image|mimes:jpg,png,jpeg,gif,svg
         
         if($validator->fails()){
             return $this->responser($this->data,$validator->errors()->first(), 422);
@@ -163,7 +163,6 @@ class MikitchnController extends Controller
             return $this->responser([], 'timings must be valid JSON with a days array.', 422);
         }
 
-        $allowedfileExtension=['jpg','jpeg','png','gif','svg'];
         $files = $delete_files = [];
         if ($request->hasFile('images')) {
             $files = $request->file('images');
@@ -173,15 +172,13 @@ class MikitchnController extends Controller
             $delete_files = explode(',', $request->delete_images);
         }
     
-        $ImgaesKitch = array();
-        
         $user = Auth::user();
         $userExist = User::find($user->id);
         if (!$userExist) {
             return $this->responser([],'Unauthorized user not found.', 401);
         }
         $existKitchen = Mikitchn::where('user_id',$user->id)->first();
-        if (!$existKitchen && !$request->hasFile('images')) {
+        if (! $isUpdate && ! $existKitchen && ! $request->hasFile('images')) {
             return $this->responser([],'Images required.', 422);
         }
 
@@ -234,20 +231,9 @@ class MikitchnController extends Controller
         }
 
         if (!empty($files)) {
-
-            $addedImages = $this->addImages($files,'kitchen','mikitchns',$miKitchen->id);
-            
+            $this->addImages($files,'kitchen','mikitchns',$miKitchen->id);
         }
-
-        $return = [
-            'isSuccess' => true,
-            'status' => 200,
-            'message' => $msg,  
-            'data' => $miKitchen
-        ];
-
-        return response()->json($return, 200);
-
+        return $this->responser($miKitchen, $msg);
     }
 
     private function normalizeTimingDay(string $shortDay): ?string
@@ -262,11 +248,6 @@ class MikitchnController extends Controller
             'Sat' => 'Saturday',
             'Sun' => 'Sunday',
         ][$shortDay] ?? null;
-    }
-
-    public function viewRestaurant(Request $request, $id ) {
-        return app(V2DiscoveryController::class)->show($request, (int) $id);
-
     }
 
     public function getMyMenu(){
@@ -329,12 +310,7 @@ class MikitchnController extends Controller
         $msg = 'Certificate submitted and pending review.';
         $kitchen = Auth::guard('api')->user()->restaurant;
         if (! $kitchen) {
-            return response()->json([
-                'status' => 422,
-                'isSuccess' => false,
-                'isError' => 'Kitchen profile is required before certificate submission.',
-                'data' => [],
-            ], 422);
+            return $this->responser([], 'Kitchen profile is required before certificate submission.', 422);
         }
 
         if ($request->hasFile('certificate_doc')) {
@@ -342,11 +318,6 @@ class MikitchnController extends Controller
             $file = $request->file('certificate_doc');
         }
 
-        // if ($request->has('abn_gst')) {
-
-        //     $abn_gst = $request->file('certificate_doc');
-        // }
-        
         $returnFlSts = $this->uploadImageOrDoc($file,'certificates');
         if ($returnFlSts['success']) {
             $certificate = DB::transaction(function () use ($kitchen, $request, $returnFlSts, $status) {
@@ -378,23 +349,9 @@ class MikitchnController extends Controller
             $this->kitchenService->invalidateDiscoveryCaches();
 
         } else {
-
-            
-
-            return response()->json([
-                'status' => 404,
-                'isSuccess' => false,
-                'isError' => 'File not uploaded please try again.',
-            ],404);
-
+            return $this->responser([], 'File not uploaded please try again.', 404);
         }
-
-        
-
         return $this->responser($certificate,$msg);
-        
-
-        
     }
 
     public function checkCertificate()
