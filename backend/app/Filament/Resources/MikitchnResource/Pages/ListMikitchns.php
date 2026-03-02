@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MikitchnResource\Pages;
 
 use App\Filament\Resources\MikitchnResource;
+use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
 class ListMikitchns extends ListRecords
@@ -11,6 +12,8 @@ class ListMikitchns extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            Actions\CreateAction::make(),
+        ];
     }
 }

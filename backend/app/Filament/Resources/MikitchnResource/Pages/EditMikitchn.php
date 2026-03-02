@@ -16,7 +16,9 @@ class EditMikitchn extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->visible(false),
+            Actions\DeleteAction::make()
+                ->requiresConfirmation()
+                ->visible(fn (): bool => MikitchnResource::canDelete($this->record)),
         ];
     }
 

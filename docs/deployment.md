@@ -42,6 +42,15 @@ Required values for production before first boot:
 `DB_HOST` is internal Docker host in all deployment env templates:
 - `DB_HOST=db`
 
+Admin bootstrap behavior:
+- `local/testing` (`APP_ENV=local` or `testing`):
+  - Seeder creates default admin: `admin@example.com` / `password`
+- `production` (`APP_ENV=production`):
+  - Seeder does not use default admin credentials
+  - Seeder only creates admin when:
+    - `ADMIN_BOOTSTRAP_EMAIL` is set
+    - `ADMIN_BOOTSTRAP_PASSWORD` is set and strong (min 12 chars, upper/lower/digit)
+
 ## 3) Generate production secrets
 
 Generate `APP_KEY` and `JWT_SECRET` directly on host shell (no Docker required).
@@ -90,6 +99,14 @@ Stop:
 docker compose -f deploy/docker-compose.test.windows.yml down
 ```
 
+Windows first-run notes:
+- Ensure `APP_ENV=local` in `deploy/environments/dev/backend-api.env` so admin test users are seeded.
+- For fresh initialization:
+  - `RUN_MIGRATIONS_ON_BOOT=true`
+  - `RUN_SEEDERS_ON_BOOT=true`
+- After first successful boot, set both back to `false`.
+- First boot can take several minutes while all migrations run; during this window `backend` may show `health: starting`.
+
 ## 5) Contabo production deployment
 
 First boot on a fresh database:
@@ -103,6 +120,7 @@ First boot on a fresh database:
 ```bash
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
 ```
+   - Expect several minutes for first migration pass before `backend` becomes healthy.
 3. Login to admin at `http://<server-ip>:8080/admin` using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
 4. After initialization succeeds, set both flags back to `false` and clear:
    - `ADMIN_BOOTSTRAP_PASSWORD=`
@@ -161,9 +179,15 @@ Common fixes:
 - If `backend` starts but worker/scheduler fail, validate `APP_KEY` and `JWT_SECRET` in `deploy/environments/prod/backend-api.env`.
 - If DB auth fails, verify `DB_ROOT_PASSWORD` is exported in the shell used to run compose.
 - If admin login fails in production on first boot, verify `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` were set while `RUN_SEEDERS_ON_BOOT=true`.
+- If admin login fails in Windows test, verify `APP_ENV=local` and reseed:
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml exec backend php artisan db:seed --force
+```
 - Keep `RUN_MIGRATIONS_ON_BOOT=false` and `RUN_SEEDERS_ON_BOOT=false` after initial bootstrap.
 - If local/test DB login fails after config changes, reset volumes and recreate:
 ```bash
 docker compose -f deploy/docker-compose.test.windows.yml down -v
 docker compose -f deploy/docker-compose.test.windows.yml up --build -d
 ```
+- If browser shows `419` on admin login after container restarts, hard refresh the page and retry sign-in (session/CSRF cookie refresh).
+- If browser shows `ERR_NAME_NOT_RESOLVED` for logo/background during login, this is non-blocking static asset DNS behavior; authentication itself is unaffected.

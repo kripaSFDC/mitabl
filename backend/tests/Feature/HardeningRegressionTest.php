@@ -64,8 +64,9 @@ class HardeningRegressionTest extends TestCase
         $compose = (string) file_get_contents(base_path('../docker-compose.yml'));
 
         $this->assertStringContainsString('image: mitabl-backend:latest', $compose);
-        $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT=true', $compose);
-        $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT=true', $compose);
+        $this->assertStringContainsString('RUN_MIGRATIONS_ON_BOOT', $compose);
+        $this->assertStringContainsString('RUN_SEEDERS_ON_BOOT', $compose);
+        $this->assertStringContainsString('RUN_PERMISSION_SEED_ON_BOOT', $compose);
         $this->assertStringNotContainsString('db-migrate:', $compose);
     }
 

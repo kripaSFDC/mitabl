@@ -50,7 +50,7 @@
     @php
         $metrics = [
             [
-                'label'  => 'Queue Depth',
+                'label'  => 'Queue depth',
                 'value'  => $pendingCount,
                 'sub'    => 'pending jobs',
                 'color'  => $pendingCount > 100 ? 'red' : ($pendingCount > 20 ? 'yellow' : 'emerald'),

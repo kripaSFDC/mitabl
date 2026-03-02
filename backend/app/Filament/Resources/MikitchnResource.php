@@ -443,6 +443,9 @@ class MikitchnResource extends Resource
                     ->modalWidth('4xl'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => static::canEditKitchens()),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn (): bool => static::canDeleteKitchens()),
             ])
             ->defaultSort('id', 'desc');
     }
@@ -463,7 +466,7 @@ class MikitchnResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false;
+        return static::canCreateKitchens();
     }
 
     public static function canEdit($record): bool
@@ -473,7 +476,7 @@ class MikitchnResource extends Resource
 
     public static function canDelete($record): bool
     {
-        return false;
+        return static::canDeleteKitchens();
     }
 
     private static function canViewKitchens(): bool
@@ -484,6 +487,16 @@ class MikitchnResource extends Resource
     private static function canEditKitchens(): bool
     {
         return (bool) Filament::auth()->user()?->can('kitchens.edit');
+    }
+
+    private static function canCreateKitchens(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('kitchens.create');
+    }
+
+    private static function canDeleteKitchens(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('kitchens.delete');
     }
 
     private static function hasValidKitchenLocation(Mikitchn $record): bool
@@ -507,4 +520,3 @@ class MikitchnResource extends Resource
         return true;
     }
 }
-

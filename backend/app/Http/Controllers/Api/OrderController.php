@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Order\Order as OrderResource;
 use App\Models\CompletedOrder;
 use App\Models\Order;
+use App\Models\PromoCode;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use Carbon\Carbon;
@@ -205,6 +206,7 @@ class OrderController extends Controller
             'take_away' => ['required', 'integer', Rule::in([0, 1])],
             'persons' => ['nullable', 'integer', 'min:1'],
             'item_data' => ['required', 'string'],
+            'promo_code' => ['nullable', 'integer', 'exists:promo_codes,id'],
         ]);
 
         if ($validator->fails()) {
@@ -213,6 +215,21 @@ class OrderController extends Controller
 
         if ((int) $request->input('dine_in') === 1 && ! $request->filled('persons')) {
             return $this->responser([], 'persons is required for dine-in orders.', 422);
+        }
+
+        if ($request->filled('promo_code')) {
+            $promoCode = PromoCode::query()
+                ->where('id', (int) $request->input('promo_code'))
+                ->where('status', 1)
+                ->first();
+
+            $invalidWindow = $promoCode
+                && (($promoCode->starts_at && now()->lt($promoCode->starts_at))
+                || ($promoCode->ends_at && now()->gt($promoCode->ends_at)));
+
+            if (! $promoCode || $invalidWindow) {
+                return $this->responser([], 'Promo code is invalid, inactive, or expired', 422);
+            }
         }
 
         $user = Auth::guard('api')->user();

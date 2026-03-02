@@ -53,28 +53,48 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('email')
                             ->email()
                             ->required()
+                            ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->disabled()
+                            ->disabled(fn (string $operation): bool => $operation === 'edit')
                             ->helperText('Email address is locked after registration.')
                             ->columnSpan(2),
                         Forms\Components\TextInput::make('phone')
-                            ->tel()
+                            ->required()
+                            ->rule('regex:/^[0-9]{7,15}$/')
                             ->maxLength(255)
-                            ->placeholder('+61 4xx xxx xxx')
+                            ->placeholder('61400111222')
+                            ->helperText('Digits only, 7-15 characters.')
                             ->columnSpan(1),
                         Forms\Components\TextInput::make('address')
                             ->maxLength(255)
                             ->columnSpan(1),
                         Forms\Components\Select::make('role_id')
-                            ->relationship('role', 'role')
+                            ->options([
+                                1 => 'Admin',
+                                2 => 'Micook',
+                                3 => 'Mifoodie',
+                            ])
                             ->required()
-                            ->disabled()
-                            ->helperText('Role is managed via the Roles & Permissions panel.')
+                            ->helperText('Choose the user role for this account.')
                             ->columnSpan(1),
                         Forms\Components\Toggle::make('email_verified')
                             ->label('Email Verified')
                             ->disabled()
                             ->helperText('Verified by OTP at registration.')
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->minLength(8)
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('password_confirmation')
+                            ->password()
+                            ->revealable(false)
+                            ->same('password')
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->dehydrated(false)
                             ->columnSpan(1),
                     ])
                     ->columns(2),
@@ -421,7 +441,7 @@ class UserResource extends Resource
                     ->label('Soft Delete')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
-                    ->visible(fn (User $record): bool => ! $record->trashed() && static::canEditUsers())
+                    ->visible(fn (User $record): bool => ! $record->trashed() && static::canDeleteUsers())
                     ->form([
                         Forms\Components\Textarea::make('reason')
                             ->label('Deletion reason')
@@ -501,7 +521,7 @@ class UserResource extends Resource
                     ->label('Restore')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success')
-                    ->visible(fn (User $record): bool => $record->trashed() && static::canEditUsers())
+                    ->visible(fn (User $record): bool => $record->trashed() && static::canDeleteUsers())
                     ->form([
                         Forms\Components\Textarea::make('reason')
                             ->label('Restore reason')
@@ -599,7 +619,7 @@ class UserResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false;
+        return static::canCreateUsers();
     }
 
     public static function canEdit($record): bool
@@ -613,7 +633,7 @@ class UserResource extends Resource
 
     public static function canDelete($record): bool
     {
-        return false;
+        return static::canDeleteUsers();
     }
 
     private static function canViewUsers(): bool
@@ -626,9 +646,19 @@ class UserResource extends Resource
         return (bool) Filament::auth()->user()?->can('users.edit');
     }
 
+    private static function canCreateUsers(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('users.create');
+    }
+
     private static function canSuspend(): bool
     {
         return (bool) Filament::auth()->user()?->can('users.suspend');
+    }
+
+    private static function canDeleteUsers(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('users.delete');
     }
 
     private static function activeSuperAdminCount(): int
@@ -732,4 +762,3 @@ class UserResource extends Resource
         return new HtmlString("<ul>{$items}</ul>");
     }
 }
-

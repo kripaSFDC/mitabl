@@ -83,10 +83,12 @@ class CertificateResource extends Resource
                                 2 => 'Rejected',
                             ])
                             ->required()
-                            ->helperText('Changing to Approved will allow the linked kitchen to be activated.'),
+                            ->disabled(fn (string $operation): bool => $operation === 'edit')
+                            ->helperText('Status transitions on existing certificates must use Approve/Reject actions for audit-safe processing.'),
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Rejection reason')
                             ->rows(3)
+                            ->disabled(fn (string $operation): bool => $operation === 'edit')
                             ->columnSpanFull()
                             ->helperText('Required when rejecting. Emailed to the cook.')
                             ->visible(fn (Forms\Get $get): bool => (int) $get('status') === 2),
@@ -414,6 +416,11 @@ class CertificateResource extends Resource
                             ->success()
                             ->send();
                     }),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (): bool => static::canEditCertificates()),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn (): bool => static::canDeleteCertificates()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('bulk_approve')
@@ -512,17 +519,17 @@ class CertificateResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false;
+        return static::canCreateCertificates();
     }
 
     public static function canEdit($record): bool
     {
-        return false;
+        return static::canEditCertificates();
     }
 
     public static function canDelete($record): bool
     {
-        return false;
+        return static::canDeleteCertificates();
     }
 
     private static function canViewCertificates(): bool
@@ -533,6 +540,21 @@ class CertificateResource extends Resource
     private static function canReview(): bool
     {
         return (bool) Filament::auth()->user()?->can('certificates.review');
+    }
+
+    private static function canCreateCertificates(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('certificates.create');
+    }
+
+    private static function canEditCertificates(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('certificates.edit');
+    }
+
+    private static function canDeleteCertificates(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('certificates.delete');
     }
 
     private static function hasValidCertificateDocument(Certificate $certificate): bool

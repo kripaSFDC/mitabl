@@ -49,6 +49,12 @@ if [ "${RUN_SEEDERS_ON_BOOT:-false}" = "true" ]; then
   php artisan db:seed --force
 fi
 
+# Always seed roles and permissions on every boot (idempotent - uses firstOrCreate/syncPermissions).
+# Set RUN_PERMISSION_SEED_ON_BOOT=false only if you explicitly want to skip this step.
+if [ "${RUN_PERMISSION_SEED_ON_BOOT:-true}" = "true" ]; then
+  php artisan db:seed --class=AdminRolePermissionSeeder --force
+fi
+
 if [ ! -f "public/css/filament/filament/app.css" ] || [ ! -f "public/js/filament/filament/app.js" ]; then
   php artisan filament:assets --ansi
 fi

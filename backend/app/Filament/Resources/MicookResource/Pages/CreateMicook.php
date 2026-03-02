@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
+namespace App\Filament\Resources\MicookResource\Pages;
 
-use App\Filament\Resources\UserResource;
+use App\Filament\Resources\MicookResource;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Hash;
 
-class CreateUser extends CreateRecord
+class CreateMicook extends CreateRecord
 {
-    protected static string $resource = UserResource::class;
+    protected static string $resource = MicookResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['role_id'] = 2;
+
         if (! empty($data['password'])) {
             $data['password'] = Hash::make((string) $data['password']);
         }

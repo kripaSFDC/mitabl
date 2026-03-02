@@ -81,6 +81,7 @@ class SupportTicketResource extends Resource
                             'urgent' => 'Urgent',
                         ])
                         ->default('normal')
+                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Select::make('status')
                         ->helperText('Set to Pending User when waiting on the customer — this pauses internal SLA pressure.')
@@ -91,6 +92,7 @@ class SupportTicketResource extends Resource
                             SupportTicket::STATUS_SPAM => 'Spam',
                         ])
                         ->default(SupportTicket::STATUS_OPEN)
+                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Select::make('category')
                         ->options([
@@ -101,6 +103,7 @@ class SupportTicketResource extends Resource
                             SupportTicket::CATEGORY_OTHER => 'Other',
                         ])
                         ->default(SupportTicket::CATEGORY_GENERAL)
+                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Textarea::make('description')
                         ->rows(5)
@@ -129,6 +132,7 @@ class SupportTicketResource extends Resource
                         ->relationship('assignee', 'name')
                         ->searchable()
                         ->preload()
+                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->helperText('Leave blank to keep in the unassigned queue.'),
                     Forms\Components\TextInput::make('order_id')
                         ->label('Linked order ID')
@@ -740,6 +744,11 @@ class SupportTicketResource extends Resource
                             Notification::make()->title('Split failed: ' . $throwable->getMessage())->danger()->send();
                         }
                     }),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (): bool => static::canEditTickets()),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn (): bool => static::canDeleteTickets()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('assign_to_me_bulk')
@@ -843,12 +852,12 @@ class SupportTicketResource extends Resource
 
     public static function canEdit($record): bool
     {
-        return false;
+        return static::canEditTickets();
     }
 
     public static function canDelete($record): bool
     {
-        return false;
+        return static::canDeleteTickets();
     }
 
     private static function canViewTickets(): bool
@@ -859,6 +868,16 @@ class SupportTicketResource extends Resource
     private static function canAssign(): bool
     {
         return (bool) Filament::auth()->user()?->can('support_tickets.assign');
+    }
+
+    private static function canEditTickets(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('support_tickets.edit');
+    }
+
+    private static function canDeleteTickets(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('support_tickets.delete');
     }
 
     private static function canRespond(): bool

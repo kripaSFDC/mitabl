@@ -1,25 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
+namespace App\Filament\Resources\MifoodieResource\Pages;
 
-use App\Filament\Resources\UserResource;
-use Filament\Actions;
+use App\Filament\Resources\MifoodieResource;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Hash;
 
-class EditUser extends EditRecord
+class EditMifoodie extends EditRecord
 {
-    protected static string $resource = UserResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make()->visible(false),
-        ];
-    }
+    protected static string $resource = MifoodieResource::class;
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $data['role_id'] = 3;
+
         if (! empty($data['password'])) {
             $data['password'] = Hash::make((string) $data['password']);
         } else {

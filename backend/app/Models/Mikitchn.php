@@ -17,7 +17,20 @@ class Mikitchn extends Model
     use HasFactory,Favoriteable;
 
     protected $fillable = [
-        'user_id','name', 'address', 'no_of_seats', 'timings', 'phone','images','dine_in','take_away','description','latitude','longitude'
+        'user_id',
+        'name',
+        'address',
+        'no_of_seats',
+        'timings',
+        'phone',
+        'images',
+        'dine_in',
+        'take_away',
+        'description',
+        'latitude',
+        'longitude',
+        'status',
+        'open',
     ];
     protected $casts = [
         'latitude' => 'float',
