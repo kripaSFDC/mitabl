@@ -1,3 +1,5 @@
+name: mitabl-test-windows
+
 services:
   backend:
     extends:

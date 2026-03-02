@@ -1,3 +1,5 @@
+name: mitabl-prod-contabo
+
 x-backend-base: &backend-base
   build:
     context: ../backend

@@ -42,17 +42,24 @@ Required values for production before first boot:
 
 ## 3) Generate production secrets
 
-Generate `APP_KEY`:
+Generate `APP_KEY` and `JWT_SECRET` directly on host shell (no Docker required).
+
+Bash:
 ```bash
-docker compose -f deploy/docker-compose.prod.contabo.yml run --rm backend php artisan key:generate --show
+APP_KEY="base64:$(openssl rand -base64 32)"
+JWT_SECRET="$(openssl rand -hex 32)"
+printf 'APP_KEY=%s\nJWT_SECRET=%s\n' "$APP_KEY" "$JWT_SECRET"
 ```
 
-Generate `JWT_SECRET`:
-```bash
-docker compose -f deploy/docker-compose.prod.contabo.yml run --rm backend php artisan jwt:secret --show
+PowerShell:
+```powershell
+$appKey = "base64:" + [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+$jwtSecret = -join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Minimum 0 -Maximum 16) })
+Write-Output "APP_KEY=$appKey"
+Write-Output "JWT_SECRET=$jwtSecret"
 ```
 
-Paste both generated values into `deploy/environments/prod/backend-api.env`.
+Paste generated values into `deploy/environments/prod/backend-api.env`.
 
 Set DB root password in shell before `up`:
 ```bash
@@ -141,3 +148,8 @@ Common fixes:
 - If `backend` starts but worker/scheduler fail, validate `APP_KEY` and `JWT_SECRET` in `deploy/environments/prod/backend-api.env`.
 - If DB auth fails, verify `DB_ROOT_PASSWORD` is exported in the shell used to run compose.
 - Keep `RUN_MIGRATIONS_ON_BOOT=false` and `RUN_SEEDERS_ON_BOOT=false` after initial bootstrap.
+- If local/test DB login fails after config changes, reset volumes and recreate:
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml down -v
+docker compose -f deploy/docker-compose.test.windows.yml up --build -d
+```
