@@ -17,22 +17,32 @@ import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(
-      {required UserRepository userRepository,
-      HomeRepository? homeRepository,
-      CookRepository? cookRepository})
-      : userRepository = userRepository,
-        _homeRepository = homeRepository ?? HomeRepository(),
-        _cookRepository = cookRepository ?? CookRepository(userRepository),
+  HomeCubit({
+    required UserRepository userRepository,
+    HomeRepository? homeRepository,
+    CookRepository? cookRepository,
+  })  : userRepository = userRepository,
+        _homeRepository = homeRepository ??
+            HomeRepository(httpClient: userRepository.httpClient),
+        _cookRepository = cookRepository ??
+            CookRepository(
+              userRepository,
+              httpClient: userRepository.httpClient,
+            ),
         _ownsHomeRepository = homeRepository == null,
         _ownsCookRepository = cookRepository == null,
         super(const HomeState()) {
     _fetchHomeFeeds();
   }
+
+  static const _cacheRecommendedPrefix = 'home_feed_recommended_v1';
+  static const _cacheTopRatedPrefix = 'home_feed_top_rated_v1';
+  static const _cacheNearByPrefix = 'home_feed_nearby_v1';
 
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
@@ -41,9 +51,13 @@ class HomeCubit extends Cubit<HomeState> {
   final bool _ownsCookRepository;
   Timer? _filterDebounce;
   int _requestToken = 0;
+  UserModel? _cachedUserModel;
 
   Future<void> _fetchHomeFeeds() async {
-    await userRepository.getUser();
+    _cachedUserModel = await _resolveUserModel();
+    final userId = _cachedUserModel?.data?.user?.id;
+    await _hydrateCachedFeeds(userId: userId);
+
     final coordinates = await _resolveCoordinates();
     final latitude = coordinates?.latitude;
     final longitude = coordinates?.longitude;
@@ -62,6 +76,172 @@ class HomeCubit extends Cubit<HomeState> {
       onTopratedRestaurants(),
       onNearByRestaurants(),
     ]);
+  }
+
+  Future<UserModel?> _resolveUserModel() async {
+    _cachedUserModel ??= userRepository.currentUser ?? await userRepository.getUser();
+    return _cachedUserModel;
+  }
+
+  String _cacheKey(String prefix, int? userId) {
+    if (userId == null) {
+      return '${prefix}_guest';
+    }
+    return '${prefix}_$userId';
+  }
+
+  Future<void> _hydrateCachedFeeds({required int? userId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    var nextState = state;
+    var hasChanges = false;
+
+    final recommendedJson =
+        prefs.getString(_cacheKey(_cacheRecommendedPrefix, userId));
+    if (recommendedJson != null && recommendedJson.isNotEmpty) {
+      try {
+        final recommended =
+            RecommendedRestResponse.fromJson(jsonDecode(recommendedJson));
+        nextState = nextState.copyWith(
+          statusRecommRes: FormzStatus.submissionSuccess,
+          recommendedRestResponse: recommended,
+        );
+        hasChanges = true;
+      } catch (e) {
+        AppLogger.error('Unable to hydrate cached recommended feed', e);
+      }
+    }
+
+    final topRatedJson = prefs.getString(_cacheKey(_cacheTopRatedPrefix, userId));
+    if (topRatedJson != null && topRatedJson.isNotEmpty) {
+      try {
+        final topRated = TopReatedRestResponse.fromJson(jsonDecode(topRatedJson));
+        nextState = nextState.copyWith(
+          statusTopRes: FormzStatus.submissionSuccess,
+          topReatedRestResponse: topRated,
+        );
+        hasChanges = true;
+      } catch (e) {
+        AppLogger.error('Unable to hydrate cached top rated feed', e);
+      }
+    }
+
+    final nearByJson = prefs.getString(_cacheKey(_cacheNearByPrefix, userId));
+    if (nearByJson != null && nearByJson.isNotEmpty) {
+      try {
+        final nearBy = NearByRestaurantsResponse.fromJson(jsonDecode(nearByJson));
+        nextState = nextState.copyWith(
+          statusApi: FormzStatus.submissionSuccess,
+          nearByRestaurants: nearBy,
+        );
+        hasChanges = true;
+      } catch (e) {
+        AppLogger.error('Unable to hydrate cached nearby feed', e);
+      }
+    }
+
+    if (hasChanges) {
+      emit(nextState);
+    }
+  }
+
+  Future<void> _writeCache({
+    required String prefix,
+    required int? userId,
+    required String value,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_cacheKey(prefix, userId), value);
+  }
+
+  Future<Response> _performRequestWithRetry(
+      Future<Response> Function() operation) async {
+    try {
+      final first = await operation();
+      if (first.statusCode >= 500) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        return operation();
+      }
+      return first;
+    } on Exception {
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      return operation();
+    }
+  }
+
+  Future<void> _fetchDiscoveryFeed<T>({
+    required int requestToken,
+    required HomeState Function(HomeState) loadingState,
+    required HomeState Function(HomeState, T data) successState,
+    required HomeState Function(HomeState) failureState,
+    required Future<Response> Function(UserModel? userModel) request,
+    required T Function(String body) decode,
+    required String cacheKey,
+    required String feedName,
+  }) async {
+    emit(loadingState(state));
+
+    try {
+      final userModel = await _resolveUserModel();
+      final response =
+          await _performRequestWithRetry(() => request(userModel));
+
+      if (requestToken != _requestToken) {
+        return;
+      }
+
+      if (response.statusCode == 200) {
+        final data = decode(response.body);
+        emit(successState(state, data));
+        await _writeCache(
+          prefix: cacheKey,
+          userId: userModel?.data?.user?.id,
+          value: response.body,
+        );
+      } else {
+        emit(failureState(state));
+        _showApiError(statusCode: response.statusCode, feedName: feedName);
+      }
+    } on Exception catch (e) {
+      AppLogger.error('Unable to load $feedName feed', e);
+      if (requestToken != _requestToken) {
+        return;
+      }
+      emit(failureState(state));
+      _showApiError(feedName: feedName);
+    }
+  }
+
+  String _messageForStatusCode(int? statusCode) {
+    if (statusCode == null) {
+      return 'Unable to reach server. Check your connection and retry.';
+    }
+    if (statusCode == 401) {
+      return 'Session expired. Please login again.';
+    }
+    if (statusCode == 403) {
+      return 'You do not have permission for this request.';
+    }
+    if (statusCode == 404) {
+      return 'Requested resource was not found.';
+    }
+    if (statusCode == 408) {
+      return 'Request timed out. Please retry.';
+    }
+    if (statusCode == 429) {
+      return 'Too many requests. Please wait and retry.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again shortly.';
+    }
+    return 'Request failed. Please try again.';
+  }
+
+  void _showApiError({int? statusCode, required String feedName}) {
+    AppLogger.error(
+      'Home feed request failed',
+      {'feed': feedName, 'statusCode': statusCode},
+    );
+    Helper.showToast(_messageForStatusCode(statusCode));
   }
 
   Future<Position?> _resolveCoordinates() async {
@@ -176,98 +356,84 @@ class HomeCubit extends Cubit<HomeState> {
               statusCooking: FormzStatus.submissionSuccess,
               cookingStyleList: cookingStyle.data));
         } else {
-          Helper.showToast('Something went wrong...');
+          _showApiError(
+            statusCode: response.statusCode,
+            feedName: 'cooking styles',
+          );
           emit(state.copyWith(statusCooking: FormzStatus.submissionFailure));
         }
       }
     } on Exception catch (e) {
       AppLogger.error('Unable to load cooking styles', e);
       emit(state.copyWith(statusCooking: FormzStatus.submissionFailure));
-      Helper.showToast('Something went wrong...');
+      _showApiError(feedName: 'cooking styles');
     }
   }
 
   Future<void> onRecommendedRestaurants() async {
-    try {
-      emit(state.copyWith(statusRecommRes: FormzStatus.submissionInProgress));
-      final userModel = await userRepository.getUser();
-      final response = await _homeRepository.recommendedRestaurants(
-          data: _buildFilterMap(), userModel: userModel);
-      if (response.statusCode == 200) {
-        final recommendedRestResponse =
-            RecommendedRestResponse.fromJson(jsonDecode(response.body));
-
-        emit(state.copyWith(
-            statusRecommRes: FormzStatus.submissionSuccess,
-            recommendedRestResponse: recommendedRestResponse));
-      } else {
-        Helper.showToast('Something went wrong...');
-        emit(state.copyWith(statusRecommRes: FormzStatus.submissionFailure));
-      }
-    } on Exception catch (e) {
-      AppLogger.error('Unable to load recommended restaurants', e);
-      emit(state.copyWith(statusRecommRes: FormzStatus.submissionFailure));
-      Helper.showToast('Something went wrong...');
-    }
+    final requestToken = _requestToken;
+    await _fetchDiscoveryFeed<RecommendedRestResponse>(
+      requestToken: requestToken,
+      loadingState: (current) =>
+          current.copyWith(statusRecommRes: FormzStatus.submissionInProgress),
+      successState: (current, data) => current.copyWith(
+        statusRecommRes: FormzStatus.submissionSuccess,
+        recommendedRestResponse: data,
+      ),
+      failureState: (current) =>
+          current.copyWith(statusRecommRes: FormzStatus.submissionFailure),
+      request: (userModel) => _homeRepository.recommendedRestaurants(
+        data: _buildFilterMap(),
+        userModel: userModel,
+      ),
+      decode: (body) => RecommendedRestResponse.fromJson(jsonDecode(body)),
+      cacheKey: _cacheRecommendedPrefix,
+      feedName: 'recommended restaurants',
+    );
   }
 
   Future<void> onTopratedRestaurants() async {
     final requestToken = _requestToken;
-    try {
-      emit(state.copyWith(statusTopRes: FormzStatus.submissionInProgress));
-      final UserModel? userModel = await userRepository.getUser();
-
-      final Response response = await _homeRepository.topRatedRestaurants(
-          data: _buildFilterMap(withLocation: true), userModel: userModel);
-      if (requestToken != _requestToken) {
-        return;
-      }
-
-      if (response.statusCode == 200) {
-        final topReatedRestResponse =
-            TopReatedRestResponse.fromJson(jsonDecode(response.body));
-
-        emit(state.copyWith(
-            statusTopRes: FormzStatus.submissionSuccess,
-            topReatedRestResponse: topReatedRestResponse));
-      } else {
-        Helper.showToast('Something went wrong...');
-        emit(state.copyWith(statusTopRes: FormzStatus.submissionFailure));
-      }
-    } on Exception catch (e) {
-      AppLogger.error('Unable to load top rated restaurants', e);
-      emit(state.copyWith(statusTopRes: FormzStatus.submissionFailure));
-      Helper.showToast('Something went wrong...');
-    }
+    await _fetchDiscoveryFeed<TopReatedRestResponse>(
+      requestToken: requestToken,
+      loadingState: (current) =>
+          current.copyWith(statusTopRes: FormzStatus.submissionInProgress),
+      successState: (current, data) => current.copyWith(
+        statusTopRes: FormzStatus.submissionSuccess,
+        topReatedRestResponse: data,
+      ),
+      failureState: (current) =>
+          current.copyWith(statusTopRes: FormzStatus.submissionFailure),
+      request: (userModel) => _homeRepository.topRatedRestaurants(
+        data: _buildFilterMap(withLocation: true),
+        userModel: userModel,
+      ),
+      decode: (body) => TopReatedRestResponse.fromJson(jsonDecode(body)),
+      cacheKey: _cacheTopRatedPrefix,
+      feedName: 'top rated restaurants',
+    );
   }
 
   Future<void> onNearByRestaurants() async {
     final requestToken = _requestToken;
-    try {
-      emit(state.copyWith(statusApi: FormzStatus.submissionInProgress));
-      final UserModel? userModel = await userRepository.getUser();
-
-      final Response response = await _homeRepository.nearByRestaurants(
-          data: _buildFilterMap(withLocation: true), userModel: userModel);
-      if (requestToken != _requestToken) {
-        return;
-      }
-      if (response.statusCode == 200) {
-        final nearByResp =
-            NearByRestaurantsResponse.fromJson(jsonDecode(response.body));
-
-        emit(state.copyWith(
-            statusApi: FormzStatus.submissionSuccess,
-            nearByRestaurants: nearByResp));
-      } else {
-        Helper.showToast('Something went wrong...');
-        emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
-      }
-    } on Exception catch (e) {
-      AppLogger.error('Unable to load near by restaurants', e);
-      emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
-      Helper.showToast('Something went wrong...');
-    }
+    await _fetchDiscoveryFeed<NearByRestaurantsResponse>(
+      requestToken: requestToken,
+      loadingState: (current) =>
+          current.copyWith(statusApi: FormzStatus.submissionInProgress),
+      successState: (current, data) => current.copyWith(
+        statusApi: FormzStatus.submissionSuccess,
+        nearByRestaurants: data,
+      ),
+      failureState: (current) =>
+          current.copyWith(statusApi: FormzStatus.submissionFailure),
+      request: (userModel) => _homeRepository.nearByRestaurants(
+        data: _buildFilterMap(withLocation: true),
+        userModel: userModel,
+      ),
+      decode: (body) => NearByRestaurantsResponse.fromJson(jsonDecode(body)),
+      cacheKey: _cacheNearByPrefix,
+      feedName: 'nearby restaurants',
+    );
   }
 
   void onApplyFilter() {

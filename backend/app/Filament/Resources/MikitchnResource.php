@@ -370,7 +370,7 @@ class MikitchnResource extends Resource
                                     ->implode(PHP_EOL);
                             }),
                     ])
-                    ->columns(1),
+                    ->modalWidth('4xl'),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => static::canEditKitchens()),
             ])

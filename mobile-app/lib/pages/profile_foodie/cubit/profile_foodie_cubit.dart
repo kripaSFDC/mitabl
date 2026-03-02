@@ -140,8 +140,9 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
 
   void doLogout() async {
     try {
+      final userModel = userRepository!.currentUser ?? await userRepository!.getUser();
       Response response = await authenticationRepository!
-          .logOutApi(userModel: userRepository!.user);
+          .logOutApi(userModel: userModel);
 
 
       if (response.statusCode == 200) {

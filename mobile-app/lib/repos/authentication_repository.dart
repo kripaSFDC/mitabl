@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
@@ -9,13 +8,13 @@ import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
+export 'package:mitabl_user/helper/app_navigator.dart' show navigatorKey;
+
 enum AuthenticationStatus {
   unknown,
   authenticated,
   unauthenticated,
 }
-
-final navigatorKey = GlobalKey<NavigatorState>();
 
 class AuthenticationRepository {
   AuthenticationRepository({http.Client? httpClient, UserRepository? userRepository})

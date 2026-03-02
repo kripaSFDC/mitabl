@@ -1,6 +1,8 @@
 part of 'home_cubit.dart';
 
 class HomeState extends Equatable {
+  static const _unset = Object();
+
   const HomeState(
       {this.status = FormzStatus.pure,
       this.statusApi = FormzStatus.pure,
@@ -37,41 +39,53 @@ class HomeState extends Equatable {
   final TopReatedRestResponse? topReatedRestResponse;
   final RecommendedRestResponse? recommendedRestResponse;
 
-  HomeState copyWith(
-      {FormzStatus? status,
-      FormzStatus? statusApi,
-      FormzStatus? statusTopRes,
-      FormzStatus? statusCooking,
-      FormzStatus? statusRecommRes,
-      String? serverMessage,
-      String? locationQuery,
-      double? latitude,
-      double? longitude,
-      double? selectedDistance,
-      CookingStyleData? selectedCookingData,
-      List<CookingStyleData>? cookingStyleList,
-      String? selectDineTake,
-      NearByRestaurantsResponse? nearByRestaurants,
-      RecommendedRestResponse? recommendedRestResponse,
-      TopReatedRestResponse? topReatedRestResponse}) {
+  HomeState copyWith({
+    FormzStatus? status,
+    FormzStatus? statusApi,
+    FormzStatus? statusTopRes,
+    FormzStatus? statusCooking,
+    FormzStatus? statusRecommRes,
+    String? serverMessage,
+    Object? locationQuery = _unset,
+    Object? latitude = _unset,
+    Object? longitude = _unset,
+    double? selectedDistance,
+    Object? selectedCookingData = _unset,
+    List<CookingStyleData>? cookingStyleList,
+    String? selectDineTake,
+    Object? nearByRestaurants = _unset,
+    Object? recommendedRestResponse = _unset,
+    Object? topReatedRestResponse = _unset,
+  }) {
     return HomeState(
         status: status ?? this.status,
-        selectedCookingData: selectedCookingData ?? this.selectedCookingData,
+        selectedCookingData: identical(selectedCookingData, _unset)
+            ? this.selectedCookingData
+            : selectedCookingData as CookingStyleData?,
         selectDineTake: selectDineTake ?? this.selectDineTake,
-        locationQuery: locationQuery ?? this.locationQuery,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
+        locationQuery: identical(locationQuery, _unset)
+            ? this.locationQuery
+            : locationQuery as String?,
+        latitude:
+            identical(latitude, _unset) ? this.latitude : latitude as double?,
+        longitude: identical(longitude, _unset)
+            ? this.longitude
+            : longitude as double?,
         cookingStyleList: cookingStyleList ?? this.cookingStyleList,
         statusTopRes: statusTopRes ?? this.statusTopRes,
         selectedDistance: selectedDistance ?? this.selectedDistance,
         statusRecommRes: statusRecommRes ?? this.statusRecommRes,
         statusApi: statusApi ?? this.statusApi,
         statusCooking: statusCooking ?? this.statusCooking,
-        nearByRestaurants: nearByRestaurants ?? this.nearByRestaurants,
-        recommendedRestResponse:
-            recommendedRestResponse ?? this.recommendedRestResponse,
-        topReatedRestResponse:
-            topReatedRestResponse ?? this.topReatedRestResponse,
+        nearByRestaurants: identical(nearByRestaurants, _unset)
+            ? this.nearByRestaurants
+            : nearByRestaurants as NearByRestaurantsResponse?,
+        recommendedRestResponse: identical(recommendedRestResponse, _unset)
+            ? this.recommendedRestResponse
+            : recommendedRestResponse as RecommendedRestResponse?,
+        topReatedRestResponse: identical(topReatedRestResponse, _unset)
+            ? this.topReatedRestResponse
+            : topReatedRestResponse as TopReatedRestResponse?,
         serverMessage: serverMessage ?? this.serverMessage);
   }
 

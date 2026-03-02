@@ -108,7 +108,7 @@ trait HandlesUserAuthentication
                 'access_token' => $token,
                 'token_type' => 'bearer',
                 'user' => $uData,
-            ], '');
+            ], 'Login successful.');
         }
 
         $responseOtp = $this->sendOtp($user->id, $user->email);

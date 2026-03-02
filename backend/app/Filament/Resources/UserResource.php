@@ -172,7 +172,7 @@ class UserResource extends Resource
                             ->label('Flags / notes')
                             ->content(fn (User $record): HtmlString => static::buildRecentAuditHtml($record)),
                     ])
-                    ->columns(1),
+                    ->modalWidth('4xl'),
                 Action::make('suspend')
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')

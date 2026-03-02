@@ -6,7 +6,7 @@
         }
 
         .fi-simple-main {
-            max-width: 1240px !important;
+            max-width: 1320px !important;
             background: transparent !important;
             box-shadow: none !important;
             padding: 1.5rem !important;
@@ -19,7 +19,7 @@
 
         .mitabl-admin-login {
             display: grid;
-            grid-template-columns: minmax(320px, 1fr) minmax(420px, 560px);
+            grid-template-columns: minmax(340px, 1fr) minmax(520px, 680px);
             border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 16px 40px rgba(0, 34, 56, 0.18);
@@ -77,7 +77,7 @@
         }
 
         .mitabl-admin-login__form {
-            padding: 2.5rem;
+            padding: 2.5rem 2.75rem;
             background: #ffffff;
         }
 
@@ -103,14 +103,14 @@
         }
 
         .mitabl-admin-login .fi-input-wrp {
-            min-height: 2.625rem !important;
+            min-height: 2.375rem !important;
         }
 
         .mitabl-admin-login .fi-input-wrp input {
-            min-height: 2.625rem !important;
+            min-height: 2.375rem !important;
             font-size: 0.95rem !important;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
+            padding-top: 0.375rem !important;
+            padding-bottom: 0.375rem !important;
         }
 
         .mitabl-admin-login .fi-input-wrp:has(input[type='password']),
@@ -119,14 +119,25 @@
         }
 
         .mitabl-admin-login .fi-input-wrp:has(input[type='password']) .fi-input-wrp-suffix,
-        .mitabl-admin-login .fi-input-wrp:has(input[type='password']) [class*='suffix'],
         .mitabl-admin-login .fi-input-wrp:has(input[autocomplete='current-password']) .fi-input-wrp-suffix,
+        .mitabl-admin-login .fi-input-wrp:has(input[type='password']) [class*='suffix'],
         .mitabl-admin-login .fi-input-wrp:has(input[autocomplete='current-password']) [class*='suffix'] {
             position: absolute;
             inset-inline-end: 0.625rem;
             top: 50%;
             transform: translateY(-50%);
             z-index: 10;
+        }
+
+        .mitabl-admin-login .fi-input-wrp .fi-input-wrp-suffix button,
+        .mitabl-admin-login .fi-input-wrp .fi-input-wrp-suffix [role='button'] {
+            width: 1.75rem !important;
+            height: 1.75rem !important;
+            min-width: 1.75rem !important;
+            min-height: 1.75rem !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .mitabl-admin-login .fi-input-wrp:has(input[type='password']) input,
@@ -151,7 +162,10 @@
         }
 
         .mitabl-admin-login .fi-btn[type='submit'] svg,
-        .mitabl-admin-login .fi-btn[type='submit'] .animate-spin {
+        .mitabl-admin-login .fi-btn[type='submit'] .animate-spin,
+        .mitabl-admin-login .fi-btn[type='submit'] .fi-icon,
+        .mitabl-admin-login .fi-btn[type='submit'] [class*='loading'] svg,
+        .mitabl-admin-login .fi-btn[type='submit'] [class*='spinner'] svg {
             width: 1rem !important;
             height: 1rem !important;
         }
@@ -188,7 +202,7 @@
                     Continue with your admin account to manage platform workflows.
                 </p>
             </div>
-            <a class="mitabl-admin-login__hero-link" href="{{ url('/') }}">
+            <a class="mitabl-admin-login__hero-link" href="https://www.mitabl.com" target="_blank" rel="noopener noreferrer">
                 View public website
             </a>
         </section>

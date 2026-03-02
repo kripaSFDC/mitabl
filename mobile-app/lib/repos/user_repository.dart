@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
@@ -9,23 +8,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/user_model.dart';
 
-final navigatorKeyHome = GlobalKey<NavigatorState>();
-
 class UserRepository {
   UserRepository({http.Client? httpClient})
       : _httpClient = httpClient ?? http.Client(),
         _ownsHttpClient = httpClient == null;
 
-  UserModel? user;
+  UserModel? _user;
   final http.Client _httpClient;
   final bool _ownsHttpClient;
   static const _secureStorage = FlutterSecureStorage();
   static const _secureCurrentUserKey = 'current_user_secure';
 
   http.Client get httpClient => _httpClient;
+  UserModel? get currentUser => _user;
 
   Future<String> _accessToken() async {
-    final currentUser = user ?? await getUser();
+    final currentUser = _user ?? await getUser();
     final token = currentUser?.data?.accessToken;
 
     if (token == null || token.isEmpty) {
@@ -36,25 +34,29 @@ class UserRepository {
   }
 
   Future<UserModel?> getUser() async {
+    if (_user != null) {
+      return _user;
+    }
+
     final secureJson = await _secureStorage.read(key: _secureCurrentUserKey);
     if (secureJson != null && secureJson.isNotEmpty) {
       final userMap = jsonDecode(secureJson) as Map<String, dynamic>;
-      user = UserModel.fromJson(userMap);
-      return user;
+      _user = UserModel.fromJson(userMap);
+      return _user;
     }
 
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('current_user')) {
-      return user;
+      return _user;
     }
 
     final legacyJson = prefs.getString('current_user');
     if (legacyJson == null || legacyJson.isEmpty) {
-      return user;
+      return _user;
     }
 
     final userMap = jsonDecode(legacyJson) as Map<String, dynamic>;
-    user = UserModel.fromJson(userMap);
+    _user = UserModel.fromJson(userMap);
 
     // One-time migration from insecure preference storage.
     await _secureStorage.write(
@@ -63,7 +65,7 @@ class UserRepository {
     );
     await prefs.remove('current_user');
 
-    return user;
+    return _user;
   }
 
   Future<void> setCurrentUser(String jsonString) async {
@@ -86,8 +88,8 @@ class UserRepository {
   }
 
   Future<void> updateUserInstance() async {
-    user = null;
-    user = await getUser();
+    _user = null;
+    _user = await getUser();
   }
 
   Future<void> clearuserData() async {
@@ -96,17 +98,17 @@ class UserRepository {
     if (prefs.containsKey('current_user')) {
       await prefs.remove('current_user');
     }
-    user = null;
+    _user = null;
   }
 
   Future<UserModel?> getCurrentUser() async {
-    return user;
+    return _user ?? await getUser();
   }
 
   Future<http.Response> getCookProfile() async {
     try {
       return _httpClient.get(
-        ApiContract.uri('v2/getprofile'),
+        ApiContract.uri('v2/account/profile'),
         headers: {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',
@@ -121,7 +123,7 @@ class UserRepository {
   Future<http.Response> getDashboardData() async {
     try {
       return _httpClient.get(
-        ApiContract.uri('v2/getdashboarddata'),
+        ApiContract.uri('v2/account/dashboard'),
         headers: {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',
@@ -136,7 +138,7 @@ class UserRepository {
   Future<http.Response> getFoodieProfile() async {
     try {
       return _httpClient.get(
-        ApiContract.uri('v2/getcustomerprofile'),
+        ApiContract.uri('v2/account/profile'),
         headers: {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',

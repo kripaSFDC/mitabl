@@ -29,7 +29,6 @@ use Throwable;
 class MikitchnController extends Controller
 {
     use GoogleAddress;
-    public $data=[];
     private DiscoveryService $discoveryService;
     private KitchenService $kitchenService;
     private PaymentService $paymentService;
@@ -153,7 +152,7 @@ class MikitchnController extends Controller
        );
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
         }
         $decodedTimings = json_decode((string) $request->timings);
         $timings = is_object($decodedTimings) && isset($decodedTimings->days) && is_array($decodedTimings->days)
@@ -303,7 +302,7 @@ class MikitchnController extends Controller
         ]);
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
         }
 
         $status = 0;
@@ -356,21 +355,17 @@ class MikitchnController extends Controller
 
     public function checkCertificate()
     {
-        $exists = false;
+        $data = ['exists' => false, 'status' => 0];
         if (!Auth::guard('api')->user()->restaurant) {
-            $this->data['exists'] = $exists;
-            return $this->responser($this->data,'Check kitchen certificate exists.');
+            return $this->responser($data,'Check kitchen certificate exists.');
         }
         $certificate = Auth::guard('api')->user()->restaurant->certificate;
-        $status = 0;
         if ($certificate) {
-            $exists = true;
-            $status = $certificate->status;
+            $data['exists'] = true;
+            $data['status'] = $certificate->status;
         }
-        $this->data['exists'] = $exists;
-        $this->data['status'] = $status;
         
-        return $this->responser($this->data,'Check kitchen certificate exists.');
+        return $this->responser($data,'Check kitchen certificate exists.');
     }
 
     public function getVendorEarnings()
@@ -441,7 +436,7 @@ class MikitchnController extends Controller
         ]);
         
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
         }
         $kitchen = Auth::guard('api')->user()->restaurant;
         $kitchen->open = $request->open;
@@ -450,3 +445,4 @@ class MikitchnController extends Controller
     }
 
 }
+

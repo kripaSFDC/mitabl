@@ -129,38 +129,40 @@ class OrderResource extends Resource
                     ->modalHeading(fn (Order $record): string => 'Order #' . $record->id)
                     ->modalSubmitAction(false)
                     ->form([
-                        Forms\Components\Placeholder::make('kitchen')
-                            ->label('Kitchen')
-                            ->content(fn (Order $record): string => (string) (optional($record->Mikitchn)->name ?? '-')),
-                        Forms\Components\Placeholder::make('customer')
-                            ->label('Customer')
-                            ->content(fn (Order $record): string => (string) (optional($record->user)->email ?? '-')),
-                        Forms\Components\Placeholder::make('status')
-                            ->label('Status')
-                            ->content(fn (Order $record): string => static::formatStatus((int) $record->status)),
-                        Forms\Components\Placeholder::make('delivery_window')
-                            ->label('Delivery Window')
-                            ->content(fn (Order $record): string => (string) $record->delivery_date . ' ' . (string) $record->delivery_time_from . ' - ' . (string) $record->delivery_time_to),
-                        Forms\Components\Placeholder::make('amount')
-                            ->label('Total Amount')
-                            ->content(fn (Order $record): string => '$' . number_format((float) $record->total_price, 2)),
-                        Forms\Components\Placeholder::make('payment_id')
-                            ->label('Payment Intent')
-                            ->content(fn (Order $record): string => (string) (optional($record->payment)->payment_id ?? '-')),
-                        Forms\Components\Placeholder::make('payment_status')
-                            ->label('Payment Status')
-                            ->content(fn (Order $record): string => (string) (optional($record->payment)->status ?? '-')),
-                        Forms\Components\Placeholder::make('refund_percentage')
-                            ->label('Refund %')
-                            ->content(fn (Order $record): string => $record->refund_percentage === null ? '-' : ((int) $record->refund_percentage) . '%'),
-                        Forms\Components\Placeholder::make('cancel_reason')
-                            ->label('Cancel Reason')
-                            ->content(fn (Order $record): string => (string) ($record->cancelreason->comment ?? '-')),
-                        Forms\Components\Placeholder::make('timeline')
-                            ->label('Timeline')
-                            ->content(fn (Order $record): string => static::renderTimeline($record)),
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\Placeholder::make('kitchen')
+                                ->label('Kitchen')
+                                ->content(fn (Order $record): string => (string) (optional($record->Mikitchn)->name ?? '-')),
+                            Forms\Components\Placeholder::make('customer')
+                                ->label('Customer')
+                                ->content(fn (Order $record): string => (string) (optional($record->user)->email ?? '-')),
+                            Forms\Components\Placeholder::make('status')
+                                ->label('Status')
+                                ->content(fn (Order $record): string => static::formatStatus((int) $record->status)),
+                            Forms\Components\Placeholder::make('delivery_window')
+                                ->label('Delivery Window')
+                                ->content(fn (Order $record): string => (string) $record->delivery_date . ' ' . (string) $record->delivery_time_from . ' - ' . (string) $record->delivery_time_to),
+                            Forms\Components\Placeholder::make('amount')
+                                ->label('Total Amount')
+                                ->content(fn (Order $record): string => '$' . number_format((float) $record->total_price, 2)),
+                            Forms\Components\Placeholder::make('payment_id')
+                                ->label('Payment Intent')
+                                ->content(fn (Order $record): string => (string) (optional($record->payment)->payment_id ?? '-')),
+                            Forms\Components\Placeholder::make('payment_status')
+                                ->label('Payment Status')
+                                ->content(fn (Order $record): string => (string) (optional($record->payment)->status ?? '-')),
+                            Forms\Components\Placeholder::make('refund_percentage')
+                                ->label('Refund %')
+                                ->content(fn (Order $record): string => $record->refund_percentage === null ? '-' : ((int) $record->refund_percentage) . '%'),
+                            Forms\Components\Placeholder::make('cancel_reason')
+                                ->label('Cancel Reason')
+                                ->content(fn (Order $record): string => (string) ($record->cancelreason->comment ?? '-')),
+                            Forms\Components\Placeholder::make('timeline')
+                                ->label('Timeline')
+                                ->content(fn (Order $record): string => static::renderTimeline($record)),
+                        ]),
                     ])
-                    ->columns(2),
+                    ->modalWidth('5xl'),
                 Action::make('override_status')
                     ->label('Override Status')
                     ->icon('heroicon-o-pencil-square')

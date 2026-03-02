@@ -121,6 +121,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 	Route::prefix('account')->group(function () {
 		Route::get('profile', [V2AccountController::class, 'show']);
 		Route::put('profile', [V2AccountController::class, 'update']);
+		Route::get('dashboard', [MikitchnController::class, 'getDashboardData'])->middleware('restaurant');
 		Route::post('password/change', [V2AccountController::class, 'changePassword']);
 		Route::post('device-token', [V2AccountController::class, 'updateDeviceToken']);
 		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);

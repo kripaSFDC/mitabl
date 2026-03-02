@@ -109,24 +109,13 @@ jobs:
         working-directory: ./website
     steps:
       - uses: actions/checkout@v4
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/setup-node@v4
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, pdo_sqlite, sqlite3
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
-      - name: Finalize website test environment
-        run: |
-          php artisan key:generate --force
-          mkdir -p database
-          touch database/database.sqlite
-      - name: Run website tests
-        run: php artisan test
-        env:
-          APP_ENV: testing
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build and verify static site
+        run: npm test
 
   mobile-app:
     runs-on: ubuntu-latest

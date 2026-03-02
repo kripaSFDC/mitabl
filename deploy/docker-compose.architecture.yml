@@ -30,7 +30,7 @@ services:
       com.mitabl.service: api
     command: ["sh", "start-server.sh"]
     environment:
-      - RUN_MIGRATIONS_ON_BOOT=true
+      - RUN_MIGRATIONS_ON_BOOT=${RUN_MIGRATIONS_ON_BOOT:-false}
       - RUN_SEEDERS_ON_BOOT=${RUN_SEEDERS_ON_BOOT:-false}
     env_file:
       - ./environments/backend-api.env

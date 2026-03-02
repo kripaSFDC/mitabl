@@ -12,7 +12,6 @@ use Illuminate\Validation\Rule;
 
 class ReviewController extends Controller
 {
-    public $data=[];
 
     public function addReviewToRestaurant(Request $request)
     {
@@ -29,7 +28,7 @@ class ReviewController extends Controller
         ]);
 
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
         $order = Order::query()->find((int) $request->order_id);
@@ -65,13 +64,12 @@ class ReviewController extends Controller
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         $review = Review::where('mikitchn_id', auth()->user()->restaurant->id)->where('by_user','customer')->orderBy('id', 'desc');
-        $this->data['total_count'] = $review->count();
-        // $reviews = auth()->user()->restaurant->reviews();
-        // print_r($review); die();
-        $data = $review->paginate($limit);
-        $this->data['reviews'] = ReviewsResource::collection($data);
+        $data = [
+            'total_count' => $review->count(),
+            'reviews' => ReviewsResource::collection($review->paginate($limit)),
+        ];
 
-        return $this->responser($this->data, 'Kitchen Reviews');
+        return $this->responser($data, 'Kitchen Reviews');
 
     }
 
@@ -81,13 +79,12 @@ class ReviewController extends Controller
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         // $review = Review::where('user_id', auth()->user()->id)->where('by_user','kitchen')->orderBy('id', 'desc');
         $review = Review::where('mikitchn_id', $id)->where('by_user','customer')->orderBy('id', 'desc');
-        $this->data['total_count'] = $review->count();
-        // $reviews = auth()->user()->restaurant->reviews();
-        // print_r($review); die();
-        $data = $review->paginate($limit);
-        $this->data['reviews'] = ReviewsResource::collection($data);
+        $data = [
+            'total_count' => $review->count(),
+            'reviews' => ReviewsResource::collection($review->paginate($limit)),
+        ];
 
-        return $this->responser($this->data, 'Kitchen Reviews');
+        return $this->responser($data, 'Kitchen Reviews');
 
     }
 
@@ -106,7 +103,7 @@ class ReviewController extends Controller
         ]);
 
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
         $restaurant = auth()->user()->restaurant;
@@ -145,3 +142,4 @@ class ReviewController extends Controller
     }
 
 }
+

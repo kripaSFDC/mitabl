@@ -19,7 +19,7 @@ class CookRepository {
     if (repo == null) {
       throw Exception('User repository unavailable.');
     }
-    final currentUser = repo.user ?? await repo.getUser();
+    final currentUser = repo.currentUser ?? await repo.getUser();
     final token = currentUser?.data?.accessToken;
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token unavailable. Please login again.');

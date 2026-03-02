@@ -153,30 +153,32 @@ class CertificateResource extends Resource
                     ->modalHeading(fn (Certificate $record): string => 'Certificate Review: ' . (string) ($record->certificate_no ?: '#'.$record->id))
                     ->modalSubmitAction(false)
                     ->form([
-                        Forms\Components\Placeholder::make('kitchen')
-                            ->label('Kitchen')
-                            ->content(fn (Certificate $record): string => (string) ($record->mikitchn->name ?? '-')),
-                        Forms\Components\Placeholder::make('cook')
-                            ->label('Cook')
-                            ->content(fn (Certificate $record): string => trim($record->first_name . ' ' . $record->last_name)),
-                        Forms\Components\Placeholder::make('abn')
-                            ->label('ABN')
-                            ->content(fn (Certificate $record): string => (string) ($record->abn ?? '-')),
-                        Forms\Components\Placeholder::make('status')
-                            ->label('Current status')
-                            ->content(fn (Certificate $record): string => match ((int) $record->status) {
-                                0 => 'Pending',
-                                1 => 'Approved',
-                                2 => 'Rejected',
-                                default => 'Unknown',
-                            }),
-                        Forms\Components\Placeholder::make('document')
-                            ->label('Document preview')
-                            ->content(fn (Certificate $record): string => $record->certificate_doc
-                                ? 'Open document: ' . (static::resolveDocumentUrl($record->certificate_doc) ?? '-')
-                                : 'No document uploaded'),
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\Placeholder::make('kitchen')
+                                ->label('Kitchen')
+                                ->content(fn (Certificate $record): string => (string) ($record->mikitchn->name ?? '-')),
+                            Forms\Components\Placeholder::make('cook')
+                                ->label('Cook')
+                                ->content(fn (Certificate $record): string => trim($record->first_name . ' ' . $record->last_name)),
+                            Forms\Components\Placeholder::make('abn')
+                                ->label('ABN')
+                                ->content(fn (Certificate $record): string => (string) ($record->abn ?? '-')),
+                            Forms\Components\Placeholder::make('status')
+                                ->label('Current status')
+                                ->content(fn (Certificate $record): string => match ((int) $record->status) {
+                                    0 => 'Pending',
+                                    1 => 'Approved',
+                                    2 => 'Rejected',
+                                    default => 'Unknown',
+                                }),
+                            Forms\Components\Placeholder::make('document')
+                                ->label('Document preview')
+                                ->content(fn (Certificate $record): string => $record->certificate_doc
+                                    ? 'Open document: ' . (static::resolveDocumentUrl($record->certificate_doc) ?? '-')
+                                    : 'No document uploaded'),
+                        ]),
                     ])
-                    ->columns(2),
+                    ->modalWidth('4xl'),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')

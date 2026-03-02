@@ -263,7 +263,6 @@
     UserController.php:329-335: `'password' => 'required'` only. The `login()` method enforces `min:8` but registration does not. A user can register with a 1-character password. implement a simple and easy password validation i.e. 6 char long only with all caps, all small etc.
     **15. OTP verification dual-path is fragile**  
     UserController.php:470:
-    
     If the OTP is stored as a bcrypt hash, `Hash::check` does the right thing and `hash_equals` on BCrypt text would always fail (safe). If it's stored as plaintext, `Hash::check` always returns false and it falls to `hash_equals` (safe but inconsistent). The dual path means you can't tell which mode is active without inspecting the database — a future change to OTP storage can silently break one branch.
     **16. `delete()` returns the deleted user object**  
     UserController.php:815-820 returns `$user` (soft-deleted model) in the response body. This leaks PII (name, email, phone, address, role_id, device_token) via the delete confirmation response.
@@ -274,8 +273,18 @@
     **19. `completedOnBoarding` has no role guard**  
     Any authenticated user (customer) can call `/v2/mikitchn/editkitchen`-adjacent paths and trigger `completedOnBoarding`. It only fails gracefully because `Auth::user()->restaurant` returns null for non-cooks, but the endpoint has no explicit middleware role check.
     
+    #21 — public $data = [] mutable instance propertyStill declared in FoodsController.php:17, OrderController.php:31, ReviewController.php:15, and MikitchnController.php:32. Not a runtime risk in Laravel's per-request lifecycle, but remains a code smell.
     
+    #27 — Inconsistent HTTP response formatThe majority goes through $this->responser(), but login still builds its own array and uses return $this->responser([...], ''); — the success message is an empty string. Minor, but the response contract for login differs from every other endpoint (no status key in successful payload).
     
+    #42 — Mobile still calls legacy v2 aliasesuser_repository.dart still calls v2/getprofile, v2/getcustomerprofile, v2/getdashboarddata — the legacy unversioned aliases living under /v2, not the proper v2/account/profile endpoint. The canonical V2 AccountController routes exist but the mobile client hasn't been migrated to them.
+
+
+
+
+
+
+
     ### 🟡 Code Quality Issues
     
     

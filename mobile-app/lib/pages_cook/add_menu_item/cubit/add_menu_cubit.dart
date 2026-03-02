@@ -103,10 +103,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       });
 
       Map<String, dynamic> map = {};
+      final currentUser =
+          cookRepository!.userRepository!.currentUser ??
+              await cookRepository!.userRepository!.getUser();
       isEdit
           ? map['food_id'] = foodId
           : map['restaurant_id'] =
-              cookRepository!.userRepository!.user!.data!.user!.id;
+              currentUser!.data!.user!.id;
       map['food_name'] = state.itemName!.value;
       map['price'] = state.price!.value;
       map['cookingstyle'] = state.selectedCookingStyle!.id;

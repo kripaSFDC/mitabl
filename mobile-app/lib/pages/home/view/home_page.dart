@@ -82,25 +82,28 @@ class _HomePage extends State<HomePage> {
                   child: state.statusRecommRes!.isSubmissionInProgress
                       ? const Center(
                           child: CupertinoActivityIndicator(color: Colors.grey))
-                      : CarouselSlider(
+                      : (() {
+                          final recommendedItems = state.recommendedRestResponse
+                                  ?.recommendedResturantList ??
+                              const [];
+                          return CarouselSlider(
                           options: CarouselOptions(
                             height: config.AppConfig(context).appHeight(28.0),
                             initialPage: 0,
                             aspectRatio: 2.0,
                             enableInfiniteScroll: true,
-                            autoPlay: true,
+                            autoPlay: recommendedItems.length > 1,
                             autoPlayInterval: const Duration(seconds: 3),
                             autoPlayAnimationDuration:
                                 const Duration(milliseconds: 1000),
                             enlargeCenterPage: true,
                             autoPlayCurve: Curves.fastOutSlowIn,
                           ),
-                          items: (state.recommendedRestResponse
-                                      ?.recommendedResturantList ??
-                                  const [])
+                          items: recommendedItems
                               .map((item) => RecommRestWidget(data: item))
                               .toList(),
-                        ),
+                        );
+                      })(),
                 ),
                 _SectionTitle(title: 'top rated restaurants'),
                 SliverToBoxAdapter(

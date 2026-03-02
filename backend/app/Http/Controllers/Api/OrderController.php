@@ -28,7 +28,6 @@ use Throwable;
 
 class OrderController extends Controller
 {
-    public $data=[];
     private PaymentService $paymentService;
     private OrderService $orderService;
 
@@ -46,9 +45,9 @@ class OrderController extends Controller
         $kitchen = Auth::guard('api')->user()->restaurant;
 
         if (!$kitchen) {
-            $this->data['total_count'] = 0;
-            $this->data['bookings'] = [];
-            return $this->responser($this->data, 'No Upcoming Bookings');
+            $data['total_count'] = 0;
+            $data['bookings'] = [];
+            return $this->responser($data, 'No Upcoming Bookings');
         }
 
         $orders = Order::with($this->orderListResourceRelations())
@@ -65,15 +64,15 @@ class OrderController extends Controller
             
         }
         $orders = $orders->orderBy('id','desc')->paginate($limit);
-        $this->data['total_count'] = $orders->total();
+        $data['total_count'] = $orders->total();
         
-        $this->data['bookings'] = OrderResource::collection($orders);
+        $data['bookings'] = OrderResource::collection($orders);
 
-        if ($this->data['total_count'] == 0) {
-            return $this->responser($this->data,'No Upcoming Bookings');
+        if ($data['total_count'] == 0) {
+            return $this->responser($data,'No Upcoming Bookings');
         }
 
-        return $this->responser($this->data,'Upcoming Bookings');
+        return $this->responser($data,'Upcoming Bookings');
     }
 
     public function myRequestedOrders(Request $request)
@@ -82,19 +81,21 @@ class OrderController extends Controller
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
 
         if (!Auth::guard('api')->user()->restaurant) {
-            $this->data['total_count'] = 0;
-            $this->data['bookings'] = [];
-            return $this->responser($this->data, 'No Requested Orders');
+            $data['total_count'] = 0;
+            $data['bookings'] = [];
+            return $this->responser($data, 'No Requested Orders');
         }
 
 
         $orders = Auth::guard('api')->user()->restaurant->orders()->with($this->orderListResourceRelations())->where('status', 2);
-        $data = $orders->orderBy('id','desc')->paginate($limit)->makeHidden('orderdata');
-        $this->data['total_count'] = $data->total();
+        $ordersPage = $orders->orderBy('id','desc')->paginate($limit);
+        $ordersPage->getCollection()->makeHidden('orderdata');
+        $data = [
+            'total_count' => $ordersPage->total(),
+            'bookings' => OrderResource::collection($ordersPage),
+        ];
 
-        $this->data['bookings'] = OrderResource::collection($data);
-
-        return $this->responser($this->data,'restaurant requested orders.');
+        return $this->responser($data,'restaurant requested orders.');
     }
 
     public function statusUpdate(Request $request)
@@ -185,9 +186,9 @@ class OrderController extends Controller
         $kitchen = Auth::guard('api')->user()->restaurant;
 
         if (!$kitchen) {
-            $this->data['total_count'] = 0;
-            $this->data['bookings'] = [];
-            return $this->responser($this->data, 'No Bookings');
+            $data['total_count'] = 0;
+            $data['bookings'] = [];
+            return $this->responser($data, 'No Bookings');
         }
 
         $statusArry = [
@@ -211,13 +212,13 @@ class OrderController extends Controller
             $orders->whereIn('status',$statusArry);
         }
         $orders = $orders->orderBy('id','desc')->paginate($limit);
-        $this->data['total_count'] = $orders->total();
-        $this->data['bookings'] = OrderResource::collection($orders);
+        $data['total_count'] = $orders->total();
+        $data['bookings'] = OrderResource::collection($orders);
 
-        if ($this->data['total_count'] == 0) {
-            return $this->responser($this->data,'No Bookings');
+        if ($data['total_count'] == 0) {
+            return $this->responser($data,'No Bookings');
         }
-        return $this->responser($this->data,'All Bookings');
+        return $this->responser($data,'All Bookings');
 
     }
 
@@ -236,7 +237,7 @@ class OrderController extends Controller
             ->first();
 
         if (!$promocode) {
-            return $this->responser($this->data,'Promo code is invalid, inactive, or expired.', 422);
+            return $this->responser([],'Promo code is invalid, inactive, or expired.', 422);
         }
 
         return $this->responser($promocode,'Promo code founded.');
@@ -249,10 +250,10 @@ class OrderController extends Controller
         $orders = Auth::guard('api')->user()->orders()->with($this->orderListResourceRelations())->whereNotIn('status', Order::cancelledStatuses());
 
         $orders = $orders->orderBy('id','desc')->paginate($limit);
-        $this->data['total_count'] = $orders->total();
-        $this->data['bookings'] = OrderResource::collection($orders);
+        $data['total_count'] = $orders->total();
+        $data['bookings'] = OrderResource::collection($orders);
 
-        return $this->responser($this->data,'Order List.');
+        return $this->responser($data,'Order List.');
     }
 
     public function getBookedDates(Request $request,$restaurantId)
@@ -287,11 +288,11 @@ class OrderController extends Controller
             ->pluck('bookedDate')
             ->all();
 
-        $this->data = [
+        $data = [
             'weekOff' => $weekOff,
             'bookedDates' => $bookedDates,
         ];
-        return $this->responser($this->data,'booked dates list.');
+        return $this->responser($data,'booked dates list.');
     }
 
     public function checkBookedTimeByDate(Request $request)
@@ -337,8 +338,7 @@ class OrderController extends Controller
             $data['available_seats'] = $TotalSeats;
         }
         
-        $this->data = $data;
-        return $this->responser($this->data,'checked time slot exist.');
+        return $this->responser($data,'checked time slot exist.');
     }
 
 
@@ -566,3 +566,4 @@ class OrderController extends Controller
     }
 
 }
+

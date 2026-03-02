@@ -8,8 +8,8 @@ services:
     expose:
       - "9000"
     environment:
-      - RUN_MIGRATIONS_ON_BOOT=true
-      - RUN_SEEDERS_ON_BOOT=true
+      - RUN_MIGRATIONS_ON_BOOT=${RUN_MIGRATIONS_ON_BOOT:-false}
+      - RUN_SEEDERS_ON_BOOT=${RUN_SEEDERS_ON_BOOT:-false}
       - SESSION_DRIVER=redis
       - CACHE_DRIVER=redis
       - REDIS_CLIENT=phpredis

@@ -14,7 +14,6 @@ use App\Http\Resources\Restaurant\Food as FoodResource;
 
 class FoodsController extends Controller
 {
-    public $data=[];
     /**
      * @OA\Get(
      *      path="/api/v1/restaurant/menu/{resturantId}",
@@ -115,7 +114,7 @@ class FoodsController extends Controller
         ]);
         // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
-            return $this->responser($this->data,$validator->errors()->first(), 422);
+            return $this->responser([],$validator->errors()->first(), 422);
             
         }
 
@@ -171,7 +170,7 @@ class FoodsController extends Controller
 
         } else {
             if (!$request->hasFile('pictures')) {
-                return $this->responser($this->data,'Pictures required.', 422);
+                return $this->responser([],'Pictures required.', 422);
             }
             $foodId = Foods::create([
                 'restaurant_id' => $restaurant->id,
@@ -301,3 +300,4 @@ class FoodsController extends Controller
         return $this->responser([],"Food item not exist.", 404);
     }
 }
+

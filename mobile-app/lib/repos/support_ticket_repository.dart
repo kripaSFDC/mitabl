@@ -22,7 +22,8 @@ class SupportTicketRepository {
   final bool _ownsHttpClient;
 
   Future<String?> _accessTokenOrNull() async {
-    final currentUser = _userRepository.user ?? await _userRepository.getUser();
+    final currentUser =
+        _userRepository.currentUser ?? await _userRepository.getUser();
     final token = currentUser?.data?.accessToken;
 
     if (token == null || token.trim().isEmpty) {

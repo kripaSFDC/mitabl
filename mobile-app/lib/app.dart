@@ -74,7 +74,10 @@ class App extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => AddMenuCubit(
-              CookRepository(userRepository),
+              CookRepository(
+                userRepository,
+                httpClient: userRepository.httpClient,
+              ),
             ),
           ),
         ],
