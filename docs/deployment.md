@@ -36,6 +36,8 @@ Required values for production before first boot:
 - `APP_KEY` (valid Laravel key, format `base64:...`)
 - `JWT_SECRET`
 - `DB_ROOT_PASSWORD` (set in shell environment or `.env` in repo root)
+- `ADMIN_BOOTSTRAP_EMAIL` (only for first prod bootstrap when seeding)
+- `ADMIN_BOOTSTRAP_PASSWORD` (only for first prod bootstrap when seeding)
 
 `DB_HOST` is internal Docker host in all deployment env templates:
 - `DB_HOST=db`
@@ -94,12 +96,18 @@ First boot on a fresh database:
 1. Set in `deploy/environments/prod/backend-api.env`:
    - `RUN_MIGRATIONS_ON_BOOT=true`
    - `RUN_SEEDERS_ON_BOOT=true` (only if seed data is required)
+   - `ADMIN_BOOTSTRAP_EMAIL=<your-admin-email>`
+   - `ADMIN_BOOTSTRAP_PASSWORD=<strong-password>`
+   - Optional: `ADMIN_BOOTSTRAP_NAME=<display-name>`
 2. Start:
 ```bash
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
 ```
-3. After initialization succeeds, set both flags back to `false`.
-4. Apply:
+3. Login to admin at `http://<server-ip>:8080/admin` using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
+4. After initialization succeeds, set both flags back to `false` and clear:
+   - `ADMIN_BOOTSTRAP_PASSWORD=`
+   - (optional) `ADMIN_BOOTSTRAP_EMAIL=`
+5. Apply:
 ```bash
 docker compose -f deploy/docker-compose.prod.contabo.yml up -d
 ```
@@ -124,6 +132,11 @@ curl -fsS http://localhost:8080/health
 docker compose -f deploy/docker-compose.test.windows.yml exec queue-worker php artisan horizon:status
 ```
 
+Windows admin login (after seeding with `APP_ENV=local`):
+- URL: `http://localhost:8080/admin`
+- Seeded super admin: `admin@example.com`
+- Password: `password`
+
 Contabo production:
 ```bash
 docker compose -f deploy/docker-compose.prod.contabo.yml ps
@@ -147,6 +160,7 @@ docker compose -f deploy/docker-compose.prod.contabo.yml logs website
 Common fixes:
 - If `backend` starts but worker/scheduler fail, validate `APP_KEY` and `JWT_SECRET` in `deploy/environments/prod/backend-api.env`.
 - If DB auth fails, verify `DB_ROOT_PASSWORD` is exported in the shell used to run compose.
+- If admin login fails in production on first boot, verify `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` were set while `RUN_SEEDERS_ON_BOOT=true`.
 - Keep `RUN_MIGRATIONS_ON_BOOT=false` and `RUN_SEEDERS_ON_BOOT=false` after initial bootstrap.
 - If local/test DB login fails after config changes, reset volumes and recreate:
 ```bash

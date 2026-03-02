@@ -29,8 +29,7 @@
         .mitabl-admin-login__hero {
             position: relative;
             background:
-                linear-gradient(145deg, rgba(0, 113, 188, 0.94), rgba(0, 90, 149, 0.94)),
-                url('https://mitabl.com/frontend/background.jpg') center/cover no-repeat;
+                linear-gradient(145deg, rgba(0, 113, 188, 0.94), rgba(0, 90, 149, 0.94));
             color: #ffffff;
             padding: 3rem;
             display: flex;
@@ -39,9 +38,12 @@
             min-height: 540px;
         }
 
-        .mitabl-admin-login__brand img {
-            width: 150px;
-            max-width: 100%;
+        .mitabl-admin-login__brand {
+            display: inline-flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
 
         .mitabl-admin-login__title {
@@ -194,7 +196,7 @@
         <section class="mitabl-admin-login__hero">
             <div>
                 <div class="mitabl-admin-login__brand">
-                    <img src="https://mitabl.com/frontend/images/logo.png" alt="mitabl">
+                    mitabl
                 </div>
                 <h2 class="mitabl-admin-login__title">mitabl platform operations</h2>
                 <p class="mitabl-admin-login__copy">
@@ -202,7 +204,7 @@
                     Continue with your admin account to manage platform workflows.
                 </p>
             </div>
-            <a class="mitabl-admin-login__hero-link" href="https://www.mitabl.com" target="_blank" rel="noopener noreferrer">
+            <a class="mitabl-admin-login__hero-link" href="/">
                 View public website
             </a>
         </section>
