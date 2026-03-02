@@ -4,7 +4,7 @@
 
 Total active env variables: **171**.
 
-> Keep `.env.example` (production template) and `.env.text` (test deployment template) in sync with this list.
+> Keep `backend/.env.example` and deployment env templates under `deploy/environments/` in sync with this list.
 
 - `ABLY_KEY`
 - `APP_DEBUG`
@@ -187,7 +187,7 @@ Total active env variables: **171**.
 
 # Secrets Rotation Runbook
 
-This runbook covers operational rotation for platform-level API keys and secrets used by the backend API, queue workers, Filament ops-admin, and website integrations.
+This runbook covers operational rotation for platform-level API keys and secrets used by the backend API, backend-admin surface (`/admin`), and website integrations.
 
 ## Triggers
 

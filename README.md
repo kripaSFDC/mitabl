@@ -55,18 +55,16 @@ mitabl/
 ├── backend/                      # Laravel API + Filament admin + business services
 ├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
 ├── website/                      # Static marketing web frontend (nginx-served)
-├── deploy/                       # Docker manifests (windows test + contabo prod), env templates, nginx/supervisor, load tests
+├── deploy/                       # Docker manifests (windows test + contabo prod), env templates, load tests
 ├── docs/                         # SOPs, validation reports, secrets management docs
 ├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
-└── docker-compose.yml            # Legacy full-stack local orchestration
+└── docker-compose.yml            # Canonical Windows test orchestration
 ```
 
 ### Additional important folders
 
 - `deploy/environments/{dev,staging,prod}`: app-specific environment templates.
 - `deploy/load-tests`: k6 performance scripts for admin list pages.
-- `deploy/nginx`: reverse-proxy configuration.
-- `deploy/supervisor`: queue worker supervision config.
 - `docs/`: CRM playbook, legacy cutover validation, and secret-handling guidance.
 
 ---
@@ -445,3 +443,4 @@ cd mobile-app && flutter test
 - Use `/api/health/live` and `/api/health/ready` for orchestrator probes.
 - Use `deploy/load-tests` scripts for support/admin performance verification.
 - Use CRM runbook docs for response/assignment/escalation SOP alignment.
+

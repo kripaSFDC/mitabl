@@ -1,0 +1,34 @@
+services:
+  backend:
+    extends:
+      file: ../docker-compose.yml
+      service: backend
+
+  queue-worker:
+    extends:
+      file: ../docker-compose.yml
+      service: queue-worker
+
+  scheduler:
+    extends:
+      file: ../docker-compose.yml
+      service: scheduler
+
+  website:
+    extends:
+      file: ../docker-compose.yml
+      service: website
+
+  db:
+    extends:
+      file: ../docker-compose.yml
+      service: db
+
+  redis:
+    extends:
+      file: ../docker-compose.yml
+      service: redis
+
+volumes:
+  db_data:
+  redis_data:

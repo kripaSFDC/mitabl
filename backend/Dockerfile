@@ -20,6 +20,7 @@ RUN apt-get update \
         libonig-dev \
         libzip-dev \
         libicu-dev \
+        nginx \
         unzip \
     && docker-php-ext-install mysqli pdo pdo_mysql mbstring bcmath pcntl zip intl \
     && pecl install redis \
@@ -27,6 +28,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 COPY php.ini /usr/local/etc/php/
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 WORKDIR /app
 COPY --from=vendor /app /app
@@ -43,9 +45,8 @@ RUN printf '%s\n' \
     'realpath_cache_ttl=600' \
     > /usr/local/etc/php/conf.d/zz-performance.ini
 
-EXPOSE 9000
+EXPOSE 8000
 
 RUN php --ini
 
-# TODO serve with Nginx instead
 CMD ["sh","start-server.sh"]

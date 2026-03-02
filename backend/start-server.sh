@@ -34,4 +34,5 @@ fi
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R ug+rw storage bootstrap/cache
 
-exec php-fpm -F
+php-fpm -D
+exec nginx -g "daemon off;"

@@ -1,25 +1,27 @@
-services:
-  marketing-web:
-    build:
-      context: ../website
-      dockerfile: Dockerfile
-    container_name: mitabl-marketing-web
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health >/dev/null 2>&1 || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    restart: unless-stopped
+x-backend-base: &backend-base
+  build:
+    context: ../backend
+    dockerfile: Dockerfile
+  env_file:
+    - ./environments/prod/backend-api.env
+  environment:
+    DB_PASSWORD: ${DB_ROOT_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
 
+services:
   db:
     image: mysql:8.0
     container_name: mitabl-db
     environment:
       MYSQL_DATABASE: mitabl
-      MYSQL_ROOT_PASSWORD: CHANGE_ME_DB_PASSWORD
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-CHANGE_ME_DB_PASSWORD}
+    ports:
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -30,95 +32,78 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  backend-api:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    container_name: mitabl-backend-api
+  backend:
+    <<: *backend-base
+    container_name: mitabl-backend
     command: ["sh", "start-server.sh"]
-    env_file:
-      - ./environments/prod/backend-api.env
-    expose:
-      - "9000"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      default:
-        aliases:
-          - backend
-
-  backend-web:
-    image: nginx:1.27-alpine
-    container_name: mitabl-backend-web
     ports:
       - "8000:8000"
-    volumes:
-      - ../backend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ../backend/public:/app/public:ro
-    depends_on:
-      backend-api:
-        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/health/live >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
-    restart: unless-stopped
-
-  ops-admin:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    container_name: mitabl-ops-admin
-    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8001"]
-    env_file:
-      - ./environments/prod/ops-admin.env
-    ports:
-      - "8001:8001"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/api/health/startup && curl -fsS http://localhost:8001/api/health/live && curl -fsS http://localhost:8001/api/health/ready || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
+      start_period: 20s
 
   queue-worker:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    <<: *backend-base
     container_name: mitabl-queue-worker
     command: ["php", "artisan", "horizon"]
-    env_file:
-      - ./environments/prod/backend-api.env
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - tr '\0' ' ' < /proc/1/cmdline | grep -q "artisan horizon"
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
     depends_on:
+      backend:
+        condition: service_started
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php artisan horizon:status >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  scheduler:
+    <<: *backend-base
+    container_name: mitabl-scheduler
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      backend:
+        condition: service_started
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "tr '\\0' ' ' < /proc/1/cmdline | grep -q \"artisan schedule:work\" || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  website:
+    build:
+      context: ../website
+      dockerfile: Dockerfile
+    container_name: mitabl-website
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   redis:
     image: redis:7.2-alpine
     container_name: mitabl-redis
+    ports:
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:

@@ -6,8 +6,8 @@ Scope: Admin/CRM list page performance validation.
 
 1. k6 installed (`https://k6.io/docs/get-started/installation/`)
 2. Staging environment deployed with:
-   - `ops-admin` reachable
-   - Redis queue workers (Horizon) healthy
+   - `backend` reachable (admin pages served via `/admin`)
+   - Redis reachable
 3. Test-only admin session cookie for Filament pages
 
 ## Scripts
