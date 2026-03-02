@@ -8,13 +8,9 @@ use App\Models\Review;
 use App\Models\Foods;
 use App\Models\Order;
 use App\Models\Timing;
-use App\Models\Image;
-use App\Models\Certificate;
-use App\Models\Partner;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator,DB,Auth;
-use Storage,File;
 use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
@@ -108,18 +104,6 @@ class MikitchnController extends Controller
     *      @OA\Response(response=404, description="Resource Not Found"),
     * )
     */
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-        $hasKitchen = Mikitchn::query()->where('user_id', $user->id)->exists();
-
-        if ($hasKitchen) {
-            return $this->updateKitchen($request);
-        }
-
-        return $this->createKitchen($request);
-    }
-
     public function createKitchen(Request $request)
     {
         $user = Auth::user();
@@ -272,111 +256,35 @@ class MikitchnController extends Controller
 
     public function deleteImage(Request $request)
     {
-        $image = Image::where('id',$request->id)->where('model_name',$request->type)->first();
-        if (!$image) {
-            return $this->responser([],'Image Not found.', 404);
-        }
-        $disk = Storage::disk('my_files');
-        if ($disk->exists((string) $image->path)) {
-            $disk->delete((string) $image->path);
-        } elseif (File::exists((string) $image->path)) {
-            File::delete((string) $image->path);
-        }
-        $image->delete();
-        return $this->responser($image,'Image deleted successfully.');
-        
-    }
-
-
-    public function addCertificate(Request $request)
-    {
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'certificate_no' => 'required',
-            'abn' => 'required',
-            'abn_gst' => 'required',
-            'certificate_doc' => 'required|mimes:jpeg,png,jpg,pdf,webp',
-        ],[
-            'abn_gst.required' => "GST for ABN is required"
+            'id' => 'required|integer',
+            'type' => 'required|string|in:mikitchns,food',
         ]);
-        
-        if($validator->fails()){
-            return $this->responser([],$validator->errors()->first(), 422);
+
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        $status = 0;
-        $msg = 'Certificate submitted and pending review.';
-        $kitchen = Auth::guard('api')->user()->restaurant;
-        if (! $kitchen) {
-            return $this->responser([], 'Kitchen profile is required before certificate submission.', 422);
+        $result = $this->deleteImageById((int) $request->id, (string) $request->type);
+        if (!($result['status'] ?? false)) {
+            $message = (string) ($result['msg'] ?? 'Image Not found.');
+            $status = str_contains(strtolower($message), 'unauthorized') ? 403 : 404;
+            return $this->responser([], $message, $status);
         }
 
-        if ($request->hasFile('certificate_doc')) {
-
-            $file = $request->file('certificate_doc');
-        }
-
-        $returnFlSts = $this->uploadImageOrDoc($file,'certificates');
-        if ($returnFlSts['success']) {
-            $certificate = DB::transaction(function () use ($kitchen, $request, $returnFlSts, $status) {
-                $certificate = Certificate::query()
-                    ->where('mikitchn_id', $kitchen->id)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $certificate) {
-                    $certificate = new Certificate();
-                    $certificate->mikitchn_id = $kitchen->id;
-                }
-
-                $certificate->first_name = $request->first_name;
-                $certificate->last_name = $request->last_name;
-                $certificate->certificate_no = $request->certificate_no;
-                $certificate->certificate_doc = $returnFlSts['path'];
-                $certificate->abn_gst = $request->abn_gst;
-                $certificate->status = $status;
-                $certificate->abn = $request->abn;
-                $certificate->rejection_reason = null;
-                $certificate->reviewed_at = null;
-                $certificate->reviewed_by = null;
-                $certificate->save();
-
-                return $certificate;
-            });
-
-            $this->kitchenService->invalidateDiscoveryCaches();
-
-        } else {
-            return $this->responser([], 'File not uploaded please try again.', 404);
-        }
-        return $this->responser($certificate,$msg);
+        return $this->responser(['id' => (int) $request->id], 'Image deleted successfully.');
     }
 
-    public function checkCertificate()
-    {
-        $data = ['exists' => false, 'status' => 0];
-        if (!Auth::guard('api')->user()->restaurant) {
-            return $this->responser($data,'Check kitchen certificate exists.');
-        }
-        $certificate = Auth::guard('api')->user()->restaurant->certificate;
-        if ($certificate) {
-            $data['exists'] = true;
-            $data['status'] = $certificate->status;
-        }
-        
-        return $this->responser($data,'Check kitchen certificate exists.');
-    }
 
-    public function getVendorEarnings()
+    private function getVendorEarnings()
     {
         $userId = (int) Auth::id();
         return (float) Cache::remember(
             'vendor_earnings_total_' . $userId,
-            now()->addMinutes(5),
+            now()->addMinutes(30),
             function (): float {
                 try {
-                    $transfers = $this->paymentService->getVendorLifetimeAmount(Auth::user(), 10);
+                    $transfers = $this->paymentService->getVendorLifetimeAmount(Auth::user(), 3, 50);
                 } catch (Throwable $throwable) {
                     report($throwable);
                     return 0.0;
@@ -420,28 +328,6 @@ class MikitchnController extends Controller
         $data = ['total_earning'=> $earnings, 'n_bookings' => $allOrders, 'n_upcoming_bookings' => $upcoming];
 
         return $this->responser($data, 'kitchen dashboard data.');
-    }
-
-    public function getPartners(Request $request)
-    {
-        $partners = Partner::all();
-
-        return $this->responser($partners, "All partners");
-    }
-
-    public function updateOpenMikitchen(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'open' => 'required'
-        ]);
-        
-        if($validator->fails()){
-            return $this->responser([],$validator->errors()->first(), 422);
-        }
-        $kitchen = Auth::guard('api')->user()->restaurant;
-        $kitchen->open = $request->open;
-        $kitchen->save();
-        return $this->responser($kitchen, "Open status updated.");
     }
 
 }

@@ -12,7 +12,8 @@ class AuthService
     public function sendOtp(int $userId, string $email): array
     {
         $otp = random_int(100000, 999999);
-        $expiresAt = now()->addMinutes((int) config('auth.passwords.users.expire', 10));
+        $expiresAt = now()->addMinutes((int) config('auth.otp.expire_minutes', 10));
+        $subject = (string) config('auth.otp.subject', 'Testing Application OTP');
 
         $saved = verifyOtp::query()->updateOrCreate(
             ['user_id' => $userId],
@@ -29,7 +30,7 @@ class AuthService
         }
 
         Mail::to($email)->queue(new sendOTP([
-            'subject' => 'Testing Application OTP',
+            'subject' => $subject,
             'otp' => $otp,
         ]));
 

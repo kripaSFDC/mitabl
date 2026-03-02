@@ -126,4 +126,19 @@ return [
 
     'password_timeout' => 10800,
 
+    /*
+    |----------------------------------------------------------------------
+    | OTP Configuration
+    |----------------------------------------------------------------------
+    |
+    | Runtime OTP controls used by mobile authentication flows.
+    |
+    */
+    'otp' => [
+        'expire_minutes' => env('OTP_EXPIRE_MINUTES', 10),
+        'max_attempts' => env('OTP_MAX_ATTEMPTS', 5),
+        'lock_minutes' => env('OTP_LOCK_MINUTES', 15),
+        'subject' => env('OTP_MAIL_SUBJECT', 'Testing Application OTP'),
+    ],
+
 ];

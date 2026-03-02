@@ -1,6 +1,8 @@
 import 'package:global_configuration/global_configuration.dart';
 
 class ApiContract {
+  static const Duration requestTimeout = Duration(seconds: 15);
+
   static Uri uri(String path, {Map<String, dynamic>? queryParameters}) {
     final rawBaseUrl =
         GlobalConfiguration().getValue<String>('api_base_url').trim();

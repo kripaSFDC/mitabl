@@ -93,9 +93,9 @@ $registerLegacyMobileRoutes = function (): void {
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
         Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
         Route::get('getprofile', [UserController::class, 'myProfile']);
-        Route::post('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
+        Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
         Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
-        Route::post('allorders', [OrderController::class, 'allOrders']);
+        Route::get('allorders', [OrderController::class, 'allOrders']);
         Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
         Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);
     });
@@ -133,10 +133,6 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::get('nearest', [V2DiscoveryController::class, 'nearest']);
 		Route::get('top-rated', [V2DiscoveryController::class, 'topRated']);
 		Route::get('recommended', [V2DiscoveryController::class, 'recommended']);
-		Route::post('filtered', [V2DiscoveryController::class, 'filtered']);
-		Route::post('nearest', [V2DiscoveryController::class, 'nearest']);
-		Route::post('top-rated', [V2DiscoveryController::class, 'topRated']);
-		Route::post('recommended', [V2DiscoveryController::class, 'recommended']);
 		Route::get('restaurants/{id}', [V2DiscoveryController::class, 'show']);
 	});
 
@@ -162,8 +158,6 @@ Route::get('v1/mob-contact', function () {
 });
 
 Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
-    // Canonical legacy-mobile route surface.
-    $registerLegacyMobileRoutes();
     Route::post('logout', [UserController::class, 'logout']);
 });
 

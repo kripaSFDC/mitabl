@@ -13,15 +13,14 @@
 		    	return 'Not Found';
 		    }
 		    $geocode = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$long&sensor=false&key=$apiKey";
-		    $ch = curl_init();
-		    curl_setopt($ch, CURLOPT_URL, $geocode);
-		    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		    curl_setopt($ch, CURLOPT_PROXYPORT, 3128);
-		    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-		    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-		    $response = curl_exec($ch);
-		    curl_close($ch);
+		    $response = self::performSecureGeocodeRequest($geocode);
+		    if ($response === null) {
+		    	return 'Not Found';
+		    }
 		    $output = json_decode($response);
+		    if (!is_object($output)) {
+		    	return 'Not Found';
+		    }
 		    $dataarray = get_object_vars($output);
 		    if ($dataarray['status'] != 'ZERO_RESULTS' && $dataarray['status'] != 'INVALID_REQUEST') {
 		        if (isset($dataarray['results'][0]->formatted_address)) {
@@ -46,8 +45,11 @@
 			}
 			$url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&sensor=false&key=$apiKey";
 
-			// Make the HTTP request
-			$data = @file_get_contents($url);
+			// Make the HTTP request using verified TLS.
+			$data = self::performSecureGeocodeRequest($url);
+			if ($data === null) {
+				return array();
+			}
 			// Parse the json response
 			$jsondata = json_decode($data,true);
 			// return $jsondata; die();
@@ -115,6 +117,28 @@
 			            return $value["long_name"];
 			        }
 			    }
+			}
+
+			private static function performSecureGeocodeRequest(string $url): ?string
+			{
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, $url);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+
+				$response = curl_exec($ch);
+				$httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+				$curlError = curl_error($ch);
+				curl_close($ch);
+
+				if ($response === false || $httpCode < 200 || $httpCode >= 300 || $curlError !== '') {
+					return null;
+				}
+
+				return (string) $response;
 			}
 	}
 

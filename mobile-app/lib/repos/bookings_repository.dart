@@ -38,13 +38,13 @@ class BookingRepository {
       },
     );
 
-    final response = await _httpClient.post(
+    final response = await _httpClient.get(
       url,
       headers: {
         "Authorization": "Bearer ${await _accessToken()}",
         "Accept": "application/json",
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     return response;
   }
@@ -58,7 +58,7 @@ class BookingRepository {
           "Authorization": "Bearer ${await _accessToken()}",
           "Accept": "application/json",
         },
-        body: data);
+        body: data).timeout(ApiContract.requestTimeout);
 
     return response;
   }
@@ -78,7 +78,7 @@ class BookingRepository {
         "Authorization": "Bearer ${await _accessToken()}",
         "Accept": "application/json",
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     return response;
   }

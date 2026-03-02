@@ -45,7 +45,7 @@ class BookingsCubit extends Cubit<BookingsState> {
     try {
       emit(state.copyWith(bookingStatus: FormzStatus.submissionInProgress));
       var response = await bookingRepository!.getBookings(
-          limit: 100,
+          limit: 20,
           page: state.page! + 1,
           isUpcoming: false,
           sortBy: state.sortby,
@@ -69,7 +69,7 @@ class BookingsCubit extends Cubit<BookingsState> {
       emit(state.copyWith(
           upcomingBookingStatus: FormzStatus.submissionInProgress));
       var response = await bookingRepository!.getBookings(
-        limit: 100,
+        limit: 20,
         page: state.page! + 1,
         isUpcoming: true,
         sortBy: state.sortby,

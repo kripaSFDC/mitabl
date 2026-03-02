@@ -228,7 +228,7 @@ class PaymentService
         return $this->stripe()->refunds->create($params);
     }
 
-    public function getVendorLifetimeAmount(User $user, int $maxPages = 10): array
+    public function getVendorLifetimeAmount(User $user, int $maxPages = 10, int $pageSize = 100): array
     {
         if (! $user->vendor || ! $user->vendor->account_id) {
             throw new RuntimeException('Vendor Stripe account not found.');
@@ -238,11 +238,13 @@ class PaymentService
         $allTransfers = [];
         $startingAfter = null;
         $pages = 0;
+        $safePageSize = min(max($pageSize, 1), 100);
+        $safeMaxPages = max($maxPages, 1);
 
         do {
             $params = [
                 'destination' => $destination,
-                'limit' => 100,
+                'limit' => $safePageSize,
             ];
             if ($startingAfter !== null) {
                 $params['starting_after'] = $startingAfter;
@@ -258,7 +260,7 @@ class PaymentService
             $hasMore = (bool) ($batch->has_more ?? false);
             $last = end($data);
             $startingAfter = $last->id ?? null;
-        } while ($hasMore && $startingAfter !== null && $pages < max($maxPages, 1));
+        } while ($hasMore && $startingAfter !== null && $pages < $safeMaxPages);
 
         return $allTransfers;
     }

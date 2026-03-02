@@ -34,7 +34,7 @@ class CookRepository {
         'Authorization': 'Bearer ${await _accessToken()}',
         'Accept': 'application/json',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
     return response;
   }
 
@@ -45,7 +45,7 @@ class CookRepository {
         'Authorization': 'Bearer ${await _accessToken()}',
         'Accept': 'application/json',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
     return response;
   }
 
@@ -56,7 +56,7 @@ class CookRepository {
         'Authorization': 'Bearer ${await _accessToken()}',
         'Accept': 'application/json',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
     return response;
   }
 
@@ -105,7 +105,7 @@ class CookRepository {
       request.fields.addAll({'restaurant_id': '${data['restaurant_id']}'});
     }
 
-    final response = await request.send();
+    final response = await request.send().timeout(ApiContract.requestTimeout);
     final resolved = await http.Response.fromStream(response);
     if (resolved.statusCode >= 500) {
       AppLogger.error('saveMenuItem server error', resolved.statusCode);
@@ -120,7 +120,7 @@ class CookRepository {
         'Authorization': 'Bearer ${await _accessToken()}',
         'Accept': 'application/json',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
     return response;
   }
 

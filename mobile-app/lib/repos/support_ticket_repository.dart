@@ -79,7 +79,7 @@ class SupportTicketRepository {
         'order_id': orderId,
         'mikitchn_id': mikitchnId,
       }..removeWhere((key, value) => value == null)),
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     return _parseResponse(response);
   }
@@ -92,7 +92,7 @@ class SupportTicketRepository {
     final response = await _httpClient.get(
       url,
       headers: await _jsonHeaders(ticketToken: ticketToken),
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     return _parseResponse(response);
   }
@@ -111,7 +111,7 @@ class SupportTicketRepository {
         'message': message,
         'reopen_reason': reopenReason,
       }..removeWhere((key, value) => value == null)),
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     return _parseResponse(response);
   }

@@ -8,6 +8,8 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Carbon\Carbon;
 use App\Models\Image;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use File,DateTime;
 /**
@@ -112,6 +114,12 @@ class Controller extends BaseController
         if (!$image) {
             return ['status'=>false,'id'=>$id,'msg'=>'Image Not found.'];
         }
+
+        $actorId = Auth::guard('api')->id();
+        if ($actorId && ! $this->canActorDeleteImage((int) $actorId, $image)) {
+            return ['status' => false, 'id' => $id, 'msg' => 'Unauthorized image delete operation.'];
+        }
+
         $disk = Storage::disk('my_files');
         if ($disk->exists((string) $image->path)) {
             $disk->delete((string) $image->path);
@@ -120,6 +128,29 @@ class Controller extends BaseController
         }
         $image->delete();
         return ['status'=>true,'id'=>$id,'msg'=>'Image Deleted.'];
+    }
+
+    private function canActorDeleteImage(int $actorId, Image $image): bool
+    {
+        $modelName = (string) $image->model_name;
+        $referenceId = (int) $image->ref_id;
+
+        if ($modelName === 'mikitchns') {
+            return DB::table('mikitchns')
+                ->where('id', $referenceId)
+                ->where('user_id', $actorId)
+                ->exists();
+        }
+
+        if ($modelName === 'food') {
+            return DB::table('foods')
+                ->join('mikitchns', 'mikitchns.id', '=', 'foods.restaurant_id')
+                ->where('foods.id', $referenceId)
+                ->where('mikitchns.user_id', $actorId)
+                ->exists();
+        }
+
+        return false;
     }
     
     public function getPendingHoursInOrderD($order)

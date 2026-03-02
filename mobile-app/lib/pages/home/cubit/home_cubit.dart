@@ -43,6 +43,8 @@ class HomeCubit extends Cubit<HomeState> {
   static const _cacheRecommendedPrefix = 'home_feed_recommended_v1';
   static const _cacheTopRatedPrefix = 'home_feed_top_rated_v1';
   static const _cacheNearByPrefix = 'home_feed_nearby_v1';
+  static const _cacheTimestampSuffix = '_ts';
+  static const _cacheTtl = Duration(minutes: 10);
 
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
@@ -71,11 +73,9 @@ class HomeCubit extends Cubit<HomeState> {
       locationQuery: locationQuery,
     ));
 
-    await Future.wait([
-      onRecommendedRestaurants(),
-      onTopratedRestaurants(),
-      onNearByRestaurants(),
-    ]);
+    await onRecommendedRestaurants();
+    await onNearByRestaurants();
+    await onTopratedRestaurants();
   }
 
   Future<UserModel?> _resolveUserModel() async {
@@ -95,8 +95,8 @@ class HomeCubit extends Cubit<HomeState> {
     var nextState = state;
     var hasChanges = false;
 
-    final recommendedJson =
-        prefs.getString(_cacheKey(_cacheRecommendedPrefix, userId));
+    final recommendedKey = _cacheKey(_cacheRecommendedPrefix, userId);
+    final recommendedJson = _readFreshCache(prefs, recommendedKey);
     if (recommendedJson != null && recommendedJson.isNotEmpty) {
       try {
         final recommended =
@@ -111,7 +111,8 @@ class HomeCubit extends Cubit<HomeState> {
       }
     }
 
-    final topRatedJson = prefs.getString(_cacheKey(_cacheTopRatedPrefix, userId));
+    final topRatedKey = _cacheKey(_cacheTopRatedPrefix, userId);
+    final topRatedJson = _readFreshCache(prefs, topRatedKey);
     if (topRatedJson != null && topRatedJson.isNotEmpty) {
       try {
         final topRated = TopReatedRestResponse.fromJson(jsonDecode(topRatedJson));
@@ -125,7 +126,8 @@ class HomeCubit extends Cubit<HomeState> {
       }
     }
 
-    final nearByJson = prefs.getString(_cacheKey(_cacheNearByPrefix, userId));
+    final nearByKey = _cacheKey(_cacheNearByPrefix, userId);
+    final nearByJson = _readFreshCache(prefs, nearByKey);
     if (nearByJson != null && nearByJson.isNotEmpty) {
       try {
         final nearBy = NearByRestaurantsResponse.fromJson(jsonDecode(nearByJson));
@@ -150,7 +152,27 @@ class HomeCubit extends Cubit<HomeState> {
     required String value,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_cacheKey(prefix, userId), value);
+    final key = _cacheKey(prefix, userId);
+    await prefs.setString(key, value);
+    await prefs.setInt('${key}${_cacheTimestampSuffix}',
+        DateTime.now().millisecondsSinceEpoch);
+  }
+
+  String? _readFreshCache(SharedPreferences prefs, String key) {
+    final payload = prefs.getString(key);
+    final timestamp = prefs.getInt('${key}${_cacheTimestampSuffix}');
+    if (payload == null || timestamp == null) {
+      return null;
+    }
+
+    final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+    if (age > _cacheTtl.inMilliseconds) {
+      prefs.remove(key);
+      prefs.remove('${key}${_cacheTimestampSuffix}');
+      return null;
+    }
+
+    return payload;
   }
 
   Future<Response> _performRequestWithRetry(
@@ -442,7 +464,6 @@ class HomeCubit extends Cubit<HomeState> {
       _requestToken++;
       onRecommendedRestaurants();
       onNearByRestaurants();
-      onTopratedRestaurants();
     });
   }
 

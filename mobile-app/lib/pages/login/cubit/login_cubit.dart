@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mitabl_user/model/password.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:http/http.dart';
@@ -56,35 +55,26 @@ class LoginCubit extends Cubit<LoginState> {
       Response response = await _authenticationRepository.logIn(data: map);
 
       if (response.statusCode == 200) {
-        userRepository.setCurrentUser(response.body).then((value) async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          // if (state.rememberMe) {
-          //   print('remberMe_LOGIN ${state.rememberMe}');
-          //   prefs.setBool(AppConstants.USER_REMEMBER_ME, true);
-          //   await prefs.setString(AppConstants.USER_EMAIL, state.email.value);
-          //   await prefs.setString(
-          //       AppConstants.USER_PASSWORD, state.password.value);
-          // } else {
-          //   prefs.setBool(AppConstants.USER_REMEMBER_ME, false);
-          // }
+        await userRepository.setCurrentUser(response.body);
 
-          emit(state.copyWith(
-              apiStatus: FormzStatus.submissionSuccess,
-              serverMessage: 'Login Successfully...'));
+        emit(state.copyWith(
+            apiStatus: FormzStatus.submissionSuccess,
+            serverMessage: 'Login Successfully...'));
 
-          _authenticationRepository.controller
-              .add(AuthenticationStatus.authenticated);
-        });
+        _authenticationRepository.controller
+            .add(AuthenticationStatus.authenticated);
       } else {
-        String message = jsonDecode(response.body)['isError'];
-        // if (response.statusCode == 404) {
-        //   message = 'Please check your email and password';
-        // }
+        final payload = jsonDecode(response.body);
+        String message = 'Request failed. Please try again.';
+        if (payload is Map<String, dynamic>) {
+          message = (payload['isError'] ?? payload['message'] ?? message)
+              .toString();
+        }
         emit(state.copyWith(
             apiStatus: FormzStatus.submissionFailure,
-            serverMessage: '${message}'));
+            serverMessage: message));
         emit(state.copyWith(
-            apiStatus: FormzStatus.pure, serverMessage: '${message}'));
+            apiStatus: FormzStatus.pure, serverMessage: message));
       }
     } catch (e) {
       AppLogger.error('Login failed', e);

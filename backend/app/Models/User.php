@@ -13,7 +13,6 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Notifications\MailResetPasswordNotification as ResetPassword;
 use Overtrue\LaravelFavorite\Traits\Favoriter;
-use Auth;
 use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements JWTSubject
@@ -118,19 +117,19 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(SupportTicket::class);
     }
-    public function is_superAdmin($id){
-        $user = User::query()->find($id);
-        return (bool) ($user && (int) $user->role_id === 1);
+    public function is_superAdmin(): bool
+    {
+        return (int) $this->role_id === 1;
     }
 
-    public function is_restaurant($id){
-        $user = User::query()->find($id);
-        return (bool) ($user && (int) $user->role_id === 2);
+    public function is_restaurant(): bool
+    {
+        return (int) $this->role_id === 2;
     }
 
-    public function is_customer(){
-        $user = Auth::guard('api')->user();
-        return (bool) ($user && (int) $user->role_id === 3);
+    public function is_customer(): bool
+    {
+        return (int) $this->role_id === 3;
     }
 
     public function sendPasswordResetNotification($token)

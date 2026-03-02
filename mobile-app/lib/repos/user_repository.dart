@@ -113,7 +113,7 @@ class UserRepository {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get cook profile', e);
       rethrow;
@@ -128,7 +128,7 @@ class UserRepository {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get dashboard data', e);
       rethrow;
@@ -143,7 +143,7 @@ class UserRepository {
           'Authorization': 'Bearer ${await _accessToken()}',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get foodie profile', e);
       rethrow;
@@ -159,7 +159,7 @@ class UserRepository {
           'Accept': 'application/json',
         },
         body: {'id': id, 'type': type},
-      );
+      ).timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to delete image', e);
       rethrow;
@@ -194,7 +194,7 @@ class UserRepository {
       }
 
       request.fields.addAll(data);
-      final response = await request.send();
+      final response = await request.send().timeout(ApiContract.requestTimeout);
       return http.Response.fromStream(response);
     } catch (e) {
       AppLogger.error('Failed to update profile', e);
@@ -233,7 +233,7 @@ class UserRepository {
         'dine_in': '${data['dine_in']}',
         'description': '${data['description']}',
       });
-      final response = await request.send();
+      final response = await request.send().timeout(ApiContract.requestTimeout);
 
       return http.Response.fromStream(response);
     } catch (e) {

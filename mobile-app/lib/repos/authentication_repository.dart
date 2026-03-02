@@ -57,7 +57,7 @@ class AuthenticationRepository {
         'Accept': 'application/json',
       },
       body: json.encode(data),
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> forgot({required Map<String, dynamic> data}) async {
@@ -70,7 +70,7 @@ class AuthenticationRepository {
         'Accept': 'application/json',
       },
       body: json.encode(data),
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> logOutApi({required UserModel? userModel}) async {
@@ -82,7 +82,7 @@ class AuthenticationRepository {
         'Accept': 'application/json',
         'Authorization': 'Bearer ${_accessToken(userModel)}'
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<void> logOut() async {
@@ -100,7 +100,7 @@ class AuthenticationRepository {
         'Accept': 'application/json',
       },
       body: json.encode(data),
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> otpVerify({required Map<String, dynamic> data}) async {
@@ -113,7 +113,7 @@ class AuthenticationRepository {
         'Accept': 'application/json',
       },
       body: json.encode(data),
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> vendorKitchnUpload(
@@ -143,7 +143,7 @@ class AuthenticationRepository {
         'user_id': '${data['user_id']}'
       });
 
-      final response = await request.send();
+      final response = await request.send().timeout(ApiContract.requestTimeout);
       final responsed = await http.Response.fromStream(response);
 
       return responsed;

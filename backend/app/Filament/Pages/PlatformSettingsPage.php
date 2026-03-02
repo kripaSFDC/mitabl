@@ -6,6 +6,7 @@ use App\Models\PlatformSetting;
 use App\Models\PlatformSettingChangeRequest;
 use App\Services\AdminAuditLogService;
 use App\Services\AdminStepUpService;
+use App\Services\PlatformRuntimeConfigService;
 use App\Services\PlatformSettingRegistry;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -184,6 +185,19 @@ class PlatformSettingsPage extends Page implements HasForms
             ->unique()
             ->values();
 
+        $restrictedCandidates = collect(array_merge($changedOrAddedKeys, $deletedKeys))
+            ->filter(fn (string $key): bool => $this->isSuperAdminOnlyIntegrationKey($key))
+            ->unique()
+            ->values();
+
+        if ($restrictedCandidates->isNotEmpty() && ! $this->isSuperAdmin()) {
+            Notification::make()
+                ->title('Only super admins can change OTP, email, maps, and payment integration settings.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         if ($highRiskCandidates->isNotEmpty()) {
             if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
                 Notification::make()
@@ -298,6 +312,8 @@ class PlatformSettingsPage extends Page implements HasForms
             'change_reason' => $changeReason === '' ? null : $changeReason,
         ]);
 
+        app(PlatformRuntimeConfigService::class)->apply();
+
         Notification::make()->title('Platform settings saved.')->success()->send();
         $this->mount();
     }
@@ -311,6 +327,14 @@ class PlatformSettingsPage extends Page implements HasForms
 
         $request = PlatformSettingChangeRequest::query()->find($requestId);
         if (! $request || $request->status !== PlatformSettingChangeRequest::STATUS_VALIDATED) {
+            return;
+        }
+
+        if ($this->isSuperAdminOnlyIntegrationKey((string) $request->setting_key) && ! $this->isSuperAdmin()) {
+            Notification::make()
+                ->title('Only super admins can approve OTP, email, maps, and payment integration setting changes.')
+                ->danger()
+                ->send();
             return;
         }
 
@@ -346,6 +370,14 @@ class PlatformSettingsPage extends Page implements HasForms
             return;
         }
 
+        if ($this->isSuperAdminOnlyIntegrationKey((string) $request->setting_key) && ! $this->isSuperAdmin()) {
+            Notification::make()
+                ->title('Only super admins can activate OTP, email, maps, and payment integration setting changes.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         DB::transaction(function () use ($request): void {
             $setting = PlatformSetting::query()->firstOrNew([
                 'key' => $request->setting_key,
@@ -374,6 +406,8 @@ class PlatformSettingsPage extends Page implements HasForms
             'request_id' => $request->id,
             'setting_key' => $request->setting_key,
         ]);
+
+        app(PlatformRuntimeConfigService::class)->apply();
 
         Notification::make()->title('Approved high-risk change activated.')->success()->send();
         $this->mount();
@@ -487,6 +521,13 @@ class PlatformSettingsPage extends Page implements HasForms
             && ($user->hasRole('super_admin') || $user->hasRole('platform_admin')));
     }
 
+    private function isSuperAdmin(): bool
+    {
+        $user = Filament::auth()->user();
+
+        return (bool) ($user && $user->hasRole('super_admin'));
+    }
+
     private function settingHelpForKey(string $key): string
     {
         $normalized = strtolower(trim($key));
@@ -499,6 +540,10 @@ class PlatformSettingsPage extends Page implements HasForms
             $normalized === 'admin.security.reauth_minutes' => 'Step-up auth window for sensitive actions in admin. Keep low for stronger security.',
             $normalized === 'session.lifetime_minutes' => 'Admin/API session idle timeout in minutes.',
             $normalized === 'session.expire_on_close' => 'When enabled, session cookies expire when the browser closes.',
+            $normalized === 'otp.expire_minutes' => 'OTP validity duration in minutes before a code expires.',
+            $normalized === 'otp.max_attempts' => 'Maximum invalid OTP attempts before temporary lockout.',
+            $normalized === 'otp.lock_minutes' => 'Lockout duration in minutes after OTP max attempts is reached.',
+            $normalized === 'otp.mail_subject' => 'Subject used for OTP emails sent to users.',
             $normalized === 'stripe.secret_key' => 'Secret credential for backend Stripe API calls. Rotate carefully and verify webhooks/payments after update.',
             $normalized === 'stripe.publishable_key' => 'Public key used by front-end Stripe SDK flows.',
             $normalized === 'stripe.client_id' => 'Stripe Connect client identifier for OAuth flows.',
@@ -509,6 +554,14 @@ class PlatformSettingsPage extends Page implements HasForms
             $normalized === 'stripe.connected_account_country' => 'Two-letter country code used for Stripe Connect account and bank account setup (for example AU, US).',
             $normalized === 'integrations.google_maps.api_key' => 'Google Maps API key used for geocoding/address enrichment. Rotate with provider console and validate geocoding flows post-change.',
             $normalized === 'integrations.fcm.server_key' => 'FCM server key used for push notifications. Treat as secret and validate push delivery after rotation.',
+            $normalized === 'email.mailer' => 'Default mail transport used by Laravel (for example smtp, log, ses, mailgun).',
+            $normalized === 'email.smtp.host' => 'SMTP hostname used for outbound email.',
+            $normalized === 'email.smtp.port' => 'SMTP port (commonly 587 for TLS or 465 for SSL).',
+            $normalized === 'email.smtp.encryption' => 'SMTP encryption mode (tls, ssl, or empty for none).',
+            $normalized === 'email.smtp.username' => 'SMTP account username.',
+            $normalized === 'email.smtp.password' => 'SMTP account password. Keep restricted and rotate periodically.',
+            $normalized === 'email.from.address' => 'Global sender email address for outgoing platform emails.',
+            $normalized === 'email.from.name' => 'Global sender display name for outgoing platform emails.',
             default => 'Document intended use, safe values, and rollback steps before saving.',
         };
     }
@@ -544,6 +597,20 @@ class PlatformSettingsPage extends Page implements HasForms
         }
 
         return false;
+    }
+
+    private function isSuperAdminOnlyIntegrationKey(string $key): bool
+    {
+        $normalized = strtolower(trim($key));
+        if ($normalized === '') {
+            return false;
+        }
+
+        return str_starts_with($normalized, 'otp.')
+            || str_starts_with($normalized, 'email.')
+            || str_starts_with($normalized, 'integrations.google_maps.')
+            || str_starts_with($normalized, 'stripe.')
+            || str_starts_with($normalized, 'payment.');
     }
 
     private function resolveExistingSetting(array $row, \Illuminate\Support\Collection $existingById, \Illuminate\Support\Collection $existingByKey): ?PlatformSetting

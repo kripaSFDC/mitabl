@@ -201,7 +201,7 @@ class SupportTicketController extends Controller
 
     private function canAccessTicket(Request $request, SupportTicket $ticket): bool
     {
-        $token = (string) ($request->header('X-Ticket-Token') ?? $request->query('token', ''));
+        $token = trim((string) $request->header('X-Ticket-Token', ''));
 
         if ($token !== '' && hash_equals((string) $ticket->requester_token, $token)) {
             return true;

@@ -134,6 +134,30 @@ class PlatformSettingRegistry
             'value' => ['value' => false],
         ],
         [
+            'key' => 'otp.expire_minutes',
+            'value_type' => 'integer',
+            'description' => 'OTP expiration window in minutes.',
+            'value' => ['value' => 10],
+        ],
+        [
+            'key' => 'otp.max_attempts',
+            'value_type' => 'integer',
+            'description' => 'Maximum invalid OTP attempts before temporary lockout.',
+            'value' => ['value' => 5],
+        ],
+        [
+            'key' => 'otp.lock_minutes',
+            'value_type' => 'integer',
+            'description' => 'OTP lockout duration in minutes after max failed attempts.',
+            'value' => ['value' => 15],
+        ],
+        [
+            'key' => 'otp.mail_subject',
+            'value_type' => 'string',
+            'description' => 'Email subject line used for OTP delivery messages.',
+            'value' => ['value' => 'Testing Application OTP'],
+        ],
+        [
             'key' => 'stripe.secret_key',
             'value_type' => 'string',
             'description' => 'Stripe API secret key used for backend payment operations. Keep restricted to platform/security admins.',
@@ -192,6 +216,54 @@ class PlatformSettingRegistry
             'value_type' => 'string',
             'description' => 'Firebase Cloud Messaging server key used to deliver push notifications.',
             'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'email.mailer',
+            'value_type' => 'string',
+            'description' => 'Default Laravel mailer (for example smtp, log, ses, mailgun).',
+            'value' => ['value' => 'smtp'],
+        ],
+        [
+            'key' => 'email.smtp.host',
+            'value_type' => 'string',
+            'description' => 'SMTP host used when email.mailer is set to smtp.',
+            'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'email.smtp.port',
+            'value_type' => 'integer',
+            'description' => 'SMTP port used when email.mailer is set to smtp.',
+            'value' => ['value' => 587],
+        ],
+        [
+            'key' => 'email.smtp.encryption',
+            'value_type' => 'string',
+            'description' => 'SMTP encryption mode (for example tls, ssl, or empty for none).',
+            'value' => ['value' => 'tls'],
+        ],
+        [
+            'key' => 'email.smtp.username',
+            'value_type' => 'string',
+            'description' => 'SMTP username credential.',
+            'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'email.smtp.password',
+            'value_type' => 'string',
+            'description' => 'SMTP password credential. Treat as secret.',
+            'value' => ['value' => ''],
+        ],
+        [
+            'key' => 'email.from.address',
+            'value_type' => 'string',
+            'description' => 'Global sender email address for outgoing messages.',
+            'value' => ['value' => 'noreply@mitabl.com'],
+        ],
+        [
+            'key' => 'email.from.name',
+            'value_type' => 'string',
+            'description' => 'Global sender display name for outgoing messages.',
+            'value' => ['value' => 'MItabl'],
         ],
     ];
 

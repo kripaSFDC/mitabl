@@ -24,6 +24,10 @@ class PlatformRuntimeConfigService
         'admin_security.reauth_minutes' => ['key' => 'admin.security.reauth_minutes', 'type' => 'integer', 'default' => 15],
         'session.lifetime' => ['key' => 'session.lifetime_minutes', 'type' => 'integer', 'default' => 120],
         'session.expire_on_close' => ['key' => 'session.expire_on_close', 'type' => 'boolean', 'default' => false],
+        'auth.otp.expire_minutes' => ['key' => 'otp.expire_minutes', 'type' => 'integer', 'default' => 10],
+        'auth.otp.max_attempts' => ['key' => 'otp.max_attempts', 'type' => 'integer', 'default' => 5],
+        'auth.otp.lock_minutes' => ['key' => 'otp.lock_minutes', 'type' => 'integer', 'default' => 15],
+        'auth.otp.subject' => ['key' => 'otp.mail_subject', 'type' => 'string', 'default' => 'Testing Application OTP'],
         'stripe.api_keys.secret_key' => ['key' => 'stripe.secret_key', 'type' => 'string', 'default' => ''],
         'stripe.api_keys.publishable_key' => ['key' => 'stripe.publishable_key', 'type' => 'string', 'default' => ''],
         'stripe.client_id' => ['key' => 'stripe.client_id', 'type' => 'string', 'default' => ''],
@@ -34,6 +38,14 @@ class PlatformRuntimeConfigService
         'services.stripe.dashboard_base_url' => ['key' => 'stripe.dashboard_base_url', 'type' => 'string', 'default' => 'https://dashboard.stripe.com/payments'],
         'services.google_maps.api_key' => ['key' => 'integrations.google_maps.api_key', 'type' => 'string', 'default' => ''],
         'services.fcm.server_key' => ['key' => 'integrations.fcm.server_key', 'type' => 'string', 'default' => ''],
+        'mail.default' => ['key' => 'email.mailer', 'type' => 'string', 'default' => 'smtp'],
+        'mail.mailers.smtp.host' => ['key' => 'email.smtp.host', 'type' => 'string', 'default' => ''],
+        'mail.mailers.smtp.port' => ['key' => 'email.smtp.port', 'type' => 'integer', 'default' => 587],
+        'mail.mailers.smtp.encryption' => ['key' => 'email.smtp.encryption', 'type' => 'string', 'default' => 'tls'],
+        'mail.mailers.smtp.username' => ['key' => 'email.smtp.username', 'type' => 'string', 'default' => ''],
+        'mail.mailers.smtp.password' => ['key' => 'email.smtp.password', 'type' => 'string', 'default' => ''],
+        'mail.from.address' => ['key' => 'email.from.address', 'type' => 'string', 'default' => 'noreply@mitabl.com'],
+        'mail.from.name' => ['key' => 'email.from.name', 'type' => 'string', 'default' => 'MItabl'],
     ];
 
     public function apply(): void

@@ -24,7 +24,7 @@ class MobileContactRepository {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
 
     if (response.statusCode >= 400) {
       throw Exception('Unable to fetch contact details (${response.statusCode}).');

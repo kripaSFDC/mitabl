@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Validator;
 use Storage,File;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 
 class FoodsController extends Controller
@@ -50,27 +49,6 @@ class FoodsController extends Controller
     *      @OA\Response(response=404, description="Resource Not Found"),
      * )
      */
-    public function foodOfRestaurant($resturantId){
-
-        $mikitchen = Mikitchn::where('id',$resturantId)->first();
-        $data = []; $msg = 'Restaurant Not Found';
-        if ($mikitchen) {
-            $foods = Foods::with('addedimage:id,ref_id,model_name,path')
-                ->where('restaurant_id', $resturantId)
-                ->where('status', 1)
-                ->orderBy('id', 'desc')
-                ->get();
-
-             $data = FoodResource::collection($foods);
-             
-             $msg = 'Restaurant Menu Foods';
-        }
-        
-
-        return $this->responser($data, $msg);
-
-    }
-
     /**
      * Store a newly created resource in storage.
      *

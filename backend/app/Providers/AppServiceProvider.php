@@ -56,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
         Foods::observe(FoodsObserver::class);
         Certificate::observe(CertificateObserver::class);
 
+        Queue::before(function (): void {
+            // Keep long-running queue workers in sync with DB-backed runtime settings.
+            app(PlatformRuntimeConfigService::class)->apply();
+        });
+
         Queue::after(function ($event) {
             $payload = $event->job->payload();
             $queuedAt = $payload['pushedAt'] ?? null;

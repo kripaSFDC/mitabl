@@ -37,7 +37,7 @@ class HomeRepository {
         'Authorization': 'Bearer ${_bearerToken(userModel)}',
         'Accept': 'application/json',
       },
-    );
+    ).timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> recommendedRestaurants(

@@ -244,8 +244,8 @@ trait HandlesUserAuthentication
 
             if (! $otpMatched) {
                 $attempts = ((int) $otpRecord->attempts) + 1;
-                $lockThreshold = 5;
-                $lockMinutes = 15;
+                $lockThreshold = max(1, (int) config('auth.otp.max_attempts', 5));
+                $lockMinutes = max(1, (int) config('auth.otp.lock_minutes', 15));
                 $otpRecord->attempts = $attempts;
                 if ($attempts >= $lockThreshold) {
                     $otpRecord->locked_until = now()->addMinutes($lockMinutes);
@@ -328,75 +328,6 @@ trait HandlesUserAuthentication
         Auth::guard('api')->logout();
 
         return $this->responser($data, 'User logged out.');
-    }
-
-    public function becomeFoodie(Request $request)
-    {
-        $authUser = Auth::guard('api')->user();
-        $accessToken = request()->bearerToken();
-
-        $result = DB::transaction(function () use ($authUser) {
-            $user = User::whereKey($authUser->id)->lockForUpdate()->firstOrFail();
-            $user->role_id = 3;
-            $user->save();
-
-            return ['user' => $user->fresh()];
-        });
-        $user = $result['user'];
-
-        $stripeProvisionError = $this->ensureStripeAccountForRole($user);
-        if ($stripeProvisionError !== null) {
-            return $this->responser([], (string) $stripeProvisionError, 422);
-        }
-
-        $data = [
-            'access_token' => $accessToken,
-            'token_type' => 'bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->first_name,
-                'role' => $user->role->role,
-                'role_id' => $user->role_id,
-            ],
-        ];
-
-        return $this->responser($data, 'User Now changed in foodie');
-    }
-
-    public function becomeCook(Request $request)
-    {
-        $authUser = Auth::guard('api')->user();
-        $accessToken = request()->bearerToken();
-
-        $result = DB::transaction(function () use ($authUser) {
-            $user = User::whereKey($authUser->id)->lockForUpdate()->firstOrFail();
-            $user->role_id = 2;
-            $user->save();
-
-            return ['user' => $user->fresh()];
-        });
-        $user = $result['user'];
-
-        $stripeProvisionError = $this->ensureStripeAccountForRole($user);
-        if ($stripeProvisionError !== null) {
-            return $this->responser([], (string) $stripeProvisionError, 422);
-        }
-
-        $isKitchen = $this->resolveKitchenAddedFlag($user);
-
-        $data = [
-            'access_token' => $accessToken,
-            'token_type' => 'bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->first_name,
-                'role' => $user->role->role,
-                'role_id' => $user->role_id,
-                'is_kitchen_added' => $isKitchen,
-            ],
-        ];
-
-        return $this->responser($data, 'User Now changed in cook');
     }
 
     public function delete(Request $request)
