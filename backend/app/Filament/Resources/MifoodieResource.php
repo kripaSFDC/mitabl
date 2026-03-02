@@ -23,7 +23,7 @@ class MifoodieResource extends Resource
 
     protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 22;
+    protected static ?int $navigationSort = 30;
 
     protected static ?string $navigationLabel = 'Mifoodies';
 

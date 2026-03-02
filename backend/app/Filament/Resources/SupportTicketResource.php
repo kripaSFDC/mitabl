@@ -27,7 +27,7 @@ class SupportTicketResource extends Resource
 
     protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $navigationLabel = 'Support Inbox';
 
@@ -847,7 +847,12 @@ class SupportTicketResource extends Resource
 
     public static function canCreate(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.create');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.create')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     public static function canEdit($record): bool
@@ -862,7 +867,12 @@ class SupportTicketResource extends Resource
 
     private static function canViewTickets(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.view');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.view')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function canAssign(): bool
@@ -888,6 +898,21 @@ class SupportTicketResource extends Resource
     private static function canResolve(): bool
     {
         return (bool) Filament::auth()->user()?->can('support_tickets.resolve');
+    }
+
+    private static function hasAdminRole($user, array $roles): bool
+    {
+        if (! $user || ! method_exists($user, 'hasRole')) {
+            return false;
+        }
+
+        foreach ($roles as $role) {
+            if ($user->hasRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

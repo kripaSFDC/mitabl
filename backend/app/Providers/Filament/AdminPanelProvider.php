@@ -49,8 +49,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->brandName(config('app.name').' Admin')
             ->navigationGroups([
-                NavigationGroup::make()->label('Operations'),
                 NavigationGroup::make()->label('Customer Support'),
+                NavigationGroup::make()->label('Operations'),
                 NavigationGroup::make()->label('Platform'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

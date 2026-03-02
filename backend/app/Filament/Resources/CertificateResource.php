@@ -24,9 +24,9 @@ class CertificateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-check';
 
-    protected static ?string $navigationGroup = 'Operations';
+    protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {

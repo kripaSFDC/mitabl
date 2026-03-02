@@ -23,7 +23,7 @@ class MicookResource extends Resource
 
     protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 21;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $navigationLabel = 'Micooks';
 

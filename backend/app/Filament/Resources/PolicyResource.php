@@ -427,17 +427,33 @@ class PolicyResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return (bool) Filament::auth()->user()?->can('policies.view');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('policies.view')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     public static function canCreate(): bool
     {
-        return (bool) Filament::auth()->user()?->can('policies.edit');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('policies.edit')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     public static function canEdit($record): bool
     {
-        if (! Filament::auth()->user()?->can('policies.edit')) {
+        $user = Filament::auth()->user();
+        $canEdit = (bool) (
+            $user?->can('policies.edit')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
+
+        if (! $canEdit) {
             return false;
         }
 
@@ -476,5 +492,20 @@ class PolicyResource extends Resource
             (array) $record->definition,
             $active?->definition
         );
+    }
+
+    private static function hasAdminRole($user, array $roles): bool
+    {
+        if (! $user || ! method_exists($user, 'hasRole')) {
+            return false;
+        }
+
+        foreach ($roles as $role) {
+            if ($user->hasRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

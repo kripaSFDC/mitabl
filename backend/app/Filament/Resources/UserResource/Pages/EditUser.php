@@ -14,7 +14,7 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->visible(false),
+            Actions\DeleteAction::make(),
         ];
     }
 
@@ -24,10 +24,6 @@ class EditUser extends EditRecord
             $data['password'] = Hash::make((string) $data['password']);
         } else {
             unset($data['password']);
-        }
-
-        if (array_key_exists('phone', $data)) {
-            $data['phone'] = preg_replace('/\D+/', '', (string) $data['phone']);
         }
 
         unset($data['password_confirmation']);

@@ -16,7 +16,6 @@ class CreateUser extends CreateRecord
             $data['password'] = Hash::make((string) $data['password']);
         }
 
-        $data['phone'] = preg_replace('/\D+/', '', (string) ($data['phone'] ?? ''));
         unset($data['password_confirmation']);
 
         return $data;

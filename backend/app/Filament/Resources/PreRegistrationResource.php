@@ -19,7 +19,7 @@ class PreRegistrationResource extends Resource
 
     protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 60;
 
     public static function form(Form $form): Form
     {

@@ -27,9 +27,9 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'Operations';
+    protected static ?string $navigationGroup = 'Customer Support';
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 70;
 
     public static function form(Form $form): Form
     {
@@ -552,4 +552,3 @@ class OrderResource extends Resource
         return implode(PHP_EOL, $entries);
     }
 }
-
