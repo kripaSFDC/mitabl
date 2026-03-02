@@ -42,14 +42,31 @@ class CancelOrderRefundListener implements ShouldQueue
         if ($by == 'customer') {
             if ($orderPendingHrs >= 12) {
                 if ($order->payment) {
-                    $this->paymentService->safely(fn () => $this->paymentService->refundAmount($order->payment->payment_id,$order->total_price,0));
+                    $this->paymentService->safely(fn () => $this->paymentService->refundAmount(
+                        $order->payment->payment_id,
+                        (float) $order->total_price,
+                        0,
+                        'order_refund_' . $order->id . '_customer_full'
+                    ));
                     \Mail::to($order->user->email)->send(new RefundInvoice($order->user,$order,1,100));
                 }
                 
             } elseif ($orderPendingHrs < 12) {
                 if ($order->payment) {
-                    $this->paymentService->safely(fn () => $this->paymentService->refundAmount($order->payment->payment_id,$order->total_price,50));
-                    $this->paymentService->safely(fn () => $this->paymentService->transferToVendor($order->Mikitchn,$order->total_price,$order->id,75,'Order Canceled By Customer'));
+                    $this->paymentService->safely(fn () => $this->paymentService->refundAmount(
+                        $order->payment->payment_id,
+                        (float) $order->total_price,
+                        50,
+                        'order_refund_' . $order->id . '_customer_partial'
+                    ));
+                    $this->paymentService->safely(fn () => $this->paymentService->transferToVendor(
+                        $order->Mikitchn,
+                        (float) $order->total_price,
+                        (int) $order->id,
+                        75,
+                        'Order Canceled By Customer',
+                        'order_transfer_' . $order->id . '_customer_partial'
+                    ));
                     \Mail::to($order->user->email)->send(new RefundInvoice($order->user,$order,1,50));
                     \Mail::to($order->Mikitchn->user->email)->send(new RefundInvoice($order->user,$order,0,25));
                 }
@@ -61,7 +78,12 @@ class CancelOrderRefundListener implements ShouldQueue
 
             if ($order->payment) {
 
-                $this->paymentService->safely(fn () => $this->paymentService->refundAmount($order->payment->payment_id,$order->total_price,0));
+                $this->paymentService->safely(fn () => $this->paymentService->refundAmount(
+                    $order->payment->payment_id,
+                    (float) $order->total_price,
+                    0,
+                    'order_refund_' . $order->id . '_kitchen_full'
+                ));
                 \Mail::to($order->user->email)->send(new RefundInvoice($order->user,$order,1,100));
                 
             }

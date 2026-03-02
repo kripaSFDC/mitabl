@@ -103,8 +103,7 @@
             </div>
             <div style="width: 100%;float: left;margin-top: -10px;">
                 <p>
-                    <a href="https://www.instagram.com/_mitabl_/" target="_blank" style="color: #fff;margin-right: 10px;"><img src="{{url('frontend/images/instagram.png')}}" alt="instagram icon" style="width: 27px;"></a>
-                    <a href="https://twitter.com/mitablReal" target="_blank" style="color: #fff;margin-left: 10px;"><img src="{{url('frontend/images/twitter.png')}}" alt="twitter icon" style="width: 25px;"></a>
+                    <a href="https://instagram.com/_mitabl_/" target="_blank" style="color: #fff;margin-right: 10px;"><img src="{{url('frontend/images/instagram.png')}}" alt="instagram icon" style="width: 27px;"></a>
                 </p>
             </div>
             <div style="width: 100%;float:left;">

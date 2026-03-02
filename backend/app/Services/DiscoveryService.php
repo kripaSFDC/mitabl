@@ -19,20 +19,29 @@ class DiscoveryService
 
     public function recommended(Request $request): array
     {
-        $query = $this->buildBaseDiscoveryQuery($request, true, true);
+        $searchQuery = $request->query();
+        $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
+        $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
+        $query = $this->buildBaseDiscoveryQuery($request, true)
+            ->where('mikitchns.status', 1)
+            ->has('orders')
+            ->orderByDesc('orders_count')
+            ->orderByDesc('reviews_avg_rating');
         $start = microtime(true);
 
-        $result = $this->remember('recommended', $request, function () use ($query) {
+        $result = $this->remember('recommended', $request, function () use ($query, $limit, $page) {
+            $totalCount = $this->countRows($query);
             $data = $query
-                ->having('orders_count', '>', 0)
-                ->where('mikitchns.status', 1)
-                ->orderByRaw('orders_count DESC, rating_count DESC')
-                ->groupBy('mikitchns.id')
+                ->offset($page * $limit)
+                ->limit($limit)
                 ->get()
                 ->makeHidden(['reviews', 'addedimage', 'certificate']);
 
             $this->annotateFavorites($data);
-            return RestaurantResource::collection($data)->resolve();
+            return [
+                'total_count' => $totalCount,
+                'kitchens' => RestaurantResource::collection($data)->resolve(),
+            ];
         });
 
         $this->logMetrics('recommendedRestaurant', $start, $result['cache_hit']);
@@ -47,11 +56,11 @@ class DiscoveryService
         }
 
         $searchQuery = $request->query();
-        $limit = max((int) ($searchQuery['limit'] ?? 10), 1);
+        $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
         $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
-        $maxDistance = $request->input('max_distance', 100);
+        $maxDistance = max((float) $request->input('max_distance', 100), 0.1);
 
-        $query = $this->buildBaseDiscoveryQuery($request, true, false)
+        $query = $this->buildBaseDiscoveryQuery($request, true)
             ->having('distance', '<', $maxDistance)
             ->where('mikitchns.status', 1)
             ->orderBy('distance', 'ASC');
@@ -81,13 +90,12 @@ class DiscoveryService
     public function topRated(Request $request): array
     {
         $searchQuery = $request->query();
-        $limit = max((int) ($searchQuery['limit'] ?? 10), 1);
+        $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
         $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
 
-        $query = $this->buildBaseDiscoveryQuery($request, true, true)
+        $query = $this->buildBaseDiscoveryQuery($request, true)
             ->where('mikitchns.status', 1)
-            ->orderByRaw('rating_count DESC')
-            ->groupBy('mikitchns.id');
+            ->orderByDesc('reviews_avg_rating');
 
         $start = microtime(true);
         $result = $this->remember('top-rated', $request, function () use ($query, $limit, $page) {
@@ -115,10 +123,10 @@ class DiscoveryService
     public function filtered(Request $request): array
     {
         $searchQuery = $request->query();
-        $limit = max((int) ($searchQuery['limit'] ?? 10), 1);
+        $limit = min(max((int) ($searchQuery['limit'] ?? 10), 1), 50);
         $page = max(((int) ($searchQuery['page'] ?? 1)) - 1, 0);
 
-        $query = $this->buildBaseDiscoveryQuery($request, true, false)
+        $query = $this->buildBaseDiscoveryQuery($request, true)
             ->where('mikitchns.status', 1);
 
         if ($this->hasValidCoordinates($request)) {
@@ -149,33 +157,17 @@ class DiscoveryService
         return ['data' => $result['payload']];
     }
 
-    private function buildBaseDiscoveryQuery(Request $request, bool $withDistance, bool $withReviews)
+    private function buildBaseDiscoveryQuery(Request $request, bool $withDistance)
     {
-        $query = Mikitchn::query();
-
-        if ($withReviews) {
-            $query->join('reviews', 'reviews.mikitchn_id', '=', 'mikitchns.id');
-        }
-
-        $select = ['mikitchns.*'];
-
-        if ($withReviews) {
-            $select[] = DB::raw('AVG(reviews.rating) as rating_count');
-        }
+        $query = Mikitchn::query()->select(['mikitchns.*']);
 
         if ($withDistance && $this->hasValidCoordinates($request)) {
-            $select[] = DB::raw(Mikitchn::closest($request->lat, $request->lon));
+            $query->selectRaw(Mikitchn::closest($request->lat, $request->lon));
         }
 
-        if ($withReviews) {
-            $select[] = DB::raw('(SELECT COUNT(b.id) FROM orders as b WHERE mikitchns.id = b.mikitchn_id) as orders_count');
-        }
-
-        $query->select($select);
-        $query->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status']);
-        if (! $withReviews) {
-            $query->withAvg('reviews', 'rating');
-        }
+        $query->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('orders');
 
         $this->applyFilters($request, $query);
 
@@ -242,6 +234,10 @@ class DiscoveryService
     private function countRows($query): int
     {
         $base = clone $query;
+        $havings = $base->getQuery()->havings ?? [];
+        if ($havings === []) {
+            return (int) $base->toBase()->count();
+        }
 
         return DB::query()->fromSub($base->toBase(), 'discovery_rows')->count();
     }
@@ -256,10 +252,14 @@ class DiscoveryService
             return;
         }
 
-        $favoriteIds = $user->getFavoriteItems(Mikitchn::class)
-            ->pluck('id')
-            ->map(fn ($id): int => (int) $id)
-            ->all();
+        $favoriteIds = Cache::remember(
+            'discovery:user:favorites:' . $user->id,
+            now()->addMinutes(1),
+            fn () => $user->getFavoriteItems(Mikitchn::class)
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->all()
+        );
 
         $favoriteLookup = array_flip($favoriteIds);
         foreach ($kitchens as $kitchen) {

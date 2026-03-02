@@ -35,8 +35,11 @@ class App extends StatelessWidget {
         RepositoryProvider(create: (context) => authenticationRepository),
         RepositoryProvider(create: (context) => userRepository),
         RepositoryProvider(
-          create: (context) =>
-              SupportTicketRepository(userRepository: userRepository),
+          create: (context) => SupportTicketRepository(
+            userRepository: userRepository,
+            httpClient: userRepository.httpClient,
+          ),
+          dispose: (context, repository) => repository.dispose(),
         ),
       ],
       child: MultiBlocProvider(

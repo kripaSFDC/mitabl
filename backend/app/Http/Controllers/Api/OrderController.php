@@ -24,6 +24,7 @@ use App\Events\CancelOrderRefund;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -50,7 +51,7 @@ class OrderController extends Controller
             return $this->responser($this->data, 'No Upcoming Bookings');
         }
 
-        $orders = Order::with($this->orderResourceRelations())
+        $orders = Order::with($this->orderListResourceRelations())
             ->where('mikitchn_id',$kitchen->id)
             ->where('delivery_date', '>=', $currntdate)
             ->where('status',3);
@@ -88,7 +89,7 @@ class OrderController extends Controller
         }
 
 
-        $orders = Auth::guard('api')->user()->restaurant->orders()->with($this->orderResourceRelations())->where('status', 2);
+        $orders = Auth::guard('api')->user()->restaurant->orders()->with($this->orderListResourceRelations())->where('status', 2);
         $this->data['total_count'] = $orders->count();
         $data = $orders->orderBy('id','desc')->paginate($limit)->makeHidden('orderdata');
 
@@ -132,9 +133,8 @@ class OrderController extends Controller
             if (!$order->payment) {
                 return $this->responser([], 'Payment record not found for this order.', 404);
             }
-            $confirmPayment = $this->paymentService->safely(fn () => $this->paymentService->confirmPaymentIntent($order->payment));
-
-            if (is_object($confirmPayment)) {
+            try {
+                $confirmPayment = $this->paymentService->confirmPaymentIntent($order->payment);
                 DB::transaction(function () use ($order, $confirmPayment): void {
                     $payment = $order->payment()->lockForUpdate()->firstOrFail();
                     $payment->confirm = 1;
@@ -148,14 +148,15 @@ class OrderController extends Controller
                 });
 
                 return $this->responser($order->fresh(), 'Order Updated successfully.');
+            } catch (Throwable $throwable) {
+                report($throwable);
+                return $this->responser([], 'Unable to confirm payment intent for this order.', 422);
             }
-
-            return $this->responser([],$confirmPayment, 422);  
         } elseif ($requestedStatus === Order::STATUS_COMPLETED) {
-            $completedOrder = new CompletedOrder();
-            $completedOrder->order_id = $request->order_id;
-            $completedOrder->completed_date_time = Carbon::now();
-            $completedOrder->save();
+            CompletedOrder::query()->updateOrCreate(
+                ['order_id' => (int) $request->order_id],
+                ['completed_date_time' => Carbon::now()]
+            );
              // $transferToVendor = $this->transferToVendor($order->Mikitchn,$order->total_price,$order->id);
             // event(new ());
 
@@ -207,7 +208,7 @@ class OrderController extends Controller
             Order::STATUS_COMPLETED,
             Order::STATUS_CANCELLED,
         ];
-        $orders = Order::with($this->orderResourceRelations())->where('mikitchn_id',$kitchen->id);
+        $orders = Order::with($this->orderListResourceRelations())->where('mikitchn_id',$kitchen->id);
         if ($request->has('sortby')) {
             if ($request->sortby == 'take_away') {
                 $orders->where('take_away',1);
@@ -263,7 +264,7 @@ class OrderController extends Controller
     {
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
-        $orders = Auth::guard('api')->user()->orders()->with($this->orderResourceRelations())->whereNotIn('status', Order::cancelledStatuses());
+        $orders = Auth::guard('api')->user()->orders()->with($this->orderListResourceRelations())->whereNotIn('status', Order::cancelledStatuses());
 
         $this->data['total_count'] = $orders->count();
         $orders = $orders->orderBy('id','desc')->paginate($limit);
@@ -397,23 +398,21 @@ class OrderController extends Controller
         if (! $this->canManageOrder($order)) {
             return $this->responser([], 'You are not authorized for this order.', 403);
         }
-        if ((int) $order->status === Order::STATUS_CONFIRMED) {
-            event(new CancelOrderRefund($order,$by_user));
-        }
+        $shouldTriggerRefund = false;
+        $order = DB::transaction(function () use ($request, $order, $user, $by_user, &$shouldTriggerRefund) {
+            $orderPendingHrs = $this->getPendingHoursInOrderD($order);
+            if ($order->payment) {
+                if ($by_user === 'customer' && $orderPendingHrs >= 12) {
+                    $order->refund_percentage = 50;
+                } else {
+                    $order->refund_percentage = 100;
+                }
+            }
 
-        $orderPendingHrs = $this->getPendingHoursInOrderD($order);
-        if ($order->payment) {
-	        if ($by_user == 'customer' && $orderPendingHrs >= 12) {
-	        	$order->refund_percentage = 50;
-	        }else{
-	        	$order->refund_percentage = 100;
-	        }
-	    }
-        
+            $shouldTriggerRefund = ((int) $order->status === Order::STATUS_CONFIRMED);
+            $order->status = Order::STATUS_CANCELLED;
+            $order->save();
 
-        $order->status = Order::STATUS_CANCELLED;
-
-        if ($order->save()) {
             $cancelReason = new CancelReason();
             $cancelReason->order_id = (int) $request->order_id;
             $cancelReason->ref_id = $user->id;
@@ -422,16 +421,19 @@ class OrderController extends Controller
             $cancelReason->by_user = $by_user;
             $cancelReason->save();
 
-            // event(new CancelOrderRefund($order));
-            
+            return $order->fresh();
+        });
+
+        if ($shouldTriggerRefund) {
+            event(new CancelOrderRefund($order, $by_user));
         }
 
-        return $this->responser($order,'Order canceled.');
+        return $this->responser($order, 'Order canceled.');
     }
 
     public function getOrderDetails(Request $request,$id)
     {
-        $order = Order::with($this->orderResourceRelations())->find($id);
+        $order = Order::with($this->orderDetailResourceRelations())->find($id);
 
         if (empty($order)) {
             return $this->responser([], 'order not found.', 404);
@@ -466,12 +468,11 @@ class OrderController extends Controller
             return $this->responser([], 'You are not authorized for this order.', 403);
         }
 
-        $resolvedCardId = $this->paymentService->safely(
-            fn () => $this->paymentService->resolveCustomerPaymentMethodId(Auth::user(), (string) $request->card_id)
-        );
-
-        if (! is_string($resolvedCardId) || $resolvedCardId === '' || ! str_starts_with($resolvedCardId, 'pm_')) {
-            return $this->responser([], is_string($resolvedCardId) ? $resolvedCardId : 'Invalid card reference.', 422);
+        try {
+            $resolvedCardId = $this->paymentService->resolveCustomerPaymentMethodId(Auth::user(), (string) $request->card_id);
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Invalid card reference.', 422);
         }
 
         // $diffInHrs = $this->getPendingHoursInOrderD($order);
@@ -481,9 +482,8 @@ class OrderController extends Controller
             return $this->responser([], 'Payment already initialized for this order.', 409);
         }
 
-        $paymentIntent = $this->paymentService->safely(fn () => $this->paymentService->createPaymentIntent($order));
-
-        if (is_object($paymentIntent)) {
+        try {
+            $paymentIntent = $this->paymentService->createPaymentIntent($order);
             DB::transaction(function () use ($order, $request, $paymentIntent, $resolvedCardId): void {
                 $payment = Payment::query()->firstOrNew([
                     'order_id' => $order->id,
@@ -499,9 +499,9 @@ class OrderController extends Controller
                 $order->paymentmethod_id = $resolvedCardId;
                 $order->save();
             });
-             
-        }else{
-            return $this->responser([],$paymentIntent, 422);
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to initialize payment.', 422);
         }
 
         return $this->responser($order->fresh(),"payment successfully.");
@@ -545,11 +545,24 @@ class OrderController extends Controller
         } catch (\InvalidArgumentException $exception) {
             return $this->responser([], $exception->getMessage(), 422);
         }
-        $createdOrder = new OrderResource(Order::with($this->orderResourceRelations())->find($order->id));
+        $createdOrder = new OrderResource(Order::with($this->orderDetailResourceRelations())->find($order->id));
         return $this->responser($createdOrder, 'Food Ordered Created.');
     }
 
-    private function orderResourceRelations(): array
+    private function orderListResourceRelations(): array
+    {
+        return [
+            'orderdata.food',
+            'Mikitchn.addedimage',
+            'user',
+            'promocode',
+            'cancelreason.actor.restaurant',
+            'review',
+            'payment',
+        ];
+    }
+
+    private function orderDetailResourceRelations(): array
     {
         return [
             'orderdata.food',

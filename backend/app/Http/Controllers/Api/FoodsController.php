@@ -85,7 +85,8 @@ class FoodsController extends Controller
         $validator = Validator::make($request->all(), [
             'food_name' => 'required',
             'cookingstyle' => 'required|integer',
-            'specialDiet.*' => 'required',
+            'specialDiet' => 'required|array|min:1',
+            'specialDiet.*' => 'required|integer',
             'price' => 'required|numeric|gt:0',
             
         ]);
@@ -95,7 +96,6 @@ class FoodsController extends Controller
             
         }
 
-        $allowedfileExtension=['jpg','jpeg','png','gif','svg'];
         $files = $delete_files = [];
         if ($request->hasFile('pictures')) {
             $files = $request->file('pictures');
@@ -107,9 +107,7 @@ class FoodsController extends Controller
         }
         $url = '';
         $errors = $ImgaesKitch = $ImgaesKitchErrors = array();
-        // print_r($request->specialDiet); 
-        $specialdiets = '['.json_encode(implode(',', $request->specialDiet)).']';
-        // $specialdiets = implode(',', $request->specialDiet);
+        $specialdiets = json_encode(array_values(array_map('intval', (array) $request->specialDiet)));
 
          
          // print_r($specialdiets); 
@@ -165,7 +163,6 @@ class FoodsController extends Controller
         }
         $food = Foods::with('addedimage:id,ref_id,model_name,path')
             ->where('id', $foodId)
-            ->get()
             ->first()
             ->makeHidden(['addedimage']);
         if (!empty($files)) {
@@ -270,6 +267,7 @@ class FoodsController extends Controller
             $images = $food->addedimage->pluck('path')->toArray();
             if(!empty($images)) {
                 $food->addedimage()->delete();
+                Storage::disk('my_files')->delete($images);
                 File::delete($images);
 
             }

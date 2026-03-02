@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
 class sendOTP extends Mailable
+    implements ShouldQueue
 {
     use Queueable, SerializesModels;
     public $user;

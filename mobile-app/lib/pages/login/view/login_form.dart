@@ -176,7 +176,6 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
         ],
       );
     }, listener: (context, state) async {
-      print('status form ${state.status}');
       if (state.apiStatus.isSubmissionFailure) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('${state.serverMessage}')));
@@ -200,7 +199,6 @@ class _MobilePhoneState extends State<_MobilePhone> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraint) {
-      print('constraibtWidth ${constraint.maxWidth}');
       return BlocBuilder<LoginCubit, LoginState>(builder: (context, state) {
         return Container(
           alignment: Alignment.center,

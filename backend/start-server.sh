@@ -6,13 +6,17 @@ if [ ! -f ".env" ] && [ -f ".env.example" ]; then
 fi
 
 if [ -f ".env" ]; then
-  if ! grep -Eq '^APP_KEY=.+$' .env; then
+  app_key_value="$(grep -E '^APP_KEY=' .env | head -n1 | cut -d '=' -f2- | tr -d '\r')"
+  if [ -z "$app_key_value" ]; then
     php artisan key:generate --force --no-interaction
   fi
 
-  if ! grep -Eq '^JWT_SECRET=.+$' .env; then
+  jwt_secret_value="$(grep -E '^JWT_SECRET=' .env | head -n1 | cut -d '=' -f2- | tr -d '\r')"
+  if [ -z "$jwt_secret_value" ]; then
     php artisan jwt:secret --force --no-interaction
   fi
+
+  php artisan config:clear --no-interaction
 fi
 
 if [ "${RUN_MIGRATIONS_ON_BOOT:-false}" = "true" ]; then
@@ -27,11 +31,7 @@ if [ ! -f "public/css/filament/filament/app.css" ] || [ ! -f "public/js/filament
   php artisan filament:assets --ansi
 fi
 
-php \
-  -d opcache.enable=1 \
-  -d opcache.enable_cli=1 \
-  -d opcache.validate_timestamps=1 \
-  -d opcache.revalidate_freq=2 \
-  -d realpath_cache_size=4096K \
-  -d realpath_cache_ttl=600 \
-  -S 0.0.0.0:8000 -t public server.php
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R ug+rw storage bootstrap/cache
+
+exec php-fpm -F

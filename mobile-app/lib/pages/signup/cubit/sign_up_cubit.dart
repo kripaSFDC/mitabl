@@ -34,8 +34,6 @@ class SignUpCubit extends Cubit<SignUpState> {
       map['phone'] = state.phone.value;
       map['address'] = state.address!.value;
 
-      print('mapppss ${map.toString()}');
-
       var response = await authenticationRepository!.signUp(data: map);
       if (response.statusCode == 200) {
         SignUpResponse signUpResponse =

@@ -129,7 +129,7 @@
 		if (_srch.access) {
 			$.ajax({
 			    data: crDetails,
-			    url: '/api/v1/addcard',
+			    url: '/api/v2/payments/cards',
 			    type: 'POST',
 			    headers: {
 			        'Authorization':'Bearer '+_srch.access,

@@ -21,10 +21,14 @@ part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit(
-      {required UserRepository userRepository, HomeRepository? homeRepository})
+      {required UserRepository userRepository,
+      HomeRepository? homeRepository,
+      CookRepository? cookRepository})
       : userRepository = userRepository,
         _homeRepository = homeRepository ?? HomeRepository(),
+        _cookRepository = cookRepository ?? CookRepository(userRepository),
         _ownsHomeRepository = homeRepository == null,
+        _ownsCookRepository = cookRepository == null,
         super(const HomeState()) {
     _fetchHomeFeeds();
   }
@@ -34,7 +38,9 @@ class HomeCubit extends Cubit<HomeState> {
 
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
+  final CookRepository _cookRepository;
   final bool _ownsHomeRepository;
+  final bool _ownsCookRepository;
   Timer? _filterDebounce;
   int _requestToken = 0;
 
@@ -131,7 +137,7 @@ class HomeCubit extends Cubit<HomeState> {
       } else {
         emit(state.copyWith(statusCooking: FormzStatus.submissionInProgress));
 
-        final response = await CookRepository(userRepository).getCookingStyle();
+        final response = await _cookRepository.getCookingStyle();
 
         if (response.statusCode == 200) {
           final cookingStyle = CookingStyle.fromJson(jsonDecode(response.body));
@@ -248,6 +254,9 @@ class HomeCubit extends Cubit<HomeState> {
     _filterDebounce?.cancel();
     if (_ownsHomeRepository) {
       _homeRepository.dispose();
+    }
+    if (_ownsCookRepository) {
+      _cookRepository.dispose();
     }
     return super.close();
   }

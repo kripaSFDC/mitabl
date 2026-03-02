@@ -59,7 +59,7 @@
             <h3>Mobile app capabilities (Foodie/Cook)</h3>
             <p><strong>Can one app support both personas?</strong><br>Yes. The Flutter app is a single binary with Foodie-facing pages and Cook-facing pages.</p>
             <p><strong>What can Foodies do?</strong><br>Foodies can discover kitchens, browse menu items, place orders, manage cards and payments, and submit reviews.</p>
-            <p><strong>What can Cooks do?</strong><br>Cooks can manage miKitchen profiles, certificates, menu availability, and incoming order handling through role-gated routes under authenticated <code>/api/v1</code> groups.</p>
+            <p><strong>What can Cooks do?</strong><br>Cooks can manage miKitchen profiles, certificates, menu availability, and incoming order handling through role-gated routes under authenticated <code>/api/v2 (with a small set of legacy v1 routes during migration)</code> groups.</p>
 
             <h3>Support ticket lifecycle and CRM handling</h3>
             <p><strong>How are support tickets created and updated?</strong><br>Backend public routes support ticket create/read/reply with dedicated throttle middleware on intake, reads, and replies.</p>
@@ -120,7 +120,18 @@
           </div>
         </div>
       </div>
-      <div class="copyright-area text-center"><p>&copy; 2026 mitabl All rights reserved.</p></div>
+      <div class="copyright-area">
+        <div class="container d-flex justify-content-between align-items-center">
+          <p>&copy; 2026 mitabl All rights reserved.</p>
+          <p class="d-flex align-items-center mb-0">
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
+              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
+                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+              </svg>
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

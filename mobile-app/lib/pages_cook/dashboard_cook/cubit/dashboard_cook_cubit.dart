@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/model/dashboard_data.dart' as dd;
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -43,11 +42,8 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
     try {
       // emit(state.copyWith(status: FormzStatus.submissionInProgress));
       UserModel? userModel = await userRepository!.getUser();
-      print('userModel ${userModel!.data!.accessToken}');
       var response =
           await authenticationRepository!.logOutApi(userModel: userModel);
-
-      print('Respomse ${jsonDecode(response.body)}');
 
       if (response.statusCode == 200) {
         // emit(state.copyWith(
@@ -62,7 +58,7 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
             selectedIndex: 0));
       }
     } catch (e) {
-      print('exceptionLogin $e');
+      AppLogger.error('Cook logout failed', e);
       // emit(state.copyWith(
       //     status: FormzStatus.submissionFailure,
       //     serverMessage: 'Something went wrong...'));

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Models\Mikitchn;
-use App\Models\User;
 use App\Services\DiscoveryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +49,7 @@ class DiscoveryController extends Controller
         }
 
         $restaurant = $query
-            ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status', 'weektimings'])
+            ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status', 'weektimings', 'user:id,first_name,last_name,avatar,role_id,description'])
             ->withAvg('reviews', 'rating')
             ->find($id);
 
@@ -58,7 +57,7 @@ class DiscoveryController extends Controller
             return $this->responser([], 'restaurant not found.', 404);
         }
 
-        $cook = User::find($restaurant->user_id);
+        $cook = $restaurant->user;
         if ($cook) {
             $restaurant['cock'] = [
                 'id' => $cook->id,

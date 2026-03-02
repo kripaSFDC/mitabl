@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../model/user_model.dart';
@@ -23,7 +24,6 @@ class AuthenticationBloc
     on<AuthenticationStatusChanged>(mapAuthenticationStatusChangedToState);
     _authenticationStatusSubscription =
         _authenticationRepository.status.listen((status) {
-      print('status_check ');
       add(AuthenticationStatusChanged(status));
     });
   }
@@ -61,17 +61,12 @@ class AuthenticationBloc
     return super.close();
   }
 
-  void statusChanged() {
-    print("vvdgv");
-  }
-
   mapAuthenticationStatusChangedToState(AuthenticationStatusChanged event,
       Emitter<AuthenticationState> emit) async {
-    print('uwiueeiuw ${event.status}');
+    AppLogger.debug('Auth status changed: ${event.status}');
 
     switch (event.status) {
       case AuthenticationStatus.unauthenticated:
-        print('unauthCase');
         return emit(const AuthenticationState.unauthenticated());
 
       case AuthenticationStatus.authenticated:

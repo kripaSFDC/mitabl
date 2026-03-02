@@ -47,25 +47,17 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         }
       });
     }
-    print('selectedStyle ${cookingStyleData.name}');
     emit(state.copyWith(
         selectedCookingStyle: cookingStyleData.copyWith(isSelected: true),
         cookingStyleList: cookingStyleListTemp));
 
-    // List<String> idsDiet = (jsonDecode(foodData.specialDiet!) as List<dynamic>).cast<String>().toList();
-    List<String> idsDiet = [];
-    json
-        .decode(foodData.specialDiet!)
-        .toList()[0]
-        .replaceAll("[", "")
-        .split(',')
-        .forEach((e) {
-      idsDiet.add(e);
-    });
+    final idsDiet = _extractSpecialDietIds(foodData.specialDiet);
 
     idsDiet.forEach((element) {
-      print('specialDiet ${element}');
-      onSpecialDietChange(id: int.parse(element.toString()), value: true);
+      final parsed = int.tryParse(element.toString());
+      if (parsed != null) {
+        onSpecialDietChange(id: parsed, value: true);
+      }
     });
   }
 
@@ -75,7 +67,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
       var response = await cookRepository!.getFoodMenu();
 
-      print('foodeMenu ${response.body}');
       if (response.statusCode == 200) {
         FoodMenu foodMenu = FoodMenu.fromJson(jsonDecode(response.body));
 
@@ -90,7 +81,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   onAddFood({bool? isEdit, String? foodId}) async {
-    print('isdit ${isEdit!}');
     try {
       emit(state.copyWith(addFoodStatus: FormzStatus.submissionInProgress));
 
@@ -124,8 +114,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       map['specialDietIds'] = diets;
       map['delete_images'] = deleteImageString.toString();
 
-      print('data ${map.toString()}');
-
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
       List<String> localPaths = [];
@@ -154,7 +142,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         Helper.showToast('Something went wrong...');
       }
     } on Exception catch (e) {
-      print('exception ${e}');
       emit(state.copyWith(addFoodStatus: FormzStatus.submissionFailure));
     }
   }
@@ -221,12 +208,10 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   onDeleteSpecialDiet({int? id}) {
-    print('ondelete ${id}');
     List<SpecialDietData> tempList = [];
     tempList.addAll(state.specialDietDataList!);
 
     int index = tempList.indexWhere((element) => element.id == id);
-    print('indexFound ${index}');
     SpecialDietData specialDietData =
         tempList[index].copyWith(isSelected: false);
 
@@ -271,7 +256,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   onDeleteImage({String? path, Pictures? pictures}) async {
-    print('deleteImage ${path}');
     if (pictures!.id == null) {
       List<Pictures> allPaths = [];
       if (state.pathFiles.isNotEmpty) {
@@ -285,15 +269,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
       emit(state.copyWith(pathFiles: allPaths));
     } else {
-      print('SunnyDeleteImage ${path}');
       // var response = await cookRepository!.userRepository!
       //     .deleteImage(id: pictures.id.toString(), type: 'food');
       // if (response.statusCode == 200) {
       List<Pictures> allPaths = [];
       if (state.pathFiles.isNotEmpty) {
         allPaths.addAll(state.pathFiles);
-        print(
-            'SunnyImageDel ${allPaths.firstWhere((element) => element.path.toString() == path.toString()).id.toString()}');
         state.deleteImagesId = [
           ...state.deleteImagesId,
           (allPaths
@@ -316,7 +297,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         allPaths.removeWhere(
             (element) => element.path.toString() == path.toString());
       }
-      print('SunnyDel ${state.deleteImagesId}');
       emit(state.copyWith(pathFiles: allPaths));
       getFoodMenu();
     }
@@ -357,5 +337,39 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       getFoodMenu();
       emit(state.copyWith(foodStatusFormStatus: FormzStatus.submissionFailure));
     }
+  }
+
+  @override
+  Future<void> close() {
+    cookRepository?.dispose();
+    return super.close();
+  }
+
+  List<String> _extractSpecialDietIds(String? specialDietRaw) {
+    if (specialDietRaw == null || specialDietRaw.trim().isEmpty) {
+      return [];
+    }
+
+    try {
+      final decoded = json.decode(specialDietRaw);
+      if (decoded is List) {
+        if (decoded.length == 1 && decoded.first is String) {
+          return decoded.first
+              .toString()
+              .replaceAll('[', '')
+              .replaceAll(']', '')
+              .split(',')
+              .map((value) => value.trim())
+              .where((value) => value.isNotEmpty)
+              .toList();
+        }
+        return decoded
+            .map((value) => value.toString())
+            .where((value) => value.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {}
+
+    return [];
   }
 }

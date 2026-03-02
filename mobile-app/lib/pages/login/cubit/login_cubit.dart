@@ -5,9 +5,9 @@ import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mitabl_user/model/password.dart';
-import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:http/http.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 import '../../../helper/helper.dart';
@@ -56,8 +56,6 @@ class LoginCubit extends Cubit<LoginState> {
       Response response = await _authenticationRepository.logIn(data: map);
 
       if (response.statusCode == 200) {
-        print(response.body);
-        UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
         userRepository.setCurrentUser(response.body).then((value) async {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           // if (state.rememberMe) {
@@ -89,7 +87,7 @@ class LoginCubit extends Cubit<LoginState> {
             apiStatus: FormzStatus.pure, serverMessage: '${message}'));
       }
     } catch (e) {
-      print('exceptionLogin $e');
+      AppLogger.error('Login failed', e);
       emit(state.copyWith(
           apiStatus: FormzStatus.submissionFailure,
           serverMessage: 'Something went wrong...'));

@@ -24,6 +24,9 @@ use App\Traits\GoogleAddress;
 use App\Services\DiscoveryService;
 use App\Services\KitchenService;
 use App\Services\PaymentService;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
+use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 
 class MikitchnController extends Controller
 {
@@ -52,28 +55,24 @@ class MikitchnController extends Controller
 
     public function recommendedRestaurant(Request $request)
     {
-        $this->data = $this->discoveryService->recommended($request)['data'];
-        return $this->responser($this->data,'restaurants by recommeded.');
+        return app(V2DiscoveryController::class)->recommended($request);
 
     }
 
     public function nearestRestaurant(Request $request)
     {
-        $this->data = $this->discoveryService->nearest($request)['data'];
-        return $this->responser($this->data,'Nearest Restaurants');
+        return app(V2DiscoveryController::class)->nearest($request);
     }
 
 
     public function topRatedRestaurant(Request $request)
     {
-        $this->data = $this->discoveryService->topRated($request)['data'];
-        return $this->responser($this->data,'restaurants by rating');
+        return app(V2DiscoveryController::class)->topRated($request);
     }
 
     public function filterRestaurant(Request $request)
     {
-        $this->data = $this->discoveryService->filtered($request)['data'];
-        return $this->responser($this->data, 'restaurants filtered.');
+        return app(V2DiscoveryController::class)->filtered($request);
     }
 
     /**
@@ -137,17 +136,11 @@ class MikitchnController extends Controller
     */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $userKitchen = $user->restaurant;
-        if ($userKitchen) {
-            $user = $userKitchen;
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'address' => 'required',
             'no_of_seats' => 'required|integer',
-            'timings' => 'required',
+            'timings' => 'required|string',
             'phone' => 'required|string',
             // 'lat' => 'required|numeric|unique:mikitchns,latitude,'.$user->id,
             // 'lng' => 'required|numeric|unique:mikitchns,longitude,'.$user->id,
@@ -162,8 +155,13 @@ class MikitchnController extends Controller
         if($validator->fails()){
             return $this->responser($this->data,$validator->errors()->first(), 422);
         }
-        // print_r(Auth::user()->restaurant->id);
-        $timings = json_decode($request->timings)->days;
+        $decodedTimings = json_decode((string) $request->timings);
+        $timings = is_object($decodedTimings) && isset($decodedTimings->days) && is_array($decodedTimings->days)
+            ? $decodedTimings->days
+            : null;
+        if ($timings === null) {
+            return $this->responser([], 'timings must be valid JSON with a days array.', 422);
+        }
 
         $allowedfileExtension=['jpg','jpeg','png','gif','svg'];
         $files = $delete_files = [];
@@ -182,137 +180,58 @@ class MikitchnController extends Controller
         if (!$userExist) {
             return $this->responser([],'Unauthorized user not found.', 401);
         }
-        
         $existKitchen = Mikitchn::where('user_id',$user->id)->first();
-
-
-        if ($existKitchen) {
-            $mikitchn = Mikitchn::where('user_id',$user->id)->update(['name' => $request->name,
-                'address' => $request->address,
-                'no_of_seats' => $request->no_of_seats,
-                'timings' => $request->timings,
-                'phone' => $request->phone,
-                'dine_in' => $request->dine_in,
-                'take_away' => $request->take_away,
-                'description' => $request->description,
-                'latitude' => $request->lat,
-                'longitude' => $request->lng,
-            ]);
-
-            foreach ($timings as $key1 => $timing) {
-
-                $fromTime = Carbon::parse($timing->timing->start_time)->format('H:i:s');
-                $toTime = Carbon::parse($timing->timing->end_time)->format('H:i:s');
-
-                switch ($timing->day) {
-                    case 'Mon':
-                        $day = 'Monday';
-                        break;
-                    case 'Tue':
-                        $day = 'Tuesday';
-                        break;
-                    case 'Wed':
-                        $day = 'Wednesday';
-                        break;
-                    case 'Thus':
-                        $day = 'Thursday';
-                        break;
-                    case 'Fri':
-                        $day = 'Friday';
-                        break;
-                    case 'Sat':
-                        $day = 'Saturday';
-                        break;
-                    case 'Sun':
-                        $day = 'Sunday';
-                        break;
-                    
-                    default:
-                        $day = 'Monday';
-                        break;
-                }
-
-                $Timing = Timing::where('mikitchn_id',Auth::user()->restaurant->id)->where('day',$day)->update(['status' => $timing->isOn, 'start_time' => $fromTime, 'end_time' => $toTime]);
-            }
-            $msg = 'Kitchecn Updated succesfully.';
-
-            $this->kitchenService->invalidateDiscoveryCaches();
-
-            if (!empty($delete_files)) {
-                foreach ($delete_files as $key => $delete_file) {
-                    $this->deleteImageById($delete_file,'mikitchns');
-                }
-                            
-            }
-
-        } else {
-
-            if (!$request->hasFile('images')) {
-                return $this->responser([],'Images required.', 422);
-            }
-
-            $mikitchn = Mikitchn::create([
-                'user_id' => $user->id,
-                'name' => $request->name,
-                'address' => $request->address,
-                'no_of_seats' => $request->no_of_seats,
-                'timings' => $request->timings,
-                'phone' => $request->phone,
-                'description' => $request->description,
-                'latitude' => $request->lat,
-                'longitude' => $request->lng,
-            ]);
-
-            foreach ($timings as $key1 => $timing) {
-
-                $fromTime = Carbon::parse($timing->timing->start_time)->format('H:i:s');
-                $toTime = Carbon::parse($timing->timing->end_time)->format('H:i:s');
-
-                switch ($timing->day) {
-                    case 'Mon':
-                        $day = 'Monday';
-                        break;
-                    case 'Tue':
-                        $day = 'Tuesday';
-                        break;
-                    case 'Wed':
-                        $day = 'Wednesday';
-                        break;
-                    case 'Thus':
-                        $day = 'Thursday';
-                        break;
-                    case 'Fri':
-                        $day = 'Friday';
-                        break;
-                    case 'Sat':
-                        $day = 'Saturday';
-                        break;
-                    case 'Sun':
-                        $day = 'Sunday';
-                        break;
-                    
-                    default:
-                        $day = 'Monday';
-                        break;
-                }
-                // print_r(Auth::guard('api')->user()->restaurant); die();
-                $Timing = new Timing();
-                $Timing->mikitchn_id = $mikitchn->id;
-                $Timing->day = $day;
-                $Timing->status = $timing->isOn;
-                $Timing->start_time = $fromTime;
-                $Timing->end_time = $toTime;
-
-                $Timing->save();
-            }
-
-            $msg = 'Kitchen created succesfully.';
-
-            $this->kitchenService->invalidateDiscoveryCaches();
-
+        if (!$existKitchen && !$request->hasFile('images')) {
+            return $this->responser([],'Images required.', 422);
         }
 
-        $miKitchen = Mikitchn::where('user_id',$user->id)->get()->makeHidden('addedimage')->first();
+        $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen) {
+            $kitchen = $existKitchen ?: new Mikitchn();
+            $kitchen->user_id = $user->id;
+            $kitchen->name = $request->name;
+            $kitchen->address = $request->address;
+            $kitchen->no_of_seats = $request->no_of_seats;
+            $kitchen->timings = $request->timings;
+            $kitchen->phone = $request->phone;
+            $kitchen->dine_in = $request->dine_in;
+            $kitchen->take_away = $request->take_away;
+            $kitchen->description = $request->description;
+            $kitchen->latitude = $request->lat;
+            $kitchen->longitude = $request->lng;
+            $kitchen->save();
+
+            foreach ($timings as $timing) {
+                $day = $this->normalizeTimingDay((string) ($timing->day ?? ''));
+                if ($day === null) {
+                    continue;
+                }
+                $fromTime = Carbon::parse($timing->timing->start_time ?? '00:00')->format('H:i:s');
+                $toTime = Carbon::parse($timing->timing->end_time ?? '00:00')->format('H:i:s');
+                Timing::query()->updateOrCreate(
+                    ['mikitchn_id' => $kitchen->id, 'day' => $day],
+                    [
+                        'status' => (int) ($timing->isOn ?? 0),
+                        'start_time' => $fromTime,
+                        'end_time' => $toTime,
+                    ]
+                );
+            }
+
+            return $kitchen;
+        });
+
+        if (!empty($delete_files)) {
+            foreach ($delete_files as $delete_file) {
+                $this->deleteImageById($delete_file,'mikitchns');
+            }
+        }
+
+        $msg = $existKitchen ? 'Kitchecn Updated succesfully.' : 'Kitchen created succesfully.';
+
+        $this->kitchenService->invalidateDiscoveryCaches();
+        if ($miKitchen) {
+            $miKitchen->makeHidden('addedimage');
+        }
 
         if (!empty($files)) {
 
@@ -331,65 +250,22 @@ class MikitchnController extends Controller
 
     }
 
+    private function normalizeTimingDay(string $shortDay): ?string
+    {
+        return [
+            'Mon' => 'Monday',
+            'Tue' => 'Tuesday',
+            'Wed' => 'Wednesday',
+            'Thus' => 'Thursday',
+            'Thu' => 'Thursday',
+            'Fri' => 'Friday',
+            'Sat' => 'Saturday',
+            'Sun' => 'Sunday',
+        ][$shortDay] ?? null;
+    }
+
     public function viewRestaurant(Request $request, $id ) {
-
-        $getRestaurant = (new Mikitchn)->newQuery();
-        $searchQuerey = $request->query();
-
-        if (isset($searchQuerey['lat'], $searchQuerey['lon']) && is_numeric($searchQuerey['lat']) && is_numeric($searchQuerey['lon'])) {
-
-            $closest = Mikitchn::closest($searchQuerey['lat'], $searchQuerey['lon']);
-            $getRestaurant = $getRestaurant->select('mikitchns.*',
-                        DB::raw("{$closest}")
-                        ); 
-
-        } 
-
-        $restaurant = $getRestaurant
-            ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status', 'weektimings'])
-            ->withAvg('reviews', 'rating')
-            ->where('id', $id )
-            ->get()
-            ->makeHidden(['addedimage','reviews','certificate'])
-            ->first();
-        if (!$restaurant) {
-            return $this->responser([], 'restaurant not found.', 404);
-        }
-        // echo "<pre>"; print_r(expression)
-        $cock = User::find($restaurant->user_id);
-        if (!$cock) {
-            return $this->responser([], 'cook profile not found.', 404);
-        }
-
-        $restaurant['weektimings'] = $restaurant->weektimings;
-
-        $restaurant['cock'] = [
-                        'id' => $cock->id,
-                        'name' => $cock->first_name.' '.$cock->last_name,
-                        'avatar' => $cock->avatar,
-                        'role_id' => $cock->role_id,
-                        'description' => $cock->description,
-                    ];
-        $restaurant['gst'] = [
-                        'gst_enable' => optional($restaurant->certificate)->abn_gst,
-                        'gst_amount' => 10
-                    ];
-                    
-        $restaurant->setAttribute(
-            'is_favourited',
-            Auth::guard('api')->check() ? Auth::guard('api')->user()->hasFavorited($restaurant) : false
-        );
-
-        $data = new RestaurantResource($restaurant);
-        
-        $return = [
-            'status' => 200,
-            'isSuccess' => true,
-            'message' => 'restaurant data.',  
-            'data' => $data
-        ];
-
-        return response()->json($return, 200);
+        return app(V2DiscoveryController::class)->show($request, (int) $id);
 
     }
 
@@ -416,12 +292,15 @@ class MikitchnController extends Controller
 
     public function deleteImage(Request $request)
     {
-        $image = Image::where('id',$request->id)->where('model_name',$request->type)->get()->first();
+        $image = Image::where('id',$request->id)->where('model_name',$request->type)->first();
         if (!$image) {
             return $this->responser([],'Image Not found.', 404);
         }
-        if(File::exists($image->path)) {
-            File::delete($image->path);
+        $disk = Storage::disk('my_files');
+        if ($disk->exists((string) $image->path)) {
+            $disk->delete((string) $image->path);
+        } elseif (File::exists((string) $image->path)) {
+            File::delete((string) $image->path);
         }
         $image->delete();
         return $this->responser($image,'Image deleted successfully.');
@@ -539,15 +418,24 @@ class MikitchnController extends Controller
 
     public function getVendorEarnings()
     {
-        $response = $this->paymentService->safely(fn () => $this->paymentService->getVendorLifetimeAmount(Auth::user()));
-        $transfers = is_object($response) && isset($response->data) ? $response->data : [];
-        $earning = 0;
-        foreach ($transfers as $key => $transfer) {
-            // echo $transfer->amount / 100; die();
-            $earning += $transfer->amount / 100;
-        }
-
-        return $earning;
+        $userId = (int) Auth::id();
+        return (float) Cache::remember(
+            'vendor_earnings_total_' . $userId,
+            now()->addMinutes(5),
+            function (): float {
+                try {
+                    $transfers = $this->paymentService->getVendorLifetimeAmount(Auth::user(), 10);
+                } catch (Throwable $throwable) {
+                    report($throwable);
+                    return 0.0;
+                }
+                $earning = 0.0;
+                foreach ($transfers as $transfer) {
+                    $earning += ((float) ($transfer->amount ?? 0)) / 100;
+                }
+                return round($earning, 2);
+            }
+        );
 
     }
 

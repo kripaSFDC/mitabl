@@ -63,7 +63,14 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
         //     $payment = ;
         // $order->Mikitchn,$order->total_price,$order->id
           $trnsfr =  $this->paymentService->safely(
-              fn () => $this->paymentService->transferToVendor($order->Mikitchn,$order->total_price,$order->id,$dPercent,'Order Payment')
+              fn () => $this->paymentService->transferToVendor(
+                  $order->Mikitchn,
+                  (float) $order->total_price,
+                  (int) $order->id,
+                  (float) $dPercent,
+                  'Order Payment',
+                  'order_transfer_' . $order->id . '_completion'
+              )
           );
           if (is_object($trnsfr)) {
               $cOrder->completed = 1;

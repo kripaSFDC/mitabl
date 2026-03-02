@@ -137,7 +137,8 @@ class PaymentService
 
     public function createPaymentIntent(Order $order)
     {
-        $customerId = optional(optional(User::find($order->user_id))->customer)->account_id;
+        $orderUser = $order->relationLoaded('user') ? $order->user : User::with('customer')->find($order->user_id);
+        $customerId = optional(optional($orderUser)->customer)->account_id;
         if (! $customerId) {
             throw new RuntimeException('Order customer Stripe account not found.');
         }
@@ -227,13 +228,39 @@ class PaymentService
         return $this->stripe()->refunds->create($params);
     }
 
-    public function getVendorLifetimeAmount(User $user)
+    public function getVendorLifetimeAmount(User $user, int $maxPages = 10): array
     {
         if (! $user->vendor || ! $user->vendor->account_id) {
             throw new RuntimeException('Vendor Stripe account not found.');
         }
 
-        return $this->stripe()->transfers->all(['destination' => $user->vendor->account_id]);
+        $destination = (string) $user->vendor->account_id;
+        $allTransfers = [];
+        $startingAfter = null;
+        $pages = 0;
+
+        do {
+            $params = [
+                'destination' => $destination,
+                'limit' => 100,
+            ];
+            if ($startingAfter !== null) {
+                $params['starting_after'] = $startingAfter;
+            }
+
+            $batch = $this->stripe()->transfers->all($params);
+            $data = $batch->data ?? [];
+            foreach ($data as $transfer) {
+                $allTransfers[] = $transfer;
+            }
+
+            $pages++;
+            $hasMore = (bool) ($batch->has_more ?? false);
+            $last = end($data);
+            $startingAfter = $last->id ?? null;
+        } while ($hasMore && $startingAfter !== null && $pages < max($maxPages, 1));
+
+        return $allTransfers;
     }
 
     public function retrieveAccount(User $user)
@@ -248,10 +275,14 @@ class PaymentService
     public function getVendorBankAccount(User $user)
     {
         $account = $this->retrieveAccount($user);
+        $externalBankId = $account->external_accounts->data[0]->id ?? null;
+        if (! $externalBankId) {
+            throw new RuntimeException('Vendor bank account not found.');
+        }
 
         return $this->stripe()->accounts->retrieveExternalAccount(
             $account->id,
-            $account->external_accounts->data[0]->id,
+            $externalBankId,
             []
         );
     }
@@ -277,7 +308,7 @@ class PaymentService
         return $this->stripe()->accounts->createLoginLink($account->id, []);
     }
 
-    public function transferToVendor(Mikitchn $vendor, float $totalAmount, int $orderId, float $percentToGet, string $description)
+    public function transferToVendor(Mikitchn $vendor, float $totalAmount, int $orderId, float $percentToGet, string $description, ?string $idempotencyKey = null)
     {
         $accountId = optional(optional($vendor->user)->vendor)->account_id;
         if (! $accountId) {
@@ -287,13 +318,19 @@ class PaymentService
         $transferAmount = $totalAmount - ($percentInDecimal * $totalAmount);
         $amountInCents = (int) round(max($transferAmount, 0) * 100);
 
-        return $this->stripe()->transfers->create([
+        $params = [
             'amount' => $amountInCents,
             'currency' => $this->currency,
             'destination' => $accountId,
             'transfer_group' => 'ORDER_' . $orderId,
             'description' => $description,
-        ]);
+        ];
+
+        if ($idempotencyKey) {
+            return $this->stripe()->transfers->create($params, ['idempotency_key' => $idempotencyKey]);
+        }
+
+        return $this->stripe()->transfers->create($params);
     }
 
     public function onboardingLink(User $user)
@@ -311,7 +348,8 @@ class PaymentService
         try {
             return $callback();
         } catch (Throwable $exception) {
-            return $exception->getMessage();
+            report($exception);
+            return 'Payment operation failed.';
         }
     }
 

@@ -17,25 +17,27 @@ class BookingsCubit extends Cubit<BookingsState> {
   final BookingRepository? bookingRepository;
 
   onOrderCompleteDecline({bool? isCompleted, dynamic? orderId}) async {
-    emit(state.copyWith(
-        orderCompleteCancelStatus: FormzStatus.submissionInProgress));
-    Map<String, dynamic>? map = {};
-
-    map['order_id'] = orderId.toString();
-    map['status'] = isCompleted! ? '1' : '0';
-
-    var response = await bookingRepository!.updateOrderStatus(data: map);
-    if (response.statusCode == 200) {
-      navigatorKey.currentState!.pop();
+    try {
       emit(state.copyWith(
-          orderCompleteCancelStatus: FormzStatus.submissionSuccess));
+          orderCompleteCancelStatus: FormzStatus.submissionInProgress));
+      Map<String, dynamic>? map = {};
 
-      /* if (isCompleted) {
-        navigatorKey.currentState!.popAndPushNamed('/UpcomingBookings');
+      map['order_id'] = orderId.toString();
+      map['status'] = isCompleted! ? '1' : '0';
+
+      var response = await bookingRepository!.updateOrderStatus(data: map);
+      if (response.statusCode == 200) {
+        navigatorKey.currentState!.pop();
+        emit(state.copyWith(
+            orderCompleteCancelStatus: FormzStatus.submissionSuccess));
+        getUpcomingBookings();
       } else {
-        navigatorKey.currentState!.popAndPushNamed('/UpcomingBookings');
-      }*/
-      getUpcomingBookings();
+        emit(state.copyWith(
+            orderCompleteCancelStatus: FormzStatus.submissionFailure));
+      }
+    } on Exception {
+      emit(
+          state.copyWith(orderCompleteCancelStatus: FormzStatus.submissionFailure));
     }
   }
 
@@ -94,5 +96,11 @@ class BookingsCubit extends Cubit<BookingsState> {
 
   onStatusChanged({String? data}) {
     emit(state.copyWith(status: data));
+  }
+
+  @override
+  Future<void> close() {
+    bookingRepository?.dispose();
+    return super.close();
   }
 }

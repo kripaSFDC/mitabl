@@ -43,24 +43,28 @@ class RequestsCubit extends Cubit<RequestsState> {
     dynamic? orderId,
     bool? isFromOrderView,
   }) async {
-    Map<String, dynamic>? map = {};
+    try {
+      Map<String, dynamic>? map = {};
 
-    map['order_id'] = orderId.toString();
-    map['status'] = isAccept! ? '3' : '0';
+      map['order_id'] = orderId.toString();
+      map['status'] = isAccept! ? '3' : '0';
 
-    var response = await bookingRepository!.updateOrderStatus(data: map);
-    if (response.statusCode == 200) {
-      navigatorKey.currentState!.pop();
-      // if (isAccept) {
-      //   navigatorKey.currentState!.pushNamed('/UpcomingBookings');
-      // } else {
-      //   navigatorKey.currentState!.pushNamed('/Bookings');
-      // }
-
-      if (isFromOrderView!) {
+      var response = await bookingRepository!.updateOrderStatus(data: map);
+      if (response.statusCode == 200) {
         navigatorKey.currentState!.pop();
+        if (isFromOrderView!) {
+          navigatorKey.currentState!.pop();
+        }
+        getRequests();
       }
-      getRequests();
+    } on Exception {
+      emit(state.copyWith(requestBookingStatus: FormzStatus.submissionFailure));
     }
+  }
+
+  @override
+  Future<void> close() {
+    bookingRepository?.dispose();
+    return super.close();
   }
 }

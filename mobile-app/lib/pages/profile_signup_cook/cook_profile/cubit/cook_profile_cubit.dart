@@ -115,13 +115,11 @@ class CookProfileCubit extends Cubit<CookProfileState> {
       map['phone'] = state.phone.value;
       map['user_id'] = routeArguments!.data!.user!.id;
       map['timings'] = jsonEncode(TimingModel(days: state.daysTiming));
-      print('mapppss ${map.toString()}');
 
       var response = await authenticationRepository!.vendorKitchnUpload(
           data: map,
           routeArguments: routeArguments,
           filePaths: state.pathFiles);
-      print('response cubit ${response.body}');
       if (response.statusCode == 200) {
 
         emit(state.copyWith(statusApi: FormzStatus.submissionSuccess));

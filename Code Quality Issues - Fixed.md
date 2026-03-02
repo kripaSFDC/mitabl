@@ -51,3 +51,174 @@
 14. **Low - Test suite around API behavior is largely string-contract assertions, not behavioral/integration coverage.**  
     This leaves many runtime/security regressions untested.  
     [ModuleEightNineTenContractTest.php:11](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [AdminIdentityBoundaryRegressionTest.php:23](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [StripeIntegrationContractTest.php:29](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+15. **Critical: OTP verification can create orphan Stripe accounts on every retry**
+    
+    * In OTP verification, Stripe account creation is executed **before** checking whether a Stripe account already exists for the user, so repeated verify calls can create external orphan accounts.
+    * References: [UserController.php:510](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:513](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:521](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:524](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+16. **Critical: Order pricing is client-trusted (tamperable financial amounts)**
+    
+    * Server persists item_total_price, taxes, total_price, and per-item price from request payload without server-side recalculation from canonical food prices.
+    * References: [OrderService.php:38](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderService.php:41](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderService.php:58](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderService.php:75](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+17. **Critical: Refund side effects are non-idempotent and dispatched before cancellation persistence**
+    
+    * Refund event is emitted before order/cancel-reason persistence; if save fails, financial side effects may still happen.
+    * Refund listener issues Stripe refund/transfer calls without idempotency keys, so queue retries can duplicate payouts/refunds.
+    * References: [OrderController.php:401](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:414](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:416](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [CancelOrderRefundListener.php:45](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [CancelOrderRefundListener.php:52](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [PaymentService.php:223](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+18. **High: Review integrity checks are missing**
+    
+    * Customer can submit review for any restaurant_id/order_id combination (no ownership/status linkage check).
+    * Kitchen can submit foodie reviews for arbitrary user_id with no order relationship validation.
+    * References: [ReviewController.php:19](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ReviewController.php:33](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ReviewController.php:75](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ReviewController.php:88](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+19. **High: Password reset token is stored and compared in plaintext**
+    
+    * Reset token is inserted/updated as raw value and later matched raw, increasing takeover risk if DB contents leak.
+    * References: [ResetPasswordController.php:82](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ResetPasswordController.php:91](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ResetPasswordController.php:97](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ForgotPasswordController.php:44](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+20. **High: Discovery queries are fragile under strict SQL and expensive**
+    
+    * Queries select mikitchns.* while grouping only by mikitchns.id; with strict SQL (ONLY_FULL_GROUP_BY) this can fail.
+    * Recommended endpoint fetches all results without pagination cap.
+    * References: [DiscoveryService.php:30](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [DiscoveryService.php:31](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [DiscoveryService.php:160](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [config/database.php:59](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+21. **Medium: Excessive relation loading in order list/detail paths**
+    
+    * Order APIs load deep relation graph including full review relations for kitchen and user on listing endpoints, which is costly at scale.
+    * References: [OrderController.php:552](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:557](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:558](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+22. **Medium: Duplicate business logic between v1 and v2 APIs**
+    
+    * Payments/account logic is duplicated across UserController and V2 controllers, increasing regression drift risk.
+    * References: [UserController.php:791](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [PaymentsController.php:31](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:930](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [PaymentsController.php:75](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:703](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [AccountController.php:20](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+23. **Medium: Authentication hardening gap on login route**
+    
+    * login has no explicit validation and no route-level throttle, unlike OTP endpoints.
+    * References: [api.php:58](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [api.php:60](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:102](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+24. **Medium: File deletion path handling is likely incorrect**
+    
+    * Uploaded file path is stored via storage disk, but deletion uses File::exists($image->path) directly, which may not map to physical disk path and can leak files.
+    * References: [Controller.php:61](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [Controller.php:114](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [MikitchnController.php:423](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+25. **Medium: Dashboard endpoint can be slow/costly due to full Stripe transfer fetch**
+    
+    * Vendor earnings sums all transfers every call; no pagination windowing/caching per request path.
+    * References: [MikitchnController.php:542](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [MikitchnController.php:547](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [PaymentService.php:236](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+26. **Low-Medium: verify_otps schema lacks uniqueness for user_id**
+    
+    * Logic assumes one OTP row/user, but table schema doesn’t enforce it; this can cause ambiguous reads (first()).
+    * References: [2022_05_18_104229_create_verify_otps_table.php:18](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [AuthService.php:15](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [UserController.php:451](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+27. **Low-Medium: Some “regression” tests are implementation-string assertions, not behavior tests**
+    
+    * Multiple tests only assert file content strings, so runtime regressions can pass undetected.
+    * References: [ModuleEightNineTenContractTest.php:11](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [ModuleEightNineTenContractTest.php:23](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [AdminDesignComplianceRegressionTest.php:22](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+28. **Low: Minor performance/cleanliness anti-patterns repeated**
+    
+    * Frequent ->get()->first() and similar patterns in hot paths add unnecessary overhead and code noise.
+    * References: [FoodsController.php:168](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [MikitchnController.php:315](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [SupportTicketService.php:45](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
+
+29. **Critical: mobile/backend contract mismatch on food status endpoint (live failure).**  
+    Mobile calls GET /api/v2/food/status/{id} in [cook_repository.dart (line 174)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [cook_repository.dart (line 183)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), but backend only supports POST [api.php (line 131)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and explicitly returns 405 for GET [api.php (line 215)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#).
+
+30. **Critical: auth tokens are printed to logs in mobile repository code.**  
+    Access tokens are printed directly in [cook_repository.dart (line 18)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [cook_repository.dart (line 45)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [cook_repository.dart (line 72)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [cook_repository.dart (line 180)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#).
+
+31. **High: OTP is stored in plaintext and email sending is synchronous in request path.**  
+    OTP is persisted directly via updateOrCreate [AuthService.php (line 15)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and sent inline with Mail::send [AuthService.php (line 29)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), which is both security- and latency-sensitive.
+
+32. **High: broad exception masking in payments flow hides root causes and conflates error/data types.**  
+    PaymentService::safely returns exception message strings [PaymentService.php (line 341)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 346)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), forcing controllers to do fragile type checks and making observability/debugging harder.
+
+33. **High: mobile repositories swallow exceptions and return nullable/dynamic, while callers assume response objects.**  
+    Patterns in [cook_repository.dart (line 12)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [cook_repository.dart (line 34)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [bookings_repository.dart (line 18)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [bookings_repository.dart (line 54)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) can return null; cubits then dereference response.statusCode directly (for example [bookings_cubit.dart (line 28)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [requests_cubit.dart (line 27)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)).
+
+34. **High: repeated http.Client() creation without closing (resource leak pattern).**  
+    Per-call clients are created in [cook_repository.dart (line 19)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [bookings_repository.dart (line 39)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [bookings_repository.dart (line 67)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [bookings_repository.dart (line 98)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and never closed.
+
+35. **High: kitchen creation/update path is non-transactional with multi-step DB + file operations.**  
+    store() performs multiple dependent writes (kitchen, timings, images, deletions) without transaction boundaries [MikitchnController.php (line 139)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), creating partial-write risk on failure.
+
+36. **Medium: unsafe JSON handling in kitchen store can throw on malformed input.**  
+    json_decode($request->timings)->days is accessed directly in [MikitchnController.php (line 167)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) with no structural validation.
+
+37. **Medium: incorrect/fragile specialDiet serialization format in food store.**  
+    $specialdiets = '['.json_encode(implode(',', $request->specialDiet)).']'; in [FoodsController.php (line 111)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) stores an odd encoded string instead of a clean array/JSON structure.
+
+38. **Medium: significant duplication across API versions and controllers increases maintenance/regression risk.**  
+    Duplicated v1/v2 route blocks in [api.php (line 88)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and [api.php (line 155)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#); duplicated discovery methods in [MikitchnController.php (line 54)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) vs [V2/DiscoveryController.php (line 20)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#); duplicated profile update methods in [user_repository.dart (line 151)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and [user_repository.dart (line 178)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#).
+
+39. **Medium: discovery endpoints do expensive repeated work per request (count subquery + favorites lookup).**  
+    Each call does an extra count via subquery [DiscoveryService.php (line 234)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [DiscoveryService.php (line 238)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#) and fetches favorite IDs each time [DiscoveryService.php (line 241)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [DiscoveryService.php (line 251)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), which can become costly as data grows.
+
+40. **Low: route generation does unchecked argument casting and debug printing.**  
+    Potential runtime cast crashes and noisy logs in [route_generator.dart (line 30)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [route_generator.dart (line 48)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [route_generator.dart (line 94)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#).
+
+41. **Critical: Stripe connected-account update can target arbitrary account IDs**
+    
+    * updateConnectedAccount accepts account_id from request and passes it directly to Stripe without verifying ownership against the authenticated vendor account. A vendor user can attempt to mutate another connected account.
+    * Ref: [UserController.php (line 929)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 935)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 941)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+42. **Critical: Vendor transfer endpoint trusts client-supplied financial values**
+    
+    * vendorTransfer takes amount and percent directly from request and executes transfer with no server-side reconciliation to captured payment amount, no one-time transfer guard, and no idempotency enforcement at controller level. This enables over/duplicate payouts.
+    * Ref: [PaymentsController.php (line 149)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentsController.php (line 151)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentsController.php (line 153)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentsController.php (line 174)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 307)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 318)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+43. **High: Account deletion is immediate hard-delete from mobile API without re-auth challenge**
+    
+    * delete() force-deletes the authenticated user directly; no password/step-up check, no soft-delete retention path in endpoint behavior.
+    * Ref: [UserController.php (line 782)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 785)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+44. **High: DB transaction holds row locks while performing external Stripe calls**
+    
+    * OTP verification runs in DB::transaction with lockForUpdate, then calls ensureStripeAccountForRole, which calls Stripe APIs. This can extend lock duration and amplify contention/timeouts under load.
+    * Ref: [UserController.php (line 458)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 459)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 490)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 515)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 1006)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 1014)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+45. **High: Potential null dereference after bank-account add**
+    
+    * After saving StripeBankAccount, code assumes Auth::user()->restaurant exists and dereferences it unguarded. Vendor user without restaurant record will cause server error.
+    * Ref: [UserController.php (line 767)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 768)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+46. **Medium: Completed orders can be inserted repeatedly**
+    
+    * Setting status to completed always inserts a new CompletedOrder row; no dedupe/unique protection in controller flow.
+    * Ref: [OrderController.php (line 155)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [OrderController.php (line 156)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [OrderController.php (line 159)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+47. **Medium: Discount threshold likely off-by-one**
+    
+    * Discount applies when completed orders <= 5; that grants discount on the 6th order creation path, which is usually unintended if policy is “first 5 orders”.
+    * Ref: [OrderService.php (line 92)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [OrderService.php (line 93)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+48. **Medium: Unsafe indexing into Stripe external accounts**
+    
+    * external_accounts->data[0] is used without existence checks. Vendors without bank accounts can trigger runtime errors.
+    * Ref: [PaymentService.php (line 275)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 281)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 286)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [PaymentService.php (line 290)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+49. **Medium: Mobile token stored in plaintext local storage**
+    
+    * Full current_user JSON (including access token) is persisted in SharedPreferences without secure storage.
+    * Ref: [user_repository.dart (line 35)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [user_repository.dart (line 51)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+50. **Medium: Forced 3-second auth startup delay**
+    
+    * Authentication stream intentionally delays startup by 3 seconds, adding avoidable app-launch latency.
+    * Ref: [authentication_repository.dart (line 39)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [authentication_repository.dart (line 40)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+51. **Low/Medium: Duplicated legacy API surface and controller proxying increase maintenance risk**
+    
+    * Legacy route bundle is mounted in both v1 and v2, and UserController proxies many methods to V2 controllers. This duplicates behavior paths and increases drift/regression risk.
+    * Ref: [api.php (line 81)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [api.php (line 114)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [api.php (line 159)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 688)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 797)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [UserController.php (line 817)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+52. **Low: Excess debug logging in mobile app includes request/response payloads**
+    
+    * Active print statements log internal state and raw response bodies in production code, increasing PII leakage/noise risk.
+    * Ref: [edit_kitchen_profile_cubit.dart (line 159)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [edit_kitchen_profile_cubit.dart (line 169)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [login_form.dart (line 179)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
+
+

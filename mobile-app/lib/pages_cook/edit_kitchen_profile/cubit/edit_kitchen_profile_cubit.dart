@@ -156,8 +156,6 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       map['take_away'] = state.takeAway == true ? 1 : 0;
       map['description'] = state.bio!.value;
 
-      print('mapppss ${map.toString()}');
-
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
       List<String> localPaths = [];
@@ -166,7 +164,6 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       });
       var response = await userRepository!
           .vendorKitchenEditUpload(data: map, filePaths: localPaths);
-      print('response cubit ${response.body}');
       if (response.statusCode == 200) {
         jsonDecode(response.body);
 

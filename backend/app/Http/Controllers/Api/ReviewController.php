@@ -2,10 +2,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Review;
+use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Validator;
 use App\Http\Resources\Reviews\Reviews as ReviewsResource;
+use Illuminate\Validation\Rule;
 
 class ReviewController extends Controller
 {
@@ -15,8 +18,12 @@ class ReviewController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'review' => 'required|string',
-            'restaurant_id' => 'required|integer',
-            'order_id' => 'required|integer|unique:reviews,order_id',
+            'restaurant_id' => 'required|integer|exists:mikitchns,id',
+            'order_id' => [
+                'required',
+                'integer',
+                Rule::unique('reviews', 'order_id')->where(fn ($query) => $query->where('by_user', 'customer')),
+            ],
             'review_tag' => 'required|string',
             'rating' => 'required|numeric|min:0|max:5',
         ]);
@@ -25,6 +32,20 @@ class ReviewController extends Controller
             return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
+        $order = Order::query()->find((int) $request->order_id);
+        if (! $order) {
+            return $this->responser([], 'Order not found.', 404);
+        }
+        if ((int) $order->user_id !== (int) auth()->id()) {
+            return $this->responser([], 'You are not authorized for this order.', 403);
+        }
+        if ((int) $order->mikitchn_id !== (int) $request->restaurant_id) {
+            return $this->responser([], 'Order does not belong to the selected restaurant.', 422);
+        }
+        if ((int) $order->status !== Order::STATUS_COMPLETED) {
+            return $this->responser([], 'Reviews are allowed only for completed orders.', 422);
+        }
+
         $review = new Review;
         $review->review = $request->review;
         $review->review_tag = $request->review_tag;
@@ -42,11 +63,12 @@ class ReviewController extends Controller
     public function reviewOfRestaurant(Request $request)
     {
         $queryparams = $request->query();
+        $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         $review = Review::where('mikitchn_id', auth()->user()->restaurant->id)->where('by_user','customer')->orderBy('id', 'desc');
         $this->data['total_count'] = $review->count();
         // $reviews = auth()->user()->restaurant->reviews();
         // print_r($review); die();
-        $data = $review->paginate($queryparams['limit']);
+        $data = $review->paginate($limit);
         $this->data['reviews'] = ReviewsResource::collection($data);
 
         return $this->responser($this->data, 'Kitchen Reviews');
@@ -56,12 +78,13 @@ class ReviewController extends Controller
     public function getKitchenReviews(Request $request,$id)
     {
         $queryparams = $request->query();
+        $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         // $review = Review::where('user_id', auth()->user()->id)->where('by_user','kitchen')->orderBy('id', 'desc');
         $review = Review::where('mikitchn_id', $id)->where('by_user','customer')->orderBy('id', 'desc');
         $this->data['total_count'] = $review->count();
         // $reviews = auth()->user()->restaurant->reviews();
         // print_r($review); die();
-        $data = $review->paginate($queryparams['limit']);
+        $data = $review->paginate($limit);
         $this->data['reviews'] = ReviewsResource::collection($data);
 
         return $this->responser($this->data, 'Kitchen Reviews');
@@ -72,7 +95,12 @@ class ReviewController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'review' => 'required|string',
-            'user_id' => 'required|integer',
+            'user_id' => 'required|integer|exists:users,id',
+            'order_id' => [
+                'required',
+                'integer',
+                Rule::unique('reviews', 'order_id')->where(fn ($query) => $query->where('by_user', 'kitchen')),
+            ],
             'review_tag' => 'required|string',
             'rating' => 'required|numeric|min:0|max:5',
         ]);
@@ -81,12 +109,34 @@ class ReviewController extends Controller
             return $this->responser($this->data,$validator->errors()->first(), 422);
         }
         // die('gnbgnf');
+        $restaurant = auth()->user()->restaurant;
+        if (! $restaurant) {
+            return $this->responser([], 'Restaurant profile not found.', 404);
+        }
+
+        $targetUser = User::query()->find((int) $request->user_id);
+        if (! $targetUser || (int) $targetUser->role_id !== 3) {
+            return $this->responser([], 'Target user must be a foodie account.', 422);
+        }
+
+        $order = Order::query()->find((int) $request->order_id);
+        if (! $order) {
+            return $this->responser([], 'Order not found.', 404);
+        }
+        if ((int) $order->mikitchn_id !== (int) $restaurant->id || (int) $order->user_id !== (int) $targetUser->id) {
+            return $this->responser([], 'Order is not linked to this restaurant and foodie.', 422);
+        }
+        if ((int) $order->status !== Order::STATUS_COMPLETED) {
+            return $this->responser([], 'Reviews are allowed only for completed orders.', 422);
+        }
+
         $review = new Review;
         $review->review = $request->review;
         $review->review_tag = $request->review_tag;
         $review->rating = $request->rating;
         $review->user_id = $request->user_id;
-        $review->mikitchn_id = auth()->user()->restaurant->id;
+        $review->mikitchn_id = $restaurant->id;
+        $review->order_id = (int) $request->order_id;
         $review->by_user = 'kitchen';
         $review->save();
         // auth()->user()->restaurant->reviews()->save($review);

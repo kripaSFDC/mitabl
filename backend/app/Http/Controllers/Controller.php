@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Carbon\Carbon;
 use App\Models\Image;
+use Illuminate\Support\Facades\Storage;
 use File,DateTime;
 /**
  * @OA\Info(
@@ -107,12 +108,15 @@ class Controller extends BaseController
 
     public function deleteImageById($id,$type)
     {
-        $image = Image::where('id',$id)->where('model_name',$type)->get()->first();
+        $image = Image::where('id',$id)->where('model_name',$type)->first();
         if (!$image) {
             return ['status'=>false,'id'=>$id,'msg'=>'Image Not found.'];
         }
-        if(File::exists($image->path)) {
-            File::delete($image->path);
+        $disk = Storage::disk('my_files');
+        if ($disk->exists((string) $image->path)) {
+            $disk->delete((string) $image->path);
+        } elseif (File::exists((string) $image->path)) {
+            File::delete((string) $image->path);
         }
         $image->delete();
         return ['status'=>true,'id'=>$id,'msg'=>'Image Deleted.'];

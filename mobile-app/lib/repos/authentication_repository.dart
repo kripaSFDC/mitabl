@@ -37,8 +37,6 @@ class AuthenticationRepository {
   }
 
   Stream<AuthenticationStatus> get status async* {
-    await Future<void>.delayed(const Duration(seconds: 3));
-
     final user = await _userRepository.getUser();
 
     if (user != null) {
@@ -77,7 +75,7 @@ class AuthenticationRepository {
   }
 
   Future<http.Response> logOutApi({required UserModel? userModel}) async {
-    final url = ApiContract.uri('v1/logout');
+    final url = ApiContract.uri('v2/logout');
 
     return _httpClient.post(
       url,
@@ -124,7 +122,7 @@ class AuthenticationRepository {
       required RouteArguments? routeArguments,
       required List<String> filePaths}) async {
     try {
-      final url = ApiContract.uri('v1/mikitchn/store');
+      final url = ApiContract.uri('v2/mikitchn/store');
 
       final request = http.MultipartRequest('POST', url);
 

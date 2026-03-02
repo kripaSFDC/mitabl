@@ -26,8 +26,7 @@
       <div class="container d-flex justify-content-between align-items-center">
           <p>&copy; 2026 mitabl All rights reserved.</p>
           <p class="d-flex align-items-center">
-              <a href="https://www.instagram.com/_mitabl_/" target="_blank" class="text-white mr-2"><i class="fa-brands fa-instagram" style="font-size: 21px;"></i></a>
-              <a href="https://twitter.com/mitablReal" target="_blank" class="text-white ml-2"><i class="fa-brands fa-twitter" style="font-size: 21px;"></i></a>
+              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-2" aria-label="Visit mitabl Instagram (opens in a new tab)"><i class="fa-brands fa-instagram" style="font-size: 21px;"></i></a>
           </p>
       </div>
   </div>

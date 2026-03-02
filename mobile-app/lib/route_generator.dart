@@ -23,11 +23,16 @@ import 'package:mitabl_user/pages_cook/user_details_page/user_details.dart';
 import 'package:mitabl_user/splash.dart';
 
 class RouteGenerator {
+  static Route<dynamic> _routeError([String message = 'Route Error']) {
+    return MaterialPageRoute<void>(
+      builder: (_) => Scaffold(body: SafeArea(child: Text(message))),
+    );
+  }
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     // Getting arguments passed in while calling Navigator.pushNamed
     final args = settings.arguments;
-    // print('usrRepo' + args.toString());
-    print(settings.name.toString());
+    final routeArguments = args is RouteArguments ? args : null;
     switch (settings.name) {
       case '/Splash':
         return MaterialPageRoute<void>(builder: (_) => SplashPage());
@@ -45,16 +50,25 @@ class RouteGenerator {
         return ForgotPage.route();
 
       case '/OTPPage':
-        return OTPPage.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OTPPage');
+        }
+        return OTPPage.route(routeArguments: routeArguments);
 
       case '/HomePage':
         return HomePage.route();
 
       case '/CookProfile':
-        return CookProfilePage.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /CookProfile');
+        }
+        return CookProfilePage.route(routeArguments: routeArguments);
 
       case '/SettingsCook':
-        return SettingsCookPage.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /SettingsCook');
+        }
+        return SettingsCookPage.route(routeArguments: routeArguments);
 
       case '/ProfileCook':
         return EditProfileCookPage.route();
@@ -69,14 +83,22 @@ class RouteGenerator {
         return DashBoardCookPage.route();
 
       case '/EditKitchenProfile':
-        return EditKitchenProfilePage.route(
-            routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /EditKitchenProfile');
+        }
+        return EditKitchenProfilePage.route(routeArguments: routeArguments);
 
       case '/CustomerReviewPage':
-        return CustomerReviewPage.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /CustomerReviewPage');
+        }
+        return CustomerReviewPage.route(routeArguments: routeArguments);
 
       case '/AddMenuPage':
-        return AddMenuPage.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /AddMenuPage');
+        }
+        return AddMenuPage.route(routeArguments: routeArguments);
 
       case '/Bookings':
         return Bookings.route();
@@ -85,19 +107,25 @@ class RouteGenerator {
         return UpcomingBookings.route();
 
       case '/MenuDetails':
-        return MenuDetails.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /MenuDetails');
+        }
+        return MenuDetails.route(routeArguments: routeArguments);
 
       case '/UserDetails':
-        return UserDetails.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /UserDetails');
+        }
+        return UserDetails.route(routeArguments: routeArguments);
 
       case '/OrderDetails':
-        return OrderDetails.route(routeArguments: args as RouteArguments);
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderDetails');
+        }
+        return OrderDetails.route(routeArguments: routeArguments);
 
       default:
-        // If there is no such named route in the switch statement, e.g. /third
-        return MaterialPageRoute<void>(
-            builder: (_) =>
-                const Scaffold(body: SafeArea(child: Text('Route Error'))));
+        return _routeError();
     }
   }
 }

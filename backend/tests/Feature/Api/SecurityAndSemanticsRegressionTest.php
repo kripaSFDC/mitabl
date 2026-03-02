@@ -74,11 +74,11 @@ class SecurityAndSemanticsRegressionTest extends TestCase
 
     public function test_state_changing_get_endpoints_are_rejected(): void
     {
-        $this->getJson('/api/v1/togglenotifications')->assertStatus(405);
         $this->getJson('/api/v1/food/status/1')->assertStatus(405);
-        $this->getJson('/api/v1/createCheckoutsession')->assertStatus(405);
-        $this->getJson('/api/v1/becomefoodie')->assertStatus(405);
-        $this->getJson('/api/v1/becomecook')->assertStatus(405);
+        $this->getJson('/api/v1/togglenotifications')->assertStatus(404);
+        $this->getJson('/api/v1/createCheckoutsession')->assertStatus(404);
+        $this->getJson('/api/v1/becomefoodie')->assertStatus(404);
+        $this->getJson('/api/v1/becomecook')->assertStatus(404);
         $this->getJson('/api/v2/payments/checkout-session')->assertStatus(405);
     }
 }

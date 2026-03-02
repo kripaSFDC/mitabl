@@ -33,7 +33,17 @@ COPY --from=vendor /app /app
 
 RUN mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/logs bootstrap/cache
 
-EXPOSE 8000
+RUN printf '%s\n' \
+    'opcache.enable=1' \
+    'opcache.enable_cli=0' \
+    'opcache.memory_consumption=256' \
+    'opcache.max_accelerated_files=32531' \
+    'opcache.validate_timestamps=0' \
+    'realpath_cache_size=4096K' \
+    'realpath_cache_ttl=600' \
+    > /usr/local/etc/php/conf.d/zz-performance.ini
+
+EXPOSE 9000
 
 RUN php --ini
 

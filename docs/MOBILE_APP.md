@@ -346,12 +346,13 @@ This section captures **every major code/config file class** under `mobile-app/`
 - `GET v1/getcustomerprofile`
 - `POST v1/editprofile`
 - `POST v1/deleteimage`
+- `GET v1/getdashboarddata`
 
 ### Discovery
 
-- `POST v1/recommendedrestaurant`
-- `POST v1/topRatedRestaurant`
-- `POST v1/nearestRestaurant`
+- `POST v2/discovery/recommended`
+- `POST v2/discovery/top-rated`
+- `POST v2/discovery/nearest`
 
 ### Menu
 

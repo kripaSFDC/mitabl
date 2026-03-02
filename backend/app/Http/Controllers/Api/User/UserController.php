@@ -13,6 +13,8 @@ use Validator;
 use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\sendOTP;
@@ -21,15 +23,14 @@ use App\Models\CookingStyles;
 use App\Models\SpecialDiet;
 use App\Models\StripeAccount;
 use App\Models\StripeBankAccount;
-use App\Models\Card;
 use App\Models\Mikitchn;
-use App\Models\NotifyDisable;
-use App\Models\Order;
-use App\Models\Payment;
 use App\Models\UserAuthToken;
 use App\Traits\GoogleAddress;
 use App\Services\AuthService;
 use App\Services\PaymentService;
+use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
+use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
+use Throwable;
 use JWTAuth;
 
 class UserController extends Controller
@@ -37,11 +38,20 @@ class UserController extends Controller
     use GoogleAddress;
     private AuthService $authService;
     private PaymentService $paymentService;
+    private V2AccountController $v2AccountController;
+    private V2PaymentsController $v2PaymentsController;
 
-    public function __construct(AuthService $authService, PaymentService $paymentService)
+    public function __construct(
+        AuthService $authService,
+        PaymentService $paymentService,
+        V2AccountController $v2AccountController,
+        V2PaymentsController $v2PaymentsController
+    )
     {
         $this->authService = $authService;
         $this->paymentService = $paymentService;
+        $this->v2AccountController = $v2AccountController;
+        $this->v2PaymentsController = $v2PaymentsController;
     }
 
     /**
@@ -98,6 +108,13 @@ class UserController extends Controller
     */
 
     public function login(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string|min:8',
+        ]);
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
+        }
 
         $credentials = $request->only('email', 'password');
 
@@ -136,32 +153,36 @@ class UserController extends Controller
         }
 
         if ($user->email_verified == 1) {
-            $asgnToken = null;
-            if ($user->Token) {
-                
+            if (! $this->hasStripeAccountForRole($user)) {
+                $stripeProvisionError = $this->ensureStripeAccountForRole($user);
+                if ($stripeProvisionError !== null) {
+                    $user->email_verified = 0;
+                    $user->save();
+                    $this->sendOtp($user->id, $user->email);
 
-                UserAuthToken::where('user_id', $user->id)
-                ->first()
-                ->update(['latest_token' => $token]);
-                // $asgnToken = $token;
-
-                
-
-            } else {
-
-                $UserAuthToken = new UserAuthToken();
-                $UserAuthToken->user_id = $user->id;
-                $UserAuthToken->latest_token = $token;
-                $UserAuthToken->save();
-
-                // $asgnToken = $user->Token->latest_token;
-
+                    Auth::guard('api')->logout();
+                    return $this->responser(
+                        [],
+                        'Your account verification needs to be retried. A new OTP has been sent to your email.',
+                        422
+                    );
+                }
             }
 
-            if ($user->Token) {
-                JWTAuth::setToken($user->Token->latest_token);
-                JWTAuth::invalidate();
+            $previousToken = (string) optional($user->Token)->latest_token;
+            if ($previousToken !== '') {
+                try {
+                    JWTAuth::setToken($previousToken);
+                    JWTAuth::invalidate();
+                } catch (Throwable $throwable) {
+                    report($throwable);
+                }
             }
+
+            UserAuthToken::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['latest_token' => $token]
+            );
             
             if ($request->has('device_token')) {
                 $user->device_token = $request->device_token;
@@ -448,37 +469,40 @@ class UserController extends Controller
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        $otpRecord = verifyOtp::where('user_id', (int) $request->id)->first();
-        if (! $otpRecord) {
-            return response()->json(["status" => 401, "isSuccess" => false, 'isError' => 'Invalid Otp.','data'=> []], 401);
-        }
-
-        if ($otpRecord->locked_until && $otpRecord->locked_until->isFuture()) {
-            return $this->responser([], 'Too many attempts. Try again later.', 429);
-        }
-
-        if ($otpRecord->expires_at && $otpRecord->expires_at->isPast()) {
-            return $this->responser([], 'OTP expired. Please request a new code.', 422);
-        }
-
-        if ((string) $otpRecord->otp !== (string) $request->otp) {
-            $attempts = ((int) $otpRecord->attempts) + 1;
-            $lockThreshold = 5;
-            $lockMinutes = 15;
-            $otpRecord->attempts = $attempts;
-            if ($attempts >= $lockThreshold) {
-                $otpRecord->locked_until = now()->addMinutes($lockMinutes);
-                $otpRecord->attempts = 0;
+        $verifiedUserId = null;
+        $response = DB::transaction(function () use ($request, &$verifiedUserId) {
+            $otpRecord = verifyOtp::where('user_id', (int) $request->id)->lockForUpdate()->first();
+            if (! $otpRecord) {
+                return response()->json(["status" => 401, "isSuccess" => false, 'isError' => 'Invalid Otp.','data'=> []], 401);
             }
-            $otpRecord->save();
 
-            return response()->json(["status" => 401, "isSuccess" => false, 'isError' => 'Invalid Otp.','data'=> []], 401);
-        }
+            if ($otpRecord->locked_until && $otpRecord->locked_until->isFuture()) {
+                return $this->responser([], 'Too many attempts. Try again later.', 429);
+            }
 
-        if ($otpRecord){
-            $chkstrpaccexist = 0;
-            $user = User::where('id',$request->id)->first();
+            if ($otpRecord->expires_at && $otpRecord->expires_at->isPast()) {
+                return $this->responser([], 'OTP expired. Please request a new code.', 422);
+            }
 
+            $storedOtp = (string) $otpRecord->otp;
+            $providedOtp = (string) $request->otp;
+            $otpMatched = Hash::check($providedOtp, $storedOtp) || hash_equals($storedOtp, $providedOtp);
+
+            if (! $otpMatched) {
+                $attempts = ((int) $otpRecord->attempts) + 1;
+                $lockThreshold = 5;
+                $lockMinutes = 15;
+                $otpRecord->attempts = $attempts;
+                if ($attempts >= $lockThreshold) {
+                    $otpRecord->locked_until = now()->addMinutes($lockMinutes);
+                    $otpRecord->attempts = 0;
+                }
+                $otpRecord->save();
+
+                return response()->json(["status" => 401, "isSuccess" => false, 'isError' => 'Invalid Otp.','data'=> []], 401);
+            }
+
+            $user = User::where('id', (int) $request->id)->lockForUpdate()->first();
             if (! $user) {
                 return $this->responser([], 'User not found.', 404);
             }
@@ -500,63 +524,58 @@ class UserController extends Controller
                 return $this->suspendedAccountResponse();
             }
 
-            $user->email_verified = 1;
-            $user->save();
-            // ->update(['email_verified' => 1]);
+            $verifiedUserId = (int) $user->id;
 
-
-            if ((int) $user->role_id === 3) {
-                
-                $account = $this->paymentService->safely(fn () => $this->paymentService->createCustomer(['name'=>$user->first_name,'email'=>$user->email]));
-                $acc_type = 'customer';
-            } elseif ((int) $user->role_id === 2) {
-                $account = $this->paymentService->safely(fn () => $this->paymentService->createVendor($user));
-                $acc_type = 'vendor';
-            }
-            // echo $account; die();
-            if (!is_object($account)) {
-                return $this->responser([],$account, 422);
-            }
-
-            if ($user->customer) { $chkstrpaccexist++; }
-            if ($user->vendor) { $chkstrpaccexist++; }
-
-            if (!$chkstrpaccexist) {
-                $stripeAccount = new StripeAccount();
-                $stripeAccount->user_id = $user->id;
-                $stripeAccount->account_type = $acc_type;
-                $stripeAccount->account_id = $account->id;
-                $stripeAccount->save();
-            }
-            
-
-            $accessToken = auth()->login($user, true);
-            
-            if ($accessToken) {
-                $UserAuthToken = new UserAuthToken();
-                $UserAuthToken->user_id = $user->id;
-                $UserAuthToken->latest_token = $accessToken;
-                $UserAuthToken->save();
-            }
-            $otpRecord->delete();
-
-            $return = [
+            return response()->json([
                 "status" => 200,
-                "isSuccess" => true, 
+                "isSuccess" => true,
                 'message' => 'OTP Verified',
                 'data' => [
                     'user' => [
                         'id' => $user->id,
-                        'name' => $user->first_name.' '.$user->last_name,
+                        'name' => $user->first_name . ' ' . $user->last_name,
                         'email' => $user->email,
                         'role' => $user->role->role,
-                    ], 
-                    'access_token' => $accessToken
-                ],   
-            ];
-            
+                    ],
+                ],
+            ], 200);
+        });
+
+        if ($verifiedUserId === null || $response->getStatusCode() !== 200) {
+            return $response;
         }
-        return response()->json($return,$return['status']);
+
+        $verifiedUser = User::query()->find($verifiedUserId);
+        if (! $verifiedUser) {
+            return $this->responser([], 'User not found.', 404);
+        }
+
+        $stripeProvisionError = $this->ensureStripeAccountForRole($verifiedUser);
+        if ($stripeProvisionError !== null) {
+            $this->sendOtp($verifiedUser->id, $verifiedUser->email);
+            return $this->responser([], 'Unable to create Stripe account. A new OTP has been sent, please verify again.', 422);
+        }
+
+        DB::transaction(function () use ($verifiedUser): void {
+            $user = User::query()->whereKey($verifiedUser->id)->lockForUpdate()->firstOrFail();
+            $user->email_verified = 1;
+            $user->save();
+
+            verifyOtp::query()->where('user_id', $user->id)->delete();
+        });
+
+        $accessToken = auth()->login($verifiedUser, true);
+        if ($accessToken) {
+            UserAuthToken::query()->updateOrCreate(
+                ['user_id' => $verifiedUser->id],
+                ['latest_token' => $accessToken]
+            );
+        }
+
+        $decoded = $response->getData(true);
+        $decoded['data']['access_token'] = $accessToken;
+
+        return response()->json($decoded, 200);
     }
 
     /**
@@ -603,26 +622,22 @@ class UserController extends Controller
 
     public function becomeFoodie(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        $user->role_id = 3;
-        $user->save();
-        $accessToken= request()->bearerToken();
-        $isCustomer = $user->customer;
-         
-        if (!is_object($isCustomer) && $isCustomer == '') {
-            $account = $this->paymentService->safely(fn () => $this->paymentService->createCustomer(['name'=>$user->first_name,'email'=>$user->email]));
-            if (!is_object($account)) {
-                return $this->responser([],$account, 422);
-            }else{
-                $stripeAccount = new StripeAccount();
-                $stripeAccount->user_id = $user->id;
-                $stripeAccount->account_type = 'customer';
-                $stripeAccount->account_id = $account->id;
-                $stripeAccount->save();
-            }
-        }
+        $authUser = Auth::guard('api')->user();
+        $accessToken = request()->bearerToken();
 
-        $user = User::find($user->id);
+        $result = DB::transaction(function () use ($authUser) {
+            $user = User::whereKey($authUser->id)->lockForUpdate()->firstOrFail();
+            $user->role_id = 3;
+            $user->save();
+
+            return ['user' => $user->fresh()];
+        });
+        $user = $result['user'];
+
+        $stripeProvisionError = $this->ensureStripeAccountForRole($user);
+        if ($stripeProvisionError !== null) {
+            return $this->responser([], (string) $stripeProvisionError, 422);
+        }
 
         $data = [
                 'access_token' => $accessToken,
@@ -643,27 +658,22 @@ class UserController extends Controller
 
     public function becomeCook(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        $user->role_id = 2;
-        $user->save();
-        $accessToken= request()->bearerToken();
-        $isVendor = $user->vendor;
+        $authUser = Auth::guard('api')->user();
+        $accessToken = request()->bearerToken();
 
-        if (!is_object($isVendor) && $isVendor == '') {
-            $account = $this->paymentService->safely(fn () => $this->paymentService->createVendor($user));
-            if (!is_object($account)) {
-                return $this->responser([],$account, 422);
-            }else{
-                $stripeAccount = new StripeAccount();
-                $stripeAccount->user_id = $user->id;
-                $stripeAccount->account_type = 'vendor';
-                $stripeAccount->account_id = $account->id;
-                $stripeAccount->save();
-            }
-            
+        $result = DB::transaction(function () use ($authUser) {
+            $user = User::whereKey($authUser->id)->lockForUpdate()->firstOrFail();
+            $user->role_id = 2;
+            $user->save();
+
+            return ['user' => $user->fresh()];
+        });
+        $user = $result['user'];
+
+        $stripeProvisionError = $this->ensureStripeAccountForRole($user);
+        if ($stripeProvisionError !== null) {
+            return $this->responser([], (string) $stripeProvisionError, 422);
         }
-        
-        $user = User::find($user->id);
 
         
     	$existKitchen = Mikitchn::where('user_id',$user->id)->first();
@@ -701,77 +711,16 @@ class UserController extends Controller
     }
 
     public function update(Request $request){
-
-        $user = Auth::guard('api')->user();
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'phone' => 'required',
-            'email' => 'required|email|unique:users,email,'.$user->id
-        ]);
-
-        if($validator->fails()){
-            return $this->responser([],$validator->errors()->first(), 422);
-        }
-
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->email = $request->email;
-        
-        $user->phone = $request->phone;
-        $user->description = $request->description;
-        if ($request->hasFile('avatar')) {
-            $avatar = $this->uploadImage($request->avatar,'user');
-            if ($avatar['success']) {
-                $user->avatar = $avatar['path'];
-            } else {
-                return $this->responser([], $avatar['msg'], 422);
-            }
-        }
-
-        $user->save();
-
-        $data = new UserResource($user);
-        return $this->responser($data, 'User Profile Updated');
+        return $this->v2AccountController->update($request);
     }
 
     public function changePassword(Request $request){
-
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required',
-            'new_password' => 'required|different:current_password'
-        ]);
-
-        if($validator->fails()){
-            return $this->responser([],$validator->errors()->first(), 422);
-        }
-
-        $user = Auth::user();
-        $oldpass = $request->current_password;
-        $ok = password_verify($oldpass, $user->password);
-        if ( $ok == true) {
-            // if($request->new_password == $request->confirm__password){
-                $user->password = bcrypt($request->new_password);
-                $user->save();
-                return $this->responser($user,'User Password Updated successfully');
-            // } else {
-                // return $this->responser([],'Password doesn\'t match');
-            // }
-        } else {
-            return $this->responser([],'Current password doesn\'t match', 422);
-        }
+        return $this->v2AccountController->changePassword($request);
     }
 
     public function updateDeviceToken(Request $request)
     {
-        $user = Auth::guard('api')->user();
-        if ($request->has('device_token')) {
-            $user->device_token = $request->device_token;
-            $user->save();
-        }
-
-        return $this->responser($user,'Device Token Updated.');
+        return $this->v2AccountController->updateDeviceToken($request);
     }
 
     public function getCookingStyles()
@@ -790,32 +739,7 @@ class UserController extends Controller
 
     public function addCardToCustomer(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'payment_method_id' => 'required|string|starts_with:pm_',
-        ]);
-
-        if($validator->fails()){    
-            return $this->responser([],$validator->errors()->first(), 422);
-        }
-
-        // echo "<pre>";
-        // print_r(Auth::user()); die();
-
-        if (!Auth::user()->customer) {
-            return $this->responser([],"you don't have stripe customer account.", 403);
-        }
-        // die('enter');
-        $stripe_card = $this->paymentService->safely(fn () => $this->paymentService->createAndAddCard(Auth::user(), $request->only('payment_method_id')));
-        if (!is_object($stripe_card) || !isset($stripe_card->id)) {
-            return $this->responser([], is_string($stripe_card) ? $stripe_card : 'Unable to add card.', 422);
-        }
-
-        $card = Card::query()->firstOrCreate([
-            'user_id' => Auth::user()->id,
-            'stripe_card_id' => $stripe_card->id,
-        ]);
-
-        return $this->responser($card,'Card Added successfully.');
+        return $this->v2PaymentsController->addCard($request);
     }
 
     public function completedOnBoarding(Request $request)
@@ -854,9 +778,11 @@ class UserController extends Controller
             return $this->responser([],"you don't have stripe vendor connected account.", 403);
         }
 
-        $stripe_extrnl_bank = $this->paymentService->safely(fn () => $this->paymentService->createAndAddBankToVendor(Auth::user(), $request->all()));
-        if (!is_object($stripe_extrnl_bank)) {
-            return $this->responser([],$stripe_extrnl_bank, 422);
+        try {
+            $stripe_extrnl_bank = $this->paymentService->createAndAddBankToVendor(Auth::user(), $request->all());
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to add vendor bank account.', 422);
         }
         $userId = Auth::user()->id;
         $bankAccount = new StripeBankAccount();
@@ -865,8 +791,10 @@ class UserController extends Controller
 
         if ($bankAccount->save()) {
             $kitchen = Auth::user()->restaurant;
-            $kitchen->status = 1;
-            $kitchen->save();
+            if ($kitchen) {
+                $kitchen->status = 1;
+                $kitchen->save();
+            }
         }
 
 
@@ -875,25 +803,16 @@ class UserController extends Controller
 
     public function toggleNotifications(Request $request)
     {
-        $user = Auth::user();
-
-        $exitsInNotify = NotifyDisable::where('user_id',$user->id)->get()->first();
-        if ($exitsInNotify) {
-            $exitsInNotify->delete();
-        } else {
-            $notifyDisable = new NotifyDisable();
-            $notifyDisable->user_id = $user->id;
-            $notifyDisable->save();
-        }
-        
-        return $this->responser($user,'User notifications updated successfully.');
+        return $this->v2AccountController->notificationsToggle($request);
 
     }
 
     public function delete(Request $request)
     {
         $user = Auth::guard('api')->user();
-        $user->forceDelete();
+        UserAuthToken::query()->where('user_id', $user->id)->delete();
+        Auth::guard('api')->logout();
+        $user->delete();
 
         return $this->responser($user,'Account Deleted Successfully.');
     }
@@ -905,121 +824,27 @@ class UserController extends Controller
 
     public function getAllCards()
     {
-        $response = $this->paymentService->safely(fn () => $this->paymentService->getAllCards(Auth::user()));
-        if (!is_object($response) && !is_array($response)) {
-            return $this->responser([], (string) $response, 422);
-        }
-
-        return $this->responser($response, 'customer cards.');
+        return $this->v2PaymentsController->cards(request());
     }
 
     public function createCheckoutsession()
     {
-        if (!Auth::user()->customer) {
-            return $this->responser([], 'This user has not stripe customer account.', 403);
-        }
-
-        $session = $this->paymentService->safely(fn () => $this->paymentService->createCheckoutSession(Auth::user()));
-        if (!is_object($session)) {
-            return $this->responser([], (string) $session, 422);
-        }
-
-        return $this->responser(['url' => $session->url], 'Add card url session.');
+        return $this->v2PaymentsController->checkoutSession(request());
     }
 
     public function createPaymentIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
-            return $this->responser([], 'Only foodie accounts can create payment intents.', 403);
-        }
-
-        $order = Order::find($request->order_id);
-        if (!$order) {
-            return $this->responser([], 'Order not found please check order id.', 404);
-        }
-        if ((int) $order->user_id !== (int) Auth::id()) {
-            return $this->responser([], 'You are not authorized for this order.', 403);
-        }
-
-        $intent = $this->paymentService->safely(fn () => $this->paymentService->createPaymentIntent($order));
-        if (!is_object($intent)) {
-            return $this->responser([], (string) $intent, 422);
-        }
-
-        return $this->responser($intent, 'payment intent created.');
+        return $this->v2PaymentsController->createIntent($request);
     }
 
     public function confirmPaymentIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
-            return $this->responser([], 'Only foodie accounts can confirm payment intents.', 403);
-        }
-
-        $payment = Payment::find($request->payment_id);
-        if (!$payment) {
-            return $this->responser([], 'Payment not found.', 404);
-        }
-        $order = Order::find($payment->order_id);
-        if (!$order || (int) $order->user_id !== (int) Auth::id()) {
-            return $this->responser([], 'You are not authorized for this payment.', 403);
-        }
-
-        $intent = $this->paymentService->safely(fn () => $this->paymentService->confirmPaymentIntent($payment));
-        if (!is_object($intent)) {
-            return $this->responser([], (string) $intent, 422);
-        }
-
-        return $this->responser($intent, 'payment intent confirmed.');
+        return $this->v2PaymentsController->confirmIntent($request);
     }
 
     public function transferToVendor(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 2) {
-            return $this->responser([], 'Only cook accounts can transfer to vendor.', 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'kitchen_id' => 'required|integer',
-            'amount' => 'required|numeric',
-            'order_id' => 'required|integer',
-            'percent' => 'required|numeric',
-            'description' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->responser([], $validator->errors()->first(), 422);
-        }
-
-        $kitchen = Mikitchn::find($request->kitchen_id);
-        if (!$kitchen) {
-            return $this->responser([], 'Kitchen not found.', 404);
-        }
-        if ((int) $kitchen->user_id !== (int) Auth::id()) {
-            return $this->responser([], 'You are not authorized for this kitchen.', 403);
-        }
-        $order = Order::find((int) $request->order_id);
-        if (!$order) {
-            return $this->responser([], 'Order not found.', 404);
-        }
-        if ((int) $order->mikitchn_id !== (int) $kitchen->id) {
-            return $this->responser([], 'Order does not belong to the provided kitchen.', 422);
-        }
-
-        $transfer = $this->paymentService->safely(
-            fn () => $this->paymentService->transferToVendor(
-                $kitchen,
-                (float) $request->amount,
-                (int) $request->order_id,
-                (float) $request->percent,
-                (string) $request->description
-            )
-        );
-
-        if (!is_object($transfer)) {
-            return $this->responser([], (string) $transfer, 422);
-        }
-
-        return $this->responser($transfer, 'amount transferred.');
+        return $this->v2PaymentsController->vendorTransfer($request);
     }
 
     public function refundFullAmount(Request $request)
@@ -1038,9 +863,11 @@ class UserController extends Controller
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $account = $this->paymentService->safely(fn () => $this->paymentService->retrieveAccount(Auth::user()));
-        if (!is_object($account)) {
-            return $this->responser([], (string) $account, 422);
+        try {
+            $account = $this->paymentService->retrieveAccount(Auth::user());
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to retrieve Stripe account details.', 422);
         }
 
         return $this->responser($account, 'stripe account details.');
@@ -1052,9 +879,11 @@ class UserController extends Controller
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $account = $this->paymentService->safely(fn () => $this->paymentService->getVendorBankAccount(Auth::user()));
-        if (!is_object($account)) {
-            return $this->responser([], (string) $account, 422);
+        try {
+            $account = $this->paymentService->getVendorBankAccount(Auth::user());
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to retrieve vendor bank account.', 422);
         }
 
         return $this->responser($account, 'vendor bank account.');
@@ -1085,8 +914,10 @@ class UserController extends Controller
             return false;
         }
 
-        $result = $this->paymentService->safely(fn () => $this->paymentService->isAccountCompleted(Auth::user()));
-        if (!is_bool($result)) {
+        try {
+            $result = $this->paymentService->isAccountCompleted(Auth::user());
+        } catch (Throwable $throwable) {
+            report($throwable);
             return false;
         }
 
@@ -1099,9 +930,11 @@ class UserController extends Controller
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $link = $this->paymentService->safely(fn () => $this->paymentService->createAccLoginLink(Auth::user()));
-        if (!is_object($link)) {
-            return $this->responser([], (string) $link, 422);
+        try {
+            $link = $this->paymentService->createAccLoginLink(Auth::user());
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to create account login link.', 422);
         }
 
         return $this->responser(['url' => $link->url], 'express account login link');
@@ -1113,9 +946,11 @@ class UserController extends Controller
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $link = $this->paymentService->safely(fn () => $this->paymentService->onboardingLink(Auth::user()));
-        if (!is_object($link)) {
-            return $this->responser([], (string) $link, 422);
+        try {
+            $link = $this->paymentService->onboardingLink(Auth::user());
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to create onboarding link.', 422);
         }
 
         return $this->responser(['url' => $link->url], 'On boarding Url');
@@ -1127,14 +962,20 @@ class UserController extends Controller
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $accountId = $request->input('account_id', (string) optional(Auth::user()->vendor)->account_id);
-        if (!$accountId) {
+        $accountId = (string) optional(Auth::user()->vendor)->account_id;
+        if ($accountId === '') {
             return $this->responser([], 'account_id is required.', 422);
         }
+        $requestedAccountId = trim((string) $request->input('account_id', ''));
+        if ($requestedAccountId !== '' && $requestedAccountId !== $accountId) {
+            return $this->responser([], 'You are not authorized to update this connected account.', 403);
+        }
 
-        $updated = $this->paymentService->safely(fn () => $this->paymentService->updateConnectedAccount($accountId));
-        if (!is_object($updated)) {
-            return $this->responser([], (string) $updated, 422);
+        try {
+            $updated = $this->paymentService->updateConnectedAccount($accountId);
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to update connected account.', 422);
         }
 
         return $this->responser($updated, 'connected account updated.');
@@ -1152,10 +993,7 @@ class UserController extends Controller
 
     public function mobileContact(Request $request)
     {
-        $user = Auth::user();
-        // $user = User::find(25);
-        $rspn = ['role' => $user->role_id,'id' => $user->id,'email' => $user->email,'phone' => $user->phone ];
-        return $this->responser($rspn,'User details.');
+        return $this->v2AccountController->mobileContact($request);
     }
 
     private function isAdminIdentityRole(int $roleId): bool
@@ -1181,6 +1019,84 @@ class UserController extends Controller
             'isError' => 'Your account is suspended. Please contact support.',
             'data' => [],
         ], 403);
+    }
+
+    private function ensureStripeAccountForRole(User $user): ?string
+    {
+        $accountType = null;
+        if ((int) $user->role_id === 3) {
+            $accountType = 'customer';
+        } elseif ((int) $user->role_id === 2) {
+            $accountType = 'vendor';
+        }
+
+        if ($accountType === null) {
+            return 'Unsupported account role for payment account provisioning.';
+        }
+
+        $existing = StripeAccount::query()
+            ->where('user_id', $user->id)
+            ->where('account_type', $accountType)
+            ->first();
+        if ($existing && $existing->account_id) {
+            return null;
+        }
+
+        try {
+            if ($accountType === 'customer') {
+                $account = $this->paymentService->createCustomer(['name' => $user->first_name, 'email' => $user->email]);
+            } else {
+                $account = $this->paymentService->createVendor($user);
+            }
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return 'Unable to create Stripe account.';
+        }
+        if (!is_object($account) || !isset($account->id)) {
+            return 'Unable to create Stripe account.';
+        }
+
+        try {
+            DB::transaction(function () use ($user, $accountType, $account): void {
+                $locked = StripeAccount::query()
+                    ->where('user_id', $user->id)
+                    ->where('account_type', $accountType)
+                    ->lockForUpdate()
+                    ->first();
+                if ($locked && $locked->account_id) {
+                    return;
+                }
+
+                StripeAccount::query()->updateOrCreate(
+                    ['user_id' => $user->id, 'account_type' => $accountType],
+                    ['account_id' => (string) $account->id]
+                );
+            });
+        } catch (QueryException $exception) {
+            report($exception);
+            $existing = StripeAccount::query()
+                ->where('user_id', $user->id)
+                ->where('account_type', $accountType)
+                ->first();
+            if (! $existing || ! $existing->account_id) {
+                return 'Unable to create Stripe account.';
+            }
+        }
+
+        return null;
+    }
+
+    private function hasStripeAccountForRole(User $user): bool
+    {
+        if ((int) $user->role_id === 3) {
+            return (bool) optional($user->customer)->account_id;
+        }
+
+        if ((int) $user->role_id === 2) {
+            return (bool) optional($user->vendor)->account_id;
+        }
+
+        return false;
     }
 
 }

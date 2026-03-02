@@ -39,6 +39,7 @@ dependencies:
   equatable: ^2.0.3
   global_configuration: ^2.0.0-nullsafety.1
   shared_preferences: ^2.0.14
+  flutter_secure_storage: ^9.2.4
   google_fonts: 2.3.2
   formz: ^0.4.1
   flutter_svg: ^1.0.3

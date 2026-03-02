@@ -9,7 +9,8 @@ class SupportTicketRepository {
     required UserRepository userRepository,
     http.Client? httpClient,
   })  : _userRepository = userRepository,
-        _httpClient = httpClient ?? http.Client();
+        _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null;
 
   static const String authenticatedChannelHeader =
       'X-Authenticated-Channel';
@@ -18,6 +19,7 @@ class SupportTicketRepository {
 
   final UserRepository _userRepository;
   final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
   Future<String?> _accessTokenOrNull() async {
     final currentUser = _userRepository.user ?? await _userRepository.getUser();
@@ -123,5 +125,11 @@ class SupportTicketRepository {
     }
 
     return decoded;
+  }
+
+  void dispose() {
+    if (_ownsHttpClient) {
+      _httpClient.close();
+    }
   }
 }

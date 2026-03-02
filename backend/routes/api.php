@@ -5,10 +5,7 @@ use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\MikitchnController;
 use App\Http\Controllers\Api\ResetPasswordController;
 use App\Http\Controllers\Api\FoodsController;
-use App\Http\Controllers\Api\ReviewController;
-use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\SupportTicketController;
 use App\Http\Controllers\Api\PreRegistrationController;
@@ -55,7 +52,7 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
 
     return response()->json($summary, $isReady ? 200 : 503);
 });
-Route::post('login', [UserController::class, 'login']);
+Route::post('login', [UserController::class, 'login'])->middleware('throttle:10,1');
 Route::post('register', [UserController::class, 'register']);
 Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:10,1');
 Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:5,1');
@@ -81,6 +78,32 @@ Route::post('support/ticket', [SupportTicketController::class, 'store'])->middle
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
 
+$registerLegacyMobileRoutes = function (): void {
+    Route::post('editprofile', [UserController::class, 'update']);
+    Route::get('getcookingstyles', [UserController::class, 'getCookingStyles']);
+    Route::get('getspecialdiets', [UserController::class, 'getSpecialDiets']);
+
+    Route::group(['middleware' => ['restaurant']], function () {
+        Route::post('mikitchn/store', [MikitchnController::class, 'store']);
+        Route::post('mikitchn/editkitchen', [MikitchnController::class, 'store']);
+        Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
+        Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
+        Route::post('food/add', [FoodsController::class, 'store']);
+        Route::post('food/editfood', [FoodsController::class, 'store']);
+        Route::delete('food/{id}', [FoodsController::class, 'destroy']);
+        Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
+        Route::get('getprofile', [UserController::class, 'myProfile']);
+        Route::post('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
+        Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
+        Route::post('allorders', [OrderController::class, 'allOrders']);
+        Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
+        Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);
+    });
+
+    Route::group(['middleware' => ['customer']], function () {
+        Route::get('getcustomerprofile', [UserController::class, 'myProfile']);
+    });
+};
 
 // Route::group(['prefix' => 'v1/kitchen', 'namespace' => 'Api'], function ($router) { 
 // });
@@ -88,8 +111,12 @@ Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply
 	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
 
 
-Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) {
+Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
     Route::get('mob-contact', [UserController::class, 'mobileContact']);
+    Route::post('logout', [UserController::class, 'logout']);
+
+    // Legacy-mobile compatibility routes migrated to versioned pathing.
+    $registerLegacyMobileRoutes();
 
 	Route::prefix('account')->group(function () {
 		Route::get('profile', [V2AccountController::class, 'show']);
@@ -116,6 +143,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('intent/confirm', [V2PaymentsController::class, 'confirmIntent']);
 		Route::post('vendor-transfer', [V2PaymentsController::class, 'vendorTransfer']);
 	});
+
 });
 
 Route::get('v1/mob-contact', function () {
@@ -128,156 +156,10 @@ Route::get('v1/mob-contact', function () {
         ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
 });
 
-Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
-
-	Route::post('changepassword', [UserController::class, 'changePassword']);
-
-	Route::get('getmerchant', [UserController::class, 'getMerchantacc']);
-
-
+Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes){
 	Route::post('logout', [UserController::class, 'logout']);
+    $registerLegacyMobileRoutes();
 
-	Route::post('editprofile', [UserController::class, 'update']);
-
-	Route::post('updatedevicetoken', [UserController::class, 'updateDeviceToken']);
-
-	Route::post('cancelorder', [OrderController::class, 'orderCancelWithReason']);
-
-	Route::get('getorderdetails/{id}', [OrderController::class, 'getOrderDetails']);
-
-	Route::get('getcookingstyles', [UserController::class, 'getCookingStyles']);
-	Route::get('getspecialdiets', [UserController::class, 'getSpecialDiets']);
-
-	Route::get('getnotifications', [FcmController::class, 'getAllNotifications']);
-
-	Route::post('togglenotifications', [UserController::class, 'toggleNotifications']);
-	
-	Route::delete('deleteuser', [UserController::class, 'delete']);
-
-	Route::get('getallpartners', [MikitchnController::class, 'getPartners']);
-	//Routes only restaurant user can access
-	Route::group(['middleware' => ['restaurant']], function () {
-		
-		Route::post('addcertificate', [MikitchnController::class, 'addCertificate']);
-		Route::get('checkcertificate', [MikitchnController::class, 'checkCertificate']);
-
-		Route::post('mikitchn/store', [MikitchnController::class, 'store']);
-		Route::post('mikitchn/editkitchen', [MikitchnController::class, 'store']);
-
-		//image delete
-		Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
-
-
-		//Review
-		Route::get('reviewOfRestaurant', [ReviewController::class, 'reviewOfRestaurant']);
-
-		//menu
-		Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
-
-		Route::post('food/add', [FoodsController::class, 'store']);
-		Route::post('food/editfood', [FoodsController::class, 'store']);
-		Route::delete('food/{id}', [FoodsController::class, 'destroy']);
-		Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
-		Route::get('getprofile', [UserController::class, 'myProfile']);
-
-		//orders
-
-		//review
-		Route::post('addreviewtofoodie', [ReviewController::class, 'addReviewToFoodie']);
-
-		// Route::get('upcomingorders', [MikitchnController::class, 'myUpcomingOrders']);
-		Route::post('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
-
-		Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
-
-		Route::post('allorders', [OrderController::class, 'allOrders']);
-
-		Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
-		Route::post('addbankaccount', [UserController::class, 'addBankAccToVendor']);
-
-		Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);
-
-		
-		Route::post('updateopenmikitchen', [MikitchnController::class, 'updateOpenMikitchen']);
-
-		Route::put('completedonboarding', [UserController::class, 'completedOnBoarding']);
-		
-		Route::get('getvendorbankacc', [UserController::class, 'getVendorBankAcc']);
-
-		Route::post('becomefoodie', [UserController::class, 'becomeFoodie']);
-
-		Route::post('transfertovendor', [UserController::class, 'transferToVendor']);
-
-		Route::get('checkaccountcompleted', [UserController::class, 'checkaccountComplted']);
-		Route::get('getbankaccfromconect', [UserController::class, 'getBankAccFromConect']);
-		Route::get('onboardingLink', [UserController::class, 'onboardingLink']);
-		Route::get('editvendorbankaccount', [UserController::class, 'createAccLoginLink']);
-		Route::get('retrieveaccount', [UserController::class, 'retrieveAccount']);
-		Route::post('updateconnectedaccount', [UserController::class, 'updateConnectedAccount']);
-
-	});
-
-	Route::group(['middleware' => ['customer']], function () {
-
-		// search restaurants
-		Route::post('filterRestaurant', [MikitchnController::class, 'filterRestaurant']);
-		Route::post('nearestRestaurant', [MikitchnController::class, 'nearestRestaurant']);
-		Route::post('topRatedRestaurant', [MikitchnController::class, 'topRatedRestaurant']);
-
-		Route::post('recommendedrestaurant', [MikitchnController::class, 'recommendedRestaurant']);
-
-
-		Route::get('viewRestaurant/{id}', [MikitchnController::class, 'viewRestaurant']);
-
-		Route::post('toggleFavoriteRestaurant', [FavoriteController::class, 'toggleFavorite']);
-		Route::get('getFavoritesList', [FavoriteController::class, 'getFavoritesList']);
-
-		//review
-		Route::post('addReviewToRestaurant', [ReviewController::class, 'addReviewToRestaurant']);
-		Route::get('getnikitchenreviews/{id}', [ReviewController::class, 'getKitchenReviews']);
-		// Order
-
-		Route::post('applypromocode', [OrderController::class, 'checkPromoCode']);
-
-		Route::post('createorder', [OrderController::class, 'store']);
-
-		Route::get('myorderlist', [OrderController::class, 'myorderlist']);
-
-		Route::get('getcustomerprofile', [UserController::class, 'myProfile']);
-
-
-		Route::get('getallcards', [UserController::class, 'getAllCards']);
-
-		Route::post('makepayment', [OrderController::class, 'makePayment']);
-
-		Route::get('restaurant/menu/{resturantId}', [FoodsController::class, 'foodOfRestaurant']);
-
-		Route::get('getbookeddates/{restaurantId}', [OrderController::class, 'getBookedDates']);
-		Route::post('checkbookedtime', [OrderController::class, 'checkBookedTimeByDate']);
-		// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
-
-		Route::post('paymentintent', [UserController::class, 'createPaymentIntent']);
-		Route::post('confirmpaymentintent', [UserController::class, 'confirmPaymentIntent']);
-
-		Route::post('createCheckoutsession', [UserController::class, 'createCheckoutsession']);
-		Route::post('addcard', [UserController::class, 'addCardToCustomer']);
-
-		Route::post('becomecook', [UserController::class, 'becomeCook']);
-
-		Route::get('checkdiscounteduser', [OrderController::class, 'checkDiscountedUser']);
-
-	});
-	// Route::get('mob-contact', [UserController::class, 'mobileContact']);
-
-});
-
-Route::get('v1/togglenotifications', function () {
-    return response()->json([
-        'status' => 405,
-        'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v1/togglenotifications.',
-        'data' => [],
-    ], 405);
 });
 
 Route::get('v1/food/status/{id}', function () {
@@ -289,38 +171,20 @@ Route::get('v1/food/status/{id}', function () {
     ], 405);
 });
 
-Route::get('v1/createCheckoutsession', function () {
-    return response()->json([
-        'status' => 405,
-        'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v1/createCheckoutsession.',
-        'data' => [],
-    ], 405);
-});
-
-Route::get('v1/becomefoodie', function () {
-    return response()->json([
-        'status' => 405,
-        'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v1/becomefoodie.',
-        'data' => [],
-    ], 405);
-});
-
-Route::get('v1/becomecook', function () {
-    return response()->json([
-        'status' => 405,
-        'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v1/becomecook.',
-        'data' => [],
-    ], 405);
-});
-
 Route::get('v2/payments/checkout-session', function () {
     return response()->json([
         'status' => 405,
         'isSuccess' => false,
         'isError' => 'Method not allowed. Use POST /api/v2/payments/checkout-session.',
+        'data' => [],
+    ], 405);
+});
+
+Route::get('v2/food/status/{id}', function () {
+    return response()->json([
+        'status' => 405,
+        'isSuccess' => false,
+        'isError' => 'Method not allowed. Use POST /api/v2/food/status/{id}.',
         'data' => [],
     ], 405);
 });

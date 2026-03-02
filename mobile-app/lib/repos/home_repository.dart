@@ -22,7 +22,7 @@ class HomeRepository {
 
   Future<http.Response> recommendedRestaurants(
       {required Map<String, dynamic> data, required UserModel? userModel}) async {
-    final url = ApiContract.uri('v1/recommendedrestaurant');
+    final url = ApiContract.uri('v2/discovery/recommended');
 
     return _httpClient.post(
       url,
@@ -38,7 +38,7 @@ class HomeRepository {
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
     final url = ApiContract.uri(
-      'v1/topRatedRestaurant',
+      'v2/discovery/top-rated',
       queryParameters: {'page': 1, 'limit': 20},
     );
 
@@ -56,7 +56,7 @@ class HomeRepository {
       {required Map<String, dynamic> data,
       required UserModel? userModel}) async {
     final url = ApiContract.uri(
-      'v1/nearestRestaurant',
+      'v2/discovery/nearest',
       queryParameters: {'page': 1, 'limit': 20},
     );
 

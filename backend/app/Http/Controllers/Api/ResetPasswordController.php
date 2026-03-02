@@ -80,6 +80,7 @@ class ResetPasswordController extends Controller
         }
         
         $token = Str::random(60);
+        $hashedToken = Hash::make($token);
         
         // $response =  Password::sendResetLink($input);
 
@@ -88,13 +89,13 @@ class ResetPasswordController extends Controller
             // print_r($rstTbl); die();
             if ($rstTbl) {
                 DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->update([ 
-                    'token' => $token,
+                    'token' => $hashedToken,
                     'created_at' => now(),
                 ]);
             }else{
                 DB::table(config('auth.passwords.users.table'))->insert([
                     'email' => $user->email, 
-                    'token' => $token,
+                    'token' => $hashedToken,
                     'created_at' => now(),
                 ]);
             }

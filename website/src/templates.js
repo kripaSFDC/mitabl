@@ -71,12 +71,23 @@ const footer = ({ showStoreBadges }) => `
           </div>
           <div class="col-md-4">
             <div class="footer-app">
-              ${showStoreBadges ? '<a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a><a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>' : '<a href="https://www.instagram.com/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a><a href="https://www.linkedin.com/company/mitabl" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl LinkedIn (opens in a new tab)">LinkedIn</a>'}
+              ${showStoreBadges ? '<a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a><a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>' : '<a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a>'}
             </div>
           </div>
         </div>
       </div>
-      <div class="copyright-area text-center"><p>&copy; 2026 mitabl All rights reserved.</p></div>
+      <div class="copyright-area">
+        <div class="container d-flex justify-content-between align-items-center">
+          <p>&copy; 2026 mitabl All rights reserved.</p>
+          <p class="d-flex align-items-center mb-0">
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
+              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
+                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+              </svg>
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

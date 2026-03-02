@@ -41,10 +41,9 @@ class ForgotPasswordController extends Controller
         // });
         $rstTbl = DB::table(config('auth.passwords.users.table'))
             ->where('email', $request->email)
-            ->where('token', $request->token)
             ->first();
         
-        if ($rstTbl) {
+        if ($rstTbl && Hash::check((string) $request->token, (string) $rstTbl->token)) {
             $expiresAt = now()->subMinutes((int) config('auth.passwords.users.expire', 60));
             $createdAt = isset($rstTbl->created_at) ? \Carbon\Carbon::parse((string) $rstTbl->created_at) : null;
             if ($createdAt && $createdAt->lt($expiresAt)) {

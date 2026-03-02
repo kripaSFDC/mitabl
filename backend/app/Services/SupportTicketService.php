@@ -38,12 +38,14 @@ class SupportTicketService
         $fingerprint = $this->fingerprint($normalized['requester_email'], $normalized['subject']);
 
         if (! ((bool) ($payload['skip_duplicate_check'] ?? false))) {
+            $subjectFingerprint = Str::lower(trim($normalized['subject']));
             $existing = SupportTicket::query()
                 ->where('requester_email', $normalized['requester_email'])
                 ->where('created_at', '>=', now()->subMinutes((int) config('support.duplicate_window_minutes', 10)))
                 ->whereNull('merged_into_ticket_id')
-                ->get()
-                ->first(fn (SupportTicket $candidate): bool => $this->isSimilarSubject($candidate->subject, $normalized['subject']));
+                ->whereRaw('LOWER(TRIM(subject)) = ?', [$subjectFingerprint])
+                ->latest('id')
+                ->first();
 
             if ($existing) {
                 return ['ticket' => $existing, 'duplicate' => true];

@@ -158,11 +158,19 @@ footer {
     padding: 10px;
     color: #fff;
     margin-top: 30px;
-    text-align: left !important;
 }
 .copyright-area p {
     font-size: 14px;
     margin: 0;
+}
+.copyright-area a {
+    color: #fff;
+    line-height: 1;
+}
+.copyright-area a:hover {
+    color: #fff;
+    text-decoration: none;
+    opacity: 0.9;
 }
 .footer-app {
     display: flex;
@@ -291,12 +299,18 @@ footer {
     margin-bottom: 10px;
 }
 .social-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     color: #0071bc;
     font-weight: 500;
 }
 .social-links a:hover {
     color: #000;
     text-decoration: none;
+}
+.social-links svg {
+    flex: 0 0 auto;
 }
 .contact-form input[type="submit"] {
     cursor: pointer;

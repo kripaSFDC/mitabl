@@ -1,200 +1,132 @@
-import 'package:mitabl_user/repos/user_repository.dart';
-import 'package:http/http.dart' as http;
-import 'package:global_configuration/global_configuration.dart';
-import 'dart:async';
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
+
 class CookRepository {
+  CookRepository(this.userRepository, {http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null;
+
   final UserRepository? userRepository;
+  final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
-  CookRepository(this.userRepository);
-
-  Future<dynamic?> getFoodMenu() async {
-    try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/mymenu';
-
-      print(url);
-      print(userRepository!.user!.data!.accessToken);
-      final client = http.Client();
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
-          "Accept": "application/json",
-        },
-      );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
+  Future<String> _accessToken() async {
+    final repo = userRepository;
+    if (repo == null) {
+      throw Exception('User repository unavailable.');
     }
+    final currentUser = repo.user ?? await repo.getUser();
+    final token = currentUser?.data?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token unavailable. Please login again.');
+    }
+    return token;
   }
 
-  Future<dynamic?> getSpecialDiets() async {
-    try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getspecialdiets';
-
-      print(url);
-      print(userRepository!.user!.data!.accessToken);
-      final client = http.Client();
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
-          "Accept": "application/json",
-        },
-      );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
+  Future<http.Response> getFoodMenu() async {
+    final response = await _httpClient.get(
+      ApiContract.uri('v2/mymenu'),
+      headers: {
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
+      },
+    );
+    return response;
   }
 
-  Future<dynamic?> getCookingStyle() async {
-    try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/getcookingstyles';
-
-      print(url);
-      print(userRepository!.user!.data!.accessToken);
-      final client = http.Client();
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
-          "Accept": "application/json",
-        },
-      );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
+  Future<http.Response> getSpecialDiets() async {
+    final response = await _httpClient.get(
+      ApiContract.uri('v2/getspecialdiets'),
+      headers: {
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
+      },
+    );
+    return response;
   }
 
-  Future<dynamic?> saveMenuItem(
+  Future<http.Response> getCookingStyle() async {
+    final response = await _httpClient.get(
+      ApiContract.uri('v2/getcookingstyles'),
+      headers: {
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
+      },
+    );
+    return response;
+  }
+
+  Future<http.Response> saveMenuItem(
       {required Map<String, dynamic> data,
       required List<String> filePaths,
       bool? isEdit,
       List<String>? deleteImagsId = const []}) async {
-    try {
-      var urlSet = isEdit! ? 'editfood' : "add";
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/food/$urlSet';
+    final urlSet = (isEdit ?? false) ? 'editfood' : 'add';
+    final request = http.MultipartRequest(
+      'POST',
+      ApiContract.uri('v2/food/$urlSet'),
+    );
 
-      print(url);
-      print(data['name']);
+    request.headers.addAll({
+      'Authorization': 'Bearer ${await _accessToken()}',
+      'Accept': 'application/json',
+    });
 
-      //for multipartrequest
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-
-      //for token
-      request.headers.addAll({
-        "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
-        "Accept": "application/json",
-      });
-
-      //for image and videos and files
-
-      if (filePaths.isNotEmpty) {
-        for (final element in filePaths) {
-          request.files
-              .add(await http.MultipartFile.fromPath("pictures[]", element));
-        }
+    if (filePaths.isNotEmpty) {
+      for (final element in filePaths) {
+        request.files.add(await http.MultipartFile.fromPath('pictures[]', element));
       }
-
-      request.fields.addAll({
-        'food_name': '${data['food_name']}',
-        'price': '${data['price']}',
-        'cookingstyle': '${data['cookingstyle']}',
-        'delete_images': data['delete_images'],
-        'description': '${data['description']}',
-      });
-
-      final specialDietIds = (data['specialDietIds'] as List<dynamic>? ?? [])
-          .map((value) => value.toString())
-          .where((value) => value.isNotEmpty)
-          .toList();
-
-      for (var i = 0; i < specialDietIds.length; i++) {
-        request.fields['specialDiet[$i]'] = specialDietIds[i];
-      }
-
-      if (isEdit) {
-        request.fields.addAll({'food_id': '${data['food_id']}'});
-        // print('deleteImagsId ${deleteImagsId}');
-        // if (deleteImagsId!.isNotEmpty) {
-        //   deleteImagsId.forEach((element) async {
-        //     map['delete_images[]'] = element.toString();
-        //   });
-        //
-        //   request.fields.addAll(map);
-        // }
-      } else {
-        request.fields.addAll({'restaurant_id': '${data['restaurant_id']}'});
-      }
-      // request.fields['timings'] = '{}';
-      print('request ${request.url}  ${request.fields}');
-      //for completeing the request
-      var response = await request.send();
-
-      //for getting and decoding the response into json format
-      var responsed = await http.Response.fromStream(response);
-      final responseData = json.decode(responsed.body);
-
-      print('response ${jsonDecode(responsed.body)}');
-      if (response.statusCode == 200) {
-        print("SUCCESS");
-        return responsed;
-      }
-      return responsed;
-    } catch (e) {
-      print('exception $e');
     }
+
+    request.fields.addAll({
+      'food_name': '${data['food_name']}',
+      'price': '${data['price']}',
+      'cookingstyle': '${data['cookingstyle']}',
+      'delete_images': '${data['delete_images'] ?? ''}',
+      'description': '${data['description']}',
+    });
+
+    final specialDietIds = (data['specialDietIds'] as List<dynamic>? ?? [])
+        .map((value) => value.toString())
+        .where((value) => value.isNotEmpty)
+        .toList();
+
+    for (var i = 0; i < specialDietIds.length; i++) {
+      request.fields['specialDiet[$i]'] = specialDietIds[i];
+    }
+
+    if (isEdit ?? false) {
+      request.fields.addAll({'food_id': '${data['food_id']}'});
+    } else {
+      request.fields.addAll({'restaurant_id': '${data['restaurant_id']}'});
+    }
+
+    final response = await request.send();
+    final resolved = await http.Response.fromStream(response);
+    if (resolved.statusCode >= 500) {
+      AppLogger.error('saveMenuItem server error', resolved.statusCode);
+    }
+    return resolved;
   }
 
-  Future<dynamic?> changFoodStatus({String? foodId}) async {
-    try {
-      final url =
-          '${GlobalConfiguration().getValue<String>('api_base_url')}v1/food/status/$foodId';
+  Future<http.Response> changFoodStatus({String? foodId}) async {
+    final response = await _httpClient.post(
+      ApiContract.uri('v2/food/status/$foodId'),
+      headers: {
+        'Authorization': 'Bearer ${await _accessToken()}',
+        'Accept': 'application/json',
+      },
+    );
+    return response;
+  }
 
-      print(url);
-      print(userRepository!.user!.data!.accessToken);
-      final client = http.Client();
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: {
-          "Authorization": "Bearer ${userRepository!.user!.data!.accessToken}",
-          "Accept": "application/json",
-        },
-      );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
+  void dispose() {
+    if (_ownsHttpClient) {
+      _httpClient.close();
     }
   }
 }

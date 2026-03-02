@@ -3,9 +3,13 @@ import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:http/http.dart' as http;
 
 class BookingRepository {
-  final UserRepository? userRepository;
+  BookingRepository(this.userRepository, {http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client(),
+        _ownsHttpClient = httpClient == null;
 
-  BookingRepository(this.userRepository);
+  final UserRepository? userRepository;
+  final http.Client _httpClient;
+  final bool _ownsHttpClient;
 
   String _accessToken() {
     final token = userRepository?.user?.data?.accessToken;
@@ -15,103 +19,72 @@ class BookingRepository {
     return token;
   }
 
-  Future<dynamic?> getBookings(
+  Future<http.Response> getBookings(
       {int? page, int? limit, bool isUpcoming = false, String? sortBy, String? status = ''}) async {
-    try {
-      final resolvedPage = page ?? 1;
-      final resolvedLimit = limit ?? 10;
-      final safeSortBy = sortBy ?? '';
-      final safeStatus = status ?? '';
+    final resolvedPage = page ?? 1;
+    final resolvedLimit = limit ?? 10;
+    final safeSortBy = sortBy ?? '';
+    final safeStatus = status ?? '';
 
-      final endpoint = isUpcoming ? 'v1/kitchenupcomingorders' : 'v1/allorders';
-      final url = ApiContract.uri(
-        endpoint,
-        queryParameters: {
-          'page': resolvedPage,
-          'limit': resolvedLimit,
-          'sortby': safeSortBy,
-          if (!isUpcoming) 'status': safeStatus,
-        },
-      );
+    final endpoint = isUpcoming ? 'v2/kitchenupcomingorders' : 'v2/allorders';
+    final url = ApiContract.uri(
+      endpoint,
+      queryParameters: {
+        'page': resolvedPage,
+        'limit': resolvedLimit,
+        'sortby': safeSortBy,
+        if (!isUpcoming) 'status': safeStatus,
+      },
+    );
 
-      print(url);
+    final response = await _httpClient.post(
+      url,
+      headers: {
+        "Authorization": "Bearer ${_accessToken()}",
+        "Accept": "application/json",
+      },
+    );
 
-      final client = http.Client();
-
-      final response = await client.post(
-        url,
-        headers: {
-          "Authorization": "Bearer ${_accessToken()}",
-          "Accept": "application/json",
-        },
-      );
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
+    return response;
   }
 
-  Future<dynamic?> updateOrderStatus(
+  Future<http.Response> updateOrderStatus(
       {bool? isUpcoming, Map<String, dynamic>? data}) async {
-    try {
-      final url = ApiContract.uri('v1/updateorderstatus');
+    final url = ApiContract.uri('v2/updateorderstatus');
 
-      print(url);
-      print(data);
-
-      final client = http.Client();
-
-      final response = await client.post(url,
-          headers: {
-            "Authorization": "Bearer ${_accessToken()}",
-            "Accept": "application/json",
-          },
-          body: data);
-
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
-    }
-  }
-
-  Future<dynamic?> getRequests({int? page, int? limit}) async {
-    try {
-      final resolvedPage = page ?? 1;
-      final resolvedLimit = limit ?? 10;
-
-      final url = ApiContract.uri(
-        'v1/kitchenorderrequest',
-        queryParameters: {'page': resolvedPage, 'limit': resolvedLimit},
-      );
-
-      print(url);
-
-      final client = http.Client();
-
-      final response = await client.get(
-        url,
+    final response = await _httpClient.post(url,
         headers: {
           "Authorization": "Bearer ${_accessToken()}",
           "Accept": "application/json",
         },
-      );
+        body: data);
 
-      print('response ${response.body}');
-      if (response.statusCode == 200) {
-        return response;
-      }
-      return response;
-    } catch (e) {
-      print('exception $e');
+    return response;
+  }
+
+  Future<http.Response> getRequests({int? page, int? limit}) async {
+    final resolvedPage = page ?? 1;
+    final resolvedLimit = limit ?? 10;
+
+    final url = ApiContract.uri(
+      'v2/kitchenorderrequest',
+      queryParameters: {'page': resolvedPage, 'limit': resolvedLimit},
+    );
+
+    final response = await _httpClient.get(
+      url,
+      headers: {
+        "Authorization": "Bearer ${_accessToken()}",
+        "Accept": "application/json",
+      },
+    );
+
+    return response;
+  }
+
+  void dispose() {
+    if (_ownsHttpClient) {
+      _httpClient.close();
     }
   }
 }
