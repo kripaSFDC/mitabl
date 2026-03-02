@@ -63,7 +63,7 @@ Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 Route::post('preregister', [PreRegistrationController::class, 'store'])->middleware('throttle:pre-register-intake');
 
-Route::any('/mobcontact', function () {
+Route::get('/mobcontact', function () {
     return response()->json([
         'message' => 'Deprecated endpoint. Use /api/v2/mob-contact.',
         'migration_guide' => '/docs/MOBILE_APP.md#contact-endpoint-migration',
@@ -128,6 +128,10 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 	});
 
 	Route::prefix('discovery')->group(function () {
+		Route::get('filtered', [V2DiscoveryController::class, 'filtered']);
+		Route::get('nearest', [V2DiscoveryController::class, 'nearest']);
+		Route::get('top-rated', [V2DiscoveryController::class, 'topRated']);
+		Route::get('recommended', [V2DiscoveryController::class, 'recommended']);
 		Route::post('filtered', [V2DiscoveryController::class, 'filtered']);
 		Route::post('nearest', [V2DiscoveryController::class, 'nearest']);
 		Route::post('top-rated', [V2DiscoveryController::class, 'topRated']);
@@ -156,10 +160,8 @@ Route::get('v1/mob-contact', function () {
         ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
 });
 
-Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes){
+Route::group(['prefix' => 'v1', 'middleware' => ['auth:api', 'api.user.active']], function ($router){
 	Route::post('logout', [UserController::class, 'logout']);
-    $registerLegacyMobileRoutes();
-
 });
 
 Route::get('v1/food/status/{id}', function () {

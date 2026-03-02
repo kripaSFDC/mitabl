@@ -221,4 +221,155 @@
     * Active print statements log internal state and raw response bodies in production code, increasing PII leakage/noise risk.
     * Ref: [edit_kitchen_profile_cubit.dart (line 159)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [edit_kitchen_profile_cubit.dart (line 169)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#), [login_form.dart (line 179)](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/#)
 
-
+53. Architecture / Design Problems
+    ---------------------
+    
+    **1. God Controller — `UserController` (1,103 lines)**  
+    UserController.php handles: authentication, OTP, registration, profile update, password change, role switching, Stripe customer/vendor provisioning, bank account management, onboarding, notifications, and card management. Every new payment or auth concern ends up here.
+    **2. Controller-injecting-Controller anti-pattern**  
+    `UserController` constructor injects `V2AccountController` and `V2PaymentsController` and then delegates to them:
+    
+    Six methods in `UserController` are pure pass-throughs to V2 controllers. Controller-to-controller coupling should be resolved by pushing shared logic down into services, not by injecting controllers into other controllers.
+    **3. `mikitchn/store` and `mikitchn/editkitchen` share one method**  
+    Both routes api.php:88-89 point to `MikitchnController@store`, which branches internally. Similarly `food/add` and `food/editfood` both hit `FoodsController@store`. These should be separate Create/Update methods. The internal branching (`if ($existFood && !empty($request->food_id))`) makes validation and intent ambiguous.
+    **4. Dead proxy methods in `MikitchnController`**  
+    `recommendedRestaurant`, `nearestRestaurant`, `topRatedRestaurant`, `filterRestaurant` in MikitchnController.php:55-73 each instantiate `V2DiscoveryController` via `app()` just to forward the call. These are route-level orphans — the routes aren't registered for them in api.php, they exist as dead code.
+    **5. Legacy route closure registered inside V2 group**  
+    The `$registerLegacyMobileRoutes` closure at api.php:83-104 is registered inside the `v2` prefix group, meaning all the old unversioned-style routes (`editprofile`, `mymenu`, `food/add`, etc.) live at `/api/v2/editprofile`. This is confusing naming — these are semantically v1 routes that happen to require v2 auth middleware, not v2 endpoints.
+    **6. Duplicate `is_kitchen` check**  
+    The identical `Mikitchn::where('user_id', $user->id)->first()` + `$is_kitchen = 0/1` block appears in both the **verified** and **unverified** branch of `login()`, and again verbatim in `becomeCook()`. Three copies of the same code with no extraction. 
+    
+    ### 🔴 Performance Bottlenecks
+    
+    **7. N+1 on `getIsAvailableAttribute` in `Mikitchn`**  
+    Mikitchn.php:35-41:
+    
+    This fires a `COUNT` query per kitchen in a list. Any list endpoint that accesses `is_available` on a collection triggers N+1.
+    **8. N+1 on `getIsFavouritedAttribute` in `Mikitchn`**  
+    Mikitchn.php:90-92:
+    
+    One query per kitchen per user per list — pure N+1. `DiscoveryService::annotateFavorites()` exists specifically to batch this, but the attribute still exists and will fire if called outside that path.
+    **9. `getRatingCountAttribute` loads all reviews into memory**  
+    Mikitchn.php:76-79 calls `$this->reviews->avg('rating')`, which hydrates all `Review` models for the kitchen, then computes the average in PHP. The discovery queries already use `withAvg('reviews', 'rating')` for this, but if this accessor triggers elsewhere it's a silent memory hog.
+    **10. Double query in `DiscoveryService` for pagination**  
+    All four discovery methods (`recommended`, `nearest`, `topRated`, `filtered`) in DiscoveryService.php call `$this->countRows($query)` followed by `$query->offset()->limit()->get()`. This runs the expensive Haversine/distance calculation SQL **twice** per request. Laravel's built-in `paginate()` handles both in a single context and avoids this.
+    **11. `getBookedDates` does date logic in PHP**  
+    OrderController.php:310-360 fetches all upcoming confirmed orders and then iterates in PHP to determine which dates are fully booked (comparing `bookedmins` against `avail_minutes`). This should be a single SQL query filtering at the database level.
+    **12. `getCookingStyles` and `getSpecialDiets` return ALL records**  
+    No pagination, no caching — will silently degrade as records grow.
+    **13. `completedOrderCountForUser` in `OrderService` is a scalar query inside a transaction**  
+    OrderService.php:16-18 runs a separate `COUNT` query to determine discount eligibility, inside the order creation transaction, without any locking. A user placing concurrent orders could get the discount applied multiple times.
+    
+     
+    
+    ### 🔴 Security Issues
+    
+    **14. Password validation missing on `register`**  
+    UserController.php:329-335: `'password' => 'required'` only. The `login()` method enforces `min:8` but registration does not. A user can register with a 1-character password. **implement a simple and easy password validation i.e. 6 char long only with all caps, all small etc.** make sure data seeding script creating initial users is also updated to match the password policy IF required. 
+    **15. OTP verification dual-path is fragile**  
+    UserController.php:470:
+    
+    If the OTP is stored as a bcrypt hash, `Hash::check` does the right thing and `hash_equals` on BCrypt text would always fail (safe). If it's stored as plaintext, `Hash::check` always returns false and it falls to `hash_equals` (safe but inconsistent). The dual path means you can't tell which mode is active without inspecting the database — a future change to OTP storage can silently break one branch.
+    **16. `delete()` returns the deleted user object**  
+    UserController.php:815-820 returns `$user` (soft-deleted model) in the response body. This leaks PII (name, email, phone, address, role_id, device_token) via the delete confirmation response.
+    **17. `updateDeviceToken` returns the full user model**  
+    `AccountController::updateDeviceToken()` returns `$this->responser($user, 'Device Token Updated.')` — the full model, not just a confirmation. Any internal fields on `$user` not in `$hidden` are exposed.
+    **18. Bank account validation has no format checks**  
+    `addBankAccToVendor` validates `bsb` and `number` as `required` but applies no numeric or format validation. Any string is passed directly to Stripe.
+    **19. `completedOnBoarding` has no role guard**  
+    Any authenticated user (customer) can call `/v2/mikitchn/editkitchen`-adjacent paths and trigger `completedOnBoarding`. It only fails gracefully because `Auth::user()->restaurant` returns null for non-cooks, but the endpoint has no explicit middleware role check.
+    
+     
+    
+    ### 🟡 Code Quality Issues
+    
+    **20. Typo: `myUpcomingOrderss`**  
+    OrderController.php:38 — method is named with double-s. The route and mobile client both call this, so changing it requires coordinated updates.
+    **21. `public $data = []` mutable instance property**  
+    Both `OrderController` and `MikitchnController` declare `public $data = []`. This property is mutated across method calls and read back at the end. Between `myUpcomingOrderss` and `myRequestedOrders`, the same instance property could carry data between requests if the container ever reused the controller (it doesn't in practice, but it's poor hygiene and makes reasoning harder).
+    **22. Hardcoded discount rules and amounts**  
+    `OrderService` has `if ($this->completedOrderCountForUser($user->id) < 5)` and `$order->discounted_amount = 50` — magic numbers with no config, feature flag, or admin control. The GST rate `10` is also hardcoded in at least two places (`checkDiscountedUser`, `DiscoveryController::show`).
+    **23. Both `closest()` and `haversine()` on `Mikitchn` model**  
+    Mikitchn.php:96-155 has two static methods that compute the exact same great-circle distance using the same formula. `haversine()` appears to be unused dead code.
+    **24. String-based relationship references**  
+    Models use `$this->hasMany('App\Models\Review')` instead of `Review::class`. Old-style class strings bypass IDE analysis and refactoring tools, and miss typos at parse time.
+    **25. `Order` model has no `$fillable` or `$guarded`**  
+    Order.php defines no mass-assignment protection. Any attribute can be mass-assigned via `Order::create($untrustedInput)`.
+    **26. Extensive commented-out dead code throughout**  
+    `OrderController`, `MikitchnController`, `UserController`, and models contain large blocks of commented-out code including `echo "<pre>"; print_r(); die();` debug statements, old routing comments, and entire alternative implementations. This clutters every code review.
+    **27. Inconsistent HTTP response format**  
+    Some responses use `$this->responser()`, some use `response()->json($return, $return['status'])` with the status code embedded in the payload AND as the HTTP status, some use `response()->json([...], 405)`. There is no single enforced response contract.
+    **28. `login()` manually builds response array with `$return['status']` used as HTTP code**  
+    UserController.php:215-222: `return response()->json($return, $return['status'])`. If the payload's `status` key ever diverges from the intended HTTP code (e.g., a 200 vs 201 ambiguity), it silently sends the wrong code.
+    **29. Float arithmetic for money**  
+    `OrderService` uses `round((float) $food->price * (int) $item['quantity'], 2)` etc. PHP floats cannot represent all decimal values exactly. A proper implementation uses integer cents throughout.
+    **30. Two duplicate migration files with the same timestamp**  
+    The migrations directory has both 2026_02_28_000015_add_active_window_to_promo_codes_table.php and 2026_02_28_000015_create_admin_action_logs_table.php with identical timestamps. Similarly for `_000016`. Duplicate timestamps can cause non-deterministic migration order.
+    
+     
+    
+    MOBILE APP
+    --------------------
+    
+    ### 🔴 Architecture / Design Problems
+    
+    **31. Hardcoded fallback GPS coordinates pointing to Chandigarh, India**  
+    home_cubit.dart:38-39:
+    
+    On first load, and whenever the user hasn't entered coordinates, all discovery requests are centred on a hardcoded Indian city. Irrelevant for any non-Indian user and reveals the origin geography of the app.
+    **32. No real GPS integration — users type coordinates manually**  
+    home_cubit.dart:100-115 and home_page.dart: location is a text field accepting `"latitude, longitude"`. There is no call to `geolocator` or any platform location API. Users literally have to know and type their GPS coordinates.
+    **33. `BookingRepository._accessToken()` is synchronous with no storage fallback**  
+    bookings_repository.dart:17-21:
+    
+    This is non-async and only works if `user` is already in memory. Cold-start app states (returned from background) where memory was cleared will throw.
+    **34. `HomeRepository` creates its own HTTP client by default**  
+    home_cubit.dart:31:
+    
+    `HomeRepository()` creates `http.Client()` unless explicitly provided. The shared client from main.dart reaches `AuthenticationRepository` and `UserRepository`, but `HomeRepository` and `CookRepository` default to their own clients, fragmenting connection pooling.
+    **35. Token read from secure storage on every API call**  
+    `HomeCubit.onRecommendedRestaurants`, `onTopratedRestaurants`, `onNearByRestaurants` each call `await userRepository.getUser()` before every network request. This reads from `FlutterSecureStorage` on every invocation, adding latency and unnecessary I/O.
+    **36. Three identical discovery API call patterns — no abstraction**  
+    `onRecommendedRestaurants`, `onTopratedRestaurants`, `onNearByRestaurants` in home_cubit.dart follow the same pattern verbatim: emit loading, call API, decode JSON, emit success or failure with a toast. Extracting a generic `_fetchDiscoveryFeed` method would remove ~60 lines of duplication.
+    **37. Request-token cancellation applied inconsistently**  
+    `onTopratedRestaurants` checks `if (requestToken != _requestToken) return;` to handle stale responses. `onRecommendedRestaurants` and `onNearByRestaurants` do NOT have this guard, creating a race condition where stale responses from these can overwrite fresh state.
+    **38. `userRepository.getUser()` called in `_fetchHomeFeeds` with result discarded**  
+    home_cubit.dart:48: `await userRepository.getUser();` result is not used. The feeds are fetched unconditionally. This is a wasted async storage read on every home page load.
+    **39. Global mutable `navigatorKey` variables in repositories**  
+    Both authentication_repository.dart:18 and user_repository.dart:11 declare module-level global `GlobalKey<NavigatorState>` variables. Repository classes should not own navigation state. These are likely remnants of an old navigation pattern that was partially migrated.
+    **40. `UserRepository.user` is a public mutable field**  
+    Other repositories access `userRepository?.user` directly (bookings_repository.dart:18, cook_repository.dart:22). This bypasses the repository abstraction — callers depend on in-memory state being freshly populated, with no guarantee.
+    
+     
+    
+    ### 🔴 API Contract Issues
+    
+    **41. Discovery endpoints use POST for read-only operations**  
+    `POST /v2/discovery/recommended`, `POST /v2/discovery/nearest`, `POST /v2/discovery/top-rated`, `POST /v2/discovery/filtered` are all pure read operations with no side effects. Using POST prevents HTTP-level caching (CDN, browser, proxy) and violates REST semantics. These should be GET with query params.
+    **42. Mobile client still calls legacy unversioned route aliases**  
+    user_repository.dart:
+    
+    * `v2/getprofile` — legacy alias pointing to `UserController::myProfile`
+    * `v2/getcustomerprofile` — same
+    * `v2/getdashboarddata` — legacy alias
+    
+    These are the `$registerLegacyMobileRoutes` paths registered inside the v2 group. The V2 equivalents (`v2/account/profile`) exist but are not yet used by the app.
+    **43. `saveMenuItem` in `CookRepository` uses `food/add` vs `food/editfood` branches**  
+    cook_repository.dart:76-78:
+    
+    Two separate non-RESTful POST endpoints for what should be `POST /foods` and `PUT /foods/{id}`.
+    
+     
+    
+    ### 🟡 UX / State Management Issues
+    
+    **44. Five separate `FormzStatus` loading states in `HomeState`**  
+    home_state.dart: `status`, `statusApi`, `statusTopRes`, `statusCooking`, `statusRecommRes`. Any new feed requires adding another field to state, the copyWith, and the props list.
+    **45. Empty carousel auto-plays**  
+    home_page.dart:86-101: `CarouselSlider` is always rendered with `autoPlay: true`. When the restaurant list is empty (on failure or empty data), the carousel still ticks at 3-second intervals — polling UI that renders nothing.
+    **46. All API errors show "Something went wrong..."**  
+    3xx, 4xx, and 5xx responses all produce the same toast: `Helper.showToast('Something went wrong...')`. No distinction between auth failures (401), rate limiting (429), server errors (500), or connectivity issues. Users cannot take informed action.
+    **47. No offline mode, no retry, no local cache**  
+    No `dio` interceptor retry, no `hive`/`drift` local store, no cached state between sessions. Every cold start fires three separate network requests to the backend before showing anything. If any fails (poor signal), the section shows empty with a generic error.
+    **48. `HomeState` cannot reset individual status fields**  
+    `HomeState.copyWith` uses `?? this.field` null-coalescing, meaning you can never explicitly clear a field back to `null` using `copyWith`. To reset `nearByRestaurants` to null you'd need to reconstruct the state object manually.

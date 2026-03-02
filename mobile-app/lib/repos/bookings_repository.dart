@@ -11,8 +11,9 @@ class BookingRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
-  String _accessToken() {
-    final token = userRepository?.user?.data?.accessToken;
+  Future<String> _accessToken() async {
+    final userModel = await userRepository?.getUser();
+    final token = userModel?.data?.accessToken;
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token unavailable. Please login again.');
     }
@@ -40,7 +41,7 @@ class BookingRepository {
     final response = await _httpClient.post(
       url,
       headers: {
-        "Authorization": "Bearer ${_accessToken()}",
+        "Authorization": "Bearer ${await _accessToken()}",
         "Accept": "application/json",
       },
     );
@@ -54,7 +55,7 @@ class BookingRepository {
 
     final response = await _httpClient.post(url,
         headers: {
-          "Authorization": "Bearer ${_accessToken()}",
+          "Authorization": "Bearer ${await _accessToken()}",
           "Accept": "application/json",
         },
         body: data);
@@ -74,7 +75,7 @@ class BookingRepository {
     final response = await _httpClient.get(
       url,
       headers: {
-        "Authorization": "Bearer ${_accessToken()}",
+        "Authorization": "Bearer ${await _accessToken()}",
         "Accept": "application/json",
       },
     );

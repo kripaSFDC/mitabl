@@ -54,6 +54,10 @@ class FavoriteController extends Controller
             ->withAvg('reviews', 'rating')
             ->paginate($limit)
             ->makeHidden(['reviews','addedimage']);
+
+        $data->getCollection()->each(function (Mikitchn $kitchen): void {
+            $kitchen->setAttribute('is_favourited', true);
+        });
         
         $this->data['favorites'] = RestaurantResource::collection($data);
 

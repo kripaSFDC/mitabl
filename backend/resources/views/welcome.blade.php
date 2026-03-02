@@ -22,7 +22,7 @@
         flex-wrap: wrap;
         height: 100vh;
         justify-content: center;
-        background: url(/frontend/background.jpg) 0 0 no-repeat;
+      background: url(https://mitabl.com/frontend/background.jpg) 0 0 no-repeat;
         background-position: bottom;
         padding-top: 2%;
         position: relative;
@@ -58,7 +58,7 @@
 
 <div class="main-section">
   <div class="content">
-    <a href="#"><img src="/frontend/logo.png"></a>
+    <a href="#"><img src="https://mitabl.com/frontend/logo.png"></a>
     <pre>
       mitabl, creating opportunities 
       mitabl, reducing food wastage

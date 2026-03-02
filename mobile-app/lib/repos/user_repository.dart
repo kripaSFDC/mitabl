@@ -77,7 +77,7 @@ class UserRepository {
           value: normalized,
         );
         await prefs.remove('current_user');
-        updateUserInstance();
+        await updateUserInstance();
       }
     } catch (e) {
       AppLogger.error('Failed to set current user', e);
@@ -85,12 +85,12 @@ class UserRepository {
     }
   }
 
-  void updateUserInstance() {
+  Future<void> updateUserInstance() async {
     user = null;
-    getUser();
+    user = await getUser();
   }
 
-  void clearuserData() async {
+  Future<void> clearuserData() async {
     final prefs = await SharedPreferences.getInstance();
     await _secureStorage.delete(key: _secureCurrentUserKey);
     if (prefs.containsKey('current_user')) {

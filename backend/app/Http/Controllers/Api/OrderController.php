@@ -64,9 +64,8 @@ class OrderController extends Controller
             }
             
         }
-        $this->data['total_count'] = $orders->count();
-
         $orders = $orders->orderBy('id','desc')->paginate($limit);
+        $this->data['total_count'] = $orders->total();
         
         $this->data['bookings'] = OrderResource::collection($orders);
 
@@ -90,8 +89,8 @@ class OrderController extends Controller
 
 
         $orders = Auth::guard('api')->user()->restaurant->orders()->with($this->orderListResourceRelations())->where('status', 2);
-        $this->data['total_count'] = $orders->count();
         $data = $orders->orderBy('id','desc')->paginate($limit)->makeHidden('orderdata');
+        $this->data['total_count'] = $data->total();
 
         $this->data['bookings'] = OrderResource::collection($data);
 
@@ -184,7 +183,7 @@ class OrderController extends Controller
 
         $oCount = Order::where('user_id',$user->id)->where('status',1)->count();
         $distcounted = false;
-        if ($oCount <= 5) {
+        if ($oCount < 5) {
             $distcounted = true;
         }
 
@@ -224,9 +223,8 @@ class OrderController extends Controller
             $orders->whereIn('status',$statusArry);
         }
         // echo $orders->toSql();
-        $this->data['total_count'] = $orders->count();
-
         $orders = $orders->orderBy('id','desc')->paginate($limit);
+        $this->data['total_count'] = $orders->total();
         // $this->data['total_count'] = $kitchen->orders->whereIn('status',$statusArry)->count();
         $this->data['bookings'] = OrderResource::collection($orders);
 
@@ -266,8 +264,8 @@ class OrderController extends Controller
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         $orders = Auth::guard('api')->user()->orders()->with($this->orderListResourceRelations())->whereNotIn('status', Order::cancelledStatuses());
 
-        $this->data['total_count'] = $orders->count();
         $orders = $orders->orderBy('id','desc')->paginate($limit);
+        $this->data['total_count'] = $orders->total();
         $this->data['bookings'] = OrderResource::collection($orders);
 
         return $this->responser($this->data,'Order List.');

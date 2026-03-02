@@ -11,6 +11,10 @@
     </array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires to access photos to upload</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to show nearby cooks and accurate discovery results.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location to show nearby cooks and accurate discovery results.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

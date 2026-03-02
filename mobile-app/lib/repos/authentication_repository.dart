@@ -86,8 +86,8 @@ class AuthenticationRepository {
     );
   }
 
-  void logOut() {
-    _userRepository.clearuserData();
+  Future<void> logOut() async {
+    await _userRepository.clearuserData();
     controller.add(AuthenticationStatus.unauthenticated);
   }
 

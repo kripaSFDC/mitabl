@@ -34,11 +34,24 @@ class Mikitchn extends Model
 
     public function getIsAvailableAttribute()
     {
-        $oCount = $this->orders()->where('delivery_date', '>=', date('Y-m-d'))->where('status',3)->count();
-        if ($oCount > 0) {
-            return false;
+        if (array_key_exists('is_available', $this->attributes)) {
+            return (bool) $this->attributes['is_available'];
         }
-        return true;
+
+        if (array_key_exists('active_orders_count', $this->attributes)) {
+            return ((int) $this->attributes['active_orders_count']) === 0;
+        }
+
+        if ($this->relationLoaded('orders')) {
+            return ! $this->orders->contains(function ($order): bool {
+                return (int) $order->status === 3 && $order->delivery_date >= today()->toDateString();
+            });
+        }
+
+        return ! $this->orders()
+            ->whereDate('delivery_date', '>=', today()->toDateString())
+            ->where('status', 3)
+            ->exists();
     }
 
     public function certificate(){
@@ -94,6 +107,14 @@ class Mikitchn extends Model
     //     return Auth::guard('api')->user()->hasFavorited($this);
     // }
     public function getIsFavouritedAttribute(){
+        if (array_key_exists('is_favourited', $this->attributes)) {
+            return (bool) $this->attributes['is_favourited'];
+        }
+
+        if (! Auth::guard('api')->check()) {
+            return false;
+        }
+
         return Auth::guard('api')->user()->hasFavorited($this);
     }
     

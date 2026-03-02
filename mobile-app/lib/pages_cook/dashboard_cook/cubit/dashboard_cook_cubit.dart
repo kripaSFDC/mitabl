@@ -49,10 +49,10 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
         // emit(state.copyWith(
         //     status: FormzStatus.submissionSuccess,
         //     serverMessage: jsonDecode(response.body)['message']));
-        authenticationRepository!.logOut();
+        await authenticationRepository!.logOut();
         emit(state.copyWith(selectedIndex: 0));
       } else {
-        authenticationRepository!.logOut();
+        await authenticationRepository!.logOut();
         emit(state.copyWith(
             // status: FormzStatus.pure,
             selectedIndex: 0));

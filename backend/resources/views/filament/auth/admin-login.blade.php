@@ -30,7 +30,7 @@
             position: relative;
             background:
                 linear-gradient(145deg, rgba(0, 113, 188, 0.94), rgba(0, 90, 149, 0.94)),
-                url('/frontend/background.jpg') center/cover no-repeat;
+                url('https://mitabl.com/frontend/background.jpg') center/cover no-repeat;
             color: #ffffff;
             padding: 3rem;
             display: flex;
@@ -180,7 +180,7 @@
         <section class="mitabl-admin-login__hero">
             <div>
                 <div class="mitabl-admin-login__brand">
-                    <img src="{{ url('frontend/images/logo.png') }}" alt="mitabl">
+                    <img src="https://mitabl.com/frontend/images/logo.png" alt="mitabl">
                 </div>
                 <h2 class="mitabl-admin-login__title">mitabl platform operations</h2>
                 <p class="mitabl-admin-login__copy">

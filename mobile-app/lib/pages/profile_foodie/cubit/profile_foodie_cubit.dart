@@ -145,12 +145,12 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
 
 
       if (response.statusCode == 200) {
-        authenticationRepository!.logOut();
+        await authenticationRepository!.logOut();
       } else {
         emit(state.copyWith(
           status: FormzStatus.pure,
         ));
-        authenticationRepository!.logOut();
+        await authenticationRepository!.logOut();
       }
     } catch (e) {
       AppLogger.error('Logout failed', e);

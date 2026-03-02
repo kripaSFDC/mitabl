@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
@@ -20,53 +18,56 @@ class HomeRepository {
     return token;
   }
 
-  Future<http.Response> recommendedRestaurants(
-      {required Map<String, dynamic> data, required UserModel? userModel}) async {
-    final url = ApiContract.uri('v2/discovery/recommended');
+  Future<http.Response> _discoveryGet({
+    required String endpoint,
+    required Map<String, dynamic> filters,
+    required UserModel? userModel,
+    Map<String, dynamic> defaultParams = const {},
+  }) {
+    final queryParameters = <String, dynamic>{
+      ...defaultParams,
+      ...filters,
+    };
 
-    return _httpClient.post(
+    final url = ApiContract.uri(endpoint, queryParameters: queryParameters);
+
+    return _httpClient.get(
       url,
       headers: {
         'Authorization': 'Bearer ${_bearerToken(userModel)}',
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: json.encode(data),
+    );
+  }
+
+  Future<http.Response> recommendedRestaurants(
+      {required Map<String, dynamic> data, required UserModel? userModel}) {
+    return _discoveryGet(
+      endpoint: 'v2/discovery/recommended',
+      filters: data,
+      userModel: userModel,
     );
   }
 
   Future<http.Response> topRatedRestaurants(
       {required Map<String, dynamic> data,
-      required UserModel? userModel}) async {
-    final url = ApiContract.uri(
-      'v2/discovery/top-rated',
-      queryParameters: {'page': 1, 'limit': 20},
-    );
-
-    return _httpClient.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${_bearerToken(userModel)}',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(data),
+      required UserModel? userModel}) {
+    return _discoveryGet(
+      endpoint: 'v2/discovery/top-rated',
+      filters: data,
+      userModel: userModel,
+      defaultParams: {'page': 1, 'limit': 20},
     );
   }
 
   Future<http.Response> nearByRestaurants(
       {required Map<String, dynamic> data,
-      required UserModel? userModel}) async {
-    final url = ApiContract.uri(
-      'v2/discovery/nearest',
-      queryParameters: {'page': 1, 'limit': 20},
-    );
-
-    return _httpClient.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${_bearerToken(userModel)}',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(data),
+      required UserModel? userModel}) {
+    return _discoveryGet(
+      endpoint: 'v2/discovery/nearest',
+      filters: data,
+      userModel: userModel,
+      defaultParams: {'page': 1, 'limit': 20},
     );
   }
 
