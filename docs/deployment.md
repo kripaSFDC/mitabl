@@ -1,28 +1,32 @@
 # Deployment Guide
 
-This is the canonical deployment runbook for Docker-based environments.
+Canonical Docker runbook with explicit stacks for Windows test and Contabo Linux production.
 
-## 1) Supported compose stacks
+## 1) Compose files to use
 
-### Local full-stack (`docker-compose.yml`)
+### Windows test stack
+File: `deploy/docker-compose.test.windows.yml`
+
 Services:
 - `db` (MySQL)
 - `redis` (Redis `7.2-alpine`)
-- `backend` (Laravel API + admin)
-- `website` (Nginx static site)
-- `mobile-app` (optional dev-tools container, profile `mobile-devtools`)
+- `backend` (Laravel app)
+- `backend-web` (Nginx for API)
+- `website` (marketing site)
 
 Start:
 ```bash
-docker compose up --build -d
+docker compose -f deploy/docker-compose.test.windows.yml up --build -d
 ```
 
-If you need the mobile build tools container:
+Stop:
 ```bash
-docker compose --profile mobile-devtools up --build -d mobile-app
+docker compose -f deploy/docker-compose.test.windows.yml down
 ```
 
-### Target architecture stack (`deploy/docker-compose.architecture.yml`)
+### Contabo Linux production stack
+File: `deploy/docker-compose.prod.contabo.yml`
+
 Services:
 - `backend-api`
 - `ops-admin`
@@ -30,64 +34,65 @@ Services:
 - `marketing-web`
 - `redis` (Redis `7.2-alpine`)
 
-> Note: The target architecture stack does **not** provision MySQL. Use a managed/external database and set `DB_HOST` in `deploy/environments/*.env`.
+Important:
+- This production stack does **not** create MySQL.
+- Use external/managed DB and set DB values in `deploy/environments/prod/*.env`.
 
 Start:
 ```bash
-docker compose -f deploy/docker-compose.architecture.yml up --build -d
+docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
 ```
 
-## 2) Environment templates
-
-Use these backend env templates only:
-- `backend/.env.example` → production-like template
-- `backend/.env.text` → test deployment template
-
-Create runtime env:
+Stop:
 ```bash
-cp backend/.env.example backend/.env
+docker compose -f deploy/docker-compose.prod.contabo.yml down
 ```
 
-## 3) Platform-managed (non-env) settings
+### Legacy compatibility file
+`deploy/docker-compose.architecture.yml` is kept only for backward compatibility. Use `deploy/docker-compose.prod.contabo.yml` for production going forward.
 
-The following are no longer managed as env variables and must be changed via Platform Settings (super admin/platform admin only):
-- Support SLA and ticket policy controls
-- Admin reauth policy
-- Session lifetime/expire-on-close policy
-- Stripe runtime integration controls (`stripe.*`, dashboard URL)
+## 2) Environment files
 
-## 4) First boot / bootstrap
+Production env files:
+- `deploy/environments/prod/backend-api.env`
+- `deploy/environments/prod/ops-admin.env`
 
+Backend app env template:
+- `backend/.env.example`
+
+## 3) First boot / bootstrap
+
+For the Windows test stack:
 ```bash
-docker compose exec backend php artisan key:generate --force
-docker compose exec backend php artisan jwt:secret --force
+docker compose -f deploy/docker-compose.test.windows.yml exec backend php artisan key:generate --force
+docker compose -f deploy/docker-compose.test.windows.yml exec backend php artisan jwt:secret --force
 ```
 
-`backend` runs migrations at startup. Seeders can be enabled with:
-- `RUN_SEEDERS_ON_BOOT=true`
-
-## 5) Health verification
-
+For the Contabo production stack:
 ```bash
-docker compose ps
+docker compose -f deploy/docker-compose.prod.contabo.yml exec backend-api php artisan key:generate --force
+docker compose -f deploy/docker-compose.prod.contabo.yml exec backend-api php artisan jwt:secret --force
+```
+
+## 4) Health verification
+
+Windows test:
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml ps
 curl -fsS http://localhost:8000/api/health/live
-curl -fsS http://localhost:8000/api/health/ready
 curl -fsS http://localhost:8080/health
 ```
 
-Target architecture:
+Contabo production:
 ```bash
-docker compose -f deploy/docker-compose.architecture.yml ps
+docker compose -f deploy/docker-compose.prod.contabo.yml ps
 curl -fsS http://localhost:8000/api/health/live
 curl -fsS http://localhost:8001/api/health/live
 curl -fsS http://localhost:8080/health
 ```
 
-## 6) Troubleshooting
+## 5) Troubleshooting
 
-- If startup migrations fail, inspect backend logs and rerun after DB is healthy:
-```bash
-docker compose logs backend
-```
-- If API fails boot, verify `APP_KEY`, `JWT_SECRET`, DB/Redis connectivity.
-- If queue is unhealthy in the target architecture stack, verify Redis health and Horizon process logs.
+- If migrations fail on startup, verify DB connectivity first, then check logs.
+- If API fails boot, verify `APP_KEY`, `JWT_SECRET`, DB/Redis settings.
+- If queue is unhealthy, verify Redis health and Horizon process logs.

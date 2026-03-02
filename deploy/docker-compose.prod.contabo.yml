@@ -1,6 +1,3 @@
-# Legacy compatibility compose file.
-# Primary production file: deploy/docker-compose.prod.contabo.yml
-
 services:
   marketing-web:
     build:

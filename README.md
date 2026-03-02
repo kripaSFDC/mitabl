@@ -55,10 +55,10 @@ mitabl/
 ├── backend/                      # Laravel API + Filament admin + business services
 ├── mobile-app/                   # Flutter iOS/Android app (Foodie + Cook)
 ├── website/                      # Static marketing web frontend (nginx-served)
-├── deploy/                       # Docker manifests (local + target architecture), env templates, nginx/supervisor, load tests
+├── deploy/                       # Docker manifests (windows test + contabo prod), env templates, nginx/supervisor, load tests
 ├── docs/                         # SOPs, validation reports, secrets management docs
 ├── .github/workflows/ci-cd.yml   # CI pipelines for secret scan + app tests
-└── docker-compose.yml            # Full-stack local orchestration
+└── docker-compose.yml            # Legacy full-stack local orchestration
 ```
 
 ### Additional important folders
@@ -363,7 +363,8 @@ Representative backend model groups:
 - **Backend (`backend/`)** is the main application runtime: API, business logic, workflows, CRM/admin portal.
 - **Website (`website/`)** is a separate static nginx-served public site (no app DB dependency).
 - **Mobile app (`mobile-app/`)** remains separate and is not part of production compose runtime.
-- Use `deploy/docker-compose.architecture.yml` for the to-be architecture deployment shape.
+- Use `deploy/docker-compose.test.windows.yml` for Windows Docker test runs.
+- Use `deploy/docker-compose.prod.contabo.yml` for Contabo Linux production.
 
 ### Option A: full stack with Docker
 
