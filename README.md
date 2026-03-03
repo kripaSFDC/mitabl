@@ -171,21 +171,6 @@ mobile-app/lib/
 - Centralized auth lifecycle and API repository layer simplify feature additions.
 - Structured pages split keeps customer and operator experiences independently evolvable.
 
-
-### Mobile backend URL + API version configuration
-
-The app reads backend endpoints at startup from:
-
-- `mobile-app/assets/cfg/configuration.json`
-
-Current defaults:
-
-- `base_url`: `https://mitabl.com/`
-- `api_base_url`: `https://mitabl.com/api/`
-- `image_base_url`: `https://mitabl.com/`
-
-If mobile is still calling an old host (for example `mitabl.xcelanceweb.com`), update this file and rebuild/reinstall the app. Most authenticated app endpoints are now under `/api/v2/*`; login/register/OTP/password-reset remain under `/api/*`.
-
 ---
 
 ## 5) Marketing Website (`website/`) Deep Dive
