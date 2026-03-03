@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Validator;
@@ -134,10 +133,6 @@ trait HandlesUserAuthentication
 
     public function register(Request $request)
     {
-        if (! Schema::hasTable('users')) {
-            return $this->responser([], 'Users table is missing. Please run database migrations on the backend server.', 500);
-        }
-
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
