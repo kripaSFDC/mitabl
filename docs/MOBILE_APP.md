@@ -332,49 +332,49 @@ This section captures **every major code/config file class** under `mobile-app/`
 
 ### Auth
 
-- `POST login`
-- `POST register`
-- `POST verifyOtp`
-- `POST password/reset`
-- `POST v1/logout`
+- `POST /api/login`
+- `POST /api/register`
+- `POST /api/verifyOtp`
+- `POST /api/password/reset`
+- `POST /api/v2/logout`
 
 ### Kitchen and profile
 
-- `POST v1/mikitchn/store`
-- `POST v1/mikitchn/editkitchen`
-- `GET v1/getprofile`
-- `GET v1/getcustomerprofile`
-- `POST v1/editprofile`
-- `POST v1/deleteimage`
-- `GET v1/getdashboarddata`
+- `POST /api/v2/mikitchn/store`
+- `POST /api/v2/mikitchn/editkitchen`
+- `GET /api/v2/account/profile`
+- `PUT /api/v2/account/profile`
+- `GET /api/v2/account/dashboard`
+- `POST /api/v2/editprofile` (legacy-compatible alias retained under v2)
+- `POST /api/v2/deleteimage` (legacy-compatible alias retained under v2)
 
 ### Discovery
 
-- `POST v2/discovery/recommended`
-- `POST v2/discovery/top-rated`
-- `POST v2/discovery/nearest`
+- `GET /api/v2/discovery/recommended`
+- `GET /api/v2/discovery/top-rated`
+- `GET /api/v2/discovery/nearest`
 
 ### Menu
 
-- `GET v1/mymenu`
-- `GET v1/getspecialdiets`
-- `GET v1/getcookingstyles`
-- `POST v1/food/add`
-- `POST v1/food/editfood`
-- `GET v1/food/status/{id}`
+- `GET /api/v2/mymenu`
+- `GET /api/v2/getspecialdiets`
+- `GET /api/v2/getcookingstyles`
+- `POST /api/v2/food/add`
+- `POST /api/v2/food/editfood`
+- `POST /api/v2/food/status/{id}`
 
 ### Orders
 
-- `POST v1/allorders`
-- `POST v1/kitchenupcomingorders`
-- `GET v1/kitchenorderrequest`
-- `POST v1/updateorderstatus`
+- `GET /api/v2/allorders`
+- `GET /api/v2/kitchenupcomingorders`
+- `GET /api/v2/kitchenorderrequest`
+- `POST /api/v2/updateorderstatus`
 
 ### Support
 
-- `POST /support/ticket`
-- `GET /support/ticket/{id}`
-- `POST /support/ticket/{id}/reply`
+- `POST /api/support/ticket`
+- `GET /api/support/ticket/{id}`
+- `POST /api/support/ticket/{id}/reply`
 
 ## 5.2 API client posture
 
@@ -457,9 +457,13 @@ Add a domain abstraction layer for high-change business domains (orders/menu/sup
 
 ## 8.3 Environment config
 
-- Base URLs are runtime-loaded from `assets/cfg/configuration.json`.
-- Current file points to hosted production-like endpoints.
-- No explicit environment flavor strategy documented in-app (dev/stage/prod variants should be formalized).
+- Base URLs are runtime-loaded from `mobile-app/assets/cfg/configuration.json` at app startup (`GlobalConfiguration().loadFromAsset('configuration')`).
+- Active default values are now set to:
+  - `base_url`: `https://mitabl.com/`
+  - `api_base_url`: `https://mitabl.com/api/`
+  - `image_base_url`: `https://mitabl.com/`
+- To point the app to a different backend (e.g. staging), edit this JSON file and rebuild the app.
+- No explicit environment flavor strategy is currently wired in code (dev/stage/prod variants should be formalized).
 
 ---
 
