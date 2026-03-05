@@ -195,7 +195,11 @@ docker compose -f deploy/docker-compose.test.windows.yml up --build -d
 ```bash
 bash deploy/scripts/collect-admin-login-diagnostics.sh
 ```
-  Then attempt one failed login and rerun the script to capture correlated stack traces.
+  This runs in read-only diagnostics mode. Then attempt one failed login and rerun the script to capture correlated stack traces.
+- Only if needed after reviewing output, run optional repair steps:
+```bash
+bash deploy/scripts/collect-admin-login-diagnostics.sh --repair
+```
 - Common root causes for `/livewire/update` 500 in production:
   - Invalid or missing `APP_KEY`
   - Stale Laravel config cache after env changes
