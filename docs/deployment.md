@@ -191,3 +191,13 @@ docker compose -f deploy/docker-compose.test.windows.yml up --build -d
 ```
 - If browser shows `419` on admin login after container restarts, hard refresh the page and retry sign-in (session/CSRF cookie refresh).
 - If browser shows `ERR_NAME_NOT_RESOLVED` for logo/background during login, this is non-blocking static asset DNS behavior; authentication itself is unaffected.
+- If admin/CRM login returns `500` and browser console shows `/livewire/update` failing, run the production diagnostics script from repo root and capture full output:
+```bash
+bash deploy/scripts/collect-admin-login-diagnostics.sh
+```
+  Then attempt one failed login and rerun the script to capture correlated stack traces.
+- Common root causes for `/livewire/update` 500 in production:
+  - Invalid or missing `APP_KEY`
+  - Stale Laravel config cache after env changes
+  - Non-writable `storage/framework/sessions` when `SESSION_DRIVER=file`
+  - Incomplete DB migrations causing runtime query exceptions
