@@ -121,7 +121,9 @@ First boot on a fresh database:
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
 ```
    - Expect several minutes for first migration pass before `backend` becomes healthy.
-3. Login to admin at `http://<server-ip>:8080/admin` using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
+3. Login to admin using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`:
+   - Before host Nginx setup: `http://<server-ip>:8080/admin`
+   - After host Nginx + TLS setup: `https://mitabl.com/admin`
 4. After initialization succeeds, set both flags back to `false` and clear:
    - `ADMIN_BOOTSTRAP_PASSWORD=`
    - (optional) `ADMIN_BOOTSTRAP_EMAIL=`
@@ -163,7 +165,75 @@ curl -fsS http://localhost:8080/health
 docker compose -f deploy/docker-compose.prod.contabo.yml exec queue-worker php artisan horizon:status
 ```
 
-## 7) Troubleshooting
+
+## 7) Contabo host Nginx + HTTPS (`mitabl.com`)
+
+Use host-level Nginx as the public TLS terminator and reverse proxy to Docker `website` on `127.0.0.1:8080`.
+
+### 7.1 DNS
+- Point `mitabl.com` A record to your Contabo server public IPv4.
+- Point `www.mitabl.com` A record to the same IP (optional but recommended).
+
+### 7.2 Install Nginx + Certbot on host
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+```
+
+### 7.3 Host Nginx server block
+Create `/etc/nginx/sites-available/mitabl.com`:
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mitabl.com www.mitabl.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+```
+
+Enable + validate + reload:
+```bash
+sudo ln -sf /etc/nginx/sites-available/mitabl.com /etc/nginx/sites-enabled/mitabl.com
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7.4 Issue TLS certificate
+```bash
+sudo certbot --nginx -d mitabl.com -d www.mitabl.com --redirect -m admin@mitabl.com --agree-tos --no-eff-email
+```
+
+### 7.5 Firewall recommendations
+- Public open ports: `80`, `443`.
+- Restrict direct container ports (`8000`, `8080`, `3306`, `6379`) to localhost or trusted IPs only.
+
+If using UFW:
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw deny 8000/tcp
+sudo ufw deny 8080/tcp
+sudo ufw deny 3306/tcp
+sudo ufw deny 6379/tcp
+sudo ufw status
+```
+
+### 7.6 Production URLs for this project
+- Public site: `https://mitabl.com`
+- Platform admin login: `https://mitabl.com/admin/login`
+- Admin root: `https://mitabl.com/admin`
+
+## 8) Troubleshooting
 
 Logs:
 ```bash
