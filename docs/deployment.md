@@ -121,7 +121,9 @@ First boot on a fresh database:
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
 ```
    - Expect several minutes for first migration pass before `backend` becomes healthy.
-3. Login to admin at `http://<server-ip>:8080/admin` using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
+3. Login to admin using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`:
+   - Before host Nginx setup: `http://<server-ip>:8080/admin`
+   - After host Nginx + TLS setup: `https://mitabl.com/admin`
 4. After initialization succeeds, set both flags back to `false` and clear:
    - `ADMIN_BOOTSTRAP_PASSWORD=`
    - (optional) `ADMIN_BOOTSTRAP_EMAIL=`
@@ -163,7 +165,194 @@ curl -fsS http://localhost:8080/health
 docker compose -f deploy/docker-compose.prod.contabo.yml exec queue-worker php artisan horizon:status
 ```
 
-## 7) Troubleshooting
+
+## 7) Contabo host Nginx + HTTPS (`mitabl.com`)
+
+Use host-level Nginx as the public TLS terminator and reverse proxy to Docker `website` on `127.0.0.1:8080`.
+
+### 7.1 DNS
+- Point `mitabl.com` A record to your Contabo server public IPv4.
+- Point `www.mitabl.com` A record to the same IP (optional but recommended).
+
+### 7.2 Install Nginx + Certbot on host
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+```
+
+### 7.3 Host Nginx server block
+Create `/etc/nginx/sites-available/mitabl.com`:
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mitabl.com www.mitabl.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+```
+
+Enable + validate + reload:
+```bash
+sudo ln -sf /etc/nginx/sites-available/mitabl.com /etc/nginx/sites-enabled/mitabl.com
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7.4 Issue TLS certificate
+```bash
+sudo certbot --nginx -d mitabl.com -d www.mitabl.com --redirect -m admin@mitabl.com --agree-tos --no-eff-email
+```
+
+### 7.5 Hardened final Nginx `443` server block (mitabl.com admin + Livewire)
+Use this as a hardened final host config after certificate issuance. It keeps `/admin`, `/livewire`, `/api`, and Filament assets proxied to Docker website (`127.0.0.1:8080`), includes websocket upgrade headers, and enables HSTS.
+
+> Note: `map` must be placed inside the top-level `http {}` context (typically `/etc/nginx/nginx.conf`), not inside `server {}`.
+
+Add this in `/etc/nginx/nginx.conf` under `http {}`:
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+```
+
+Use this site file (e.g. `/etc/nginx/sites-available/mitabl.com`):
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mitabl.com www.mitabl.com;
+    return 301 https://mitabl.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name mitabl.com www.mitabl.com;
+
+    ssl_certificate /etc/letsencrypt/live/mitabl.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mitabl.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    client_max_body_size 20m;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /admin/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /livewire/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /css/filament/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+    }
+
+    location ^~ /js/filament/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+    }
+
+    location ^~ /api/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+```
+
+Apply and validate:
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7.6 Firewall recommendations
+- Public open ports: `80`, `443`.
+- Restrict direct container ports (`8000`, `8080`, `3306`, `6379`) to localhost or trusted IPs only.
+
+If using UFW:
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw deny 8000/tcp
+sudo ufw deny 8080/tcp
+sudo ufw deny 3306/tcp
+sudo ufw deny 6379/tcp
+sudo ufw status
+```
+
+### 7.7 Production URLs for this project
+- Public site: `https://mitabl.com`
+- Platform admin login: `https://mitabl.com/admin/login`
+- Admin root: `https://mitabl.com/admin`
+
+## 8) Troubleshooting
 
 Logs:
 ```bash
@@ -191,3 +380,17 @@ docker compose -f deploy/docker-compose.test.windows.yml up --build -d
 ```
 - If browser shows `419` on admin login after container restarts, hard refresh the page and retry sign-in (session/CSRF cookie refresh).
 - If browser shows `ERR_NAME_NOT_RESOLVED` for logo/background during login, this is non-blocking static asset DNS behavior; authentication itself is unaffected.
+- If admin/CRM login returns `500` and browser console shows `/livewire/update` failing, run the production diagnostics script from repo root and capture full output:
+```bash
+bash deploy/scripts/collect-admin-login-diagnostics.sh
+```
+  This runs in read-only diagnostics mode. Then attempt one failed login and rerun the script to capture correlated stack traces.
+- Only if needed after reviewing output, run optional repair steps:
+```bash
+bash deploy/scripts/collect-admin-login-diagnostics.sh --repair
+```
+- Common root causes for `/livewire/update` 500 in production:
+  - Invalid or missing `APP_KEY`
+  - Stale Laravel config cache after env changes
+  - Non-writable `storage/framework/sessions` when `SESSION_DRIVER=file`
+  - Incomplete DB migrations causing runtime query exceptions
