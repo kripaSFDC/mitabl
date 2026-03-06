@@ -1,5 +1,450 @@
 # Deployment Guide
 
-This document has been moved to `docs/deployment.md`.
+Canonical Docker runbook with two supported stacks:
 
-Please use the canonical deployment runbook there, including the Contabo host Nginx + HTTPS configuration for `mitabl.com`.
+- Windows test stack: `deploy/docker-compose.test.windows.yml` (extends root compose)
+- Contabo Linux production stack: `deploy/docker-compose.prod.contabo.yml`
+
+Both stacks run all required application capabilities:
+
+- `backend` (API + admin surface)
+- `queue-worker` (Horizon queue processing)
+- `scheduler` (Laravel scheduled jobs)
+- `website` (public site and reverse-proxy routes)
+- `db` (MySQL 8.0)
+- `redis` (Redis 7.2)
+
+
+
+## 1) Prerequisites
+
+Windows (test):
+
+- Docker Desktop with Linux containers enabled
+- Docker Compose v2 (`docker compose version`)
+- Git
+
+Contabo Linux (production):
+
+- Docker Engine 24+ and Compose plugin v2
+- Git
+- Open firewall ports: `8000` (API/admin), `8080` (website), optional `3306` and `6379` if external access is needed
+
+
+
+## 2) Required env files
+
+Windows test backend env:
+
+- `deploy/environments/dev/backend-api.env`
+
+Production backend env:
+
+- `deploy/environments/prod/backend-api.env`
+
+Required values for production before first boot:
+
+- `APP_KEY` (valid Laravel key, format `base64:...`)
+- `JWT_SECRET`
+- `DB_ROOT_PASSWORD` (set in shell environment or `.env` in repo root)
+- `ADMIN_BOOTSTRAP_EMAIL` (only for first prod bootstrap when seeding)
+- `ADMIN_BOOTSTRAP_PASSWORD` (only for first prod bootstrap when seeding)
+
+`DB_HOST` is internal Docker host in all deployment env templates:
+
+- `DB_HOST=db`
+
+Admin bootstrap behavior:
+
+- `local/testing` (`APP_ENV=local` or `testing`):
+  - Seeder creates default admin: `admin@example.com` / `password`
+- `production` (`APP_ENV=production`):
+  - Seeder does not use default admin credentials
+  - Seeder only creates admin when:
+    - `ADMIN_BOOTSTRAP_EMAIL` is set
+    - `ADMIN_BOOTSTRAP_PASSWORD` is set and strong (min 12 chars, upper/lower/digit)
+
+
+
+## 3) Generate production secrets
+
+Generate `APP_KEY` and `JWT_SECRET` directly on host shell (no Docker required).
+
+Bash:
+
+```bash
+APP_KEY="base64:$(openssl rand -base64 32)"
+JWT_SECRET="$(openssl rand -hex 32)"
+printf 'APP_KEY=%s\nJWT_SECRET=%s\n' "$APP_KEY" "$JWT_SECRET"
+```
+
+PowerShell:
+
+```powershell
+$appKey = "base64:" + [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+$jwtSecret = -join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Minimum 0 -Maximum 16) })
+Write-Output "APP_KEY=$appKey"
+Write-Output "JWT_SECRET=$jwtSecret"
+```
+
+Paste generated values into `deploy/environments/prod/backend-api.env`.
+
+Set DB root password in shell before `up`:
+
+```bash
+export DB_ROOT_PASSWORD='replace_with_strong_password'
+```
+
+PowerShell:
+
+```powershell
+$env:DB_ROOT_PASSWORD='replace_with_strong_password'
+```
+
+---
+
+## 4) Windows test deployment
+
+Start:
+
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml up --build -d
+```
+
+Equivalent shortcut:
+
+```bash
+docker compose up --build -d
+```
+
+Stop:
+
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml down
+```
+
+Windows first-run notes:
+
+- Ensure `APP_ENV=local` in `deploy/environments/dev/backend-api.env` so admin test users are seeded.
+- For fresh initialization:
+  - `RUN_MIGRATIONS_ON_BOOT=true`
+  - `RUN_SEEDERS_ON_BOOT=true`
+- After first successful boot, set both back to `false`.
+- First boot can take several minutes while all migrations run; during this window `backend` may show `health: starting`.
+
+
+
+## 5) Contabo production deployment
+
+First boot on a fresh database:
+
+1. Set in `deploy/environments/prod/backend-api.env`:
+   - `RUN_MIGRATIONS_ON_BOOT=true`
+   - `RUN_SEEDERS_ON_BOOT=true` (only if seed data is required)
+   - `ADMIN_BOOTSTRAP_EMAIL=<your-admin-email>`
+   - `ADMIN_BOOTSTRAP_PASSWORD=<strong-password>`
+   - Optional: `ADMIN_BOOTSTRAP_NAME=<display-name>`
+2. Start:
+   
+   ```bash
+   docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
+   ```
+   - Expect several minutes for first migration pass before `backend` becomes healthy.
+3. Login to admin using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`:
+   - Before host Nginx setup: `http://<server-ip>:8080/admin`
+   - After host Nginx + TLS setup: `https://mitabl.com/admin`
+4. After initialization succeeds, set both flags back to `false` and clear:
+   - `ADMIN_BOOTSTRAP_PASSWORD=`
+   - (optional) `ADMIN_BOOTSTRAP_EMAIL=`
+5. Apply:
+   
+   ```bash
+   docker compose -f deploy/docker-compose.prod.contabo.yml up -d
+   ```
+
+Routine upgrades/restarts:
+
+```bash
+docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d
+```
+
+Stop:
+
+```bash
+docker compose -f deploy/docker-compose.prod.contabo.yml down
+```
+
+## 6) Health verification
+
+Windows test:
+
+```bash
+docker compose -f deploy/docker-compose.test.windows.yml ps
+curl -fsS http://localhost:8000/api/health/live
+curl -fsS http://localhost:8080/health
+docker compose -f deploy/docker-compose.test.windows.yml exec queue-worker php artisan horizon:status
+```
+
+Windows admin login (after seeding with `APP_ENV=local`):
+
+- URL: `http://localhost:8080/admin`
+- Seeded super admin: `admin@example.com`
+- Password: `password`
+
+Contabo production:
+
+```bash
+docker compose -f deploy/docker-compose.prod.contabo.yml ps
+curl -fsS http://localhost:8000/api/health/live
+curl -fsS http://localhost:8080/health
+docker compose -f deploy/docker-compose.prod.contabo.yml exec queue-worker php artisan horizon:status
+```
+
+## 7) Contabo host Nginx + HTTPS (`mitabl.com`)
+
+Use host-level Nginx as the public TLS terminator and reverse proxy to Docker `website` on `127.0.0.1:8080`.
+
+### 7.1 DNS
+
+- Point `mitabl.com` A record to your Contabo server public IPv4.
+- Point `www.mitabl.com` A record to the same IP (optional but recommended).
+
+### 7.2 Install Nginx + Certbot on host
+
+```bash
+sudo apt-get update
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+```
+
+### 7.3 Host Nginx server block
+
+Create `/etc/nginx/sites-available/mitabl.com`:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mitabl.com www.mitabl.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+}
+```
+
+Enable + validate + reload:
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/mitabl.com /etc/nginx/sites-enabled/mitabl.com
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7.4 Issue TLS certificate
+
+```bash
+sudo certbot --nginx -d mitabl.com -d www.mitabl.com --redirect -m admin@mitabl.com --agree-tos --no-eff-email
+```
+
+### 7.5 Hardened final Nginx `443` server block (mitabl.com admin + Livewire)
+
+Use this as a hardened final host config after certificate issuance. It keeps `/admin`, `/livewire`, `/api`, and Filament assets proxied to Docker website (`127.0.0.1:8080`), includes websocket upgrade headers, and enables HSTS.
+
+> Note: `map` must be placed inside the top-level `http {}` context (typically `/etc/nginx/nginx.conf`), not inside `server {}`.
+
+Add this in `/etc/nginx/nginx.conf` under `http {}`:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+```
+
+Use this site file (e.g. `/etc/nginx/sites-available/mitabl.com`):
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mitabl.com www.mitabl.com;
+    return 301 https://mitabl.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name mitabl.com www.mitabl.com;
+
+    ssl_certificate /etc/letsencrypt/live/mitabl.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mitabl.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    client_max_body_size 20m;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /admin/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /livewire/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location ^~ /css/filament/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+    }
+
+    location ^~ /js/filament/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+    }
+
+    location ^~ /api/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port 443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+```
+
+Apply and validate:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7.6 Firewall recommendations
+
+- Public open ports: `80`, `443`.
+- Restrict direct container ports (`8000`, `8080`, `3306`, `6379`) to localhost or trusted IPs only.
+
+If using UFW:
+
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw deny 8000/tcp
+sudo ufw deny 8080/tcp
+sudo ufw deny 3306/tcp
+sudo ufw deny 6379/tcp
+sudo ufw status
+```
+
+### 7.7 Production URLs for this project
+
+- Public site: `https://mitabl.com`
+- Platform admin login: `https://mitabl.com/admin/login`
+- Admin root: `https://mitabl.com/admin`
+
+## 8) Troubleshooting
+
+Logs:
+
+```bash
+docker compose -f deploy/docker-compose.prod.contabo.yml logs backend
+docker compose -f deploy/docker-compose.prod.contabo.yml logs queue-worker
+docker compose -f deploy/docker-compose.prod.contabo.yml logs scheduler
+docker compose -f deploy/docker-compose.prod.contabo.yml logs db
+docker compose -f deploy/docker-compose.prod.contabo.yml logs redis
+docker compose -f deploy/docker-compose.prod.contabo.yml logs website
+```
+
+Common fixes:
+
+- If `backend` starts but worker/scheduler fail, validate `APP_KEY` and `JWT_SECRET` in `deploy/environments/prod/backend-api.env`.
+- If DB auth fails, verify `DB_ROOT_PASSWORD` is exported in the shell used to run compose.
+- If admin login fails in production on first boot, verify `ADMIN_BOOTSTRAP_EMAIL` / `ADMIN_BOOTSTRAP_PASSWORD` were set while `RUN_SEEDERS_ON_BOOT=true`.
+- If admin login fails in Windows test, verify `APP_ENV=local` and reseed:
+  
+  ```bash
+  docker compose -f deploy/docker-compose.test.windows.yml exec backend php artisan db:seed --force
+  ```
+- Keep `RUN_MIGRATIONS_ON_BOOT=false` and `RUN_SEEDERS_ON_BOOT=false` after initial bootstrap.
+- If local/test DB login fails after config changes, reset volumes and recreate:
+  
+  ```bash
+  docker compose -f deploy/docker-compose.test.windows.yml down -v
+  docker compose -f deploy/docker-compose.test.windows.yml up --build -d
+  ```
+- If browser shows `419` on admin login after container restarts, hard refresh the page and retry sign-in (session/CSRF cookie refresh).
+- If browser shows `ERR_NAME_NOT_RESOLVED` for logo/background during login, this is non-blocking static asset DNS behavior; authentication itself is unaffected.
+- If admin/CRM login returns `500` and browser console shows `/livewire/update` failing, run the production diagnostics script from repo root and capture full output:
+  
+  ```bash
+  bash deploy/scripts/collect-admin-login-diagnostics.sh
+  ```
+  
+  This runs in read-only diagnostics mode. Then attempt one failed login and rerun the script to capture correlated stack traces.
+- Only if needed after reviewing output, run optional repair steps:
+  
+  ```bash
+  bash deploy/scripts/collect-admin-login-diagnostics.sh --repair
+  ```
+- Common root causes for `/livewire/update` 500 in production:
+  - Invalid or missing `APP_KEY`
+  - Stale Laravel config cache after env changes
+  - Non-writable `storage/framework/sessions` when `SESSION_DRIVER=file`
+  - Incomplete DB migrations causing runtime query exceptions
