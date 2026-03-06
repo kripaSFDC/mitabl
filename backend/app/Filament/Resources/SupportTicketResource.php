@@ -877,27 +877,52 @@ class SupportTicketResource extends Resource
 
     private static function canAssign(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.assign');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.assign')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function canEditTickets(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.edit');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.edit')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function canDeleteTickets(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.delete');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.delete')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function canRespond(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.respond');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.respond')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function canResolve(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_tickets.resolve');
+        $user = Filament::auth()->user();
+
+        return (bool) (
+            $user?->can('support_tickets.resolve')
+            || static::hasAdminRole($user, ['super_admin', 'platform_admin', 'super admin', 'platform admin'])
+        );
     }
 
     private static function hasAdminRole($user, array $roles): bool

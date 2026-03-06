@@ -38,3 +38,18 @@ Accounts:
 - These users are seeded only in `local` or `testing` environments.
 - `AdminRbacTestUsersSeeder` does not overwrite existing users by default.
 - There are currently no seeded end-user personas (for example foodie/cook mobile users) in `DatabaseSeeder`.
+
+---
+
+## **Production:**
+
+Here’s the current admin user table with passwords you set during seeding:
+
+| Email                         | Role             | Password            |
+| ----------------------------- | ---------------- | ------------------- |
+| admin@mitabl.com              | super_admin      | Str0ngAdminPass2026 |
+| super.admin@example.test      | super_admin      | TestAdmin2026A1     |
+| platform.admin@example.test   | platform_admin   | TestAdmin2026A1     |
+| operations@example.test       | operations       | TestAdmin2026A1     |
+| customer.service@example.test | customer_service | TestAdmin2026A1     |
+| finance.readonly@example.test | finance_readonly | TestAdmin2026A1     |
