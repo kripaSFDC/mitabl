@@ -35,7 +35,6 @@ COPY --from=vendor /app /app
 
 # Consolidated public web: static marketing pages and assets are served from backend container.
 COPY website/public/ /app/public/
-COPY website/frontend/ /app/public/frontend/
 
 RUN mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/logs bootstrap/cache
 
