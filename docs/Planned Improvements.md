@@ -34,10 +34,14 @@
 
 ## 3- Backend/API
 
-1. **32. No real GPS integration: users type coordinates manually**home_cubit.dart:100-115 and home_page.dart: location is a text field accepting `"latitude, longitude"`. There is no call to `geolocator` or any platform location API. Users literally have to know and type their GPS coordinates.
+1. Currently there is no security/verification on user registration endpoint i.e. anyone can hit this endpoint and create as many cooks/foodies as one wants! There is no check if cook or foodi is genuinely created by mitabl app!!!
 
-2. Hardcoded discount rules and amounts**`OrderService` has `if ($this->completedOrderCountForUser($user->id) < 5)` and `$order->discounted_amount = 50` ,  magic numbers with no config, feature flag, or admin control. The GST rate `10` is also hardcoded in at least two places (`checkDiscountedUser`, `DiscoveryController::show`).
+2. **No real GPS integration: users type coordinates manually**home_cubit.dart:100-115 and home_page.dart: location is a text field accepting `"latitude, longitude"`. There is no call to `geolocator` or any platform location API. Users literally have to know and type their GPS coordinates.
 
-3. Attachment malware scanning pipeline and enforced attachment type/size policy are still not end-to-end wired (schema exists, but no upload/scanning workflow in these modules).
+3. Hardcoded discount rules and amounts**`OrderService` has `if ($this->completedOrderCountForUser($user->id) < 5)` and `$order->discounted_amount = 50` ,  magic numbers with no config, feature flag, or admin control. The GST rate `10` is also hardcoded in at least two places (`checkDiscountedUser`, `DiscoveryController::show`).
 
-4. Styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website
+4. Attachment malware scanning pipeline and enforced attachment type/size policy are still not end-to-end wired (schema exists, but no upload/scanning workflow in these modules).
+
+5. Styling and look and feel of Platform admin & CRM pages (all filament pages) is matching with the public website
+
+
