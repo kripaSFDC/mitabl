@@ -1,0 +1,56 @@
+FROM composer:2 AS vendor
+
+WORKDIR /app
+COPY backend/ /app/
+
+RUN composer install \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --no-dev \
+    --ignore-platform-req=ext-intl \
+    --ignore-platform-req=ext-pcntl \
+    --optimize-autoloader \
+    && composer clear-cache
+
+FROM php:8.2-fpm AS runtime
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libonig-dev \
+        libzip-dev \
+        libicu-dev \
+        nginx \
+        unzip \
+    && docker-php-ext-install mysqli pdo pdo_mysql mbstring bcmath pcntl zip intl \
+    && pecl install redis \
+    && docker-php-ext-enable pdo_mysql redis \
+    && rm -rf /var/lib/apt/lists/* /tmp/pear
+
+COPY backend/php.ini /usr/local/etc/php/
+COPY backend/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /app
+COPY --from=vendor /app /app
+
+# Consolidated public web: static marketing pages and assets are served from backend container.
+COPY website/public/ /app/public/
+COPY website/frontend/ /app/public/frontend/
+
+RUN mkdir -p storage/framework/views storage/framework/cache storage/framework/sessions storage/logs bootstrap/cache
+
+RUN printf '%s\n' \
+    'opcache.enable=1' \
+    'opcache.enable_cli=0' \
+    'opcache.memory_consumption=256' \
+    'opcache.max_accelerated_files=32531' \
+    'opcache.validate_timestamps=0' \
+    'realpath_cache_size=4096K' \
+    'realpath_cache_ttl=600' \
+    > /usr/local/etc/php/conf.d/zz-performance.ini
+
+EXPOSE 8000
+
+RUN php --ini
+
+CMD ["sh", "start-server.sh"]

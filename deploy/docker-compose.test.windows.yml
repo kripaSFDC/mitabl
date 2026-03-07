@@ -16,11 +16,6 @@ services:
       file: ../docker-compose.yml
       service: scheduler
 
-  website:
-    extends:
-      file: ../docker-compose.yml
-      service: website
-
   db:
     extends:
       file: ../docker-compose.yml
