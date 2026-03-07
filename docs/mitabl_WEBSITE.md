@@ -47,6 +47,11 @@ Current behavior:
 - Health endpoint:
   - `GET /health` returns `200 ok` plain text.
 
+Production note:
+
+- Contabo production now uses a unified backend container image (`deploy/Dockerfile.backend.unified`) that copies `website/public` into backend `public/` and serves all routes via backend on `:8000`.
+- The standalone `website` container model remains useful for isolated website development/testing, but is not the canonical production ingress path anymore.
+
 Containerization remains minimal:
 
 - Base image: `nginx:1.27-alpine`.

@@ -374,7 +374,7 @@ Representative backend model groups:
 ### Target production architecture (containerized)
 
 - **Backend (`backend/`)** is the main application runtime: API, business logic, workflows, CRM/admin portal.
-- **Website (`website/`)** is a separate static nginx-served public site (no app DB dependency).
+- **Website (`website/`)** remains the content source for public pages, but production serves those built static files from the backend container.
 - **Mobile app (`mobile-app/`)** remains separate and is not part of production compose runtime.
 - Use root `docker-compose.yml` for Windows Docker test runs.
 - Use `deploy/docker-compose.prod.contabo.yml` for Contabo Linux production.
@@ -389,7 +389,6 @@ Compose includes:
 - `db` (MySQL)
 - `redis` (Redis `7.2-alpine`)
 - `backend` on `:8000`
-- `website` on `:8080`
 - `mobile-app` optional dev-tools container (profile: `mobile-devtools`)
 
 `backend` runs migrations at startup and can run seeders when `RUN_SEEDERS_ON_BOOT=true`.
@@ -414,15 +413,7 @@ php artisan horizon
 php artisan queue:work
 ```
 
-### Option C: website local run
-
-```bash
-docker compose up --build website
-```
-
-Then open `http://localhost:8080`.
-
-### Option D: mobile local run
+### Option C: mobile local run
 
 ```bash
 cd mobile-app
