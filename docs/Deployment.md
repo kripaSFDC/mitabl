@@ -107,13 +107,15 @@ Windows first-run notes:
 First boot on fresh DB:
 
 1. Set in `deploy/environments/prod/backend-api.env`:
+   
    - `RUN_MIGRATIONS_ON_BOOT=true`
    - `RUN_SEEDERS_ON_BOOT=true` (only if seed data is required)
    - `ADMIN_BOOTSTRAP_EMAIL=<your-admin-email>`
    - `ADMIN_BOOTSTRAP_PASSWORD=<strong-password>`
    - Optional: `ADMIN_BOOTSTRAP_NAME=<display-name>`
-2. Set DB password and start:
 
+2. Set DB password and start:
+   
    ```bash
    export DB_ROOT_PASSWORD='replace_with_strong_password'
    echo "DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD" > .env
@@ -121,11 +123,14 @@ First boot on fresh DB:
    ```
 
 3. Login to admin:
+   
    - Before host nginx: `http://<server-ip>:8000/admin`
    - After host nginx + TLS: `https://www.mitabl.com/admin`
-4. After initialization, set both flags back to `false` and clear bootstrap password/email.
-5. Apply:
 
+4. After initialization, set both flags back to `false` and clear bootstrap password/email.
+
+5. Apply:
+   
    ```bash
    docker compose -f deploy/docker-compose.prod.contabo.yml up -d
    ```
@@ -146,7 +151,19 @@ docker compose -f deploy/docker-compose.prod.contabo.yml down
 
 Note: `down` does not delete DB data unless `-v` is used.
 
-## 6) Health verification
+## 6) Deploying Updates to Production & Health verification
+
+Production code update:
+
+```
+cd ~/mitabl
+git pull --ff-only origin main
+export DB_ROOT_PASSWORD='Usman111!'   # example pwd, replace with actual pwd
+echo 'DB_ROOT_PASSWORD=Usman111!' > .env
+docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build
+```
+
+
 
 Windows test:
 
@@ -224,12 +241,16 @@ docker compose -f deploy/docker-compose.prod.contabo.yml logs redis
 Common fixes:
 
 - If backend DB auth fails, verify both:
+  
   - `deploy/environments/prod/backend-api.env` has correct `DB_PASSWORD`
   - repo root `.env` has correct `DB_ROOT_PASSWORD`
-- If compose says `DB_ROOT_PASSWORD is required`, export it and write `.env` before `up`.
-- If admin login returns `419` right after restart, clear cookies / use private window and retry.
-- If stale old container still exists:
 
+- If compose says `DB_ROOT_PASSWORD is required`, export it and write `.env` before `up`.
+
+- If admin login returns `419` right after restart, clear cookies / use private window and retry.
+
+- If stale old container still exists:
+  
   ```bash
   docker rm -f mitabl-website 2>/dev/null || true
   docker rm -f mitabl-prod-contabo-website-1 2>/dev/null || true
