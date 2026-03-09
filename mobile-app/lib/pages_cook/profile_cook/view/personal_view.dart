@@ -194,8 +194,9 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                     ),
                     ListTile(
                       onTap: () async {
+                        final userRepository = context.read<UserRepository>();
                         try {
-                          final user = await context.read<UserRepository>().getUser();
+                          final user = await userRepository.getUser();
                           final payload = await MobileContactRepository().fetch(user);
                           final message = payload['message']?.toString() ?? 'Contact information loaded.';
                           if (!mounted) return;

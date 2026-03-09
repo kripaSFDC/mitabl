@@ -42,12 +42,18 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    // setUpFields();
     super.initState();
   }
 
   TextEditingController? mobileNoTextEditor = TextEditingController();
   TextEditingController? passwordTextEditor = TextEditingController();
+
+  @override
+  void dispose() {
+    mobileNoTextEditor?.dispose();
+    passwordTextEditor?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

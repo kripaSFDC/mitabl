@@ -55,6 +55,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
 
   @override
   void initState() {
+    super.initState();
     itemNameController.addListener(() {
       context
           .read<AddMenuCubit>()
@@ -91,6 +92,16 @@ class _AddMenuPageState extends State<AddMenuPage> {
           widget.routeArguments!.foodData!.description!;
       priceController.text = widget.routeArguments!.foodData!.price.toString();
     }
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    itemNameController.dispose();
+    priceController.dispose();
+    descriptionController.dispose();
+    cookingStyleController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1322,43 +1333,44 @@ class _UploadbuttonState extends State<_UploadButton> {
   }
 
   void _openGallery(BuildContext context) async {
-    var picture = await ImagePicker().pickImage(source: ImageSource.gallery);
-    // print('path ${picture!.path}');
+    final cubit = context.read<AddMenuCubit>();
+    final picture =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
     try {
-      if (picture!.path.isNotEmpty) {
-        print('path ${picture.path}');
-        context.read<AddMenuCubit>().onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        Helper.showToast('No image selected.');
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        //});
-      } else {
-        Helper.showToast('No image selected.');
       }
     } catch (e) {
-      //Helper.showToast('No image selected.');
+      Helper.showToast('No image selected.');
     }
   }
 
   Future<void> _openCamera(BuildContext context) async {
-    var picture = await ImagePicker()
+    final cubit = context.read<AddMenuCubit>();
+    final picture = await ImagePicker()
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (picture!.path.isNotEmpty) {
-        print('path ${picture.path}');
-        context.read<AddMenuCubit>().onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        Helper.showToast('No image captured.');
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        // });
-        // widget.loginForm!.controller!.animateTo(context.read<EditKitchenProfileCubit>().state.pathFiles.length.toDouble(), duration: Duration(milliseconds: 100 ), curve: Curves.ease);
-
-      } else {
-        Helper.showToast('No image captured.');
       }
     } catch (e) {
-      //Helper.showToast('No image captured.');
+      Helper.showToast('No image captured.');
     }
   }
 }

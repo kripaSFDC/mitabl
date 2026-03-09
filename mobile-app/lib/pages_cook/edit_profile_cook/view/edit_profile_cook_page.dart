@@ -38,6 +38,7 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
 
   @override
   void initState() {
+    super.initState();
     firstName!.addListener(() {
       context
           .read<ProfileCookCubit>()
@@ -66,36 +67,45 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
     phone!.text = context.read<ProfileCookCubit>().state.phoneNo!.value;
   }
 
+  @override
+  void dispose() {
+    firstName?.dispose();
+    lastName?.dispose();
+    email?.dispose();
+    phone?.dispose();
+    description?.dispose();
+    super.dispose();
+  }
+
   void _openGallery(BuildContext context) async {
-    var picture = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final cubit = context.read<ProfileCookCubit>();
+    final picture =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context
-            .read<ProfileCookCubit>()
-            .onAvatarImageSelect(path: picture.path);
-      } else {
+      if (!mounted || picture == null) {
         Helper.showToast('No image selected.');
+        return;
       }
+
+      cubit.onAvatarImageSelect(path: picture.path);
     } catch (e) {
       Helper.showToast('No image selected.');
     }
   }
 
   Future<void> _openCamera(BuildContext context) async {
-    var picture = await ImagePicker()
+    final cubit = context.read<ProfileCookCubit>();
+    final picture = await ImagePicker()
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context
-            .read<ProfileCookCubit>()
-            .onAvatarImageSelect(path: picture.path);
-      } else {
+      if (!mounted || picture == null) {
         Helper.showToast('No image captured.');
+        return;
       }
+
+      cubit.onAvatarImageSelect(path: picture.path);
     } catch (e) {
       Helper.showToast('No image captured.');
     }

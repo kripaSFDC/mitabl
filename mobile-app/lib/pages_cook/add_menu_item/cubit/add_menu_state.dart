@@ -23,7 +23,7 @@ class AddMenuState extends Equatable {
   final FormzStatus? formzStatus;
   final FormzStatus? addFoodStatus;
   final List<Pictures> pathFiles;
-  List<String> deleteImagesId;
+  final List<String> deleteImagesId;
   final int? selectedPage;
   final Name? itemName;
   final Name? price;
@@ -86,7 +86,6 @@ class AddMenuState extends Equatable {
         selectedFoodMenuUnChanged,
         foodStatusFormStatus,
         selectedFoodMenu,
-        addFoodStatus,
         addFoodStatus,
         specialDietDataListOriginal,
         description,

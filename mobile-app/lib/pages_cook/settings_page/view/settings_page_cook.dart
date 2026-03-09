@@ -60,6 +60,13 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     super.dispose();
   }
 
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _submitSupportTicket() async {
     final repository = context.read<SupportTicketRepository>();
     setState(() => _supportActionInFlight = true);
@@ -73,12 +80,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
       final message =
           result['message']?.toString() ?? 'Support ticket created successfully.';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      _showSnackBar(message);
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to create ticket: $error')),
-      );
+      _showSnackBar('Unable to create ticket: $error');
     } finally {
       if (mounted) {
         setState(() => _supportActionInFlight = false);
@@ -89,9 +93,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _loadSupportTicket() async {
     final ticketId = int.tryParse(_ticketIdController.text.trim());
     if (ticketId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid ticket id.')),
-      );
+      _showSnackBar('Enter a valid ticket id.');
       return;
     }
 
@@ -101,13 +103,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     try {
       final result = await repository.getSupportTicket(id: ticketId);
       final status = result['data']?['status']?.toString() ?? 'unknown';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ticket $ticketId status: $status')),
-      );
+      _showSnackBar('Ticket $ticketId status: $status');
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to load ticket: $error')),
-      );
+      _showSnackBar('Unable to load ticket: $error');
     } finally {
       if (mounted) {
         setState(() => _supportActionInFlight = false);
@@ -118,9 +116,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _replyToSupportTicket() async {
     final ticketId = int.tryParse(_ticketIdController.text.trim());
     if (ticketId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid ticket id first.')),
-      );
+      _showSnackBar('Enter a valid ticket id first.');
       return;
     }
 
@@ -133,12 +129,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
         message: _replyController.text.trim(),
       );
       final message = result['message']?.toString() ?? 'Reply submitted.';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      _showSnackBar(message);
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to send reply: $error')),
-      );
+      _showSnackBar('Unable to send reply: $error');
     } finally {
       if (mounted) {
         setState(() => _supportActionInFlight = false);

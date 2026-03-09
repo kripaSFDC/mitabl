@@ -30,10 +30,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       picturesList.add(element);
     });
 
+    final availableSpecialDiets =
+        _cloneSpecialDietList(state.specialDietDataListOriginal);
+
     emit(state.copyWith(
         pathFiles: picturesList,
         selectedFoodMenu: foodData,
-        specialDietDataList: state.specialDietDataListOriginal));
+        specialDietDataList: availableSpecialDiets));
 
     CookingStyleData cookingStyleData = state.cookingStyleList
         .firstWhere((element) => element.id == foodData.cookingstyle);
@@ -153,10 +156,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     getCookingStyle();
     emit(AddMenuState(
         deleteImagesId: [],
-        cookingStyleList: state.cookingStyleList,
-        specialDietDataListOriginal: state.specialDietDataListOriginal,
+      cookingStyleList: _cloneCookingStyleList(state.cookingStyleList),
+      specialDietDataListOriginal:
+        _cloneSpecialDietList(state.specialDietDataListOriginal),
         foodMenu: state.foodMenu,
-        specialDietDataList: state.specialDietDataListOriginal,
+      specialDietDataList:
+        _cloneSpecialDietList(state.specialDietDataListOriginal),
         selectedCookingStyle: CookingStyleData(name: ''),
         selectedFoodMenu: state.selectedFoodMenu));
   }
@@ -243,7 +248,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         CookingStyle.fromJson(jsonDecode(response.body));
 
     if (cookingStyle.status == 200) {
-      emit(state.copyWith(cookingStyleList: cookingStyle.data));
+      emit(state.copyWith(
+          cookingStyleList: _cloneCookingStyleList(cookingStyle.data ?? [])));
     }
   }
 
@@ -252,9 +258,10 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     SpecialDiet specialDiet = SpecialDiet.fromJson(jsonDecode(response.body));
 
     if (specialDiet.status == 200) {
+      final specialDiets = _cloneSpecialDietList(specialDiet.data ?? const []);
       emit(state.copyWith(
-          specialDietDataList: specialDiet.data,
-          specialDietDataListOriginal: specialDiet.data));
+          specialDietDataList: specialDiets,
+          specialDietDataListOriginal: _cloneSpecialDietList(specialDiets)));
     }
   }
 
@@ -275,32 +282,28 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       // var response = await cookRepository!.userRepository!
       //     .deleteImage(id: pictures.id.toString(), type: 'food');
       // if (response.statusCode == 200) {
-      List<Pictures> allPaths = [];
-      if (state.pathFiles.isNotEmpty) {
-        allPaths.addAll(state.pathFiles);
-        state.deleteImagesId = [
-          ...state.deleteImagesId,
-          (allPaths
-              .firstWhere(
-                  (element) => element.path.toString() == path.toString())
-              .id
-              .toString())
-        ];
-        allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
-      } else {
-        state.deleteImagesId = [
-          ...state.deleteImagesId,
-          (allPaths
-              .firstWhere(
-                  (element) => element.path.toString() == path.toString())
-              .id
-              .toString())
-        ];
-        allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
+      List<Pictures> allPaths = [...state.pathFiles];
+      List<String> deletedImageIds = [...state.deleteImagesId];
+      final removedPicture = allPaths.cast<Pictures?>().firstWhere(
+            (element) => element?.path.toString() == path.toString(),
+            orElse: () => null,
+          );
+
+      if (removedPicture == null) {
+        return;
       }
-      emit(state.copyWith(pathFiles: allPaths));
+
+      if (removedPicture.id != null) {
+        deletedImageIds.add(removedPicture.id.toString());
+      }
+
+      allPaths.removeWhere(
+          (element) => element.path.toString() == path.toString());
+
+      emit(state.copyWith(
+        pathFiles: allPaths,
+        deleteImagesId: deletedImageIds,
+      ));
       getFoodMenu();
     }
   }
@@ -374,5 +377,23 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     } catch (_) {}
 
     return [];
+  }
+
+  List<CookingStyleData> _cloneCookingStyleList(
+      List<CookingStyleData> cookingStyles) {
+    return cookingStyles
+        .map((style) => style.copyWith())
+        .toList(growable: false);
+  }
+
+  List<SpecialDietData> _cloneSpecialDietList(
+      List<SpecialDietData>? specialDiets) {
+    if (specialDiets == null) {
+      return const [];
+    }
+
+    return specialDiets
+        .map((diet) => diet.copyWith())
+        .toList(growable: false);
   }
 }

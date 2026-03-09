@@ -43,13 +43,20 @@ class _CookProfilePage extends State<CookProfilePage>
 
   @override
   void initState() {
-
     super.initState();
   }
 
   TextEditingController? mobileNoTextEditor = TextEditingController();
   TextEditingController? passwordTextEditor = TextEditingController();
   PageController? controller = PageController(viewportFraction: 0.9);
+
+  @override
+  void dispose() {
+    mobileNoTextEditor?.dispose();
+    passwordTextEditor?.dispose();
+    controller?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -841,40 +848,40 @@ class _UploadbuttonState extends State<_UploadButton> {
   }
 
   void _openGallery(BuildContext context) async {
-    var picture = await ImagePicker().pickImage(source: ImageSource.gallery);
-    // print('path ${picture!.path}');
+    final cubit = context.read<CookProfileCubit>();
+    final picture =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context.read<CookProfileCubit>().onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        //});
-      } else {
-        // Helper.showToast('No image selected.');
       }
     } catch (e) {
-      // Helper.showToast('No image selected.');
+      Helper.showToast('No image selected.');
     }
   }
 
   Future<void> _openCamera(BuildContext context) async {
-    var picture = await ImagePicker()
+    final cubit = context.read<CookProfileCubit>();
+    final picture = await ImagePicker()
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context.read<CookProfileCubit>().onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        Helper.showToast('No image captured.');
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        // });
-        // widget.loginForm!.controller!.animateTo(context.read<CookProfileCubit>().state.pathFiles.length.toDouble(), duration: Duration(milliseconds: 100 ), curve: Curves.ease);
-
-      } else {
-        Helper.showToast('No image captured.');
       }
     } catch (e) {
       Helper.showToast('No image captured.');

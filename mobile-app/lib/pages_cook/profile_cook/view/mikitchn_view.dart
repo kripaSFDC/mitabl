@@ -25,6 +25,12 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
   PageController? controller = PageController(viewportFraction: 0.9);
 
   @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileCookCubit, ProfileCookState>(
       listener: (context, state) {},

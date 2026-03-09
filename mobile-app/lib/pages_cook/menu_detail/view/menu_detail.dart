@@ -30,6 +30,12 @@ class MenuDetails extends StatefulWidget {
 class _MenuDetailsState extends State<MenuDetails> {
   PageController? controller = PageController(viewportFraction: 0.9);
 
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
   Future<bool> _onBackPressed() async {
     context.read<AddMenuCubit>().resetFields();
     return true;

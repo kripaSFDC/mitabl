@@ -52,6 +52,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
 
   @override
   void initState() {
+    super.initState();
     nameTextEditor!.addListener(() {
       context
           .read<EditKitchenProfileCubit>()
@@ -101,6 +102,19 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
     // certificateTextEditor!.text =
     //     widget.routeArguments!.kitchen!.certificateNo ?? '';
     bioTextEditor!.text = widget.routeArguments!.kitchen!.description ?? '';
+  }
+
+  @override
+  void dispose() {
+    nameTextEditor?.dispose();
+    addressTextEditor?.dispose();
+    noOfSeatsTextEditor?.dispose();
+    abnNoTextEditor?.dispose();
+    certificateTextEditor?.dispose();
+    bioTextEditor?.dispose();
+    mobileNoTextEditor?.dispose();
+    controller?.dispose();
+    super.dispose();
   }
 
   @override
@@ -1067,20 +1081,20 @@ class _UploadbuttonState extends State<_UploadButton> {
   }
 
   void _openGallery(BuildContext context) async {
-    var picture = await ImagePicker().pickImage(source: ImageSource.gallery);
-    // print('path ${picture!.path}');
+    final cubit = context.read<EditKitchenProfileCubit>();
+    final picture =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context
-            .read<EditKitchenProfileCubit>()
-            .onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        Helper.showToast('No image selected.');
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        //});
-      } else {
-        Helper.showToast('No image selected.');
       }
     } catch (e) {
       Helper.showToast('No image selected.');
@@ -1088,23 +1102,20 @@ class _UploadbuttonState extends State<_UploadButton> {
   }
 
   Future<void> _openCamera(BuildContext context) async {
-    var picture = await ImagePicker()
+    final cubit = context.read<EditKitchenProfileCubit>();
+    final picture = await ImagePicker()
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (picture!.path != null) {
-        print('path ${picture.path}');
-        context
-            .read<EditKitchenProfileCubit>()
-            .onNewImageAdded(path: picture.path);
-        // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (!mounted || picture == null) {
+        Helper.showToast('No image captured.');
+        return;
+      }
+
+      cubit.onNewImageAdded(path: picture.path);
+      if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!
             .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-        // });
-        // widget.loginForm!.controller!.animateTo(context.read<EditKitchenProfileCubit>().state.pathFiles.length.toDouble(), duration: Duration(milliseconds: 100 ), curve: Curves.ease);
-
-      } else {
-        Helper.showToast('No image captured.');
       }
     } catch (e) {
       Helper.showToast('No image captured.');

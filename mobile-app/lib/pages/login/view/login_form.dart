@@ -32,7 +32,6 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    // setUpFields();
     super.initState();
   }
 
@@ -53,6 +52,13 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
 
   TextEditingController? mobileNoTextEditor = TextEditingController();
   TextEditingController? passwordTextEditor = TextEditingController();
+
+  @override
+  void dispose() {
+    mobileNoTextEditor?.dispose();
+    passwordTextEditor?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
