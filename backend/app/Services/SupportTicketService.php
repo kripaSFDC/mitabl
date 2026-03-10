@@ -9,7 +9,9 @@ use App\Models\SupportTicketMessage;
 use App\Notifications\SupportTicketEscalatedNotification;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -36,80 +38,92 @@ class SupportTicketService
             throw new InvalidArgumentException('Ticket description is required.');
         }
         $fingerprint = $this->fingerprint($normalized['requester_email'], $normalized['subject']);
+        $dedupeFingerprint = $this->dedupeFingerprint(
+            $normalized['requester_email'],
+            $normalized['subject'],
+            $normalized['description']
+        );
+        $lockKey = 'support-ticket:create:' . $dedupeFingerprint;
+        $lockTtlSeconds = (int) config('support.duplicate_lock_ttl_seconds', 12);
+        $lockWaitSeconds = (int) config('support.duplicate_lock_wait_seconds', 3);
+        $lock = Cache::lock($lockKey, max(1, $lockTtlSeconds));
 
-        if (! ((bool) ($payload['skip_duplicate_check'] ?? false))) {
-            $subjectFingerprint = Str::lower(trim($normalized['subject']));
-            $existing = SupportTicket::query()
-                ->where('requester_email', $normalized['requester_email'])
-                ->where('created_at', '>=', now()->subMinutes((int) config('support.duplicate_window_minutes', 10)))
-                ->whereNull('merged_into_ticket_id')
-                ->whereRaw('LOWER(TRIM(subject)) = ?', [$subjectFingerprint])
-                ->latest('id')
-                ->first();
+        try {
+            return $lock->block(max(1, $lockWaitSeconds), function () use ($payload, $normalized, $fingerprint): array {
+                if (! ((bool) ($payload['skip_duplicate_check'] ?? false))) {
+                    $existing = $this->findRecentDuplicateTicket($normalized['requester_email'], $normalized['subject'], $normalized['description']);
+                    if ($existing) {
+                        return ['ticket' => $existing, 'duplicate' => true];
+                    }
+                }
 
+                $ticket = DB::transaction(function () use ($normalized, $fingerprint, $payload): SupportTicket {
+                    $ticket = SupportTicket::create([
+                        'ticket_number' => 'TKT-PENDING-' . Str::upper(Str::random(8)),
+                        'user_id' => $normalized['user_id'],
+                        'requester_name' => $normalized['requester_name'],
+                        'requester_email' => $normalized['requester_email'],
+                        'requester_phone' => $normalized['requester_phone'],
+                        'subject' => $normalized['subject'],
+                        'description' => $normalized['description'],
+                        'source' => $normalized['source'],
+                        'category' => $normalized['category'],
+                        'priority' => $normalized['priority'],
+                        'status' => $normalized['status'],
+                        'assigned_to' => $normalized['assigned_to'],
+                        'order_id' => $normalized['order_id'],
+                        'mikitchn_id' => $normalized['mikitchn_id'],
+                        'first_response_due_at' => $normalized['first_response_due_at'],
+                        'resolution_due_at' => $normalized['resolution_due_at'],
+                        'requester_token' => Str::random(48),
+                        'intake_fingerprint' => $fingerprint,
+                        'spam_score' => $normalized['spam_score'],
+                        'spam_detected_at' => $normalized['spam_detected_at'],
+                        'last_message_at' => now(),
+                    ]);
+
+                    $ticket->ticket_number = $this->formatTicketNumber((int) $ticket->id);
+                    $ticket->save();
+
+                    $message = SupportTicketMessage::create([
+                        'ticket_id' => $ticket->id,
+                        'sender_type' => 'user',
+                        'sender_id' => $ticket->user_id,
+                        'message' => $normalized['description'],
+                        'is_internal_note' => false,
+                    ]);
+
+                    $this->attachmentPolicy->storeForMessage(
+                        $ticket,
+                        $message,
+                        $this->extractUploadedFiles($payload['attachments'] ?? []),
+                        $normalized['actor_type'],
+                        $normalized['actor_id']
+                    );
+
+                    $this->recordEvent($ticket, 'ticket_created', $normalized['actor_type'], $normalized['actor_id'], [
+                        'source' => $normalized['source'],
+                        'priority' => $normalized['priority'],
+                        'status' => $normalized['status'],
+                    ]);
+
+                    return $ticket;
+                });
+
+                if ($ticket->status !== SupportTicket::STATUS_SPAM) {
+                    $this->communications->sendTicketAcknowledgement($ticket);
+                }
+
+                return ['ticket' => $ticket, 'duplicate' => false];
+            });
+        } catch (LockTimeoutException) {
+            $existing = $this->findRecentDuplicateTicket($normalized['requester_email'], $normalized['subject'], $normalized['description']);
             if ($existing) {
                 return ['ticket' => $existing, 'duplicate' => true];
             }
+
+            throw new InvalidArgumentException('A similar message is already being processed. Please retry in a few seconds.');
         }
-
-        $ticket = DB::transaction(function () use ($normalized, $fingerprint, $payload): SupportTicket {
-            $ticket = SupportTicket::create([
-                'ticket_number' => 'TKT-PENDING-' . Str::upper(Str::random(8)),
-                'user_id' => $normalized['user_id'],
-                'requester_name' => $normalized['requester_name'],
-                'requester_email' => $normalized['requester_email'],
-                'requester_phone' => $normalized['requester_phone'],
-                'subject' => $normalized['subject'],
-                'description' => $normalized['description'],
-                'source' => $normalized['source'],
-                'category' => $normalized['category'],
-                'priority' => $normalized['priority'],
-                'status' => $normalized['status'],
-                'assigned_to' => $normalized['assigned_to'],
-                'order_id' => $normalized['order_id'],
-                'mikitchn_id' => $normalized['mikitchn_id'],
-                'first_response_due_at' => $normalized['first_response_due_at'],
-                'resolution_due_at' => $normalized['resolution_due_at'],
-                'requester_token' => Str::random(48),
-                'intake_fingerprint' => $fingerprint,
-                'spam_score' => $normalized['spam_score'],
-                'spam_detected_at' => $normalized['spam_detected_at'],
-                'last_message_at' => now(),
-            ]);
-
-            $ticket->ticket_number = $this->formatTicketNumber((int) $ticket->id);
-            $ticket->save();
-
-            $message = SupportTicketMessage::create([
-                'ticket_id' => $ticket->id,
-                'sender_type' => 'user',
-                'sender_id' => $ticket->user_id,
-                'message' => $normalized['description'],
-                'is_internal_note' => false,
-            ]);
-
-            $this->attachmentPolicy->storeForMessage(
-                $ticket,
-                $message,
-                $this->extractUploadedFiles($payload['attachments'] ?? []),
-                $normalized['actor_type'],
-                $normalized['actor_id']
-            );
-
-            $this->recordEvent($ticket, 'ticket_created', $normalized['actor_type'], $normalized['actor_id'], [
-                'source' => $normalized['source'],
-                'priority' => $normalized['priority'],
-                'status' => $normalized['status'],
-            ]);
-
-            return $ticket;
-        });
-
-        if ($ticket->status !== SupportTicket::STATUS_SPAM) {
-            $this->communications->sendTicketAcknowledgement($ticket);
-        }
-
-        return ['ticket' => $ticket, 'duplicate' => false];
     }
 
     public function addReply(SupportTicket $ticket, array $payload, string $senderType, ?int $senderId = null, ?string $expectedUpdatedAt = null): SupportTicketMessage
@@ -582,6 +596,34 @@ class SupportTicketService
     private function fingerprint(string $email, string $subject): string
     {
         return hash('sha256', Str::lower($email) . '|' . Str::lower(trim($subject)));
+    }
+
+    private function dedupeFingerprint(string $email, string $subject, string $description): string
+    {
+        return hash(
+            'sha256',
+            Str::lower(trim($email))
+            . '|'
+            . Str::lower(trim($subject))
+            . '|'
+            . Str::lower(trim($description))
+        );
+    }
+
+    private function findRecentDuplicateTicket(string $email, string $subject, string $description): ?SupportTicket
+    {
+        $duplicateWindowMinutes = (int) config('support.duplicate_window_minutes', 10);
+        $subjectFingerprint = Str::lower(trim($subject));
+        $descriptionFingerprint = Str::lower(trim($description));
+
+        return SupportTicket::query()
+            ->where('requester_email', Str::lower(trim($email)))
+            ->where('created_at', '>=', now()->subMinutes($duplicateWindowMinutes))
+            ->whereNull('merged_into_ticket_id')
+            ->whereRaw('LOWER(TRIM(subject)) = ?', [$subjectFingerprint])
+            ->whereRaw('LOWER(TRIM(description)) = ?', [$descriptionFingerprint])
+            ->latest('id')
+            ->first();
     }
 
     private function recordEvent(SupportTicket $ticket, string $type, ?string $actorType, ?int $actorId, ?array $metadata = null): void

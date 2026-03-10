@@ -34,22 +34,27 @@
          <div class="col-lg-7">
             <div class="contact-data">
                <h2>Send us a message</h2>
-               <p>Use the form below to email our team directly at <a href="mailto:mitablinfo@gmail.com">mitablinfo@gmail.com</a>.</p>
-               <form class="contact-form" action="mailto:mitablinfo@gmail.com" method="post" enctype="text/plain">
+               <p>Use the form below to securely send your message to our support team.</p>
+               <div id="contact-form-status" class="alert d-none" role="status" aria-live="polite"></div>
+               <form class="contact-form" id="contact-form" action="/api/support/ticket" method="post" novalidate>
                   <div class="form-outer">
-                     <input type="text" name="Name" placeholder="Your full name" required>
+                     <input type="text" name="requester_name" placeholder="Your full name" autocomplete="name" required>
                   </div>
                   <div class="form-outer">
-                     <input type="email" name="Email" placeholder="Your email address" required>
+                     <input type="email" name="requester_email" placeholder="Your email address" autocomplete="email" required>
                   </div>
                   <div class="form-outer">
-                     <input type="text" name="Subject" placeholder="Subject" required>
+                     <input type="text" name="subject" placeholder="Subject" required>
                   </div>
                   <div class="form-outer">
-                     <textarea name="Message" placeholder="How can we help you?" required></textarea>
+                     <textarea name="description" placeholder="How can we help you?" required></textarea>
+                  </div>
+                  <div class="form-outer d-none" aria-hidden="true">
+                     <label for="website-hp">Website</label>
+                     <input id="website-hp" type="text" name="website" tabindex="-1" autocomplete="off">
                   </div>
                   <div class="form-outer">
-                     <input type="submit" value="Send Email">
+                     <input id="contact-submit" type="submit" value="Send Message">
                   </div>
                </form>
             </div>
@@ -57,3 +62,132 @@
       </div>
    </div>
 </section>
+
+<script>
+   (function() {
+      var form = document.getElementById('contact-form');
+      if (!form) {
+         return;
+      }
+
+      var status = document.getElementById('contact-form-status');
+      var submitButton = document.getElementById('contact-submit');
+      var repeatWindowMs = 10 * 60 * 1000;
+      var repeatStoreKey = 'mitabl_contact_repeat_guard_v1';
+
+      function showStatus(message, isSuccess) {
+         if (!status) {
+            return;
+         }
+
+         status.classList.remove('d-none', 'alert-success', 'alert-danger');
+         status.classList.add(isSuccess ? 'alert-success' : 'alert-danger');
+         status.textContent = message;
+      }
+
+      function hashString(value) {
+         var hash = 5381;
+         for (var i = 0; i < value.length; i += 1) {
+            hash = ((hash << 5) + hash) + value.charCodeAt(i);
+            hash = hash >>> 0;
+         }
+         return String(hash);
+      }
+
+      function getRepeatStore() {
+         try {
+            var raw = localStorage.getItem(repeatStoreKey);
+            return raw ? JSON.parse(raw) : {};
+         } catch (_err) {
+            return {};
+         }
+      }
+
+      function setRepeatStore(store) {
+         try {
+            localStorage.setItem(repeatStoreKey, JSON.stringify(store));
+         } catch (_err) {
+            // Ignore localStorage failures and rely on server dedupe.
+         }
+      }
+
+      form.addEventListener('submit', async function(event) {
+         event.preventDefault();
+
+         if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+         }
+
+         if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.value = 'Sending...';
+         }
+
+         var formData = new FormData(form);
+         var payload = {
+            requester_name: String(formData.get('requester_name') || '').trim(),
+            requester_email: String(formData.get('requester_email') || '').trim(),
+            subject: String(formData.get('subject') || '').trim(),
+            description: String(formData.get('description') || '').trim(),
+            website: String(formData.get('website') || '')
+         };
+         var dedupeSource = (payload.requester_email + '|' + payload.subject + '|' + payload.description).toLowerCase();
+         var dedupeKey = hashString(dedupeSource);
+         var repeatStore = getRepeatStore();
+         var lastSentAt = Number(repeatStore[dedupeKey] || 0);
+         if (lastSentAt > 0 && (Date.now() - lastSentAt) < repeatWindowMs) {
+            showStatus('You recently sent the same message. Please wait a few minutes before sending it again.', false);
+            if (submitButton) {
+               submitButton.disabled = false;
+               submitButton.value = 'Send Message';
+            }
+            return;
+         }
+
+         try {
+            var response = await fetch(form.action, {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-Client-Channel': 'website'
+               },
+               body: JSON.stringify(payload),
+               credentials: 'same-origin'
+            });
+
+            var data = await response.json().catch(function() { return {}; });
+            if (!response.ok) {
+               var errorMessage = 'Could not send your message right now. Please try again.';
+               if (data && data.errors) {
+                  var firstErrorKey = Object.keys(data.errors)[0];
+                  if (firstErrorKey && Array.isArray(data.errors[firstErrorKey]) && data.errors[firstErrorKey][0]) {
+                     errorMessage = data.errors[firstErrorKey][0];
+                  }
+               } else if (data && data.isError) {
+                  errorMessage = data.isError;
+               }
+               throw new Error(errorMessage);
+            }
+
+            var ticketNumber = data && data.data && data.data.ticket_number ? data.data.ticket_number : null;
+            var successMessage = ticketNumber
+               ? 'Message sent successfully. Reference: ' + ticketNumber + '.'
+               : 'Message sent successfully. Our team will get back to you soon.';
+
+            repeatStore[dedupeKey] = Date.now();
+            setRepeatStore(repeatStore);
+            showStatus(successMessage, true);
+            form.reset();
+         } catch (error) {
+            showStatus(error.message || 'Could not send your message right now. Please try again.', false);
+         } finally {
+            if (submitButton) {
+               submitButton.disabled = false;
+               submitButton.value = 'Send Message';
+            }
+         }
+      });
+   })();
+</script>

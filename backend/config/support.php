@@ -2,6 +2,8 @@
 
 return [
     'duplicate_window_minutes' => 10,
+    'duplicate_lock_ttl_seconds' => 12,
+    'duplicate_lock_wait_seconds' => 3,
     'reopen_window_hours' => 72,
     'honeypot_field' => 'website',
 

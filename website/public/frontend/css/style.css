@@ -117,6 +117,12 @@ p {
     margin-bottom: 6px;
     font-size: 18px;
 }
+.privacy-policy-page .outer-privacy h4 {
+    font-weight: 700;
+}
+.terms-page .outer-privacy h4 {
+    font-weight: 700;
+}
 .outer-privacy li {
     list-style: auto;
     margin-bottom: 10px;

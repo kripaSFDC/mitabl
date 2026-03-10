@@ -60,15 +60,22 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('support-intake', function (Request $request) {
-            $email = (string) (
+            $email = strtolower(trim((string) (
                 $request->input('requester_email')
                 ?? $request->input('email')
                 ?? $request->input('SuppliedEmail')
                 ?? $request->input('Email')
                 ?? ''
-            );
-            $key = $email !== '' ? 'support-intake:' . strtolower($email) : 'support-intake-ip:' . $request->ip();
-            return Limit::perMinute(8)->by($key);
+            )));
+            $ip = (string) $request->ip();
+            $emailOrIpKey = $email !== '' ? "support-intake:email:{$email}" : "support-intake:ip:{$ip}";
+
+            return [
+                // Tight burst control per requester identity.
+                Limit::perMinute(4)->by($emailOrIpKey),
+                // Backstop by source IP to reduce spray attempts across changing emails.
+                Limit::perHour(30)->by("support-intake-hour-ip:{$ip}"),
+            ];
         });
 
 

@@ -44,6 +44,18 @@ class PlatformSettingRegistry
             'value' => ['value' => 10],
         ],
         [
+            'key' => 'support.duplicate_lock_ttl_seconds',
+            'value_type' => 'integer',
+            'description' => 'Lock TTL (seconds) used when serializing duplicate support ticket creation requests.',
+            'value' => ['value' => 12],
+        ],
+        [
+            'key' => 'support.duplicate_lock_wait_seconds',
+            'value_type' => 'integer',
+            'description' => 'How long intake waits for duplicate lock acquisition before returning a retry response (seconds).',
+            'value' => ['value' => 3],
+        ],
+        [
             'key' => 'support.reopen_window_hours',
             'value_type' => 'integer',
             'description' => 'How long a resolved ticket can be reopened (hours).',

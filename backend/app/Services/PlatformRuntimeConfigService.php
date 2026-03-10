@@ -9,6 +9,8 @@ class PlatformRuntimeConfigService
 {
     private const PLATFORM_KEY_MAP = [
         'support.duplicate_window_minutes' => ['key' => 'support.duplicate_window_minutes', 'type' => 'integer', 'default' => 10],
+        'support.duplicate_lock_ttl_seconds' => ['key' => 'support.duplicate_lock_ttl_seconds', 'type' => 'integer', 'default' => 12],
+        'support.duplicate_lock_wait_seconds' => ['key' => 'support.duplicate_lock_wait_seconds', 'type' => 'integer', 'default' => 3],
         'support.reopen_window_hours' => ['key' => 'support.reopen_window_hours', 'type' => 'integer', 'default' => 72],
         'support.honeypot_field' => ['key' => 'support.honeypot_field', 'type' => 'string', 'default' => 'website'],
         'support.sla.default.first_response_minutes' => ['key' => 'support.sla.default.first_response_minutes', 'type' => 'integer', 'default' => 60],
