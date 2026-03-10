@@ -175,7 +175,17 @@ trait HandlesUserAuthentication
             'role' => $user->role->role,
         ];
 
-        $this->sendOtp($user->id, $user->email);
+        $otpResponse = $this->sendOtp($user->id, $user->email);
+        if (($otpResponse['status'] ?? 500) !== 200) {
+            return $this->responser(
+                [
+                    'user_id' => $user->id,
+                    'otp_dispatched' => false,
+                ],
+                (string) ($otpResponse['message'] ?? 'Unable to send OTP at this time.'),
+                503
+            );
+        }
 
         return $this->responser($userData, 'Registered Successfully.');
     }
