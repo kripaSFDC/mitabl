@@ -187,12 +187,18 @@ class MikitchnController extends Controller
             }
             $kitchen->save();
 
-            if ($request->exists('abn') || $request->exists('certificate_no')) {
+            $abn = trim((string) $request->input('abn', ''));
+            $certificateNo = trim((string) $request->input('certificate_no', ''));
+            $existingCertificate = Certificate::query()
+                ->where('mikitchn_id', $kitchen->id)
+                ->exists();
+
+            if ($abn !== '' || $certificateNo !== '' || $existingCertificate) {
                 Certificate::query()->updateOrCreate(
                     ['mikitchn_id' => $kitchen->id],
                     [
-                        'abn' => $request->input('abn') ?: null,
-                        'certificate_no' => $request->input('certificate_no') ?: '',
+                        'abn' => $abn !== '' ? $abn : null,
+                        'certificate_no' => $certificateNo,
                     ]
                 );
             }

@@ -40,7 +40,8 @@ void main() {
   });
 
   group('AuthAwareHttpClient', () {
-    test('refreshes expired bearer tokens and retries the request once', () async {
+    test('refreshes expired bearer tokens and retries the request once',
+        () async {
       final userRepository = _FakeUserRepository(
         user: UserModel.fromJson({
           'response_code': 200,
@@ -126,7 +127,8 @@ void main() {
       final refreshClient = MockClient(
         (_) async => http.Response('unauthorized', 401),
       );
-      final innerClient = MockClient((_) async => http.Response('expired', 401));
+      final innerClient =
+          MockClient((_) async => http.Response('expired', 401));
 
       final sessionRepository = SessionRepository(httpClient: refreshClient);
       sessionRepository.attachUserRepository(userRepository);
@@ -149,6 +151,76 @@ void main() {
         await unauthorizedEventFuture.timeout(const Duration(seconds: 1)),
         SessionEvent.unauthorized,
       );
+
+      client.close();
+      sessionRepository.dispose();
+    });
+
+    test('retries multipart requests after refreshing the bearer token',
+        () async {
+      final userRepository = _FakeUserRepository(
+        user: UserModel.fromJson({
+          'response_code': 200,
+          'isSuccess': true,
+          'data': {
+            'access_token': 'expired-token',
+            'token_type': 'bearer',
+            'user': {'id': 1, 'role': 'Foodie'}
+          }
+        }),
+      );
+
+      final refreshClient = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'response_code': 200,
+            'isSuccess': true,
+            'data': {
+              'access_token': 'fresh-token',
+              'token_type': 'bearer',
+              'user': {'id': 1, 'role': 'Foodie'}
+            }
+          }),
+          200,
+        );
+      });
+
+      var requestCount = 0;
+      final innerClient = MockClient((request) async {
+        requestCount++;
+
+        if (requestCount == 1) {
+          expect(request.headers['authorization'], 'Bearer expired-token');
+          return http.Response('expired', 401);
+        }
+
+        expect(request.headers['authorization'], 'Bearer fresh-token');
+        return http.Response('ok', 200);
+      });
+
+      final sessionRepository = SessionRepository(httpClient: refreshClient);
+      sessionRepository.attachUserRepository(userRepository);
+      final client = AuthAwareHttpClient(
+        inner: innerClient,
+        sessionRepository: sessionRepository,
+      );
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.example.com/api/v2/mikitchn/editkitchen'),
+      )
+        ..headers.addAll({
+          'Authorization': 'Bearer expired-token',
+          'Accept': 'application/json',
+        })
+        ..fields['name'] = 'Kitchen';
+
+      final response =
+          await http.Response.fromStream(await client.send(request));
+
+      expect(response.statusCode, 200);
+      expect(requestCount, 2);
+      expect(await userRepository.requireAccessToken(), 'fresh-token');
 
       client.close();
       sessionRepository.dispose();

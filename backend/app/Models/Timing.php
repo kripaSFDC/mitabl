@@ -9,6 +9,14 @@ class Timing extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'mikitchn_id',
+        'day',
+        'status',
+        'start_time',
+        'end_time',
+    ];
+
     public function user()
     {
         return $this->belongsTo(Mikitchn::class);
