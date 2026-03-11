@@ -14,6 +14,20 @@ class RecommendedRestWidget extends StatefulWidget {
 }
 
 class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
+  String? _primaryImagePath() {
+    final images = widget.recommendedResturant?.images;
+    if (images == null || images.isEmpty) {
+      return null;
+    }
+
+    return images.first.path;
+  }
+
+  double _ratingValue() {
+    final rawRating = widget.recommendedResturant?.ratingCount;
+    return rawRating ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,8 +57,8 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10)),
                       child: CachedNetworkImage(
-                        imageUrl: widget.recommendedResturant!.images!.isNotEmpty
-                            ? '${GlobalConfiguration().getValue<String>('image_base_url')}${widget.recommendedResturant!.images![0].path}'
+                        imageUrl: _primaryImagePath() != null
+                            ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath()}'
                             : '',
                         progressIndicatorBuilder:
                             (context, url, downloadProgress) =>
@@ -158,7 +172,7 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                             width: 2,
                           ),
                           Text(
-                            widget.recommendedResturant!.ratingCount!.toStringAsFixed(1),
+                            _ratingValue().toStringAsFixed(1),
                             style: GoogleFonts.gothicA1(
                               fontSize: config.AppConfig(context).appWidth(2.7),
                               color: Theme.of(context).primaryColorDark,

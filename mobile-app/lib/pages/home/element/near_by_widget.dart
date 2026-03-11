@@ -9,6 +9,24 @@ class NearByRestWidget extends StatelessWidget {
   const NearByRestWidget({super.key, required this.nearByRestaurantsList});
   final NearByRestaurantsList? nearByRestaurantsList;
 
+  String? _primaryImagePath() {
+    final images = nearByRestaurantsList?.images;
+    if (images == null || images.isEmpty) {
+      return null;
+    }
+
+    return images.first.path;
+  }
+
+  double _ratingValue() {
+    final rawRating = nearByRestaurantsList?.ratingCount;
+    if (rawRating is num) {
+      return rawRating.toDouble();
+    }
+
+    return double.tryParse(rawRating?.toString() ?? '') ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,8 +56,8 @@ class NearByRestWidget extends StatelessWidget {
                 ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
                   child: CachedNetworkImage(
-                    imageUrl: nearByRestaurantsList!.images!.isNotEmpty
-                        ? '${GlobalConfiguration().getValue<String>('image_base_url')}${nearByRestaurantsList!.images![0].path}'
+                    imageUrl: _primaryImagePath() != null
+                        ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath()}'
                         : '',
                     progressIndicatorBuilder:
                         (context, url, downloadProgress) =>
@@ -67,7 +85,8 @@ class NearByRestWidget extends StatelessWidget {
                             image: imageProvider,
                             fit: BoxFit.cover,
                           ),
-                          borderRadius: const BorderRadius.all(Radius.circular(10))),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10))),
                     ),
                   ),
                 ),
@@ -167,7 +186,7 @@ class NearByRestWidget extends StatelessWidget {
                       width: 2,
                     ),
                     Text(
-                      '${nearByRestaurantsList!.ratingCount != null ? nearByRestaurantsList!.ratingCount!.toStringAsFixed(1) : ''}',
+                      _ratingValue().toStringAsFixed(1),
                       style: GoogleFonts.gothicA1(
                         fontSize: config.AppConfig(context).appWidth(2.7),
                         color: Theme.of(context).primaryColorDark,

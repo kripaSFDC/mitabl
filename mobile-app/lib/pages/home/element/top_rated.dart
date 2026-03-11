@@ -27,6 +27,23 @@ class TopRatedWidget extends StatefulWidget {
 class _TopRatedWidgetState extends State<TopRatedWidget> {
   late final ScrollController _scrollController;
 
+  String? _primaryImagePath(TopReatedRestList item) {
+    final images = item.images;
+    if (images == null || images.isEmpty) {
+      return null;
+    }
+
+    return images.first.path;
+  }
+
+  double _ratingValue(dynamic rawRating) {
+    if (rawRating is num) {
+      return rawRating.toDouble();
+    }
+
+    return double.tryParse(rawRating?.toString() ?? '') ?? 0;
+  }
+
   @override
   void initState() {
     _scrollController = ScrollController()..addListener(_handleScroll);
@@ -100,8 +117,10 @@ class _TopRatedWidgetState extends State<TopRatedWidget> {
                           borderRadius:
                               const BorderRadius.all(Radius.circular(10)),
                           child: CachedNetworkImage(
-                            imageUrl: items.elementAt(index).images!.isNotEmpty
-                                ? '${GlobalConfiguration().getValue<String>('image_base_url')}${items.elementAt(index).images![0].path}'
+                            imageUrl: _primaryImagePath(
+                                        items.elementAt(index)) !=
+                                    null
+                                ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath(items.elementAt(index))}'
                                 : '',
                             progressIndicatorBuilder:
                                 (context, url, downloadProgress) =>
@@ -211,7 +230,9 @@ class _TopRatedWidgetState extends State<TopRatedWidget> {
                                         width: 2,
                                       ),
                                       Text(
-                                        '${items.elementAt(index).ratingCount!.toStringAsFixed(1)}',
+                                        _ratingValue(
+                                          items.elementAt(index).ratingCount,
+                                        ).toStringAsFixed(1),
                                         style: GoogleFonts.gothicA1(
                                           fontSize: config.AppConfig(context)
                                               .appWidth(2.7),
