@@ -9,7 +9,9 @@ class HomeState extends Equatable {
       this.statusTopRes = FormzStatus.pure,
       this.statusCooking = FormzStatus.pure,
       this.statusRecommRes = FormzStatus.pure,
+      this.isResolvingLocation = false,
       this.serverMessage = '',
+      this.locationLabel = '',
       this.cookingStyleList = const [],
       this.selectDineTake = '',
       this.locationQuery = '',
@@ -26,9 +28,11 @@ class HomeState extends Equatable {
   final FormzStatus? statusApi;
   final FormzStatus? statusTopRes;
   final FormzStatus? statusRecommRes;
+  final bool isResolvingLocation;
 
   final List<CookingStyleData>? cookingStyleList;
   final String? serverMessage;
+  final String? locationLabel;
   final String? selectDineTake;
   final String? locationQuery;
   final double? latitude;
@@ -45,7 +49,9 @@ class HomeState extends Equatable {
     FormzStatus? statusTopRes,
     FormzStatus? statusCooking,
     FormzStatus? statusRecommRes,
+    bool? isResolvingLocation,
     String? serverMessage,
+    Object? locationLabel = _unset,
     Object? locationQuery = _unset,
     Object? latitude = _unset,
     Object? longitude = _unset,
@@ -75,8 +81,12 @@ class HomeState extends Equatable {
         statusTopRes: statusTopRes ?? this.statusTopRes,
         selectedDistance: selectedDistance ?? this.selectedDistance,
         statusRecommRes: statusRecommRes ?? this.statusRecommRes,
+        isResolvingLocation: isResolvingLocation ?? this.isResolvingLocation,
         statusApi: statusApi ?? this.statusApi,
         statusCooking: statusCooking ?? this.statusCooking,
+        locationLabel: identical(locationLabel, _unset)
+            ? this.locationLabel
+            : locationLabel as String?,
         nearByRestaurants: identical(nearByRestaurants, _unset)
             ? this.nearByRestaurants
             : nearByRestaurants as NearByRestaurantsResponse?,
@@ -102,9 +112,11 @@ class HomeState extends Equatable {
         statusTopRes,
         statusRecommRes,
         statusCooking,
+        isResolvingLocation,
         topReatedRestResponse,
         selectedDistance,
         recommendedRestResponse,
+        locationLabel,
         cookingStyleList,
         nearByRestaurants
       ];

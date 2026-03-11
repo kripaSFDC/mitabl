@@ -35,7 +35,7 @@ class RouteGenerator {
     final routeArguments = args is RouteArguments ? args : null;
     switch (settings.name) {
       case '/Splash':
-        return MaterialPageRoute<void>(builder: (_) => SplashPage());
+        return MaterialPageRoute<void>(builder: (_) => const SplashPage());
 
       case '/LandingPage':
         return const LandingPage().route();

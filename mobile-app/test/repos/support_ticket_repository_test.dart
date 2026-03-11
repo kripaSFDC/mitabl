@@ -8,11 +8,23 @@ import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
+class _FakeUserRepository extends UserRepository {
+  _FakeUserRepository({UserModel? user}) : _user = user;
+
+  final UserModel? _user;
+
+  @override
+  UserModel? get currentUser => _user;
+
+  @override
+  Future<UserModel?> getUser() async => _user;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    await GlobalConfiguration().loadFromMap({
+    GlobalConfiguration().loadFromMap({
       'api_base_url': 'https://api.example.com/api/',
     });
   });
@@ -34,15 +46,17 @@ void main() {
         );
       });
 
-      final userRepository = UserRepository()
-        ..user = UserModel.fromJson({
+      final userRepository = _FakeUserRepository(
+        user: UserModel.fromJson({
           'status': 200,
           'isSuccess': true,
           'data': {
-            'accessToken': 'abc-token',
+            'access_token': 'abc-token',
+            'token_type': 'Bearer',
             'user': {'id': 1}
           }
-        });
+        }),
+      );
 
       final repository = SupportTicketRepository(
         userRepository: userRepository,
@@ -89,7 +103,7 @@ void main() {
       });
 
       final repository = SupportTicketRepository(
-        userRepository: UserRepository(),
+        userRepository: _FakeUserRepository(),
         httpClient: mockClient,
       );
 
@@ -121,7 +135,7 @@ void main() {
       });
 
       final repository = SupportTicketRepository(
-        userRepository: UserRepository(),
+        userRepository: _FakeUserRepository(),
         httpClient: mockClient,
       );
 

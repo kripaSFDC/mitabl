@@ -16,9 +16,7 @@ class AuthenticationBloc
   AuthenticationBloc({
     required AuthenticationRepository authenticationRepository,
     required UserRepository userRepository,
-  })  : assert(authenticationRepository != null),
-        assert(userRepository != null),
-        _authenticationRepository = authenticationRepository,
+  })  : _authenticationRepository = authenticationRepository,
         _userRepository = userRepository,
         super(const AuthenticationState.unknown()) {
     on<AuthenticationStatusChanged>(mapAuthenticationStatusChangedToState);
@@ -37,7 +35,6 @@ class AuthenticationBloc
     AuthenticationEvent event,
   ) async* {
     if (event is AuthenticationStatusChanged) {
-      print('AuthenticationStatusChanged');
 
       // yield await _mapAuthenticationStatusChangedToState(event);
     } else if (event is AuthenticationLogoutRequested) {

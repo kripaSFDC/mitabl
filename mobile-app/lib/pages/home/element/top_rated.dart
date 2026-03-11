@@ -1,24 +1,18 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart' show timeDilation;
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/top_rated_rest_response.dart';
 
 class TopRatedWidget extends StatelessWidget {
-  const TopRatedWidget({Key? key, this.topReatedRestList}) : super(key: key);
+  const TopRatedWidget({super.key, this.topReatedRestList});
 
   final List<TopReatedRestList>? topReatedRestList;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: config.AppConfig(context).appHeight(13),
       child: ListView.separated(
           scrollDirection: Axis.horizontal,
@@ -31,8 +25,8 @@ class TopRatedWidget extends StatelessWidget {
           itemBuilder: (context, index) {
             return Container(
               width: config.AppConfig(context).appWidth(80),
-              decoration: new BoxDecoration(
-                borderRadius: new BorderRadius.circular(10.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
                 color: Theme.of(context).primaryColor,
               ),
               child: Padding(
@@ -44,13 +38,11 @@ class TopRatedWidget extends StatelessWidget {
                       alignment: AlignmentDirectional.bottomStart,
                       children: <Widget>[
                         ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderRadius: const BorderRadius.all(Radius.circular(10)),
                           child: CachedNetworkImage(
                             imageUrl: topReatedRestList!
                                         .elementAt(index)
-                                        .images!
-                                        .length >
-                                    0
+                                        .images!.isNotEmpty
                                 ? '${GlobalConfiguration().getValue<String>('image_base_url')}${topReatedRestList!.elementAt(index).images![0].path}'
                                 : '',
                             progressIndicatorBuilder:
@@ -80,7 +72,7 @@ class TopRatedWidget extends StatelessWidget {
                                     fit: BoxFit.cover,
                                   ),
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(10))),
+                                      const BorderRadius.all(Radius.circular(10))),
                             ),
                           ),
                         ),
@@ -134,7 +126,7 @@ class TopRatedWidget extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Flexible(
                             child: Padding(
                               padding: const EdgeInsets.only(
@@ -157,7 +149,7 @@ class TopRatedWidget extends StatelessWidget {
                                             .appHeight(1.5),
                                         fit: BoxFit.fitHeight,
                                       ),
-                                      SizedBox(
+                                      const SizedBox(
                                         width: 2,
                                       ),
                                       Text(

@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
-import 'package:mitabl_user/model/requests.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/repos/bookings_repository.dart';
 
 import '../../../model/bookings.dart';
@@ -12,7 +11,7 @@ import '../../../repos/authentication_repository.dart';
 part 'requests_state.dart';
 
 class RequestsCubit extends Cubit<RequestsState> {
-  RequestsCubit(this.bookingRepository) : super(RequestsState()) {
+  RequestsCubit(this.bookingRepository) : super(const RequestsState()) {
     // getRequests();
   }
 
@@ -33,14 +32,14 @@ class RequestsCubit extends Cubit<RequestsState> {
         emit(state.copyWith(
             requestBookingStatus: FormzStatus.submissionSuccess));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(requestBookingStatus: FormzStatus.submissionFailure));
     }
   }
 
   onOrderAcceptDecline({
     bool? isAccept,
-    dynamic? orderId,
+    dynamic orderId,
     bool? isFromOrderView,
   }) async {
     try {

@@ -7,17 +7,17 @@ class UserModel {
   UserModel({this.responseCode, this.isSuccess, this.message, this.data});
 
   UserModel.fromJson(Map<String, dynamic> json) {
-    responseCode = json['response_code'] != null ? json['response_code'] : 0;
+    responseCode = json['response_code'] ?? 0;
     isSuccess = json['isSuccess'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['response_code'] = this.responseCode;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['response_code'] = responseCode;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -34,16 +34,16 @@ class Data {
 
   Data.fromJson(Map<String, dynamic> json) {
     accessToken = json['access_token'];
-    tokenType = json['token_type'] != null ? json['token_type'] : '';
-    user = json['user'] != null ? new User.fromJson(json['user']) : null;
+    tokenType = json['token_type'] ?? '';
+    user = json['user'] != null ? User.fromJson(json['user']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['access_token'] = this.accessToken;
-    data['token_type'] = this.tokenType;
-    if (this.user != null) {
-      data['user'] = this.user!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['access_token'] = accessToken;
+    data['token_type'] = tokenType;
+    if (user != null) {
+      data['user'] = user!.toJson();
     }
     return data;
   }
@@ -63,10 +63,10 @@ class User {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['role'] = this.role;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['role'] = role;
     return data;
   }
 }

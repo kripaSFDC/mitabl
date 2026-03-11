@@ -1,9 +1,9 @@
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 enum EmailValidationError{empty}
 
 class Email extends FormzInput<String ,EmailValidationError>{
-  const Email.dirty([String value='']) : super.dirty(value);
+  const Email.dirty([super.value='']) : super.dirty();
   const Email.pure():super.pure('');
 
   @override

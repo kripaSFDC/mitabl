@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/pages/forgot/cubit/forgot_cubit.dart';
@@ -11,15 +10,15 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 
 class ForgotPage extends StatefulWidget {
   const ForgotPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static Route route() {
     return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
               create: (context) =>
                   ForgotCubit(context.read<AuthenticationRepository>()),
-              child: ForgotPage(),
+              child: const ForgotPage(),
             ));
     // );
   }
@@ -194,12 +193,11 @@ class _ForgotPage extends State<ForgotPage> with TickerProviderStateMixin {
                 ),
               ),
               state.status!.isSubmissionInProgress
-                  ? CommonProgressWidget()
-                  : SizedBox(),
+                  ? const CommonProgressWidget()
+                  : const SizedBox(),
             ],
           );
         }, listener: (context, state) async {
-          print('status form ${state.status}');
           if (state.status!.isSubmissionFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('${state.serverMessage}')));
@@ -216,7 +214,7 @@ class _ForgotPage extends State<ForgotPage> with TickerProviderStateMixin {
 class _Email extends StatefulWidget {
   final _ForgotPage? loginForm;
 
-  const _Email({Key? key, this.loginForm}) : super(key: key);
+  const _Email({this.loginForm});
 
   @override
   State<_Email> createState() => _EmailState();
@@ -226,14 +224,13 @@ class _EmailState extends State<_Email> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraint) {
-      print('constraibtWidth ${constraint.maxWidth}');
       return BlocBuilder<ForgotCubit, ForgotState>(builder: (context, state) {
         return Container(
           alignment: Alignment.center,
           padding: EdgeInsets.zero,
           child: TextFormField(
             controller: widget.loginForm!.mobileNoTextEditor,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.name,
             maxLength: 55,
@@ -250,7 +247,7 @@ class _EmailState extends State<_Email> {
                       Icons.check_circle_outline,
                       color: Theme.of(context).primaryColor,
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
               hintStyle: TextStyle(
                   color: Theme.of(context).hintColor,
                   fontSize: 16,
@@ -264,32 +261,32 @@ class _EmailState extends State<_Email> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
@@ -304,7 +301,7 @@ class _EmailState extends State<_Email> {
 class _LoginButton extends StatelessWidget {
   final _ForgotPage? loginForm;
 
-  const _LoginButton({Key? key, this.loginForm}) : super(key: key);
+  const _LoginButton({this.loginForm});
 
   @override
   Widget build(BuildContext context) {
@@ -329,20 +326,20 @@ class _LoginButton extends StatelessWidget {
                       ],
               )),
           child: MaterialButton(
-              child: Text(
-                'SUBMIT',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: config.FontFamily().book),
-              ),
               minWidth: config.AppConfig(context).appWidth(100),
               height: 50.0,
               onPressed: () {
                 if (state.status!.isValidated) {
                   context.read<ForgotCubit>().forgot();
                 }
-              }),
+              },
+              child: Text(
+                'SUBMIT',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: config.FontFamily().book),
+              )),
         );
       },
     );

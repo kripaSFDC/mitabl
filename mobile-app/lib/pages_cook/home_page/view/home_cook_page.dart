@@ -1,22 +1,15 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:global_configuration/global_configuration.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
-import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/home_page/element/home_cook_header.dart';
-import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
-import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../../helper/shape_custom.dart';
 
 class HomePageCook extends StatefulWidget {
-  const HomePageCook({Key? key}) : super(key: key);
+  const HomePageCook({super.key});
 
   @override
   State<HomePageCook> createState() => _HomePageCookState();
@@ -47,7 +40,7 @@ class _HomePageCookState extends State<HomePageCook> {
                     SizedBox(
                       height: config.AppConfig(context).appHeight(3),
                     ),
-                    HomeCookHeaderWidget(),
+                    const HomeCookHeaderWidget(),
                     SizedBox(
                       height: config.AppConfig(context).appHeight(4),
                     ),
@@ -91,12 +84,15 @@ class _HomePageCookState extends State<HomePageCook> {
                               ),
                             ],
                           ),
-                          Spacer(),
+                          const Spacer(),
                           SvgPicture.asset(
                             'assets/img/dollar.svg',
                             height: config.AppConfig(context).appHeight(10),
                             width: config.AppConfig(context).appHeight(10),
-                            color: Colors.white,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
                           )
                         ],
                       ),
@@ -121,9 +117,9 @@ class _HomePageCookState extends State<HomePageCook> {
                                   config.AppConfig(context).appWidth(6)),
                               width: config.AppConfig(context).appWidth(100),
                               height: config.AppConfig(context).appHeight(15),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: const BorderRadius.all(
+                                borderRadius: BorderRadius.all(
                                   Radius.circular(16),
                                 ),
                               ),
@@ -138,14 +134,14 @@ class _HomePageCookState extends State<HomePageCook> {
                                         'Number Of Bookings',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyText1,
+                                            .bodyLarge,
                                         textAlign: TextAlign.center,
                                       ),
                                       SizedBox(
                                           height: config.AppConfig(context)
                                               .appHeight(1)),
                                       Text(
-                                        '${state.dashboardData!.data!.nBookings.toString()}',
+                                        state.dashboardData!.data!.nBookings.toString(),
                                         style: TextStyle(
                                             color: Theme.of(context)
                                                 .primaryColorDark,
@@ -164,7 +160,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             Positioned(
                               right: 0,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.only(
+                                borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(16),
                                     bottomRight: Radius.circular(16)),
                                 child: CustomPaint(
@@ -176,7 +172,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                         config.AppConfig(context).appWidth(30),
                                     height:
                                         config.AppConfig(context).appHeight(15),
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                         borderRadius: BorderRadius.only(
                                       topRight: Radius.circular(16),
                                       bottomRight: Radius.circular(16),
@@ -187,7 +183,10 @@ class _HomePageCookState extends State<HomePageCook> {
                                           .appHeight(10),
                                       width: config.AppConfig(context)
                                           .appHeight(10),
-                                      color: Colors.white,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -235,7 +234,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                         'Upcoming Bookings',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyText1!.copyWith(
+                                            .bodyLarge!.copyWith(
                                           fontSize: config.AppConfig(context).appWidth(4.5)
                                         ),
                                         textAlign: TextAlign.center,
@@ -244,7 +243,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                           height: config.AppConfig(context)
                                               .appHeight(1)),
                                       Text(
-                                        '${state.dashboardData!.data!.nUpcomingBookings.toString()}',
+                                        state.dashboardData!.data!.nUpcomingBookings.toString(),
                                         style: TextStyle(
                                             color: Theme.of(context)
                                                 .primaryColorDark,
@@ -263,7 +262,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             Positioned(
                               right: 0,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.only(
+                                borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(16),
                                     bottomRight: Radius.circular(16)),
                                 child: CustomPaint(
@@ -275,7 +274,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                         config.AppConfig(context).appWidth(30),
                                     height:
                                         config.AppConfig(context).appHeight(15),
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                         borderRadius: BorderRadius.only(
                                       topRight: Radius.circular(16),
                                       bottomRight: Radius.circular(16),
@@ -286,7 +285,10 @@ class _HomePageCookState extends State<HomePageCook> {
                                           .appHeight(10),
                                       width: config.AppConfig(context)
                                           .appHeight(10),
-                                      color: Colors.white,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -308,6 +310,7 @@ class _HomePageCookState extends State<HomePageCook> {
 
   @override
   void initState() {
+    super.initState();
     context.read<DashboardCookCubit>().getDashBoardData();
   }
 }

@@ -6,16 +6,15 @@ import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
 import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/repos/authentication_repository.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 class FilterDialog extends StatefulWidget {
-  const FilterDialog({Key? key}) : super(key: key);
+  const FilterDialog({super.key});
 
   @override
-  _FilterDialogState createState() => _FilterDialogState();
+  State<FilterDialog> createState() => _FilterDialogState();
 }
 
 class _FilterDialogState extends State<FilterDialog> {
@@ -48,7 +47,7 @@ class _FilterDialogState extends State<FilterDialog> {
                 children: [
                   IconButton(
                     onPressed: () => {},
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.abc,
                       color: Colors.transparent,
                     ),
@@ -70,9 +69,9 @@ class _FilterDialogState extends State<FilterDialog> {
               SizedBox(
                 height: config.AppConfig(context).appHeight(1),
               ),
-              Spacer(),
+              const Spacer(),
               state.statusCooking!.isSubmissionInProgress
-                  ? Center(
+                  ? const Center(
                       child: CupertinoActivityIndicator(
                         color: Colors.grey,
                       ),
@@ -90,11 +89,11 @@ class _FilterDialogState extends State<FilterDialog> {
                           alignedDropdown: true,
                           child: DropdownButton<CookingStyleData>(
                             value: state.selectedCookingData,
-                            hint: Text(
+                            hint: const Text(
                               "Cooking Style",
                             ),
                             isExpanded: true,
-                            icon: Icon(Icons.arrow_drop_down),
+                            icon: const Icon(Icons.arrow_drop_down),
                             iconSize: 24,
                             elevation: 16,
                             style: TextStyle(
@@ -305,10 +304,8 @@ class _FilterDialogState extends State<FilterDialog> {
               SizedBox(
                 height: config.AppConfig(context).appHeight(6),
               ),
-              ApplyButton(
-                loginForm: this,
-              ),
-              Spacer(),
+              const ApplyButton(),
+              const Spacer(),
             ],
           ),
         ),
@@ -318,9 +315,7 @@ class _FilterDialogState extends State<FilterDialog> {
 }
 
 class ApplyButton extends StatelessWidget {
-  final _FilterDialogState? loginForm;
-
-  const ApplyButton({Key? key, this.loginForm}) : super(key: key);
+  const ApplyButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +335,12 @@ class ApplyButton extends StatelessWidget {
                 ],
               )),
           child: MaterialButton(
+              minWidth: config.AppConfig(context).appWidth(50),
+              height: 50.0,
+              onPressed: () {
+                context.read<HomeCubit>().onApplyFilter();
+                navigatorKey.currentState!.pop();
+              },
               child: state.status!.isSubmissionInProgress
                   ? const Center(
                       child: CupertinoActivityIndicator(
@@ -351,13 +352,7 @@ class ApplyButton extends StatelessWidget {
                       style: GoogleFonts.gothicA1(
                           fontSize: config.AppConfig(context).appWidth(3.5),
                           color: Colors.white),
-                    ),
-              minWidth: config.AppConfig(context).appWidth(50),
-              height: 50.0,
-              onPressed: () {
-                context.read<HomeCubit>().onApplyFilter();
-                navigatorKey.currentState!.pop();
-              }),
+                    )),
         );
       },
     );

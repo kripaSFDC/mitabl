@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -9,18 +8,17 @@ import '../cubit/requests_cubit.dart';
 
 class AcceptRejectDialog extends StatelessWidget {
   const AcceptRejectDialog(
-      {Key? key, this.isAccept, this.isFromOrderView = false, this.id})
-      : super(key: key);
+      {super.key, this.isAccept, this.isFromOrderView = false, this.id});
 
   final bool? isAccept;
   final bool? isFromOrderView;
-  final dynamic? id;
+  final dynamic id;
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
+      child: SizedBox(
         height: config.AppConfig(context).appHeight(30),
         width: config.AppConfig(context).appWidth(90),
         child: Column(
@@ -38,7 +36,7 @@ class AcceptRejectDialog extends StatelessWidget {
                 )
               ],
             ),
-            Spacer(
+            const Spacer(
               flex: 1,
             ),
             Text(
@@ -85,6 +83,12 @@ class AcceptRejectDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20.0),
                           color: Theme.of(context).primaryColor),
                       child: MaterialButton(
+                          height: config.AppConfig(context).appHeight(6),
+                          minWidth: config.AppConfig(context).appWidth(100),
+                          onPressed: () {
+                            context.read<RequestsCubit>().onOrderAcceptDecline(
+                                isAccept: isAccept, orderId: id, isFromOrderView : isFromOrderView);
+                          },
                           child: Text(
                             'YES',
                             style: TextStyle(
@@ -94,13 +98,7 @@ class AcceptRejectDialog extends StatelessWidget {
                                   .itcAvantGardeGothicStdFontFamily,
                               fontWeight: config.FontFamily().book,
                             ),
-                          ),
-                          height: config.AppConfig(context).appHeight(6),
-                          minWidth: config.AppConfig(context).appWidth(100),
-                          onPressed: () {
-                            context.read<RequestsCubit>().onOrderAcceptDecline(
-                                isAccept: isAccept, orderId: id, isFromOrderView : isFromOrderView);
-                          }),
+                          )),
                     ),
                   ),
                   SizedBox(
@@ -112,8 +110,13 @@ class AcceptRejectDialog extends StatelessWidget {
                       height: config.AppConfig(context).appHeight(4.5),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20.0),
-                          color: Color(0xffE9E9E9)),
+                          color: const Color(0xffE9E9E9)),
                       child: MaterialButton(
+                          height: config.AppConfig(context).appHeight(6),
+                          minWidth: config.AppConfig(context).appWidth(100),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop();
+                          },
                           child: Text(
                             'NO',
                             style: TextStyle(
@@ -123,12 +126,7 @@ class AcceptRejectDialog extends StatelessWidget {
                                   .itcAvantGardeGothicStdFontFamily,
                               fontWeight: config.FontFamily().book,
                             ),
-                          ),
-                          height: config.AppConfig(context).appHeight(6),
-                          minWidth: config.AppConfig(context).appWidth(100),
-                          onPressed: () {
-                            navigatorKey.currentState!.pop();
-                          }),
+                          )),
                     ),
                   )
                 ],
@@ -137,7 +135,7 @@ class AcceptRejectDialog extends StatelessWidget {
             SizedBox(
               height: config.AppConfig(context).appHeight(4),
             ),
-            Spacer(
+            const Spacer(
               flex: 1,
             ),
           ],

@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
@@ -7,7 +6,7 @@ import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 
 class HomeCookHeaderWidget extends StatelessWidget {
-  const HomeCookHeaderWidget({Key? key}) : super(key: key);
+  const HomeCookHeaderWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,7 @@ class HomeCookHeaderWidget extends StatelessWidget {
                     width: config.AppConfig(context).appWidth(10),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).backgroundColor,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
                   ),
                   errorWidget: (context, url, error) => Container(
@@ -37,7 +36,7 @@ class HomeCookHeaderWidget extends StatelessWidget {
                     width: config.AppConfig(context).appWidth(10),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Theme.of(context).backgroundColor,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
                   ),
                   imageBuilder: (context, imageProvider) => Container(
@@ -58,7 +57,7 @@ class HomeCookHeaderWidget extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Hello, ${state.cookProfile != null ? state.cookProfile!.data!.firstName : ''} ${state.cookProfile != null ? state.cookProfile!.data!.lastName : ''}',
-                  style: Theme.of(context).textTheme.headline5?.copyWith(
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontSize: config.AppConfig(context).appWidth(5.0),
                       ),
                 ),

@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
-import 'package:mitabl_user/helper/helper.dart';
 
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/name.dart';
@@ -36,14 +35,13 @@ class CookProfileCubit extends Cubit<CookProfileState> {
   }
 
   setUpTimingModel() {
-    TimingModel? timingModel;
     List<Days> daysTiming = [];
-    AppConstants.DAYS.forEach((element) {
+    for (var element in AppConstants.DAYS) {
       daysTiming.add(Days(
           day: element.toString(),
           isOn: false,
           timing: Timing(endTime: '23:59', startTime: '00:00')));
-    });
+    }
 
     emit(state.copyWith(daysTiming: daysTiming,daysTimingOriginal:daysTiming));
   }
@@ -135,7 +133,7 @@ class CookProfileCubit extends Cubit<CookProfileState> {
             statusApi: FormzStatus.submissionFailure,
             serverMessage: jsonDecode(response.body)['isError']));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(
           statusApi: FormzStatus.submissionFailure,
           serverMessage: 'Something went wrong...'));

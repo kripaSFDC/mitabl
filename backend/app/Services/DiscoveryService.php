@@ -281,6 +281,21 @@ class DiscoveryService
 
     private function hasValidCoordinates(Request $request): bool
     {
-        return is_numeric($request->input('lat')) && is_numeric($request->input('lon'));
+        $latInput = $request->input('lat');
+        $lonInput = $request->input('lon');
+
+        if (! is_numeric($latInput) || ! is_numeric($lonInput)) {
+            return false;
+        }
+
+        $lat = (float) $latInput;
+        $lon = (float) $lonInput;
+
+        if (! is_finite($lat) || ! is_finite($lon)) {
+            return false;
+        }
+
+        return $lat >= -90.0 && $lat <= 90.0
+            && $lon >= -180.0 && $lon <= 180.0;
     }
 }

@@ -1,9 +1,9 @@
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 enum NameValidationError{empty}
 
 class Name extends FormzInput<String ,NameValidationError>{
-  const Name.dirty([String value='']) : super.dirty(value);
+  const Name.dirty([super.value='']) : super.dirty();
   const Name.pure():super.pure('');
 
   @override

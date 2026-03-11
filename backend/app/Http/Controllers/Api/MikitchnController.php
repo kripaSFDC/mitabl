@@ -15,7 +15,6 @@ use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 use App\Http\Resources\User\User as UserResource;
-use App\Traits\GoogleAddress;
 use App\Services\DiscoveryService;
 use App\Services\KitchenService;
 use App\Services\PaymentService;
@@ -24,7 +23,6 @@ use Throwable;
 
 class MikitchnController extends Controller
 {
-    use GoogleAddress;
     private DiscoveryService $discoveryService;
     private KitchenService $kitchenService;
     private PaymentService $paymentService;
@@ -132,6 +130,8 @@ class MikitchnController extends Controller
             'no_of_seats' => 'required|integer',
             'timings' => 'required|string',
             'phone' => 'required|string',
+            'lat' => 'nullable|numeric|between:-90,90|required_with:lng',
+            'lng' => 'nullable|numeric|between:-180,180|required_with:lat',
         ]
        );
         
@@ -176,8 +176,12 @@ class MikitchnController extends Controller
             $kitchen->dine_in = $request->dine_in;
             $kitchen->take_away = $request->take_away;
             $kitchen->description = $request->description;
-            $kitchen->latitude = $request->lat;
-            $kitchen->longitude = $request->lng;
+            if ($request->has('lat')) {
+                $kitchen->latitude = (float) $request->lat;
+            }
+            if ($request->has('lng')) {
+                $kitchen->longitude = (float) $request->lng;
+            }
             $kitchen->save();
 
             foreach ($timings as $timing) {

@@ -1,4 +1,4 @@
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 enum PasswordValidationError { empty,addPasswordFirst_,passwordNotMatched }
 
@@ -9,8 +9,8 @@ class ConfirmPassword extends FormzInput<Map<String,String> ,
   // ignore: sort_constructors_first
   const ConfirmPassword.pure() : super.pure(list);
   // ignore: sort_constructors_first
-  const ConfirmPassword.dirty(Map<String, String> confirmPassword)
-      : super.dirty(confirmPassword);
+  const ConfirmPassword.dirty(super.confirmPassword)
+      : super.dirty();
 
   @override
   PasswordValidationError? validator(Map<String, String> value) {

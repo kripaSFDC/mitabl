@@ -10,14 +10,14 @@ class DashboardData {
     status = json['status'];
     isSuccess = json['isSuccess'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -39,10 +39,10 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['total_earning'] = this.totalEarning;
-    data['n_bookings'] = this.nBookings;
-    data['n_upcoming_bookings'] = this.nUpcomingBookings;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['total_earning'] = totalEarning;
+    data['n_bookings'] = nBookings;
+    data['n_upcoming_bookings'] = nUpcomingBookings;
     return data;
   }
 }

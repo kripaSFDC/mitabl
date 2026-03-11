@@ -1,19 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart' show timeDilation;
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/near_by_restaurants_response.dart';
 
 class NearByRestWidget extends StatelessWidget {
-  const NearByRestWidget({Key? key, required this.nearByRestaurantsList})
-      : super(key: key);
+  const NearByRestWidget({super.key, required this.nearByRestaurantsList});
   final NearByRestaurantsList? nearByRestaurantsList;
 
   @override
@@ -23,12 +16,12 @@ class NearByRestWidget extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            offset: Offset(2, 2),
+            offset: const Offset(2, 2),
             color: config.AppColors().secondColor(1.0),
             blurRadius: 5.0,
           ),
         ],
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Column(
         // mainAxisAlignment: MainAxisAlignment.center,
@@ -43,9 +36,9 @@ class NearByRestWidget extends StatelessWidget {
               alignment: AlignmentDirectional.bottomStart,
               children: <Widget>[
                 ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
                   child: CachedNetworkImage(
-                    imageUrl: nearByRestaurantsList!.images!.length > 0
+                    imageUrl: nearByRestaurantsList!.images!.isNotEmpty
                         ? '${GlobalConfiguration().getValue<String>('image_base_url')}${nearByRestaurantsList!.images![0].path}'
                         : '',
                     progressIndicatorBuilder:
@@ -74,7 +67,7 @@ class NearByRestWidget extends StatelessWidget {
                             image: imageProvider,
                             fit: BoxFit.cover,
                           ),
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                          borderRadius: const BorderRadius.all(Radius.circular(10))),
                     ),
                   ),
                 ),
@@ -170,7 +163,7 @@ class NearByRestWidget extends StatelessWidget {
                       width: config.AppConfig(context).appHeight(1.5),
                       fit: BoxFit.fitHeight,
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 2,
                     ),
                     Text(

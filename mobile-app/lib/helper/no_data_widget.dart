@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 
 class NoDataWidget extends StatelessWidget {
-  const NoDataWidget({Key? key}) : super(key: key);
+  const NoDataWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
@@ -23,16 +24,16 @@ part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit({
-    required UserRepository userRepository,
+    required UserRepository repo,
     HomeRepository? homeRepository,
     CookRepository? cookRepository,
-  })  : userRepository = userRepository,
+  })  : userRepository = repo,
         _homeRepository = homeRepository ??
-            HomeRepository(httpClient: userRepository.httpClient),
+            HomeRepository(httpClient: repo.httpClient),
         _cookRepository = cookRepository ??
             CookRepository(
-              userRepository,
-              httpClient: userRepository.httpClient,
+              repo,
+              httpClient: repo.httpClient,
             ),
         _ownsHomeRepository = homeRepository == null,
         _ownsCookRepository = cookRepository == null,
@@ -53,6 +54,7 @@ class HomeCubit extends Cubit<HomeState> {
   final bool _ownsCookRepository;
   Timer? _filterDebounce;
   int _requestToken = 0;
+  int _locationLabelRequestToken = 0;
   UserModel? _cachedUserModel;
 
   Future<void> _fetchHomeFeeds() async {
@@ -63,9 +65,7 @@ class HomeCubit extends Cubit<HomeState> {
     final coordinates = await _resolveCoordinates();
     final latitude = coordinates?.latitude;
     final longitude = coordinates?.longitude;
-    final locationQuery = (latitude != null && longitude != null)
-        ? '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}'
-        : '';
+    final locationQuery = _formatLocationQuery(latitude, longitude);
 
     emit(state.copyWith(
       latitude: latitude,
@@ -73,9 +73,15 @@ class HomeCubit extends Cubit<HomeState> {
       locationQuery: locationQuery,
     ));
 
-    await onRecommendedRestaurants();
-    await onNearByRestaurants();
-    await onTopratedRestaurants();
+    if (latitude != null && longitude != null) {
+      _hydrateLocationLabel(latitude, longitude);
+    }
+
+    await Future.wait<void>([
+      onRecommendedRestaurants(),
+      onNearByRestaurants(),
+      onTopratedRestaurants(),
+    ]);
   }
 
   Future<UserModel?> _resolveUserModel() async {
@@ -154,13 +160,13 @@ class HomeCubit extends Cubit<HomeState> {
     final prefs = await SharedPreferences.getInstance();
     final key = _cacheKey(prefix, userId);
     await prefs.setString(key, value);
-    await prefs.setInt('${key}${_cacheTimestampSuffix}',
+    await prefs.setInt('$key$_cacheTimestampSuffix',
         DateTime.now().millisecondsSinceEpoch);
   }
 
   String? _readFreshCache(SharedPreferences prefs, String key) {
     final payload = prefs.getString(key);
-    final timestamp = prefs.getInt('${key}${_cacheTimestampSuffix}');
+    final timestamp = prefs.getInt('$key$_cacheTimestampSuffix');
     if (payload == null || timestamp == null) {
       return null;
     }
@@ -168,7 +174,7 @@ class HomeCubit extends Cubit<HomeState> {
     final age = DateTime.now().millisecondsSinceEpoch - timestamp;
     if (age > _cacheTtl.inMilliseconds) {
       prefs.remove(key);
-      prefs.remove('${key}${_cacheTimestampSuffix}');
+      prefs.remove('$key$_cacheTimestampSuffix');
       return null;
     }
 
@@ -294,6 +300,52 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  String _formatLocationQuery(double? latitude, double? longitude) {
+    if (latitude == null || longitude == null) {
+      return '';
+    }
+    return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+  }
+
+  Future<void> _hydrateLocationLabel(double latitude, double longitude) async {
+    final requestToken = ++_locationLabelRequestToken;
+    final label = await _resolveLocationLabel(latitude, longitude);
+    if (isClosed) {
+      return;
+    }
+    if (requestToken != _locationLabelRequestToken) {
+      return;
+    }
+    if (state.latitude != latitude || state.longitude != longitude) {
+      return;
+    }
+    emit(state.copyWith(locationLabel: label));
+  }
+
+  Future<String> _resolveLocationLabel(double latitude, double longitude) async {
+    try {
+      final marks = await placemarkFromCoordinates(latitude, longitude);
+      if (marks.isEmpty) {
+        return _formatLocationQuery(latitude, longitude);
+      }
+
+      final mark = marks.first;
+      final parts = <String>[
+        if ((mark.locality ?? '').isNotEmpty) mark.locality!,
+        if ((mark.administrativeArea ?? '').isNotEmpty) mark.administrativeArea!,
+        if ((mark.country ?? '').isNotEmpty) mark.country!,
+      ];
+      if (parts.isEmpty) {
+        return _formatLocationQuery(latitude, longitude);
+      }
+
+      return parts.join(', ');
+    } on Exception catch (e) {
+      AppLogger.error('Unable to resolve location label', e);
+      return _formatLocationQuery(latitude, longitude);
+    }
+  }
+
   Map<String, dynamic> _buildFilterMap({bool withLocation = false}) {
     final map = <String, dynamic>{};
 
@@ -357,8 +409,53 @@ class HomeCubit extends Cubit<HomeState> {
       return;
     }
 
-    emit(state.copyWith(latitude: latitude, longitude: longitude));
+    emit(state.copyWith(
+      latitude: latitude,
+      longitude: longitude,
+      locationQuery: _formatLocationQuery(latitude, longitude),
+    ));
+    _hydrateLocationLabel(latitude, longitude);
     onApplyFilter();
+  }
+
+  Future<void> onUseCurrentLocation() async {
+    if (state.isResolvingLocation) {
+      return;
+    }
+
+    emit(state.copyWith(isResolvingLocation: true));
+    try {
+      final coordinates = await _resolveCoordinates();
+
+      if (coordinates == null) {
+        Helper.showToast('Unable to access current location. Check permissions.');
+        return;
+      }
+
+      final latitude = coordinates.latitude;
+      final longitude = coordinates.longitude;
+      final locationRequestToken = ++_locationLabelRequestToken;
+      final label = await _resolveLocationLabel(latitude, longitude);
+      if (isClosed) {
+        return;
+      }
+      if (locationRequestToken != _locationLabelRequestToken) {
+        return;
+      }
+
+      emit(state.copyWith(
+        latitude: latitude,
+        longitude: longitude,
+        locationQuery: _formatLocationQuery(latitude, longitude),
+        locationLabel: label,
+      ));
+
+      onApplyFilter();
+    } finally {
+      if (!isClosed && state.isResolvingLocation) {
+        emit(state.copyWith(isResolvingLocation: false));
+      }
+    }
   }
 
   Future<void> onCookingStyle() async {
@@ -464,6 +561,7 @@ class HomeCubit extends Cubit<HomeState> {
       _requestToken++;
       onRecommendedRestaurants();
       onNearByRestaurants();
+      onTopratedRestaurants();
     });
   }
 

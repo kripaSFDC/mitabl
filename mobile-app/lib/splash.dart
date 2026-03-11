@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 
 class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
   static Route route() {
-    return MaterialPageRoute<void>(builder: (_) => SplashPage());
+    return MaterialPageRoute<void>(builder: (_) => const SplashPage());
   }
 
   @override

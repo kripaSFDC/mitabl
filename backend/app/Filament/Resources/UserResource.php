@@ -4,13 +4,17 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\AdminUser;
+use App\Services\AdminStepUpService;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class UserResource extends Resource
 {
@@ -118,6 +122,108 @@ class UserResource extends Resource
                     ->label('Role'),
             ])
             ->actions([
+                Action::make('suspend')
+                    ->icon('heroicon-o-no-symbol')
+                    ->color('danger')
+                    ->visible(fn (AdminUser $record): bool => (bool) $record->is_active && static::canEditUsers())
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->required()
+                            ->minLength(5)
+                            ->maxLength(500),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
+                    ])
+                    ->action(function (AdminUser $record, array $data): void {
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to suspend this account.'
+                        )) {
+                            return;
+                        }
+
+                        $suspended = false;
+
+                        DB::transaction(function () use ($record, &$suspended): void {
+                            $user = AdminUser::query()->lockForUpdate()->find($record->id);
+                            if (! $user || ! $user->is_active) {
+                                return;
+                            }
+
+                            if ($user->hasRole('super_admin')) {
+                                Notification::make()
+                                    ->title('Super admin accounts cannot be suspended.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $user->is_active = false;
+                            $user->save();
+                            $suspended = true;
+                        });
+
+                        if (! $suspended) {
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title('Platform user suspended successfully.')
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('unsuspend')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (AdminUser $record): bool => ! (bool) $record->is_active && static::canEditUsers())
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Unsuspension reason')
+                            ->required()
+                            ->minLength(5)
+                            ->maxLength(500),
+                        Forms\Components\TextInput::make('current_password')
+                            ->label('Confirm admin password')
+                            ->password()
+                            ->revealable(false)
+                            ->required(),
+                    ])
+                    ->action(function (AdminUser $record, array $data): void {
+                        if (! app(AdminStepUpService::class)->validateCurrentPassword(
+                            $data['current_password'] ?? null,
+                            'Step-up authentication failed. Enter your admin password to unsuspend this account.'
+                        )) {
+                            return;
+                        }
+
+                        $unsuspended = false;
+
+                        DB::transaction(function () use ($record, &$unsuspended): void {
+                            $user = AdminUser::query()->lockForUpdate()->find($record->id);
+                            if (! $user || $user->is_active) {
+                                return;
+                            }
+
+                            $user->is_active = true;
+                            $user->suspended_by = null;
+                            unset($user->suspended_by);
+                            $user->save();
+                            $unsuspended = true;
+                        });
+
+                        if (! $unsuspended) {
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title('Platform user unsuspended successfully.')
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => static::canEditUsers()),
                 Tables\Actions\DeleteAction::make()

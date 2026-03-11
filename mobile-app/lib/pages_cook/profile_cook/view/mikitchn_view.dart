@@ -1,21 +1,18 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
-import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cubit/cook_profile_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../cubit/profile_cook_cubit.dart';
 import '../elements/timing_view.dart';
 
 class MikitchnTabView extends StatefulWidget {
-  const MikitchnTabView({Key? key}) : super(key: key);
+  const MikitchnTabView({super.key});
 
   @override
   State<MikitchnTabView> createState() => _MikitchnTabViewState();
@@ -47,7 +44,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   height: config.AppConfig(context).appHeight(2),
                 ),
                 state.pathFiles.isNotEmpty
-                    ? Container(
+                    ? SizedBox(
                         height: config.AppConfig(context).appHeight(20),
                         child: PageView.builder(
                           controller: controller,
@@ -125,7 +122,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                           itemCount: state.pathFiles.length,
                         ),
                       )
-                    : SizedBox(),
+                    : const SizedBox(),
                 SizedBox(
                   height: config.AppConfig(context).appHeight(2),
                 ),
@@ -157,19 +154,19 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                   ],
                                 )),
                             child: MaterialButton(
+                                height: config.AppConfig(context).appHeight(6),
+                                minWidth:
+                                    config.AppConfig(context).appWidth(100),
+                                onPressed: () {},
                                 child: Text(
                                   'Activate',
                                   style: GoogleFonts.gothicA1(
                                       fontSize: config.AppConfig(context)
                                           .appWidth(3.5),
                                       color: Colors.white),
-                                ),
-                                height: config.AppConfig(context).appHeight(6),
-                                minWidth:
-                                    config.AppConfig(context).appWidth(100),
-                                onPressed: () {}),
+                                )),
                           )
-                        : SizedBox()
+                        : const SizedBox()
                   ],
                 ),
                 SizedBox(
@@ -339,18 +336,9 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    FlutterSwitch(
-                      activeText: '',
-                      inactiveText: '',
-                      value: state.cookProfile!.data!.kitchen!.available == 1
-                          ? true
-                          : false,
-                      valueFontSize: config.AppConfig(context).appWidth(1),
-                      width: config.AppConfig(context).appWidth(16),
-                      height: config.AppConfig(context).appHeight(4),
-                      borderRadius: 30.0,
-                      showOnOff: true,
-                      onToggle: (val) {},
+                    Switch(
+                      value: state.cookProfile!.data!.kitchen!.available == 1,
+                      onChanged: (val) {},
                     ),
                   ],
                 ),
@@ -494,12 +482,6 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                           ],
                         )),
                     child: MaterialButton(
-                        child: Text(
-                          'Edit Info',
-                          style: GoogleFonts.gothicA1(
-                              fontSize: config.AppConfig(context).appWidth(3.5),
-                              color: Colors.white),
-                        ),
                         height: config.AppConfig(context).appHeight(6),
                         minWidth: config.AppConfig(context).appWidth(100),
                         onPressed: () {
@@ -509,11 +491,18 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                       kitchen:
                                           state.cookProfile!.data!.kitchen!))
                               .then((value) {
+                            if (!context.mounted) return;
                             if (value != null && value == true) {
                               context.read<ProfileCookCubit>().getCookProfile();
                             }
                           });
-                        }),
+                        },
+                        child: Text(
+                          'Edit Info',
+                          style: GoogleFonts.gothicA1(
+                              fontSize: config.AppConfig(context).appWidth(3.5),
+                              color: Colors.white),
+                        )),
                   ),
                 ),
                 SizedBox(

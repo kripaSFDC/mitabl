@@ -1,7 +1,7 @@
 part of 'add_menu_cubit.dart';
 
 class AddMenuState extends Equatable {
-  AddMenuState(
+  const AddMenuState(
       {this.pathFiles = const [],
       this.selectedPage = 0,
       this.description = const Name.pure(),
@@ -70,7 +70,7 @@ class AddMenuState extends Equatable {
       foodMenuStatus: foodMenuStatus ?? this.foodMenuStatus,
       deleteImagesId: deleteImagesId ?? this.deleteImagesId,
       foodMenu: foodMenu ?? this.foodMenu,
-      formzStatus: formsStatus ?? this.formzStatus,
+      formzStatus: formsStatus ?? formzStatus,
       price: price ?? this.price,
       itemName: itemName ?? this.itemName,
       selectedCookingStyle: selectedCookingStyle ?? this.selectedCookingStyle,

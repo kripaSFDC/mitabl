@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -15,7 +13,7 @@ import 'package:mitabl_user/repos/mobile_contact_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class PersonalTabView extends StatefulWidget {
-  const PersonalTabView({Key? key}) : super(key: key);
+  const PersonalTabView({super.key});
 
   @override
   State<PersonalTabView> createState() => _PersonalTabViewState();
@@ -85,7 +83,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                 Text(
                   '${state.cookProfile != null ? state.cookProfile!.data!.email : ''}',
                   style: GoogleFonts.gothicA1(
-                      color: Color(0xffAEAEAE),
+                      color: const Color(0xffAEAEAE),
                       fontSize: config.AppConfig(context).appWidth(3.5),
                       fontWeight: FontWeight.normal),
                   overflow: TextOverflow.ellipsis,
@@ -96,7 +94,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                 Text(
                   '${state.cookProfile != null ? state.cookProfile!.data!.phone : ''}',
                   style: GoogleFonts.gothicA1(
-                      color: Color(0xffAEAEAE),
+                      color: const Color(0xffAEAEAE),
                       fontSize: config.AppConfig(context).appWidth(3.5),
                       fontWeight: FontWeight.normal),
                   overflow: TextOverflow.ellipsis,
@@ -119,7 +117,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
               ],
             ),
             Divider(
-              color: Color(0xffAEAEAE),
+              color: const Color(0xffAEAEAE),
               thickness: 0.4,
               height: config.AppConfig(context).appHeight(5),
             ),
@@ -151,19 +149,12 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           )
                         ],
                       ),
-                      trailing: Container(
+                      trailing: SizedBox(
                         width: config.AppConfig(context).appWidth(20),
-                        child: FlutterSwitch(
+                        child: Switch(
                           value: false,
-                          activeText: '',
-                          inactiveText: '',
-                          valueFontSize: config.AppConfig(context).appWidth(4),
-                          width: config.AppConfig(context).appWidth(14.5),
-                          height: config.AppConfig(context).appHeight(4.2),
-                          inactiveColor: Theme.of(context).primaryColorDark,
-                          borderRadius: 30.0,
-                          showOnOff: true,
-                          onToggle: (val) {},
+                          inactiveTrackColor: Theme.of(context).primaryColorDark,
+                          onChanged: (val) {},
                         ),
                       ),
                     ),
@@ -199,10 +190,10 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           final user = await userRepository.getUser();
                           final payload = await MobileContactRepository().fetch(user);
                           final message = payload['message']?.toString() ?? 'Contact information loaded.';
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                         } catch (error) {
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
                         }
                       },

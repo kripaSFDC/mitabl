@@ -1,13 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
-import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
@@ -15,9 +12,9 @@ class LoginForm extends StatefulWidget {
   // final RouteArguements? routeArguements;
 
   const LoginForm({
-    Key? key,
+    super.key,
     /*this.routeArguements*/
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => _LoginForm();
@@ -38,7 +35,6 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
 /*  setUpFields() async {
     var prefs = await SharedPreferences.getInstance();
     bool? isRemebered = prefs.getBool(AppConstants.REMEMBER_ME);
-    print('rememverMeee ${isRemebered}');
     var mobileNo, password;
     if (isRemebered != null && isRemebered) {
       mobileNo = prefs.getString(AppConstants.MOBILE_NO);
@@ -177,14 +173,14 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
             ),
           ),
           state.apiStatus.isSubmissionInProgress
-              ? CommonProgressWidget()
-              : SizedBox(),
+              ? const CommonProgressWidget()
+              : const SizedBox(),
         ],
       );
     }, listener: (context, state) async {
       if (state.apiStatus.isSubmissionFailure) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${state.serverMessage}')));
+            .showSnackBar(SnackBar(content: Text(state.serverMessage)));
       } else if (state.apiStatus.isSubmissionSuccess) {
         // Helper.showToast('${state.serverMessage}');
       }
@@ -195,7 +191,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
 class _MobilePhone extends StatefulWidget {
   final _LoginForm? loginForm;
 
-  const _MobilePhone({Key? key, this.loginForm}) : super(key: key);
+  const _MobilePhone({this.loginForm});
 
   @override
   State<_MobilePhone> createState() => _MobilePhoneState();
@@ -211,7 +207,7 @@ class _MobilePhoneState extends State<_MobilePhone> {
           padding: EdgeInsets.zero,
           child: TextFormField(
             controller: widget.loginForm!.mobileNoTextEditor,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 16,
             ),
@@ -230,7 +226,7 @@ class _MobilePhoneState extends State<_MobilePhone> {
                       Icons.check_circle_outline,
                       color: Theme.of(context).primaryColor,
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
               hintStyle: TextStyle(
                   color: Theme.of(context).hintColor,
                   fontSize: 16,
@@ -244,32 +240,32 @@ class _MobilePhoneState extends State<_MobilePhone> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
@@ -284,7 +280,7 @@ class _MobilePhoneState extends State<_MobilePhone> {
 class _Password extends StatefulWidget {
   final _LoginForm? loginForm;
 
-  const _Password({Key? key, this.loginForm}) : super(key: key);
+  const _Password({this.loginForm});
 
   @override
   State<_Password> createState() => _PasswordState();
@@ -295,10 +291,9 @@ class _PasswordState extends State<_Password> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraint) {
       return BlocBuilder<LoginCubit, LoginState>(builder: (context, state) {
-        return Container(
-          child: TextFormField(
+        return TextFormField(
             controller: widget.loginForm!.passwordTextEditor,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 16,
             ),
@@ -336,38 +331,37 @@ class _PasswordState extends State<_Password> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               border: InputBorder.none,
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
             ),
-          ),
-        );
+          );
       });
     });
   }
@@ -376,7 +370,7 @@ class _PasswordState extends State<_Password> {
 class _LoginButton extends StatelessWidget {
   final _LoginForm? loginForm;
 
-  const _LoginButton({Key? key, this.loginForm}) : super(key: key);
+  const _LoginButton({this.loginForm});
 
   @override
   Widget build(BuildContext context) {
@@ -401,20 +395,20 @@ class _LoginButton extends StatelessWidget {
                       ],
               )),
           child: MaterialButton(
-              child: Text(
-                'LOGIN',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: config.FontFamily().book),
-              ),
               height: config.AppConfig(context).appHeight(6),
               minWidth: config.AppConfig(context).appWidth(100),
               onPressed: () {
                 if (state.status.isValidated) {
                   context.read<LoginCubit>().doLogin();
                 }
-              }),
+              },
+              child: Text(
+                'LOGIN',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: config.FontFamily().book),
+              )),
         );
       },
     );

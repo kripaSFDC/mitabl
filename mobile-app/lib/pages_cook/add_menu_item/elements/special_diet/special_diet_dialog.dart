@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/pages_cook/add_menu_item/cubit/add_menu_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 class SpecialDietDialog extends StatelessWidget {
-  const SpecialDietDialog({Key? key}) : super(key: key);
+  const SpecialDietDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SpecialDietCubit, SpecialDietState>(
       listener: (context, state) {},
       builder: (context, state) {
-        return Container(
+        return SizedBox(
           height: config.AppConfig(context).appHeight(40),
           width: config.AppConfig(context).appWidth(50),
           child: Dialog(
@@ -50,7 +47,7 @@ class SpecialDietDialog extends StatelessWidget {
                   SizedBox(
                     height: config.AppConfig(context).appHeight(2),
                   ),
-                  Container(
+                  SizedBox(
                     height: config.AppConfig(context).appHeight(60),
                     child: ListView.separated(
                         shrinkWrap: true,
@@ -99,6 +96,12 @@ class SpecialDietDialog extends StatelessWidget {
                               Theme.of(context).primaryColor,
                             ])),
                     child: MaterialButton(
+                        minWidth: config.AppConfig(context).appWidth(30),
+                        height: 50.0,
+                        onPressed: () {
+                          navigatorKey.currentState!
+                              .pop(state.specialDietDataList);
+                        },
                         child: Text(
                           'OKAY',
                           style: TextStyle(
@@ -107,13 +110,7 @@ class SpecialDietDialog extends StatelessWidget {
                               fontSize: config.AppConfig(context).appWidth(3.5),
                               color: Colors.white,
                               fontWeight: config.FontFamily().book),
-                        ),
-                        minWidth: config.AppConfig(context).appWidth(30),
-                        height: 50.0,
-                        onPressed: () {
-                          navigatorKey.currentState!
-                              .pop(state.specialDietDataList);
-                        }),
+                        )),
                   ),
                   SizedBox(
                     height: config.AppConfig(context).appHeight(3),

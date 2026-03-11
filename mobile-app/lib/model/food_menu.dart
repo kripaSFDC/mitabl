@@ -13,18 +13,18 @@ class FoodMenu {
     if (json['data'] != null) {
       foodData = <FoodData>[];
       json['data'].forEach((v) {
-        foodData!.add(new FoodData.fromJson(v));
+        foodData!.add(FoodData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
-    if (this.foodData != null) {
-      data['data'] = this.foodData!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
+    if (foodData != null) {
+      data['data'] = foodData!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -84,7 +84,7 @@ class FoodData {
     if (json['pictures'] != null) {
       pictures = <Pictures>[];
       json['pictures'].forEach((v) {
-        pictures!.add(new Pictures.fromJson(v));
+        pictures!.add(Pictures.fromJson(v));
       });
     }
     price =
@@ -94,18 +94,18 @@ class FoodData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['restaurant_id'] = this.restaurantId;
-    data['specialDiet'] = this.specialDiet;
-    data['cookingstyle'] = this.cookingstyle;
-    data['food_name'] = this.foodName;
-    if (this.pictures != null) {
-      data['pictures'] = this.pictures!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['restaurant_id'] = restaurantId;
+    data['specialDiet'] = specialDiet;
+    data['cookingstyle'] = cookingstyle;
+    data['food_name'] = foodName;
+    if (pictures != null) {
+      data['pictures'] = pictures!.map((v) => v.toJson()).toList();
     }
-    data['price'] = this.price;
-    data['status'] = this.status;
-    data['description'] = this.description;
+    data['price'] = price;
+    data['status'] = status;
+    data['description'] = description;
     return data;
   }
 }
@@ -136,13 +136,13 @@ class Pictures {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['ref_id'] = this.refId;
-    data['model_name'] = this.modelName;
-    data['path'] = this.path;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['ref_id'] = refId;
+    data['model_name'] = modelName;
+    data['path'] = path;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
     return data;
   }
 }

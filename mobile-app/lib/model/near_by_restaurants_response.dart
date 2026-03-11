@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class NearByRestaurantsResponse {
   int? status;
@@ -13,14 +12,14 @@ class NearByRestaurantsResponse {
     status = json['status'];
     isSuccess = json['isSuccess'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -39,17 +38,17 @@ class Data {
     if (json['kitchens'] != null) {
       nearByRestaurantsList = <NearByRestaurantsList>[];
       json['kitchens'].forEach((v) {
-        nearByRestaurantsList!.add(new NearByRestaurantsList.fromJson(v));
+        nearByRestaurantsList!.add(NearByRestaurantsList.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['total_count'] = this.totalCount;
-    if (this.nearByRestaurantsList != null) {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['total_count'] = totalCount;
+    if (nearByRestaurantsList != null) {
       data['kitchens'] =
-          this.nearByRestaurantsList!.map((v) => v.toJson()).toList();
+          nearByRestaurantsList!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -67,10 +66,10 @@ class NearByRestaurantsList {
   List<Images>? addedimage;
   int? dineIn;
   int? takeAway;
-  dynamic? description;
+  dynamic description;
   String? abn;
   String? certificateNo;
-  dynamic? certificateDoc;
+  dynamic certificateDoc;
   String? status;
   int? available;
   double? latitude;
@@ -78,7 +77,7 @@ class NearByRestaurantsList {
   String? createdAt;
   String? updatedAt;
   double? distance;
-  dynamic? ratingCount;
+  dynamic ratingCount;
 
   NearByRestaurantsList(
       {this.id,
@@ -116,13 +115,13 @@ class NearByRestaurantsList {
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
-        images!.add(new Images.fromJson(v));
+        images!.add(Images.fromJson(v));
       });
     }
     if (json['addedimage'] != null) {
       addedimage = <Images>[];
       json['addedimage'].forEach((v) {
-        addedimage!.add(new Images.fromJson(v));
+        addedimage!.add(Images.fromJson(v));
       });
     }
     dineIn = json['dine_in'];
@@ -142,34 +141,34 @@ class NearByRestaurantsList {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['user_id'] = this.userId;
-    data['name'] = this.name;
-    data['address'] = this.address;
-    data['phone'] = this.phone;
-    data['no_of_seats'] = this.noOfSeats;
-    data['timings'] = this.timings;
-    if (this.images != null) {
-      data['images'] = this.images!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['user_id'] = userId;
+    data['name'] = name;
+    data['address'] = address;
+    data['phone'] = phone;
+    data['no_of_seats'] = noOfSeats;
+    data['timings'] = timings;
+    if (images != null) {
+      data['images'] = images!.map((v) => v.toJson()).toList();
     }
-    if (this.addedimage != null) {
-      data['addedimage'] = this.addedimage!.map((v) => v.toJson()).toList();
+    if (addedimage != null) {
+      data['addedimage'] = addedimage!.map((v) => v.toJson()).toList();
     }
-    data['dine_in'] = this.dineIn;
-    data['take_away'] = this.takeAway;
-    data['description'] = this.description;
-    data['abn'] = this.abn;
-    data['certificate_no'] = this.certificateNo;
-    data['certificate_doc'] = this.certificateDoc;
-    data['status'] = this.status;
-    data['available'] = this.available;
-    data['latitude'] = this.latitude;
-    data['longitude'] = this.longitude;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
-    data['distance'] = this.distance;
-    data['rating_count'] = this.ratingCount;
+    data['dine_in'] = dineIn;
+    data['take_away'] = takeAway;
+    data['description'] = description;
+    data['abn'] = abn;
+    data['certificate_no'] = certificateNo;
+    data['certificate_doc'] = certificateDoc;
+    data['status'] = status;
+    data['available'] = available;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
+    data['distance'] = distance;
+    data['rating_count'] = ratingCount;
     return data;
   }
 }
@@ -200,13 +199,13 @@ class Images {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['ref_id'] = this.refId;
-    data['model_name'] = this.modelName;
-    data['path'] = this.path;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['ref_id'] = refId;
+    data['model_name'] = modelName;
+    data['path'] = path;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
     return data;
   }
 }

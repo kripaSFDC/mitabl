@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/model/email.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
@@ -11,7 +11,7 @@ import 'package:http/http.dart';
 part 'forgot_state.dart';
 
 class ForgotCubit extends Cubit<ForgotState> {
-  ForgotCubit(this.authenticationRepository) : super(ForgotState());
+  ForgotCubit(this.authenticationRepository) : super(const ForgotState());
 
   final AuthenticationRepository? authenticationRepository;
 
@@ -23,14 +23,13 @@ class ForgotCubit extends Cubit<ForgotState> {
   void forgot() async {
     try {
       emit(state.copyWith(status: FormzStatus.submissionInProgress));
-      var map = Map<String, dynamic>();
+      var map = <String, dynamic>{};
       map['email'] = state.email!.value;
 
       Response response = await authenticationRepository!.forgot(data: map);
 
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
-        print(res);
         if (res['isSuccess']) {
           emit(state.copyWith(
               status: FormzStatus.submissionSuccess,
@@ -45,13 +44,12 @@ class ForgotCubit extends Cubit<ForgotState> {
 
         emit(state.copyWith(
             status: FormzStatus.submissionFailure,
-            serverMessage: '${message}'));
+            serverMessage: message));
 
         emit(state.copyWith(
-            status: FormzStatus.pure, serverMessage: '${message}'));
+            status: FormzStatus.pure, serverMessage: message));
       }
     } catch (e) {
-      print('exceptionLogin $e');
       emit(state.copyWith(
           status: FormzStatus.submissionFailure,
           serverMessage: 'Something went wrong...'));

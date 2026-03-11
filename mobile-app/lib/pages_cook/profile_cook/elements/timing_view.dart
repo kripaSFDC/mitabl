@@ -1,18 +1,13 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cubit/cook_profile_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
-import 'package:mitabl_user/repos/authentication_repository.dart';
 
 class TimingViewDialog extends StatelessWidget {
-  TimingViewDialog({Key? key}) : super(key: key);
+  TimingViewDialog({super.key});
 
-  DateTime? nowDate = DateTime.now();
+  final DateTime nowDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +58,7 @@ class TimingViewDialog extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Expanded(
                       flex: 1,
                       child: Text(
@@ -84,7 +79,7 @@ class TimingViewDialog extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    SizedBox(
                       height: config.AppConfig(context).appHeight(50),
                       child: ListView.separated(
                           separatorBuilder: (context, index) {
@@ -98,19 +93,21 @@ class TimingViewDialog extends StatelessWidget {
                               children: [
                                 Expanded(
                                   flex: 1,
-                                  child: FlutterSwitch(
-                                    activeText:
+                                  child: Row(
+                                    children: [
+                                      Text(
                                         state.daysTiming[index].day.toString(),
-                                    inactiveText:
-                                        state.daysTiming[index].day.toString(),
-                                    value: state.daysTiming[index].isOn!,
-                                    valueFontSize:
-                                        config.AppConfig(context).appWidth(4),
-                                    width:
-                                        config.AppConfig(context).appWidth(20),
-                                    borderRadius: 30.0,
-                                    showOnOff: true,
-                                    onToggle: (val) {},
+                                        style: TextStyle(
+                                          fontSize: config
+                                              .AppConfig(context)
+                                              .appWidth(4),
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: state.daysTiming[index].isOn!,
+                                        onChanged: (val) {},
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 // Spacer(),
@@ -139,7 +136,7 @@ class TimingViewDialog extends StatelessWidget {
                                                     config.AppConfig(context)
                                                         .appWidth(1)),
                                             decoration: BoxDecoration(
-                                                color: Color(0xffF5F5F5),
+                                                color: const Color(0xffF5F5F5),
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
                                             child: Text(
@@ -183,7 +180,7 @@ class TimingViewDialog extends StatelessWidget {
                                                     config.AppConfig(context)
                                                         .appWidth(1)),
                                             decoration: BoxDecoration(
-                                                color: Color(0xffF5F5F5),
+                                                color: const Color(0xffF5F5F5),
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
                                             child: Text(
@@ -213,25 +210,5 @@ class TimingViewDialog extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _showDialog(Widget child, BuildContext? context) {
-    showCupertinoModalPopup<void>(
-        context: context!,
-        builder: (BuildContext context) => Container(
-              height: 216,
-              padding: const EdgeInsets.only(top: 6.0),
-              // The Bottom margin is provided to align the popup above the system navigation bar.
-              margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              // Provide a background color for the popup.
-              color: CupertinoColors.systemBackground.resolveFrom(context),
-              // Use a SafeArea widget to avoid system overlaps.
-              child: SafeArea(
-                top: false,
-                child: child,
-              ),
-            ));
   }
 }

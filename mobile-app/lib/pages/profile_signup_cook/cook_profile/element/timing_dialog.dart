@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -10,9 +9,9 @@ import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cubit/cook_pr
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 class TimingDialog extends StatelessWidget {
-  TimingDialog({Key? key}) : super(key: key);
+  TimingDialog({super.key});
 
-  DateTime? nowDate = DateTime.now();
+  final DateTime nowDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +47,7 @@ class TimingDialog extends StatelessWidget {
                     ],
                   ),
                   Text('mikitchn Timing',
-                      style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
                             fontSize: config.AppConfig(context).appWidth(6),
                           )),
                   SizedBox(
@@ -70,7 +69,7 @@ class TimingDialog extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Expanded(
                         flex: 4,
                         child: Text(
@@ -91,7 +90,7 @@ class TimingDialog extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
+                      SizedBox(
                         height: config.AppConfig(context).appHeight(50),
                         child: ListView.separated(
                             separatorBuilder: (context, index) {
@@ -105,28 +104,31 @@ class TimingDialog extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     flex: 1,
-                                    child: FlutterSwitch(
-                                      activeTextFontWeight:
-                                          config.FontFamily().medium,
-                                      inactiveTextFontWeight:
-                                          config.FontFamily().medium,
-                                      activeText: state.daysTiming[index].day
-                                          .toString(),
-                                      inactiveText: state.daysTiming[index].day
-                                          .toString(),
-                                      value: state.daysTiming[index].isOn!,
-                                      valueFontSize:
-                                          config.AppConfig(context).appWidth(4),
-                                      width: config.AppConfig(context)
-                                          .appWidth(20),
-                                      borderRadius: 30.0,
-                                      showOnOff: true,
-                                      onToggle: (val) {
-                                        context
-                                            .read<CookProfileCubit>()
-                                            .onSwitchChanged(
-                                                index: index, switchValue: val);
-                                      },
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          state.daysTiming[index].day
+                                              .toString(),
+                                          style: TextStyle(
+                                            fontWeight:
+                                                config.FontFamily().medium,
+                                            fontSize: config
+                                                .AppConfig(context)
+                                                .appWidth(4),
+                                          ),
+                                        ),
+                                        Switch(
+                                          value:
+                                              state.daysTiming[index].isOn!,
+                                          onChanged: (val) {
+                                            context
+                                                .read<CookProfileCubit>()
+                                                .onSwitchChanged(
+                                                    index: index,
+                                                    switchValue: val);
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   // Spacer(),
@@ -146,12 +148,10 @@ class TimingDialog extends StatelessWidget {
                                             onTap: () {
                                               String date =
                                                   DateFormat('yyyy-MM-dd ')
-                                                      .format(nowDate!);
+                                                      .format(nowDate);
                                               String datePreviousStart = date +
                                                   state.daysTiming[index]
                                                       .timing!.startTime!;
-                                              print(
-                                                  'startDateTime ${datePreviousStart}');
                                               DateTime startPreviousTime =
                                                   DateTime.parse(
                                                       datePreviousStart);
@@ -181,8 +181,6 @@ class TimingDialog extends StatelessWidget {
                                                               .daysTiming[index]
                                                               .timing!
                                                               .endTime!;
-                                                      print(
-                                                          'startDateTime ${dateStart}');
                                                       DateTime startTime =
                                                           DateTime.parse(
                                                               dateStart);
@@ -217,7 +215,7 @@ class TimingDialog extends StatelessWidget {
                                                       config.AppConfig(context)
                                                           .appWidth(1)),
                                               decoration: BoxDecoration(
-                                                  color: Color(0xffF5F5F5),
+                                                  color: const Color(0xffF5F5F5),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10)),
@@ -253,12 +251,10 @@ class TimingDialog extends StatelessWidget {
                                             onTap: () {
                                               String date =
                                                   DateFormat('yyyy-MM-dd ')
-                                                      .format(nowDate!);
+                                                      .format(nowDate);
                                               String datePreviousEnd = date +
                                                   state.daysTiming[index]
                                                       .timing!.endTime!;
-                                              print(
-                                                  'startDateTime ${datePreviousEnd}');
                                               DateTime endPreviousTime =
                                                   DateTime.parse(
                                                       datePreviousEnd);
@@ -288,8 +284,6 @@ class TimingDialog extends StatelessWidget {
                                                               .daysTiming[index]
                                                               .timing!
                                                               .startTime!;
-                                                      print(
-                                                          'startDateTime ${dateStart}');
                                                       DateTime startTime =
                                                           DateTime.parse(
                                                               dateStart);
@@ -323,7 +317,7 @@ class TimingDialog extends StatelessWidget {
                                                       config.AppConfig(context)
                                                           .appWidth(1)),
                                               decoration: BoxDecoration(
-                                                  color: Color(0xffF5F5F5),
+                                                  color: const Color(0xffF5F5F5),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10)),
@@ -364,18 +358,18 @@ class TimingDialog extends StatelessWidget {
                                 ],
                               )),
                           child: MaterialButton(
+                              height: config.AppConfig(context).appHeight(6),
+                              minWidth: config.AppConfig(context).appWidth(100),
+                              onPressed: () {
+                                context.read<CookProfileCubit>().onApplyDays();
+                              },
                               child: Text(
                                 'Apply',
                                 style: GoogleFonts.gothicA1(
                                     fontSize:
                                         config.AppConfig(context).appWidth(3.5),
                                     color: Colors.white),
-                              ),
-                              height: config.AppConfig(context).appHeight(6),
-                              minWidth: config.AppConfig(context).appWidth(100),
-                              onPressed: () {
-                                context.read<CookProfileCubit>().onApplyDays();
-                              }),
+                              )),
                         ),
                       )
                     ],

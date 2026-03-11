@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/model/phone.dart';
@@ -17,7 +17,7 @@ part 'edit_kitchen_profile_state.dart';
 
 class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
   EditKitchenProfileCubit({this.routeArguments, this.userRepository})
-      : super(EditKitchenProfileState()) {
+      : super(const EditKitchenProfileState()) {
     setUpTimingModel();
   }
 
@@ -159,9 +159,9 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
       List<String> localPaths = [];
-      paths.forEach((element) {
+      for (var element in paths) {
         localPaths.add(element.path!);
-      });
+      }
       var response = await userRepository!
           .vendorKitchenEditUpload(data: map, filePaths: localPaths);
       if (response.statusCode == 200) {
@@ -180,7 +180,7 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
           statusApi: FormzStatus.submissionFailure,
         ));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
       Helper.showToast('Something went wrong...');
     }

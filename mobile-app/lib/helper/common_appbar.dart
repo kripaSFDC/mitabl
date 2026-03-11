@@ -1,18 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:global_configuration/global_configuration.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
-import 'package:mitabl_user/repos/authentication_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonAppBar(
-      {Key? key, this.title = '', this.isFilter = true, this.onFilterSelected})
-      : super(key: key);
+      {super.key, this.title = '', this.isFilter = true, this.onFilterSelected});
 
   final String? title;
   final bool? isFilter;
@@ -32,7 +25,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Text(
           title!,
           maxLines: 1,
-          style: Theme.of(context).textTheme.headline5?.copyWith(
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontSize: config.AppConfig(context).appWidth(5.0),
               ),
         ),
@@ -55,7 +48,10 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: SvgPicture.asset(
                   'assets/img/filter.svg',
                   height: config.AppConfig(context).appHeight(2.0),
-                  color: Theme.of(context).primaryColorDark,
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).primaryColorDark,
+                    BlendMode.srcIn,
+                  ),
                 ),
               )
             : Container()

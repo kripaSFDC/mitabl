@@ -13,14 +13,12 @@ use App\Models\SpecialDiet;
 use App\Services\AccountProfileService;
 use App\Services\AuthService;
 use App\Services\PaymentService;
-use App\Traits\GoogleAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
-    use GoogleAddress;
     use HandlesUserAuthentication;
     use HandlesUserPayments;
 

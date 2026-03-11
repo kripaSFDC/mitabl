@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -8,11 +7,10 @@ import 'package:mitabl_user/pages_cook/bookings/cubit/bookings_cubit.dart';
 import '../../../repos/authentication_repository.dart';
 
 class BookingFilterDialog extends StatelessWidget {
-  const BookingFilterDialog({Key? key, this.isUpComing, this.id})
-      : super(key: key);
+  const BookingFilterDialog({super.key, this.isUpComing, this.id});
 
   final bool? isUpComing;
-  final dynamic? id;
+  final dynamic id;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +19,7 @@ class BookingFilterDialog extends StatelessWidget {
         return Dialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
+          child: SizedBox(
             height: !isUpComing!
                 ? config.AppConfig(context).appHeight(42)
                 : config.AppConfig(context).appHeight(32),
@@ -60,67 +58,63 @@ class BookingFilterDialog extends StatelessWidget {
                   child: Container(
                     alignment: Alignment.centerLeft,
                     child: Text('Sort by:',
-                        style: Theme.of(context).textTheme.bodyText1),
+                        style: Theme.of(context).textTheme.bodyLarge),
                   ),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: RadioListTile<String>(
-                        title: Text(
-                          "Take-away",
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle2
-                              ?.copyWith(fontSize: 16),
+                RadioGroup<String>(
+                  groupValue: state.sortby,
+                  onChanged: (String? value) {
+                    context
+                        .read<BookingsCubit>()
+                        .onSortByChanged(data: value.toString());
+                  },
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: RadioListTile<String>(
+                          title: Text(
+                            "Take-away",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontSize: 16),
+                          ),
+                          value: 'take_away',
                         ),
-                        value: 'take_away',
-                        groupValue: state.sortby,
-                        onChanged: (String? value) {
-                          context
-                              .read<BookingsCubit>()
-                              .onSortByChanged(data: value.toString());
-                        },
                       ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: RadioListTile<String>(
-                        title: Text(
-                          "Dine-in",
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle2
-                              ?.copyWith(fontSize: 16),
+                      Expanded(
+                        flex: 1,
+                        child: RadioListTile<String>(
+                          title: Text(
+                            "Dine-in",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontSize: 16),
+                          ),
+                          value: "dine-in",
                         ),
-                        value: "dine-in",
-                        groupValue: state.sortby,
-                        onChanged: (String? value) {
-                          context
-                              .read<BookingsCubit>()
-                              .onSortByChanged(data: value.toString());
-                        },
                       ),
-                    ),
 
-                    // Expanded(
-                    //   flex: 1,
-                    //   child: Row(
-                    //     children: [
-                    //       Radio(
-                    //           value: "dine-in",
-                    //           groupValue: state.sortby,
-                    //           onChanged: (value) {
-                    //             context
-                    //                 .read<BookingsCubit>()
-                    //                 .onSortByChanged(data: value.toString());
-                    //           }),
-                    //       Text("Dine-in")
-                    //     ],
-                    //   ),
-                    // )
-                  ],
+                      // Expanded(
+                      //   flex: 1,
+                      //   child: Row(
+                      //     children: [
+                      //       Radio(
+                      //           value: "dine-in",
+                      //           groupValue: state.sortby,
+                      //           onChanged: (value) {
+                      //             context
+                      //                 .read<BookingsCubit>()
+                      //                 .onSortByChanged(data: value.toString());
+                      //           }),
+                      //       Text("Dine-in")
+                      //     ],
+                      //   ),
+                      // )
+                    ],
+                  ),
                 ),
                 !isUpComing!
                     ? SizedBox(
@@ -134,52 +128,48 @@ class BookingFilterDialog extends StatelessWidget {
                         child: Container(
                           alignment: Alignment.centerLeft,
                           child: Text('Status:',
-                              style: Theme.of(context).textTheme.bodyText1),
+                              style: Theme.of(context).textTheme.bodyLarge),
                         ),
                       )
                     : Container(),
                 !isUpComing!
-                    ? Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: RadioListTile<String>(
-                              title: Text(
-                                'Completed',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle2
-                                    ?.copyWith(fontSize: 16),
+                    ? RadioGroup<String>(
+                        groupValue: state.status,
+                        onChanged: (String? value) {
+                          context
+                              .read<BookingsCubit>()
+                              .onStatusChanged(data: value.toString());
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: RadioListTile<String>(
+                                title: Text(
+                                  'Completed',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontSize: 16),
+                                ),
+                                value: '1',
                               ),
-                              value: '1',
-                              groupValue: state.status,
-                              onChanged: (String? value) {
-                                context
-                                    .read<BookingsCubit>()
-                                    .onStatusChanged(data: value.toString());
-                              },
                             ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: RadioListTile<String>(
-                              title: Text(
-                                'Declined',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle2
-                                    ?.copyWith(fontSize: 16),
+                            Expanded(
+                              flex: 1,
+                              child: RadioListTile<String>(
+                                title: Text(
+                                  'Declined',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontSize: 16),
+                                ),
+                                value: '0',
                               ),
-                              value: '0',
-                              groupValue: state.status,
-                              onChanged: (String? value) {
-                                context
-                                    .read<BookingsCubit>()
-                                    .onStatusChanged(data: value.toString());
-                              },
-                            ),
-                          )
-                        ],
+                            )
+                          ],
+                        ),
                       )
                     : Container(),
                 SizedBox(
@@ -196,15 +186,8 @@ class BookingFilterDialog extends StatelessWidget {
                           height: config.AppConfig(context).appHeight(4.5),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20.0),
-                              color: Color(0xffE9E9E9)),
+                              color: const Color(0xffE9E9E9)),
                           child: MaterialButton(
-                              child: Text(
-                                'CLEAR',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle2
-                                    ?.copyWith(fontSize: 13),
-                              ),
                               height: config.AppConfig(context).appHeight(6),
                               minWidth: config.AppConfig(context).appWidth(100),
                               onPressed: () {
@@ -224,7 +207,14 @@ class BookingFilterDialog extends StatelessWidget {
                                 }
 
                                 navigatorKey.currentState!.pop();
-                              }),
+                              },
+                              child: Text(
+                                'CLEAR',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontSize: 13),
+                              )),
                         ),
                       ),
                       SizedBox(
@@ -238,14 +228,6 @@ class BookingFilterDialog extends StatelessWidget {
                               borderRadius: BorderRadius.circular(20.0),
                               color: Theme.of(context).primaryColor),
                           child: MaterialButton(
-                              child: Text(
-                                'APPLY',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .subtitle2
-                                    ?.copyWith(
-                                        fontSize: 13, color: Colors.white),
-                              ),
                               height: config.AppConfig(context).appHeight(6),
                               minWidth: config.AppConfig(context).appWidth(100),
                               onPressed: () {
@@ -257,7 +239,15 @@ class BookingFilterDialog extends StatelessWidget {
                                   context.read<BookingsCubit>().getBookings();
                                 }
                                 navigatorKey.currentState!.pop();
-                              }),
+                              },
+                              child: Text(
+                                'APPLY',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                        fontSize: 13, color: Colors.white),
+                              )),
                         ),
                       ),
                     ],

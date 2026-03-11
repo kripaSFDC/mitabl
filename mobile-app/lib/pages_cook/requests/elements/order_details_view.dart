@@ -1,8 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:mitabl_user/helper/star_rating.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -12,9 +11,9 @@ import '../cubit/requests_cubit.dart';
 import 'accept_reject_dialog.dart';
 
 class OrderDetails extends StatelessWidget {
-  OrderDetails({Key? key, this.routeArguments}) : super(key: key);
+  const OrderDetails({super.key, this.routeArguments});
 
-  RouteArguments? routeArguments;
+  final RouteArguments? routeArguments;
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
@@ -77,7 +76,7 @@ class OrderDetails extends StatelessWidget {
                   SizedBox(
                     height: config.AppConfig(context).appHeight(3),
                   ),
-                  Container(
+                  SizedBox(
                     // alignment: Alignment.topCenter,
                     height: config.AppConfig(context).appHeight(12),
                     child: Row(
@@ -120,7 +119,7 @@ class OrderDetails extends StatelessWidget {
                                           .appHeight(15),
                                       decoration: BoxDecoration(
                                         color:
-                                            Theme.of(context).backgroundColor,
+                                            Theme.of(context).colorScheme.surface,
                                         shape: BoxShape.circle,
                                       ),
                                     );
@@ -131,7 +130,7 @@ class OrderDetails extends StatelessWidget {
                                     width:
                                         config.AppConfig(context).appHeight(15),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).backgroundColor,
+                                      color: Theme.of(context).colorScheme.surface,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -172,24 +171,12 @@ class OrderDetails extends StatelessWidget {
                                   height:
                                       config.AppConfig(context).appHeight(1),
                                 ),
-                                RatingBar.builder(
-                                  ignoreGestures: true,
-                                  initialRating: routeArguments!
+                                StarRating(
+                                  rating: routeArguments!
                                       .bookings!.customer!.rating!,
-                                  minRating: 1,
-                                  direction: Axis.horizontal,
-                                  allowHalfRating: true,
-                                  itemCount: 5,
-                                  itemSize:
+                                  size:
                                       config.AppConfig(context).appWidth(3.5),
-                                  itemBuilder: (context, _) => Icon(
-                                    Icons.star,
-                                    color: Color(0xffFFA200),
-                                    size: config.AppConfig(context).appWidth(2),
-                                  ),
-                                  onRatingUpdate: (rating) {
-                                    print(rating);
-                                  },
+                                  color: const Color(0xffFFA200),
                                 ),
                                 SizedBox(
                                   height:
@@ -207,7 +194,7 @@ class OrderDetails extends StatelessWidget {
                                             config.AppConfig(context)
                                                 .appWidth(2.5))),
                                     border:
-                                        Border.all(color: Color(0xff707070)),
+                                        Border.all(color: const Color(0xff707070)),
                                   ),
                                   child: Text(
                                     routeArguments!.bookings!.dineIn == 1
@@ -234,11 +221,11 @@ class OrderDetails extends StatelessWidget {
                           // mainAxisSize: MainAxisSize.min,
                           children: [
                             // Spacer(),
-                            Expanded(flex: 5, child: SizedBox()),
+                            const Expanded(flex: 5, child: SizedBox()),
                             Expanded(
                               flex: 2,
                               child: Text(
-                                'ID: ${routeArguments!.bookings!.order_type_id.toString()}',
+                                'ID: ${routeArguments!.bookings!.orderTypeId.toString()}',
                                 style: TextStyle(
                                   fontSize:
                                       config.AppConfig(context).appWidth(3.5),
@@ -361,7 +348,7 @@ class OrderDetails extends StatelessWidget {
                                   thickness: 2,
                                 ),
                               )
-                            : SizedBox(),
+                            : const SizedBox(),
                         routeArguments!.bookings!.dineIn == 1
                             ? Expanded(
                                 flex: 2,
@@ -403,12 +390,12 @@ class OrderDetails extends StatelessWidget {
                                   ],
                                 ),
                               )
-                            : SizedBox(),
+                            : const SizedBox(),
                       ],
                     ),
                   ),
                   routeArguments!.bookings!.dineIn != 1 &&
-                          routeArguments!.bookings!.items!.length > 0
+                          routeArguments!.bookings!.items!.isNotEmpty
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,7 +468,7 @@ class OrderDetails extends StatelessWidget {
                             ),
                             Divider(
                               height: config.AppConfig(context).appHeight(1.2),
-                              color: Color(0xffE9E9E9),
+                              color: const Color(0xffE9E9E9),
                             ),
                             SizedBox(
                               height: config.AppConfig(context).appHeight(1),
@@ -517,7 +504,7 @@ class OrderDetails extends StatelessWidget {
                             ),
                           ],
                         )
-                      : SizedBox(),
+                      : const SizedBox(),
                   SizedBox(
                     height: config.AppConfig(context).appHeight(10),
                   ),
@@ -542,16 +529,6 @@ class OrderDetails extends StatelessWidget {
                                       Theme.of(context).primaryColor,
                                     ])),
                             child: MaterialButton(
-                                child: Text(
-                                  'Accept',
-                                  style: TextStyle(
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(3.5),
-                                      fontFamily: config.FontFamily()
-                                          .itcAvantGardeGothicStdFontFamily,
-                                      fontWeight: config.FontFamily().book,
-                                      color: Colors.white),
-                                ),
                                 height: config.AppConfig(context).appHeight(6),
                                 minWidth:
                                     config.AppConfig(context).appWidth(100),
@@ -568,7 +545,17 @@ class OrderDetails extends StatelessWidget {
                                                   .bookings!.orderId),
                                         );
                                       });
-                                }),
+                                },
+                                child: Text(
+                                  'Accept',
+                                  style: TextStyle(
+                                      fontSize: config.AppConfig(context)
+                                          .appWidth(3.5),
+                                      fontFamily: config.FontFamily()
+                                          .itcAvantGardeGothicStdFontFamily,
+                                      fontWeight: config.FontFamily().book,
+                                      color: Colors.white),
+                                )),
                           ),
                         ),
                         SizedBox(
@@ -580,20 +567,8 @@ class OrderDetails extends StatelessWidget {
                             height: config.AppConfig(context).appHeight(5),
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20.0),
-                                color: Color(0xffE9E9E9)),
+                                color: const Color(0xffE9E9E9)),
                             child: MaterialButton(
-                                child: Text(
-                                  'Decline',
-                                  style: TextStyle(
-                                    fontSize:
-                                        config.AppConfig(context).appWidth(3.5),
-                                    color:
-                                        config.AppColors().colorPrimaryDark(1),
-                                    fontFamily: config.FontFamily()
-                                        .itcAvantGardeGothicStdFontFamily,
-                                    fontWeight: config.FontFamily().book,
-                                  ),
-                                ),
                                 height: config.AppConfig(context).appHeight(6),
                                 minWidth:
                                     config.AppConfig(context).appWidth(100),
@@ -610,7 +585,19 @@ class OrderDetails extends StatelessWidget {
                                                   .bookings!.orderId),
                                         );
                                       });
-                                }),
+                                },
+                                child: Text(
+                                  'Decline',
+                                  style: TextStyle(
+                                    fontSize:
+                                        config.AppConfig(context).appWidth(3.5),
+                                    color:
+                                        config.AppColors().colorPrimaryDark(1),
+                                    fontFamily: config.FontFamily()
+                                        .itcAvantGardeGothicStdFontFamily,
+                                    fontWeight: config.FontFamily().book,
+                                  ),
+                                )),
                           ),
                         )
                       ],

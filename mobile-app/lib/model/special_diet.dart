@@ -13,16 +13,16 @@ class SpecialDiet {
     if (json['data'] != null) {
       data = <SpecialDietData>[];
       json['data'].forEach((v) {
-        data!.add(new SpecialDietData.fromJson(v));
+        data!.add(SpecialDietData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
@@ -54,9 +54,9 @@ class SpecialDietData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }

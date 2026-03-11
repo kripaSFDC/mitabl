@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,14 +11,14 @@ import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_cubit.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/repos/authentication_repository.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 import '../../../helper/helper.dart';
 import '../elements/timing_edit.dart';
 
 class EditKitchenProfilePage extends StatefulWidget {
-  EditKitchenProfilePage({Key? key, this.routeArguments}) : super(key: key);
+  const EditKitchenProfilePage({super.key, this.routeArguments});
 
   final RouteArguments? routeArguments;
 
@@ -184,7 +183,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             height: config.AppConfig(context).appHeight(2),
                           ),
                           state.pathFiles.isNotEmpty
-                              ? Container(
+                              ? SizedBox(
                             height:
                             config.AppConfig(context).appHeight(20),
                             child: PageView.builder(
@@ -229,7 +228,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                             return Image.file(File(state
                                                 .pathFiles[index].path!),
                                               errorBuilder: (context, data, e) {
-                                                return Icon(Icons.error_outline);
+                                                return const Icon(Icons.error_outline);
                                               },
                                             );
                                           },
@@ -315,7 +314,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                               itemCount: state.pathFiles.length,
                             ),
                           )
-                              : SizedBox(),
+                              : const SizedBox(),
                           SizedBox(
                             height: config.AppConfig(context).appHeight(2),
                           ),
@@ -342,7 +341,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                   padding: EdgeInsets.zero,
                                   child: TextFormField(
                                     controller: addressTextEditor,
-                                    style: TextStyle(color: Colors.black),
+                                    style: const TextStyle(color: Colors.black),
                                     textInputAction: TextInputAction.next,
                                     keyboardType: TextInputType.name,
                                     maxLength: 55,
@@ -369,32 +368,32 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                       filled: true,
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       border: InputBorder.none,
                                       disabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       errorBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       focusedErrorBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
@@ -547,7 +546,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                   padding: EdgeInsets.zero,
                                   child: TextFormField(
                                     controller: bioTextEditor,
-                                    style: TextStyle(color: Colors.black),
+                                    style: const TextStyle(color: Colors.black),
                                     textInputAction: TextInputAction.next,
                                     keyboardType: TextInputType.text,
                                     maxLength: 200,
@@ -575,32 +574,32 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                       filled: true,
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       border: InputBorder.none,
                                       disabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       errorBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       focusedErrorBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide(
+                                        borderSide: const BorderSide(
                                           color: Colors.white,
                                         ),
                                       ),
@@ -630,7 +629,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
 class _Timing extends StatefulWidget {
   final _EditKitchenProfilePageState? loginForm;
 
-  const _Timing({Key? key, this.loginForm}) : super(key: key);
+  const _Timing({this.loginForm});
 
   @override
   State<_Timing> createState() => _TimingState();
@@ -640,7 +639,6 @@ class _TimingState extends State<_Timing> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraint) {
-      print('constraibtWidth ${constraint.maxWidth}');
       return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
           builder: (context, state) {
             return Container(
@@ -648,7 +646,7 @@ class _TimingState extends State<_Timing> {
               padding: EdgeInsets.zero,
               child: TextFormField(
                 readOnly: true,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.name,
                 maxLength: 55,
@@ -690,32 +688,32 @@ class _TimingState extends State<_Timing> {
                   filled: true,
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: Colors.white,
                     ),
                   ),
                   border: InputBorder.none,
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: Colors.white,
                     ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: Colors.white,
                     ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: Colors.white,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: Colors.white,
                     ),
                   ),
@@ -730,7 +728,7 @@ class _TimingState extends State<_Timing> {
 class _KitchenName extends StatefulWidget {
   final _EditKitchenProfilePageState? loginForm;
 
-  const _KitchenName({Key? key, this.loginForm}) : super(key: key);
+  const _KitchenName({this.loginForm});
 
   @override
   State<_KitchenName> createState() => _KitchenNameState();
@@ -746,7 +744,7 @@ class _KitchenNameState extends State<_KitchenName> {
             padding: EdgeInsets.zero,
             child: TextFormField(
               controller: widget.loginForm!.nameTextEditor,
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.name,
               maxLength: 15,
@@ -773,32 +771,32 @@ class _KitchenNameState extends State<_KitchenName> {
                 filled: true,
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 border: InputBorder.none,
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
@@ -812,7 +810,7 @@ class _KitchenNameState extends State<_KitchenName> {
 class _NoOfSeats extends StatefulWidget {
   final _EditKitchenProfilePageState? loginForm;
 
-  const _NoOfSeats({Key? key, this.loginForm}) : super(key: key);
+  const _NoOfSeats({this.loginForm});
 
   @override
   State<_NoOfSeats> createState() => _NoOfSeatsState();
@@ -828,7 +826,7 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
             padding: EdgeInsets.zero,
             child: TextFormField(
               controller: widget.loginForm!.noOfSeatsTextEditor,
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.number,
               maxLength: 10,
@@ -852,32 +850,32 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
                 filled: true,
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 border: InputBorder.none,
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
@@ -891,7 +889,7 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
 class _PhoneNo extends StatefulWidget {
   final _EditKitchenProfilePageState? loginForm;
 
-  const _PhoneNo({Key? key, this.loginForm}) : super(key: key);
+  const _PhoneNo({this.loginForm});
 
   @override
   State<_PhoneNo> createState() => _PhoneNoState();
@@ -907,7 +905,7 @@ class _PhoneNoState extends State<_PhoneNo> {
             padding: EdgeInsets.zero,
             child: TextFormField(
               controller: widget.loginForm!.mobileNoTextEditor,
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.phone,
               maxLength: 15,
@@ -933,32 +931,32 @@ class _PhoneNoState extends State<_PhoneNo> {
                 filled: true,
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 border: InputBorder.none,
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.white,
                   ),
                 ),
@@ -970,7 +968,7 @@ class _PhoneNoState extends State<_PhoneNo> {
 }
 
 class _UploadButton extends StatefulWidget {
-  const _UploadButton({Key? key, this.loginForm}) : super(key: key);
+  const _UploadButton({this.loginForm});
 
   final _EditKitchenProfilePageState? loginForm;
 
@@ -979,8 +977,6 @@ class _UploadButton extends StatefulWidget {
 }
 
 class _UploadbuttonState extends State<_UploadButton> {
-  final ImagePicker _picker = ImagePicker();
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<EditKitchenProfileCubit, EditKitchenProfileState>(
@@ -1002,12 +998,6 @@ class _UploadbuttonState extends State<_UploadButton> {
                         .primaryColor,
                   ])),
           child: MaterialButton(
-              child: Text(
-                'Upload Photos',
-                style: GoogleFonts.gothicA1(
-                    fontSize: config.AppConfig(context).appWidth(3.5),
-                    color: Colors.white),
-              ),
               minWidth: config.AppConfig(context).appWidth(100),
               height: 50.0,
               onPressed: () {
@@ -1061,6 +1051,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                       },
                       context: context)
                       .then((value) {
+                    if (!context.mounted) return;
                     if (value != null) {
                       if (value) {
                         //Get from camera
@@ -1074,7 +1065,13 @@ class _UploadbuttonState extends State<_UploadButton> {
                 } else {
                   Helper.showToast('Photos limit reached.');
                 }
-              }),
+              },
+              child: Text(
+                'Upload Photos',
+                style: GoogleFonts.gothicA1(
+                    fontSize: config.AppConfig(context).appWidth(3.5),
+                    color: Colors.white),
+              )),
         );
       },
     );
@@ -1086,7 +1083,7 @@ class _UploadbuttonState extends State<_UploadButton> {
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image selected.');
         return;
       }
@@ -1107,7 +1104,7 @@ class _UploadbuttonState extends State<_UploadButton> {
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image captured.');
         return;
       }
@@ -1126,7 +1123,7 @@ class _UploadbuttonState extends State<_UploadButton> {
 class _LoginButton extends StatelessWidget {
   final _EditKitchenProfilePageState? loginForm;
 
-  const _LoginButton({Key? key, this.loginForm}) : super(key: key);
+  const _LoginButton({this.loginForm});
 
   @override
   Widget build(BuildContext context) {
@@ -1159,6 +1156,16 @@ class _LoginButton extends StatelessWidget {
                 ],
               )),
           child: MaterialButton(
+              minWidth: config.AppConfig(context).appWidth(100),
+              height: 50.0,
+              onPressed: () {
+                //
+                // navigatorKey.currentState!.popAndPushNamed('/OTPPage');
+                // return;
+                if (state.status!.isValidated) {
+                  context.read<EditKitchenProfileCubit>().onKitchenEditUpload();
+                }
+              },
               child: state.statusApi!.isSubmissionInProgress
                   ? const Center(
                 child: CupertinoActivityIndicator(
@@ -1170,19 +1177,10 @@ class _LoginButton extends StatelessWidget {
                 style: GoogleFonts.gothicA1(
                     fontSize: config.AppConfig(context).appWidth(3.5),
                     color: Colors.white),
-              ),
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                //
-                // navigatorKey.currentState!.popAndPushNamed('/OTPPage');
-                // return;
-                if (state.status!.isValidated) {
-                  context.read<EditKitchenProfileCubit>().onKitchenEditUpload();
-                }
-              }),
+              )),
         );
       },
     );
   }
 }
+

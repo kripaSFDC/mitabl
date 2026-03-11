@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
 
@@ -13,8 +11,8 @@ class Helper {
   BuildContext? context;
   DateTime? currentBackPressTime;
 
-  Helper.of(BuildContext _context) {
-    this.context = _context;
+  Helper.of(BuildContext context) {
+    context = context;
   }
 
   static int getIntData(Map<String, dynamic> data) {
@@ -36,9 +34,9 @@ class Helper {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Exit'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text('Are you sure?'),
               ],
             ),
@@ -71,9 +69,9 @@ class Helper {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Alert'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text(
                     'Please enable permission to all time access to location in your device settings to continue.'),
               ],
@@ -113,24 +111,25 @@ class Helper {
 
   /// check if the string contains only numbers
   static bool isNumeric(String str) {
-    var _numeric = RegExp(r'^-?[0-9]+$');
-    return _numeric.hasMatch(str);
+    var numeric = RegExp(r'^-?[0-9]+$');
+    return numeric.hasMatch(str);
   }
 
   static bool isNumericDecimal(String str) {
-    var _numeric = RegExp('^([0-9]+([.][0-9]*)?|[.][0-9]+)\$');
+    var numeric = RegExp('^([0-9]+([.][0-9]*)?|[.][0-9]+)\$');
     // print(_numeric.hasMatch(str).toString());
-    return _numeric.hasMatch(str);
+    return numeric.hasMatch(str);
   }
 
   static bool validateEmail(String value) {
     var pattern =
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     var regex = RegExp(pattern);
-    if (!regex.hasMatch(value))
+    if (!regex.hasMatch(value)) {
       return false;
-    else
+    } else {
       return true;
+    }
   }
 
   static void showToast(dynamic message) {

@@ -7,15 +7,15 @@ class TimingModel {
     if (json['days'] != null) {
       days = <Days>[];
       json['days'].forEach((v) {
-        days!.add(new Days.fromJson(v));
+        days!.add(Days.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.days != null) {
-      data['days'] = this.days!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (days != null) {
+      data['days'] = days!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -43,15 +43,15 @@ class Days {
     day = json['day'];
     isOn = json['isOn'];
     timing =
-        json['timing'] != null ? new Timing.fromJson(json['timing']) : null;
+        json['timing'] != null ? Timing.fromJson(json['timing']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['day'] = this.day;
-    data['isOn'] = this.isOn;
-    if (this.timing != null) {
-      data['timing'] = this.timing!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['day'] = day;
+    data['isOn'] = isOn;
+    if (timing != null) {
+      data['timing'] = timing!.toJson();
     }
     return data;
   }
@@ -75,9 +75,9 @@ class Timing {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['start_time'] = this.startTime;
-    data['end_time'] = this.endTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['start_time'] = startTime;
+    data['end_time'] = endTime;
     return data;
   }
 }

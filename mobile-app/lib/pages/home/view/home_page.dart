@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
@@ -17,14 +17,14 @@ import 'package:mitabl_user/repos/user_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static Route route() {
     return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
-              create: (context) => HomeCubit(
-                  userRepository: context.read<UserRepository>()),
+              create: (context) =>
+                  HomeCubit(repo: context.read<UserRepository>()),
               child: const HomePage(),
             ));
   }
@@ -66,7 +66,7 @@ class _HomePage extends State<HomePage> {
                             builder: (contexts) {
                               return BlocProvider.value(
                                 value: context.read<HomeCubit>(),
-                                child: FilterDialog(),
+                                child: const FilterDialog(),
                               );
                             }),
                         icon: SvgPicture.asset(
@@ -77,7 +77,7 @@ class _HomePage extends State<HomePage> {
                     ],
                   ),
                 ),
-                _SectionTitle(title: 'mitabl recommended'),
+                const _SectionTitle(title: 'mitabl recommended'),
                 SliverToBoxAdapter(
                   child: state.statusRecommRes!.isSubmissionInProgress
                       ? const Center(
@@ -100,12 +100,14 @@ class _HomePage extends State<HomePage> {
                             autoPlayCurve: Curves.fastOutSlowIn,
                           ),
                           items: recommendedItems
-                              .map((item) => RecommRestWidget(data: item))
+                              .map((item) => RecommendedRestWidget(
+                                    recommendedResturant: item,
+                                  ))
                               .toList(),
                         );
                       })(),
                 ),
-                _SectionTitle(title: 'top rated restaurants'),
+                const _SectionTitle(title: 'top rated restaurants'),
                 SliverToBoxAdapter(
                   child: state.statusTopRes!.isSubmissionInProgress
                       ? const Center(
@@ -115,7 +117,7 @@ class _HomePage extends State<HomePage> {
                           topReatedRestList: state.topReatedRestResponse?.data
                               ?.topReatedRestList),
                 ),
-                _SectionTitle(title: 'micook near my location'),
+                const _SectionTitle(title: 'micook near my location'),
                 SliverToBoxAdapter(
                   child: state.statusApi!.isSubmissionInProgress
                       ? const Center(
@@ -190,33 +192,76 @@ class _LocationInputState extends State<_LocationInput> {
           composing: TextRange.empty,
         );
       }
-      return TextFormField(
-        controller: _controller,
-        style: const TextStyle(color: Colors.black),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        onChanged: context.read<HomeCubit>().onLocationQueryChanged,
-        onFieldSubmitted: (_) => context.read<HomeCubit>().onLocationSubmitted(),
-        decoration: InputDecoration(
-          suffixIcon: IconButton(
-            onPressed: context.read<HomeCubit>().onLocationSubmitted,
-            icon: SvgPicture.asset(
-              'assets/img/search.svg',
-              height: config.AppConfig(context).appHeight(2.0),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: _controller,
+            style: const TextStyle(color: Colors.black),
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true, signed: true),
+            onChanged: context.read<HomeCubit>().onLocationQueryChanged,
+            onFieldSubmitted: (_) =>
+                context.read<HomeCubit>().onLocationSubmitted(),
+            decoration: InputDecoration(
+              suffixIconConstraints: const BoxConstraints(minWidth: 88),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Use current location',
+                    onPressed: state.isResolvingLocation
+                        ? null
+                        : context.read<HomeCubit>().onUseCurrentLocation,
+                    icon: state.isResolvingLocation
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CupertinoActivityIndicator(color: Colors.grey),
+                          )
+                        : Icon(
+                            Icons.my_location_outlined,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                  ),
+                  IconButton(
+                    onPressed: context.read<HomeCubit>().onLocationSubmitted,
+                    icon: SvgPicture.asset(
+                      'assets/img/search.svg',
+                      height: config.AppConfig(context).appHeight(2.0),
+                    ),
+                  ),
+                ],
+              ),
+              hintStyle: GoogleFonts.gothicA1(
+                  color: Theme.of(context).hintColor,
+                  fontSize: config.AppConfig(context).appWidth(4)),
+              hintText: 'latitude, longitude',
+              helperText: 'Use current location or enter coordinates',
+              contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
-          hintStyle: GoogleFonts.gothicA1(
-              color: Theme.of(context).hintColor,
-              fontSize: config.AppConfig(context).appWidth(4)),
-          hintText: 'latitude, longitude',
-          helperText: 'Enter coordinates and tap search',
-          contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-          fillColor: config.AppColors().textFieldBackgroundColor(1),
-          filled: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-          ),
-        ),
+          if ((state.locationLabel ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                state.locationLabel!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.gothicA1(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: config.AppConfig(context).appWidth(3.2),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
       );
     });
   }

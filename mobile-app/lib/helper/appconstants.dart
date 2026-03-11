@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 class AppConstants {
   static const int BREAK_POINT = 500;
   static const double HEADER_HEIGHT = 32;

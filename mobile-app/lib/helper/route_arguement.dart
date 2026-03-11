@@ -7,7 +7,7 @@ class RouteArguments {
   int? from;
   String? id;
   int? role;
-  dynamic? data;
+  dynamic data;
   Kitchen? kitchen;
   FoodData? foodData;
   bool? isEdit;

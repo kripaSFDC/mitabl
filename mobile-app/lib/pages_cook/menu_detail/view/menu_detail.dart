@@ -1,18 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/cubit/add_menu_cubit.dart';
 import '../../../helper/route_arguement.dart';
 import '../../../repos/authentication_repository.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 class MenuDetails extends StatefulWidget {
-  const MenuDetails({Key? key, this.routeArguments}) : super(key: key);
+  const MenuDetails({super.key, this.routeArguments});
 
   final RouteArguments? routeArguments;
 
@@ -43,8 +41,16 @@ class _MenuDetailsState extends State<MenuDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onBackPressed,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        if (await _onBackPressed() && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -142,12 +148,12 @@ class _MenuDetailsState extends State<MenuDetails> {
                                           errorWidget: (context, url, error) =>
                                               Container(
                                             color: Theme.of(context)
-                                                .backgroundColor,
+                                                .colorScheme.surface,
                                           ),
                                           placeholder: (context, s) =>
                                               Container(
                                             color: Theme.of(context)
-                                                .backgroundColor,
+                                                .colorScheme.surface,
                                           ),
                                         ),
                                       ),
@@ -206,15 +212,15 @@ class _MenuDetailsState extends State<MenuDetails> {
                                             .appWidth(2),
                                         decoration: BoxDecoration(
                                             color: state.selectedPage == index
-                                                ? Color(0xff0071BC)
-                                                : Color(0xffD6D6D6),
+                                                ? const Color(0xff0071BC)
+                                                : const Color(0xffD6D6D6),
                                             shape: BoxShape.circle),
                                       );
                                     },
                                     itemCount: state.pathFiles.length,
                                   ),
                                 )
-                              : SizedBox(),
+                              : const SizedBox(),
                         )
                       ],
                     ),
@@ -236,7 +242,7 @@ class _MenuDetailsState extends State<MenuDetails> {
                                 fontWeight: config.FontFamily().medium,
                                 fontSize:
                                     config.AppConfig(context).appWidth(4.5),
-                                color: Color(0xff666666)),
+                                color: const Color(0xff666666)),
                           ),
                           SizedBox(
                             height: config.AppConfig(context).appHeight(1.5),
@@ -248,7 +254,7 @@ class _MenuDetailsState extends State<MenuDetails> {
                                   .itcAvantGardeGothicStdFontFamily,
                               // fontWeight: config.FontFamily().medium,
                               fontSize: config.AppConfig(context).appWidth(3.5),
-                              color: Color(0xff666666),
+                              color: const Color(0xff666666),
                             ),
                             maxLines: 6,
                           ),
@@ -291,24 +297,11 @@ class _MenuDetailsState extends State<MenuDetails> {
                                     width:
                                         config.AppConfig(context).appWidth(2),
                                   ),
-                                  FlutterSwitch(
-                                    activeText: '',
-                                    inactiveText: '',
-                                    value: state.selectedFoodMenu!.status == 1
-                                        ? true
-                                        : false,
-                                    activeColor: Color(0xffE9E9E9),
-                                    activeToggleColor:
-                                        Theme.of(context).primaryColor,
-                                    valueFontSize:
-                                        config.AppConfig(context).appWidth(1),
-                                    width:
-                                        config.AppConfig(context).appWidth(16),
-                                    height:
-                                        config.AppConfig(context).appHeight(4),
-                                    borderRadius: 30.0,
-                                    showOnOff: true,
-                                    onToggle: (val) {
+                                  Switch(
+                                    value: state.selectedFoodMenu!.status == 1,
+                                    activeTrackColor: const Color(0xffE9E9E9),
+                                    activeThumbColor: Theme.of(context).primaryColor,
+                                    onChanged: (val) {
                                       context
                                           .read<AddMenuCubit>()
                                           .onFoodStatusChange(
@@ -340,18 +333,11 @@ class _MenuDetailsState extends State<MenuDetails> {
                                             Theme.of(context).primaryColor,
                                           ]
                                         : [
-                                            Color(0xffE9E9E9),
-                                            Color(0xffE9E9E9),
+                                            const Color(0xffE9E9E9),
+                                            const Color(0xffE9E9E9),
                                           ],
                                   )),
                               child: MaterialButton(
-                                  child: Text(
-                                    'EDIT ITEM',
-                                    style: TextStyle(
-                                        fontSize: config.AppConfig(context)
-                                            .appWidth(3.5),
-                                        color: Colors.white),
-                                  ),
                                   height:
                                       config.AppConfig(context).appHeight(6),
                                   minWidth:
@@ -373,7 +359,14 @@ class _MenuDetailsState extends State<MenuDetails> {
                                         }
                                       });
                                     }
-                                  }),
+                                  },
+                                  child: Text(
+                                    'EDIT ITEM',
+                                    style: TextStyle(
+                                        fontSize: config.AppConfig(context)
+                                            .appWidth(3.5),
+                                        color: Colors.white),
+                                  )),
                             ),
                           ),
                         ],
@@ -382,8 +375,8 @@ class _MenuDetailsState extends State<MenuDetails> {
                   ],
                 ),
                 state.foodStatusFormStatus!.isSubmissionInProgress
-                    ? CommonProgressWidget()
-                    : SizedBox(),
+                    ? const CommonProgressWidget()
+                    : const SizedBox(),
               ],
             );
           },

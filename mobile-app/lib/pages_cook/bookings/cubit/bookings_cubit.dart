@@ -1,9 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/model/bookings.dart';
 import 'package:mitabl_user/repos/bookings_repository.dart';
 
@@ -12,11 +11,11 @@ import '../../../repos/authentication_repository.dart';
 part 'bookings_state.dart';
 
 class BookingsCubit extends Cubit<BookingsState> {
-  BookingsCubit(this.bookingRepository) : super(BookingsState());
+  BookingsCubit(this.bookingRepository) : super(const BookingsState());
 
   final BookingRepository? bookingRepository;
 
-  onOrderCompleteDecline({bool? isCompleted, dynamic? orderId}) async {
+  onOrderCompleteDecline({bool? isCompleted, dynamic orderId}) async {
     try {
       emit(state.copyWith(
           orderCompleteCancelStatus: FormzStatus.submissionInProgress));
@@ -59,7 +58,7 @@ class BookingsCubit extends Cubit<BookingsState> {
       } else {
         emit(state.copyWith(bookingStatus: FormzStatus.submissionFailure));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(bookingStatus: FormzStatus.submissionFailure));
     }
   }
@@ -84,7 +83,7 @@ class BookingsCubit extends Cubit<BookingsState> {
         emit(state.copyWith(
             upcomingBookingStatus: FormzStatus.submissionFailure));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(
           state.copyWith(upcomingBookingStatus: FormzStatus.submissionFailure));
     }

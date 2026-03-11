@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,15 +15,13 @@ import 'package:mitabl_user/pages_cook/add_menu_item/cubit/add_menu_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/cooking_style_dialog.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/special_diet/special_diet_dialog.dart';
-import 'package:mitabl_user/repos/cook_repository.dart';
-import 'package:mitabl_user/repos/user_repository.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/route_arguement.dart';
 import '../../../repos/authentication_repository.dart';
 
 class AddMenuPage extends StatefulWidget {
-  AddMenuPage({Key? key, this.routeArguments}) : super(key: key);
+  const AddMenuPage({super.key, this.routeArguments});
 
   final RouteArguments? routeArguments;
 
@@ -65,7 +61,6 @@ class _AddMenuPageState extends State<AddMenuPage> {
       context.read<AddMenuCubit>().onPriceChange(value: priceController.text);
     });
     descriptionController.addListener(() {
-      print('descriptionListner ${descriptionController.text}');
       context
           .read<AddMenuCubit>()
           .onDescriptionChange(value: descriptionController.text);
@@ -106,8 +101,16 @@ class _AddMenuPageState extends State<AddMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onBackPressed,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        if (await _onBackPressed() && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -172,7 +175,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                           Stack(
                             children: [
                               state.pathFiles.isNotEmpty
-                                  ? Container(
+                                  ? SizedBox(
                                       height:
                                           config.AppConfig(context).appHeight(20),
                                       child: PageView.builder(
@@ -226,7 +229,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                     placeholder: (context, s) =>
                                                         Container(
                                                       color: Theme.of(context)
-                                                          .backgroundColor,
+                                                          .colorScheme.surface,
                                                     ),
                                                   ),
                                                 ),
@@ -321,7 +324,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                           itemCount: state.pathFiles.length,
                                         ),
                                       )
-                                    : SizedBox(),
+                                    : const SizedBox(),
                               ),
                             ],
                           ),
@@ -334,7 +337,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                _UploadButton(),
+                                const _UploadButton(),
                                 SizedBox(
                                   height: config.AppConfig(context).appHeight(3),
                                 ),
@@ -359,23 +362,23 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                             create: (context) => SpecialDietCubit(
                                                 specialDietDataList:
                                                     state.specialDietDataList),
-                                            child: SpecialDietDialog(),
+                                            child: const SpecialDietDialog(),
                                           );
                                         }).then((value) {
+                                      if (!context.mounted) return;
                                       if (value != null) {
-                                        (value as List<SpecialDietData>)
-                                            .forEach((element) {
+                                        for (var element in (value as List<SpecialDietData>)) {
                                           context
                                               .read<AddMenuCubit>()
                                               .onSpecialDietChange(
                                                   id: element.id,
                                                   value: element.isSelected);
-                                        });
+                                        }
                                       }
                                     });
                                   },
                                   readOnly: true,
-                                  style: TextStyle(color: Colors.black),
+                                  style: const TextStyle(color: Colors.black),
                                   textInputAction: TextInputAction.next,
                                   keyboardType: TextInputType.name,
                                   // maxLength: 15,
@@ -399,32 +402,32 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     filled: true,
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     border: InputBorder.none,
                                     disabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
@@ -451,7 +454,12 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                     .length, (index) {
                                               return Transform(
                                                 transform: Matrix4.identity()
-                                                  ..scale(0.85),
+                                                  ..scaleByDouble(
+                                                    0.85,
+                                                    0.85,
+                                                    0.85,
+                                                    1.0,
+                                                  ),
                                                 child: Chip(
                                                   padding: EdgeInsets.zero,
                                                   labelStyle: TextStyle(
@@ -471,7 +479,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                   backgroundColor:
                                                       Theme.of(context)
                                                           .primaryColor
-                                                          .withOpacity(0.2),
+                                                          .withValues(alpha: 0.2),
                                                   label: Text(
                                                     state.specialDietDataList!
                                                                 .where((element) =>
@@ -481,15 +489,14 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                                 .name!
                                                                 .length >
                                                             15
-                                                        ? state.specialDietDataList!
+                                                        ? '${state.specialDietDataList!
                                                                 .where((element) =>
                                                                     element
                                                                         .isSelected!)
                                                                 .toList()[index]
                                                                 .name!
                                                                 .substring(
-                                                                    0, 14) +
-                                                            '...'
+                                                                    0, 14)}...'
                                                         : state
                                                             .specialDietDataList!
                                                             .where((element) =>
@@ -559,107 +566,6 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                 ),
                                               );
 
-                                              Stack(
-                                                children: [
-                                                  Container(
-                                                    height:
-                                                        config.AppConfig(context)
-                                                            .appHeight(4),
-                                                    padding: EdgeInsets.all(
-                                                        config.AppConfig(context)
-                                                            .appWidth(0)),
-                                                    decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                            .primaryColor
-                                                            .withOpacity(0.2),
-                                                        borderRadius: BorderRadius.all(
-                                                            Radius.circular(
-                                                                config.AppConfig(
-                                                                        context)
-                                                                    .appWidth(
-                                                                        5))),
-                                                        border: Border.all(
-                                                            color: Theme.of(context)
-                                                                .primaryColor)),
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                      state.specialDietDataList!
-                                                          .where((element) =>
-                                                              element.isSelected!)
-                                                          .toList()[index]
-                                                          .name!,
-                                                      style: TextStyle(
-                                                          fontFamily: config
-                                                                  .FontFamily()
-                                                              .itcAvantGardeGothicStdFontFamily,
-                                                          fontWeight:
-                                                              config.FontFamily()
-                                                                  .book,
-                                                          color: Theme.of(context)
-                                                              .primaryColor),
-                                                      maxLines: 1,
-                                                      softWrap: true,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    top: 5,
-                                                    right: 5,
-                                                    child: InkWell(
-                                                      splashFactory:
-                                                          NoSplash.splashFactory,
-                                                      onTap: () {
-                                                        print('delete Chip');
-                                                        context
-                                                            .read<AddMenuCubit>()
-                                                            .onDeleteSpecialDiet(
-                                                                id: state
-                                                                    .specialDietDataList!
-                                                                    .where((element) =>
-                                                                        element
-                                                                            .isSelected!)
-                                                                    .toList()[
-                                                                        index]
-                                                                    .id);
-                                                      },
-                                                      child: Container(
-                                                        height: config.AppConfig(
-                                                                context)
-                                                            .appHeight(1.5),
-                                                        width: config.AppConfig(
-                                                                context)
-                                                            .appHeight(1.5),
-                                                        padding: EdgeInsets.all(
-                                                            config.AppConfig(
-                                                                    context)
-                                                                .appWidth(0)),
-                                                        alignment:
-                                                            Alignment.center,
-                                                        decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.all(
-                                                                Radius.circular(
-                                                                    config.AppConfig(
-                                                                            context)
-                                                                        .appWidth(
-                                                                            10))),
-                                                            border: Border.all(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .primaryColor)),
-                                                        child: Icon(
-                                                          Icons.clear,
-                                                          color: Theme.of(context)
-                                                              .primaryColor,
-                                                          size: config.AppConfig(
-                                                                  context)
-                                                              .appWidth(2.5),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
                                             }),
                                           ),
                                           SizedBox(
@@ -695,7 +601,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                           //           decoration: BoxDecoration(
                                           //               color: Theme.of(context)
                                           //                   .primaryColor
-                                          //                   .withOpacity(0.2),
+                                          //                   .withValues(alpha: 0.2),
                                           //               borderRadius: BorderRadius.all(
                                           //                   Radius.circular(
                                           //                       config.AppConfig(
@@ -788,7 +694,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                           // ),
                                         ],
                                       )
-                                    : SizedBox(),
+                                    : const SizedBox(),
                                 SizedBox(
                                   height: config.AppConfig(context).appHeight(2),
                                 ),
@@ -797,8 +703,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     showDialog(
                                         context: context,
                                         builder: (contextB) {
-                                          return CookingStyleDialog();
+                                          return const CookingStyleDialog();
                                         }).then((value) {
+                                      if (!context.mounted) return;
                                       cookingStyleController.text = context
                                           .read<AddMenuCubit>()
                                           .state
@@ -836,32 +743,32 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     filled: true,
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     border: InputBorder.none,
                                     disabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     errorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     focusedErrorBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(
+                                      borderSide: const BorderSide(
                                         color: Colors.white,
                                       ),
                                     ),
@@ -894,20 +801,6 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                   Colors.grey
                                                 ])),
                                   child: MaterialButton(
-                                      child: /* state.addFoodStatus!
-                                              .isSubmissionInProgress
-                                          ? Center(
-                                              child: CupertinoActivityIndicator())
-                                          :*/
-                                          Text(
-                                        widget.routeArguments!.isEdit!
-                                            ? 'UPDATE'
-                                            : 'SAVE',
-                                        style: GoogleFonts.gothicA1(
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(3.5),
-                                            color: Colors.white),
-                                      ),
                                       minWidth:
                                           config.AppConfig(context).appWidth(100),
                                       height: 50.0,
@@ -956,7 +849,21 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                 'Please upload images');
                                           }
                                         }
-                                      }),
+                                      },
+                                      child: /* state.addFoodStatus!
+                                              .isSubmissionInProgress
+                                          ? Center(
+                                              child: CupertinoActivityIndicator())
+                                          :*/
+                                          Text(
+                                        widget.routeArguments!.isEdit!
+                                            ? 'UPDATE'
+                                            : 'SAVE',
+                                        style: GoogleFonts.gothicA1(
+                                            fontSize: config.AppConfig(context)
+                                                .appWidth(3.5),
+                                            color: Colors.white),
+                                      )),
                                 ),
                                 SizedBox(
                                   height: config.AppConfig(context).appHeight(2),
@@ -968,8 +875,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                       ),
                     ),
                     state.addFoodStatus!.isSubmissionInProgress
-                        ? CommonProgressWidget()
-                        : SizedBox(),
+                        ? const CommonProgressWidget()
+                        : const SizedBox(),
                   ],
                 ),
               );
@@ -983,7 +890,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
 class _ItemName extends StatefulWidget {
   final _AddMenuPageState? menuForm;
 
-  const _ItemName({Key? key, this.menuForm}) : super(key: key);
+  const _ItemName({this.menuForm});
 
   @override
   State<_ItemName> createState() => _ItemNameState();
@@ -1022,32 +929,32 @@ class _ItemNameState extends State<_ItemName> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -1062,7 +969,7 @@ class _ItemNameState extends State<_ItemName> {
 class _ItemPrice extends StatefulWidget {
   final _AddMenuPageState? menuForm;
 
-  const _ItemPrice({Key? key, this.menuForm}) : super(key: key);
+  const _ItemPrice({this.menuForm});
 
   @override
   State<_ItemPrice> createState() => _ItemPriceState();
@@ -1101,32 +1008,32 @@ class _ItemPriceState extends State<_ItemPrice> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -1141,7 +1048,7 @@ class _ItemPriceState extends State<_ItemPrice> {
 class _ItemDescription extends StatefulWidget {
   final _AddMenuPageState? menuForm;
 
-  const _ItemDescription({Key? key, this.menuForm}) : super(key: key);
+  const _ItemDescription({this.menuForm});
 
   @override
   State<_ItemDescription> createState() => _ItemDescriptionState();
@@ -1186,32 +1093,32 @@ class _ItemDescriptionState extends State<_ItemDescription> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -1225,17 +1132,13 @@ class _ItemDescriptionState extends State<_ItemDescription> {
 /////
 
 class _UploadButton extends StatefulWidget {
-  const _UploadButton({Key? key, this.loginForm}) : super(key: key);
-
-  final _AddMenuPageState? loginForm;
+  const _UploadButton();
 
   @override
   _UploadbuttonState createState() => _UploadbuttonState();
 }
 
 class _UploadbuttonState extends State<_UploadButton> {
-  final ImagePicker _picker = ImagePicker();
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AddMenuCubit, AddMenuState>(
@@ -1254,16 +1157,6 @@ class _UploadbuttonState extends State<_UploadButton> {
                     Theme.of(context).primaryColor,
                   ])),
           child: MaterialButton(
-              child: Text(
-                'Upload Photos',
-                style: TextStyle(
-                  fontFamily:
-                      config.FontFamily().itcAvantGardeGothicStdFontFamily,
-                  fontSize: config.AppConfig(context).appWidth(3.5),
-                  color: Colors.white,
-                  fontWeight: config.FontFamily().book,
-                ),
-              ),
               minWidth: config.AppConfig(context).appWidth(80),
               height: 50.0,
               onPressed: () {
@@ -1313,6 +1206,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                           },
                           context: context)
                       .then((value) {
+                    if (!context.mounted) return;
                     if (value != null) {
                       if (value) {
                         //Get from camera
@@ -1326,7 +1220,17 @@ class _UploadbuttonState extends State<_UploadButton> {
                 } else {
                   Helper.showToast('Photos limit reached.');
                 }
-              }),
+              },
+              child: Text(
+                'Upload Photos',
+                style: TextStyle(
+                  fontFamily:
+                      config.FontFamily().itcAvantGardeGothicStdFontFamily,
+                  fontSize: config.AppConfig(context).appWidth(3.5),
+                  color: Colors.white,
+                  fontWeight: config.FontFamily().book,
+                ),
+              )),
         );
       },
     );
@@ -1338,16 +1242,12 @@ class _UploadbuttonState extends State<_UploadButton> {
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image selected.');
         return;
       }
 
       cubit.onNewImageAdded(path: picture.path);
-      if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-      }
     } catch (e) {
       Helper.showToast('No image selected.');
     }
@@ -1359,18 +1259,16 @@ class _UploadbuttonState extends State<_UploadButton> {
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image captured.');
         return;
       }
 
       cubit.onNewImageAdded(path: picture.path);
-      if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
-      }
     } catch (e) {
       Helper.showToast('No image captured.');
     }
   }
 }
+
+

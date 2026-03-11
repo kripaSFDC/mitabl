@@ -1,30 +1,26 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
-import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
-import '../../../helper/route_arguement.dart';
 import '../cubit/sign_up_cubit.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static Route route() {
     return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
               create: (context) =>
                   SignUpCubit(context.read<AuthenticationRepository>()),
-              child: SignupPage(),
+              child: const SignupPage(),
             ));
     // );
   }
@@ -419,7 +415,7 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                     padding: EdgeInsets.zero,
                                     child: TextFormField(
                                       // controller: widget.loginForm!.mobileNoTextEditor,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 16,
                                       ),
@@ -457,7 +453,7 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
@@ -465,28 +461,28 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         disabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
@@ -499,9 +495,8 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         config.AppConfig(context).appHeight(2),
                                   ),
 
-                                  Container(
-                                    child: TextFormField(
-                                      style: TextStyle(
+                                  TextFormField(
+                                      style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 16,
                                       ),
@@ -560,7 +555,7 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
@@ -568,43 +563,41 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         focusedErrorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         disabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
 
                                   SizedBox(
                                     height:
                                         config.AppConfig(context).appHeight(2),
                                   ),
 
-                                  Container(
-                                    child: TextFormField(
-                                      style: TextStyle(
+                                  TextFormField(
+                                      style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 16,
                                       ),
@@ -656,7 +649,7 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
@@ -664,34 +657,33 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                         focusedErrorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         disabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(20),
-                                          borderSide: BorderSide(
+                                          borderSide: const BorderSide(
                                             color: Colors.white,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
 
                                   SizedBox(
                                     height:
@@ -724,14 +716,14 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                 ),
               ),
               state.statusApi!.isSubmissionInProgress
-                  ? CommonProgressWidget()
-                  : SizedBox(),
+                  ? const CommonProgressWidget()
+                  : const SizedBox(),
             ],
           );
         }, listener: (context, state) async {
           if (state.statusApi!.isSubmissionFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${state.serverMessage}')));
+                SnackBar(content: Text(state.serverMessage)));
           }
         }),
       ),
@@ -742,7 +734,7 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
 class _Email extends StatefulWidget {
   final _SignupPage? loginForm;
 
-  const _Email({Key? key, this.loginForm}) : super(key: key);
+  const _Email({this.loginForm});
 
   @override
   State<_Email> createState() => _EmailState();
@@ -752,14 +744,13 @@ class _EmailState extends State<_Email> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraint) {
-      print('constraibtWidth ${constraint.maxWidth}');
       return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
         return Container(
           alignment: Alignment.center,
           padding: EdgeInsets.zero,
           child: TextFormField(
             controller: widget.loginForm!.mobileNoTextEditor,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 16,
             ),
@@ -779,7 +770,7 @@ class _EmailState extends State<_Email> {
                       Icons.check_circle_outline,
                       color: Theme.of(context).primaryColor,
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
               hintStyle: TextStyle(
                   color: Theme.of(context).hintColor,
                   fontSize: 16,
@@ -793,32 +784,32 @@ class _EmailState extends State<_Email> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(
+                borderSide: const BorderSide(
                   color: Colors.white,
                 ),
               ),
@@ -833,7 +824,7 @@ class _EmailState extends State<_Email> {
 class _FirstName extends StatefulWidget {
   final _SignupPage? loginForm;
 
-  const _FirstName({Key? key, this.loginForm}) : super(key: key);
+  const _FirstName({this.loginForm});
 
   @override
   State<_FirstName> createState() => _FirstNameState();
@@ -848,7 +839,7 @@ class _FirstNameState extends State<_FirstName> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           // controller: widget.loginForm!.mobileNoTextEditor,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
           ),
@@ -883,32 +874,32 @@ class _FirstNameState extends State<_FirstName> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -922,7 +913,7 @@ class _FirstNameState extends State<_FirstName> {
 class _LastName extends StatefulWidget {
   final _SignupPage? loginForm;
 
-  const _LastName({Key? key, this.loginForm}) : super(key: key);
+  const _LastName({this.loginForm});
 
   @override
   State<_LastName> createState() => _LastNameState();
@@ -937,7 +928,7 @@ class _LastNameState extends State<_LastName> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           // controller: widget.loginForm!.mobileNoTextEditor,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
           ),
@@ -972,32 +963,32 @@ class _LastNameState extends State<_LastName> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -1011,7 +1002,7 @@ class _LastNameState extends State<_LastName> {
 class _PhoneNo extends StatefulWidget {
   final _SignupPage? loginForm;
 
-  const _PhoneNo({Key? key, this.loginForm}) : super(key: key);
+  const _PhoneNo({this.loginForm});
 
   @override
   State<_PhoneNo> createState() => _PhoneNoState();
@@ -1026,7 +1017,7 @@ class _PhoneNoState extends State<_PhoneNo> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           // controller: widget.loginForm!.mobileNoTextEditor,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
           ),
@@ -1053,7 +1044,7 @@ class _PhoneNoState extends State<_PhoneNo> {
                     color: Theme.of(context).hintColor),
               ),
             ),
-            prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
             hintStyle: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontSize: 16,
@@ -1067,32 +1058,32 @@ class _PhoneNoState extends State<_PhoneNo> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -1106,7 +1097,7 @@ class _PhoneNoState extends State<_PhoneNo> {
 class _LoginButton extends StatelessWidget {
   final _SignupPage? loginForm;
 
-  const _LoginButton({Key? key, this.loginForm}) : super(key: key);
+  const _LoginButton({this.loginForm});
 
   @override
   Widget build(BuildContext context) {
@@ -1133,13 +1124,6 @@ class _LoginButton extends StatelessWidget {
                             ],
                     )),
                 child: MaterialButton(
-                    child: Text(
-                      'NEXT',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: config.FontFamily().book),
-                    ),
                     minWidth: config.AppConfig(context).appWidth(100),
                     height: 50.0,
                     onPressed: () {
@@ -1150,7 +1134,14 @@ class _LoginButton extends StatelessWidget {
                       if (state.status!.isValidated) {
                         context.read<SignUpCubit>().onSignUp();
                       }
-                    }),
+                    },
+                    child: Text(
+                      'NEXT',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: config.FontFamily().book),
+                    )),
               );
       },
     );

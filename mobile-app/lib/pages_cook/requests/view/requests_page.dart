@@ -1,13 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages_cook/requests/cubit/requests_cubit.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/no_data_widget.dart';
@@ -16,7 +14,7 @@ import '../elements/accept_reject_dialog.dart';
 import '../elements/order_details_view.dart';
 
 class RequestsPage extends StatefulWidget {
-  const RequestsPage({Key? key}) : super(key: key);
+  const RequestsPage({super.key});
 
   @override
   State<RequestsPage> createState() => _RequestsPageState();
@@ -26,6 +24,7 @@ class _RequestsPageState extends State<RequestsPage> {
 
   @override
   void initState() {
+    super.initState();
     context.read<RequestsCubit>().getRequests();
   }
 
@@ -41,7 +40,7 @@ class _RequestsPageState extends State<RequestsPage> {
           child: Center(
             child: Text(
               'Requests',
-              style: Theme.of(context).textTheme.headline5?.copyWith(
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontSize: config.AppConfig(context).appWidth(5.0),
               ),
               textAlign: TextAlign.center,
@@ -79,13 +78,13 @@ class _RequestsPageState extends State<RequestsPage> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: const Color(0xff0000001C)
-                                              .withOpacity(0.11),
+                                          color: const Color(0x1C000000)
+                                              .withValues(alpha: 0.11),
                                           blurRadius: 1.3,
                                           offset: const Offset(-0.01, -0.01)),
                                       BoxShadow(
-                                          color: const Color(0xff0000001C)
-                                              .withOpacity(0.11),
+                                          color: const Color(0x1C000000)
+                                              .withValues(alpha: 0.11),
                                           blurRadius: 0.5,
                                           offset: const Offset(0, 0.0)),
                                     ]),
@@ -132,7 +131,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                         .toString(),
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .bodyText1
+                                                        .bodyLarge
                                                         ?.copyWith(
                                                             fontSize: 16),
                                                   ),
@@ -147,7 +146,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                       text: 'Date: ',
                                                       style: Theme.of(context)
                                                           .textTheme
-                                                          .subtitle2
+                                                          .titleSmall
                                                           ?.copyWith(
                                                               fontWeight: config
                                                                       .FontFamily()
@@ -163,7 +162,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                             style: Theme.of(
                                                                     context)
                                                                 .textTheme
-                                                                .subtitle2)
+                                                                .titleSmall)
                                                       ]),
                                                 ),
                                                 SizedBox(
@@ -176,7 +175,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                       text: 'Time: ',
                                                       style: Theme.of(context)
                                                           .textTheme
-                                                          .subtitle2
+                                                          .titleSmall
                                                           ?.copyWith(
                                                               fontWeight: config
                                                                       .FontFamily()
@@ -188,7 +187,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                             style: Theme.of(
                                                                     context)
                                                                 .textTheme
-                                                                .subtitle2)
+                                                                .titleSmall)
                                                       ]),
                                                 ),
                                                 SizedBox(
@@ -201,7 +200,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                       text: 'Persons: ',
                                                       style: Theme.of(context)
                                                           .textTheme
-                                                          .subtitle2
+                                                          .titleSmall
                                                           ?.copyWith(
                                                               fontWeight: config
                                                                       .FontFamily()
@@ -218,7 +217,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                             style: Theme.of(
                                                                     context)
                                                                 .textTheme
-                                                                .subtitle2)
+                                                                .titleSmall)
                                                       ]),
                                                 )
                                               ],
@@ -273,7 +272,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                             : 'Take-away',
                                                         style: Theme.of(context)
                                                             .textTheme
-                                                            .subtitle2,
+                                                            .titleSmall,
                                                       ),
                                                     ),
                                                     // SizedBox(
@@ -343,10 +342,9 @@ class _RequestsPageState extends State<RequestsPage> {
                                                     // )
                                                   ],
                                                 ),
-                                                Spacer(),
+                                                const Spacer(),
                                                 InkWell(
                                                   onTap: () {
-                                                    print('opendetail pagae');
                                                     navigatorKey.currentState!
                                                         .push(MaterialPageRoute<
                                                                 void>(
@@ -375,7 +373,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                                     'View Details',
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .subtitle2
+                                                        .titleSmall
                                                         ?.copyWith(
                                                             color: Theme.of(
                                                                     context)
@@ -424,18 +422,6 @@ class _RequestsPageState extends State<RequestsPage> {
                                                             .primaryColor,
                                                       ])),
                                               child: MaterialButton(
-                                                  child: Text(
-                                                    'Accept',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontFamily: config
-                                                                .FontFamily()
-                                                            .itcAvantGardeGothicStdFontFamily,
-                                                        fontWeight:
-                                                            config.FontFamily()
-                                                                .book,
-                                                        color: Colors.white),
-                                                  ),
                                                   height:
                                                       config.AppConfig(context)
                                                           .appHeight(6),
@@ -470,7 +456,19 @@ class _RequestsPageState extends State<RequestsPage> {
                                                                   .orderId)*/
                                                               ;
                                                         });
-                                                  }),
+                                                  },
+                                                  child: Text(
+                                                    'Accept',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontFamily: config
+                                                                .FontFamily()
+                                                            .itcAvantGardeGothicStdFontFamily,
+                                                        fontWeight:
+                                                            config.FontFamily()
+                                                                .book,
+                                                        color: Colors.white),
+                                                  )),
                                             ),
                                           ),
                                           SizedBox(
@@ -486,22 +484,8 @@ class _RequestsPageState extends State<RequestsPage> {
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           20.0),
-                                                  color: Color(0xffE9E9E9)),
+                                                  color: const Color(0xffE9E9E9)),
                                               child: MaterialButton(
-                                                  child: Text(
-                                                    'Decline',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      color: config.AppColors()
-                                                          .colorPrimaryDark(1),
-                                                      fontFamily: config
-                                                              .FontFamily()
-                                                          .itcAvantGardeGothicStdFontFamily,
-                                                      fontWeight:
-                                                          config.FontFamily()
-                                                              .book,
-                                                    ),
-                                                  ),
                                                   height:
                                                       config.AppConfig(context)
                                                           .appHeight(6),
@@ -526,7 +510,21 @@ class _RequestsPageState extends State<RequestsPage> {
                                                                     .orderId),
                                                           );
                                                         });
-                                                  }),
+                                                  },
+                                                  child: Text(
+                                                    'Decline',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      color: config.AppColors()
+                                                          .colorPrimaryDark(1),
+                                                      fontFamily: config
+                                                              .FontFamily()
+                                                          .itcAvantGardeGothicStdFontFamily,
+                                                      fontWeight:
+                                                          config.FontFamily()
+                                                              .book,
+                                                    ),
+                                                  )),
                                             ),
                                           )
                                         ],
@@ -545,8 +543,8 @@ class _RequestsPageState extends State<RequestsPage> {
                           itemCount: state
                               .requestBookingModel!.data!.bookings!.length),
               state.requestBookingStatus!.isSubmissionInProgress
-                  ? CommonProgressWidget()
-                  : SizedBox(),
+                  ? const CommonProgressWidget()
+                  : const SizedBox(),
             ],
           );
         },
@@ -642,6 +640,12 @@ class _RequestsPageState extends State<RequestsPage> {
                           borderRadius: BorderRadius.circular(20.0),
                           color: Theme.of(context).primaryColor),
                       child: MaterialButton(
+                          height: config.AppConfig(context).appHeight(6),
+                          minWidth: config.AppConfig(context).appWidth(100),
+                          onPressed: () {
+                            context.read<RequestsCubit>().onOrderAcceptDecline(
+                                isAccept: isAccept, orderId: id);
+                          },
                           child: Text(
                             'YES',
                             style: TextStyle(
@@ -651,13 +655,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                   .itcAvantGardeGothicStdFontFamily,
                               fontWeight: config.FontFamily().book,
                             ),
-                          ),
-                          height: config.AppConfig(context).appHeight(6),
-                          minWidth: config.AppConfig(context).appWidth(100),
-                          onPressed: () {
-                            context.read<RequestsCubit>().onOrderAcceptDecline(
-                                isAccept: isAccept, orderId: id);
-                          }),
+                          )),
                     ),
                   ),
                   SizedBox(
@@ -669,8 +667,13 @@ class _RequestsPageState extends State<RequestsPage> {
                       height: config.AppConfig(context).appHeight(4.5),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20.0),
-                          color: Color(0xffE9E9E9)),
+                          color: const Color(0xffE9E9E9)),
                       child: MaterialButton(
+                          height: config.AppConfig(context).appHeight(6),
+                          minWidth: config.AppConfig(context).appWidth(100),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop();
+                          },
                           child: Text(
                             'NO',
                             style: TextStyle(
@@ -680,12 +683,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                   .itcAvantGardeGothicStdFontFamily,
                               fontWeight: config.FontFamily().book,
                             ),
-                          ),
-                          height: config.AppConfig(context).appHeight(6),
-                          minWidth: config.AppConfig(context).appWidth(100),
-                          onPressed: () {
-                            navigatorKey.currentState!.pop();
-                          }),
+                          )),
                     ),
                   )
                 ],
@@ -700,3 +698,5 @@ class _RequestsPageState extends State<RequestsPage> {
     );
   }
 }
+
+

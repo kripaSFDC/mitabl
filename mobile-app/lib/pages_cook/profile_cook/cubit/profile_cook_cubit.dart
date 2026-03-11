@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/email.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
@@ -15,7 +15,7 @@ import '../../../model/name.dart';
 part 'profile_cook_state.dart';
 
 class ProfileCookCubit extends Cubit<ProfileCookState> {
-  ProfileCookCubit({this.userRepository}) : super(ProfileCookState());
+  ProfileCookCubit({this.userRepository}) : super(const ProfileCookState());
 
   final UserRepository? userRepository;
 
@@ -41,16 +41,9 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
       //         .toList();
 
       // List<String>? value=[];
-      cookProfile.data!.kitchen!.images!.forEach((element) {
-        // value.ad
-        print('imagesFound ${element.path}');
-      });
-
-
       var valueDays = (jsonDecode(cookProfile.data!.kitchen!.timings!));
       TimingModel timingModel = TimingModel.fromJson(valueDays);
 
-      print('dayssList ${cookProfile.data!.kitchen!.images!.length} ');
       emit(state.copyWith(
           daysTiming: timingModel.days!,
           daysTimingOriginal: timingModel.days!,
@@ -156,7 +149,7 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
         emit(state.copyWith(
             avatarPath: '', statusUpload: FormzStatus.submissionFailure));
       }
-    } on Exception catch (e) {
+    } on Exception {
       getCookProfile();
       emit(state.copyWith(
           avatarPath: '', statusUpload: FormzStatus.submissionFailure));

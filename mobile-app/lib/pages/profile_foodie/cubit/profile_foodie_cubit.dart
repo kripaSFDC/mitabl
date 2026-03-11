@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/email.dart';
@@ -17,7 +17,7 @@ part 'profile_foodie_state.dart';
 
 class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
   ProfileFoodieCubit({this.userRepository, this.authenticationRepository})
-      : super(ProfileFoodieState());
+      : super(const ProfileFoodieState());
 
   final UserRepository? userRepository;
   final AuthenticationRepository? authenticationRepository;
@@ -131,7 +131,7 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
         emit(state.copyWith(
             avatarPath: '', statusUpload: FormzStatus.submissionFailure));
       }
-    } on Exception catch (e) {
+    } on Exception {
       getFoodieProfile();
       emit(state.copyWith(
           avatarPath: '', statusUpload: FormzStatus.submissionFailure));

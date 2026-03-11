@@ -1,26 +1,22 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
-import 'package:mitabl_user/model/otp_response.dart';
 import 'package:mitabl_user/pages/otp/cubit/otp_cubit.dart';
 
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:pinput/pinput.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 class OTPPage extends StatefulWidget {
   const OTPPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
@@ -29,7 +25,7 @@ class OTPPage extends StatefulWidget {
                   context.read<AuthenticationRepository>(),
                   context.read<UserRepository>(),
                   routeArguments),
-              child: OTPPage(),
+              child: const OTPPage(),
             ));
     // );
   }
@@ -76,7 +72,7 @@ class _OTPPage extends State<OTPPage> {
                         top: config.AppConfig(context).appHeight(14),
                         left: config.AppConfig(context).appWidth(5),
                         right: config.AppConfig(context).appWidth(5)),
-                    child: Container(
+                    child: SizedBox(
                       width: config.AppConfig(context).appWidth(90),
                       child: Padding(
                         padding: EdgeInsets.zero,
@@ -123,7 +119,8 @@ class _OTPPage extends State<OTPPage> {
                               height: config.AppConfig(context).appHeight(4),
                             ),
                             Pinput(
-                              separator: SizedBox(width: 10),
+                              separatorBuilder: (index) =>
+                                  const SizedBox(width: 10),
                               defaultPinTheme: PinTheme(
                                 width: config.AppConfig(context).appWidth(13),
                                 height: config.AppConfig(context).appHeight(7),
@@ -152,7 +149,7 @@ class _OTPPage extends State<OTPPage> {
                             SizedBox(
                               height: config.AppConfig(context).appHeight(4),
                             ),
-                            _SubmitButton()
+                            const _SubmitButton()
                           ],
                         ),
                       ),
@@ -161,8 +158,8 @@ class _OTPPage extends State<OTPPage> {
                 ),
               ),
               state.statusAPI!.isSubmissionInProgress
-                  ? CommonProgressWidget()
-                  : SizedBox(),
+                  ? const CommonProgressWidget()
+                  : const SizedBox(),
             ],
           );
         },
@@ -172,9 +169,7 @@ class _OTPPage extends State<OTPPage> {
 }
 
 class _SubmitButton extends StatelessWidget {
-  final _OTPPage? loginForm;
-
-  const _SubmitButton({Key? key, this.loginForm}) : super(key: key);
+  const _SubmitButton();
 
   @override
   Widget build(BuildContext context) {
@@ -201,13 +196,6 @@ class _SubmitButton extends StatelessWidget {
                       ],
               )),
           child: MaterialButton(
-                  child: Text(
-                    'SUBMIT',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: config.FontFamily().book),
-                  ),
                   minWidth: config.AppConfig(context).appWidth(100),
                   height: 50.0,
                   onPressed: () {
@@ -217,7 +205,14 @@ class _SubmitButton extends StatelessWidget {
                     if (state.status!.isValidated) {
                       context.read<OtpCubit>().onSubmitted();
                     }
-                  }),
+                  },
+                  child: Text(
+                    'SUBMIT',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: config.FontFamily().book),
+                  )),
         );
       },
     );

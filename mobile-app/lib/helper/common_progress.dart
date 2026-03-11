@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 
 class CommonProgressWidget extends StatelessWidget {
-  const CommonProgressWidget({Key? key}) : super(key: key);
+  const CommonProgressWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: Theme.of(context).hintColor.withOpacity(0.3),
+        color: Theme.of(context).hintColor.withValues(alpha: 0.3),
         alignment: Alignment.center,
         height: config.AppConfig(context).appHeight(100),
         width: config.AppConfig(context).appWidth(100),
@@ -20,3 +20,4 @@ class CommonProgressWidget extends StatelessWidget {
         ));
   }
 }
+

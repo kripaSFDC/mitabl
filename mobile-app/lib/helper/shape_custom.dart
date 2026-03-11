@@ -1,4 +1,3 @@
-import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 

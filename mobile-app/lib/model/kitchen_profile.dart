@@ -10,14 +10,14 @@ class KitchenProfile {
     status = json['status'];
     isSuccess = json['isSuccess'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -66,24 +66,24 @@ class Data {
     address = json['address'];
     role = json['role'];
     kitchen =
-    json['kitchen'] != null ? new Kitchen.fromJson(json['kitchen']) : null;
+    json['kitchen'] != null ? Kitchen.fromJson(json['kitchen']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['first_name'] = this.firstName;
-    data['last_name'] = this.lastName;
-    data['email'] = this.email;
-    data['email_verified'] = this.emailVerified;
-    data['role_id'] = this.roleId;
-    data['avatar'] = this.avatar;
-    data['description'] = this.description;
-    data['phone'] = this.phone;
-    data['address'] = this.address;
-    data['role'] = this.role;
-    if (this.kitchen != null) {
-      data['kitchen'] = this.kitchen!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['first_name'] = firstName;
+    data['last_name'] = lastName;
+    data['email'] = email;
+    data['email_verified'] = emailVerified;
+    data['role_id'] = roleId;
+    data['avatar'] = avatar;
+    data['description'] = description;
+    data['phone'] = phone;
+    data['address'] = address;
+    data['role'] = role;
+    if (kitchen != null) {
+      data['kitchen'] = kitchen!.toJson();
     }
     return data;
   }
@@ -103,7 +103,7 @@ class Kitchen {
   String? description;
   String? abn;
   String? certificateNo;
-  Null? certificateDoc;
+  Null certificateDoc;
   String? status;
   int? available;
   double? latitude;
@@ -161,38 +161,38 @@ class Kitchen {
     if (json['reviewsData'] != null) {
       reviewsData = <ReviewsData>[];
       json['reviewsData'].forEach((v) {
-        reviewsData!.add(new ReviewsData.fromJson(v));
+        reviewsData!.add(ReviewsData.fromJson(v));
       });
     }
     ratingCount = json['rating_count'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['user_id'] = this.userId;
-    data['name'] = this.name;
-    data['address'] = this.address;
-    data['phone'] = this.phone;
-    data['no_of_seats'] = this.noOfSeats;
-    data['timings'] = this.timings;
-    data['images'] = this.images;
-    data['dine_in'] = this.dineIn;
-    data['take_away'] = this.takeAway;
-    data['description'] = this.description;
-    data['abn'] = this.abn;
-    data['certificate_no'] = this.certificateNo;
-    data['certificate_doc'] = this.certificateDoc;
-    data['status'] = this.status;
-    data['available'] = this.available;
-    data['latitude'] = this.latitude;
-    data['longitude'] = this.longitude;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
-    if (this.reviewsData != null) {
-      data['reviewsData'] = this.reviewsData!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['user_id'] = userId;
+    data['name'] = name;
+    data['address'] = address;
+    data['phone'] = phone;
+    data['no_of_seats'] = noOfSeats;
+    data['timings'] = timings;
+    data['images'] = images;
+    data['dine_in'] = dineIn;
+    data['take_away'] = takeAway;
+    data['description'] = description;
+    data['abn'] = abn;
+    data['certificate_no'] = certificateNo;
+    data['certificate_doc'] = certificateDoc;
+    data['status'] = status;
+    data['available'] = available;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
+    if (reviewsData != null) {
+      data['reviewsData'] = reviewsData!.map((v) => v.toJson()).toList();
     }
-    data['rating_count'] = this.ratingCount;
+    data['rating_count'] = ratingCount;
     return data;
   }
 }
@@ -211,17 +211,17 @@ class ReviewsData {
     rating = json['rating'];
     review = json['review'];
     reviewTag = json['review_tag'];
-    user = json['user'] != null ? new User.fromJson(json['user']) : null;
+    user = json['user'] != null ? User.fromJson(json['user']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['rating'] = this.rating;
-    data['review'] = this.review;
-    data['review_tag'] = this.reviewTag;
-    if (this.user != null) {
-      data['user'] = this.user!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['rating'] = rating;
+    data['review'] = review;
+    data['review_tag'] = reviewTag;
+    if (user != null) {
+      data['user'] = user!.toJson();
     }
     return data;
   }
@@ -241,10 +241,10 @@ class User {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['avatar'] = this.avatar;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['avatar'] = avatar;
     return data;
   }
 }

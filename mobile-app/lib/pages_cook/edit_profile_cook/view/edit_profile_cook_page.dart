@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,10 +12,10 @@ import '../../../helper/helper.dart';
 import '../../../helper/route_arguement.dart';
 import '../../../repos/authentication_repository.dart';
 import '../../profile_cook/cubit/profile_cook_cubit.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 class EditProfileCookPage extends StatefulWidget {
-  const EditProfileCookPage({Key? key}) : super(key: key);
+  const EditProfileCookPage({super.key});
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
@@ -83,7 +81,7 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
         await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image selected.');
         return;
       }
@@ -100,7 +98,7 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
         .pickImage(source: ImageSource.camera, imageQuality: 50);
 
     try {
-      if (!mounted || picture == null) {
+      if (!context.mounted || picture == null) {
         Helper.showToast('No image captured.');
         return;
       }
@@ -255,6 +253,7 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
                               },
                               context: context)
                               .then((value) {
+                            if (!context.mounted) return;
                             if (value != null) {
                               if (value) {
                                 //Get from camera
@@ -323,9 +322,9 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
 }
 
 class _Email extends StatefulWidget {
-  _EditProfileCookPageState? editProfile;
+  final _EditProfileCookPageState? editProfile;
 
-  _Email({Key? key, this.editProfile}) : super(key: key);
+  const _Email({this.editProfile});
 
   @override
   State<_Email> createState() => _EmailState();
@@ -341,7 +340,7 @@ class _EmailState extends State<_Email> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           controller: widget.editProfile!.email,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.name,
           maxLength: 55,
@@ -369,32 +368,32 @@ class _EmailState extends State<_Email> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -408,7 +407,7 @@ class _EmailState extends State<_Email> {
 class _FirstName extends StatefulWidget {
   final _EditProfileCookPageState? editProfile;
 
-  const _FirstName({Key? key, this.editProfile}) : super(key: key);
+  const _FirstName({this.editProfile});
 
   @override
   State<_FirstName> createState() => _FirstNameState();
@@ -424,7 +423,7 @@ class _FirstNameState extends State<_FirstName> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           controller: widget.editProfile!.firstName,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.name,
           maxLength: 15,
@@ -448,32 +447,32 @@ class _FirstNameState extends State<_FirstName> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -487,7 +486,7 @@ class _FirstNameState extends State<_FirstName> {
 class _LastName extends StatefulWidget {
   final _EditProfileCookPageState? editProfile;
 
-  const _LastName({Key? key, this.editProfile}) : super(key: key);
+  const _LastName({this.editProfile});
 
   @override
   State<_LastName> createState() => _LastNameState();
@@ -503,7 +502,7 @@ class _LastNameState extends State<_LastName> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           controller: widget.editProfile!.lastName,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.name,
           maxLength: 15,
@@ -527,32 +526,32 @@ class _LastNameState extends State<_LastName> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -566,7 +565,7 @@ class _LastNameState extends State<_LastName> {
 class _Description extends StatefulWidget {
   final _EditProfileCookPageState? editProfile;
 
-  const _Description({Key? key, this.editProfile}) : super(key: key);
+  const _Description({this.editProfile});
 
   @override
   State<_Description> createState() => _DescriptionState();
@@ -582,7 +581,7 @@ class _DescriptionState extends State<_Description> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           controller: widget.editProfile!.description,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.name,
           maxLength: 300,
@@ -607,32 +606,32 @@ class _DescriptionState extends State<_Description> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -646,7 +645,7 @@ class _DescriptionState extends State<_Description> {
 class _PhoneNo extends StatefulWidget {
   final _EditProfileCookPageState? editProfile;
 
-  const _PhoneNo({Key? key, this.editProfile}) : super(key: key);
+  const _PhoneNo({this.editProfile});
 
   @override
   State<_PhoneNo> createState() => _PhoneNoState();
@@ -662,7 +661,7 @@ class _PhoneNoState extends State<_PhoneNo> {
         padding: EdgeInsets.zero,
         child: TextFormField(
           controller: widget.editProfile!.phone,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.phone,
           maxLength: 15,
@@ -685,32 +684,32 @@ class _PhoneNoState extends State<_PhoneNo> {
             filled: true,
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             border: InputBorder.none,
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: Colors.white,
               ),
             ),
@@ -724,7 +723,7 @@ class _PhoneNoState extends State<_PhoneNo> {
 class _UpdateButton extends StatelessWidget {
   final _EditProfileCookPageState? editProfile;
 
-  const _UpdateButton({Key? key, this.editProfile}) : super(key: key);
+  const _UpdateButton({this.editProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -752,6 +751,13 @@ class _UpdateButton extends StatelessWidget {
                       ],
               )),
           child: MaterialButton(
+              minWidth: config.AppConfig(context).appWidth(100),
+              height: 50.0,
+              onPressed: () {
+                if (state.status!.isValidated) {
+                  context.read<ProfileCookCubit>().updateCookProfile();
+                }
+              },
               child: state.statusUpload!.isSubmissionInProgress
                   ? const Center(
                       child: CupertinoActivityIndicator(
@@ -763,16 +769,10 @@ class _UpdateButton extends StatelessWidget {
                       style: GoogleFonts.gothicA1(
                           fontSize: config.AppConfig(context).appWidth(3.5),
                           color: Colors.white),
-                    ),
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                if (state.status!.isValidated) {
-                  context.read<ProfileCookCubit>().updateCookProfile();
-                }
-              }),
+                    )),
         );
       },
     );
   }
 }
+

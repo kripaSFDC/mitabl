@@ -1,10 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
@@ -19,14 +15,14 @@ import '../../../helper/route_arguement.dart';
 import '../../../repos/authentication_repository.dart';
 
 class Bookings extends StatefulWidget {
-  const Bookings({Key? key}) : super(key: key);
+  const Bookings({super.key});
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
               create: (context) => BookingsCubit(
                   BookingRepository(context.read<UserRepository>())),
-              child: Bookings(),
+              child: const Bookings(),
             ));
   }
 
@@ -47,7 +43,7 @@ class _BookingsState extends State<Bookings> {
                 builder: (c) {
                   return BlocProvider.value(
                     value: context.read<BookingsCubit>(),
-                    child: BookingFilterDialog(isUpComing: false),
+                    child: const BookingFilterDialog(isUpComing: false),
                   );
                 });
           },
@@ -76,13 +72,13 @@ class _BookingsState extends State<Bookings> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                        color: const Color(0xff0000001C)
-                                            .withOpacity(0.11),
+                                        color: const Color(0x1C000000)
+                                            .withValues(alpha: 0.11),
                                         blurRadius: 1.3,
                                         offset: const Offset(-0.01, -0.01)),
                                     BoxShadow(
-                                        color: const Color(0xff0000001C)
-                                            .withOpacity(0.11),
+                                        color: const Color(0x1C000000)
+                                            .withValues(alpha: 0.11),
                                         blurRadius: 0.5,
                                         offset: const Offset(0, 0.0)),
                                   ]),
@@ -108,16 +104,16 @@ class _BookingsState extends State<Bookings> {
                                               .toString(),
                                           style: Theme.of(context)
                                               .textTheme
-                                              .bodyText1
+                                              .bodyLarge
                                               ?.copyWith(fontSize: 16),
                                         ),
-                                        Spacer(),
+                                        const Spacer(),
                                         RichText(
                                           text: TextSpan(
                                               text: 'Date: ',
                                               style: Theme.of(context)
                                                   .textTheme
-                                                  .subtitle2
+                                                  .titleSmall
                                                   ?.copyWith(
                                                       fontWeight:
                                                           config.FontFamily()
@@ -131,16 +127,16 @@ class _BookingsState extends State<Bookings> {
                                                         .date,
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .subtitle2)
+                                                        .titleSmall)
                                               ]),
                                         ),
-                                        Spacer(),
+                                        const Spacer(),
                                         RichText(
                                           text: TextSpan(
                                               text: 'Time: ',
                                               style: Theme.of(context)
                                                   .textTheme
-                                                  .subtitle2
+                                                  .titleSmall
                                                   ?.copyWith(
                                                       fontWeight:
                                                           config.FontFamily()
@@ -151,16 +147,16 @@ class _BookingsState extends State<Bookings> {
                                                         '${state.bookingModel!.data!.bookings![index].timeFrom} t0 ${state.bookingModel!.data!.bookings![index].timeTo}',
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .subtitle2)
+                                                        .titleSmall)
                                               ]),
                                         ),
-                                        Spacer(),
+                                        const Spacer(),
                                         RichText(
                                           text: TextSpan(
                                               text: 'Persons: ',
                                               style: Theme.of(context)
                                                   .textTheme
-                                                  .subtitle2
+                                                  .titleSmall
                                                   ?.copyWith(
                                                       fontWeight:
                                                           config.FontFamily()
@@ -175,7 +171,7 @@ class _BookingsState extends State<Bookings> {
                                                         .toString(),
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .subtitle2)
+                                                        .titleSmall)
                                               ]),
                                         )
                                       ],
@@ -208,7 +204,7 @@ class _BookingsState extends State<Bookings> {
                                                                 context)
                                                             .appWidth(2.5))),
                                                 border: Border.all(
-                                                    color: Color(0xff707070)),
+                                                    color: const Color(0xff707070)),
                                               ),
                                               child: Text(
                                                 state
@@ -221,7 +217,7 @@ class _BookingsState extends State<Bookings> {
                                                     : 'Take-away',
                                                 style: Theme.of(context)
                                                     .textTheme
-                                                    .subtitle2,
+                                                    .titleSmall,
                                               ),
                                             ),
                                             SizedBox(
@@ -257,7 +253,7 @@ class _BookingsState extends State<Bookings> {
                                                                       index]
                                                                   .status ==
                                                               1
-                                                          ? Color(0xff3DAE06)
+                                                          ? const Color(0xff3DAE06)
                                                           : state
                                                                       .bookingModel!
                                                                       .data!
@@ -294,14 +290,14 @@ class _BookingsState extends State<Bookings> {
                                                             : 'Accepted',
                                                 style: Theme.of(context)
                                                     .textTheme
-                                                    .subtitle2
+                                                    .titleSmall
                                                     ?.copyWith(
                                                         color: Colors.white),
                                               ),
                                             )
                                           ],
                                         ),
-                                        Spacer(),
+                                        const Spacer(),
                                         InkWell(
                                           onTap: () {
                                             navigatorKey.currentState!.push(
@@ -325,7 +321,7 @@ class _BookingsState extends State<Bookings> {
                                             'View Details',
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .subtitle2
+                                                .titleSmall
                                                 ?.copyWith(
                                                     color: Theme.of(context)
                                                         .primaryColor),
@@ -353,6 +349,7 @@ class _BookingsState extends State<Bookings> {
 
   @override
   void initState() {
+    super.initState();
     context.read<BookingsCubit>().onStatusChanged(data: '');
     context.read<BookingsCubit>().onSortByChanged(data: '');
     context.read<BookingsCubit>().getBookings();
@@ -372,11 +369,11 @@ class _BookingsState extends State<Bookings> {
 //                   ),
 //                   boxShadow: [
 //                     BoxShadow(
-//                         color: const Color(0xff0000001C).withOpacity(0.11),
+//                         color: const Color(0xff0000001C).withValues(alpha: 0.11),
 //                         blurRadius: 1.3,
 //                         offset: const Offset(-0.01, -0.01)),
 //                     BoxShadow(
-//                         color: const Color(0xff0000001C).withOpacity(0.11),
+//                         color: const Color(0xff0000001C).withValues(alpha: 0.11),
 //                         blurRadius: 0.5,
 //                         offset: const Offset(0, 0.0)),
 //                   ]),
@@ -530,3 +527,5 @@ class _BookingsState extends State<Bookings> {
 //               ),
 //             ),
 //           )
+
+

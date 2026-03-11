@@ -2,26 +2,24 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/model/password.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:http/http.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
-import '../../../helper/helper.dart';
 import '../../../model/email.dart';
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   LoginCubit(
-      {required AuthenticationRepository authenticationRepository,
-      required UserRepository userRepository})
-      : assert(authenticationRepository != null),
-        _authenticationRepository = authenticationRepository,
-        userRepository = userRepository,
-        super(const LoginState()) {}
+      {required AuthenticationRepository authRepository,
+      required UserRepository repo})
+      : _authenticationRepository = authRepository,
+        userRepository = repo,
+        super(const LoginState());
 
   final AuthenticationRepository _authenticationRepository;
   final UserRepository userRepository;
@@ -47,7 +45,7 @@ class LoginCubit extends Cubit<LoginState> {
   void doLogin() async {
     try {
       emit(state.copyWith(apiStatus: FormzStatus.submissionInProgress));
-      var map = Map<String, dynamic>();
+      var map = <String, dynamic>{};
       map['email'] = state.email.value;
       map['password'] = state.password.value;
       // map['device_key'] = state.deviceToken;

@@ -19,19 +19,19 @@ class RecommendedRestResponse {
     if (json['data'] != null) {
       recommendedResturantList = <RecommendedResturant>[];
       json['data'].forEach((v) {
-        recommendedResturantList!.add(new RecommendedResturant.fromJson(v));
+        recommendedResturantList!.add(RecommendedResturant.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['isSuccess'] = this.isSuccess;
-    data['message'] = this.message;
-    if (this.recommendedResturantList != null) {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['isSuccess'] = isSuccess;
+    data['message'] = message;
+    if (recommendedResturantList != null) {
       data['data'] =
-          this.recommendedResturantList!.map((v) => v.toJson()).toList();
+          recommendedResturantList!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -103,42 +103,42 @@ class RecommendedResturant {
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
-        images!.add(new Images.fromJson(v));
+        images!.add(Images.fromJson(v));
       });
     }
     if (json['addedimage'] != null) {
       addedimage = <Images>[];
       json['addedimage'].forEach((v) {
-        addedimage!.add(new Images.fromJson(v));
+        addedimage!.add(Images.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['user_id'] = this.userId;
-    data['name'] = this.name;
-    data['address'] = this.address;
-    data['phone'] = this.phone;
-    data['no_of_seats'] = this.noOfSeats;
-    data['timings'] = this.timings;
-    data['dine_in'] = this.dineIn;
-    data['take_away'] = this.takeAway;
-    data['description'] = this.description;
-    data['status'] = this.status;
-    data['available'] = this.available;
-    data['latitude'] = this.latitude;
-    data['longitude'] = this.longitude;
-    data['created_at'] = this.createdAt;
-    data['updated_at'] = this.updatedAt;
-    data['rating_count'] = this.ratingCount;
-    data['orders_count'] = this.ordersCount;
-    if (this.images != null) {
-      data['images'] = this.images!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['user_id'] = userId;
+    data['name'] = name;
+    data['address'] = address;
+    data['phone'] = phone;
+    data['no_of_seats'] = noOfSeats;
+    data['timings'] = timings;
+    data['dine_in'] = dineIn;
+    data['take_away'] = takeAway;
+    data['description'] = description;
+    data['status'] = status;
+    data['available'] = available;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
+    data['rating_count'] = ratingCount;
+    data['orders_count'] = ordersCount;
+    if (images != null) {
+      data['images'] = images!.map((v) => v.toJson()).toList();
     }
-    if (this.addedimage != null) {
-      data['addedimage'] = this.addedimage!.map((v) => v.toJson()).toList();
+    if (addedimage != null) {
+      data['addedimage'] = addedimage!.map((v) => v.toJson()).toList();
     }
     return data;
   }

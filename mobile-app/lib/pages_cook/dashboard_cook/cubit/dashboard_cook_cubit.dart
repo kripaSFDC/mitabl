@@ -1,6 +1,7 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/model/dashboard_data.dart' as dd;
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -16,9 +17,7 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
       : super(DashboardCookState(
             dashboardData: dd.DashboardData(
                 data: dd.Data(
-                    nBookings: 0, nUpcomingBookings: 0, totalEarning: 0)))){
-
-  }
+                    nBookings: 0, nUpcomingBookings: 0, totalEarning: 0))));
 
   final AuthenticationRepository? authenticationRepository;
   final UserRepository? userRepository;

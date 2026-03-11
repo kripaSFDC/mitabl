@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
@@ -11,7 +9,7 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 
 class SettingsCookPage extends StatefulWidget {
-  const SettingsCookPage({Key? key, this.routeArguments}) : super(key: key);
+  const SettingsCookPage({super.key, this.routeArguments});
 
   final RouteArguments? routeArguments;
 
@@ -213,7 +211,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: CommonAppBar(
+        appBar: const CommonAppBar(
           title: 'Settings',
           isFilter: false,
         ),
@@ -305,19 +303,12 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     )
                   ],
                 ),
-                trailing: Container(
+                trailing: SizedBox(
                   width: config.AppConfig(context).appWidth(18),
-                  child: FlutterSwitch(
+                  child: Switch(
                     value: true,
-                    activeText: '',
-                    inactiveText: '',
-                    valueFontSize: config.AppConfig(context).appWidth(4),
-                    width: config.AppConfig(context).appWidth(13.8),
-                    height: config.AppConfig(context).appHeight(3.8),
-                    inactiveColor: Theme.of(context).primaryColorDark,
-                    borderRadius: 30.0,
-                    showOnOff: true,
-                    onToggle: (val) {},
+                    inactiveTrackColor: Theme.of(context).primaryColorDark,
+                    onChanged: (val) {},
                   ),
                 ),
               ),

@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -13,10 +11,9 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/no_data_widget.dart';
-import '../../../model/food_menu.dart';
 
 class MenuPage extends StatefulWidget {
-  const MenuPage({Key? key}) : super(key: key);
+  const MenuPage({super.key});
 
   @override
   State<MenuPage> createState() => _MenuPageState();
@@ -38,7 +35,7 @@ class _MenuPageState extends State<MenuPage> {
               child: Center(
                 child: Text(
                   'Menu',
-                  style: Theme.of(context).textTheme.headline5?.copyWith(
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontSize: config.AppConfig(context).appWidth(5.0),
                       ),
                   textAlign: TextAlign.center,
@@ -71,9 +68,9 @@ class _MenuPageState extends State<MenuPage> {
             child: Stack(
               children: [
                 state.foodMenuStatus!.isSubmissionInProgress
-                    ? Center()
+                    ? const Center()
                     : state.foodMenu != null &&
-                            state.foodMenu!.foodData!.length > 0
+                            state.foodMenu!.foodData!.isNotEmpty
                         ? Padding(
                             padding: EdgeInsets.only(
                                 top: config.AppConfig(context).appHeight(3)),
@@ -126,12 +123,12 @@ class _MenuPageState extends State<MenuPage> {
                                                   (context, url, error) =>
                                                       Container(
                                                 color: Theme.of(context)
-                                                    .backgroundColor,
+                                                    .colorScheme.surface,
                                               ),
                                               placeholder: (context, s) =>
                                                   Container(
                                                 color: Theme.of(context)
-                                                    .backgroundColor,
+                                                    .colorScheme.surface,
                                               ),
                                             ),
                                           ),
@@ -224,8 +221,8 @@ class _MenuPageState extends State<MenuPage> {
                           )
                         : const NoDataWidget(),
                 state.foodMenuStatus!.isSubmissionInProgress
-                    ? CommonProgressWidget()
-                    : SizedBox(),
+                    ? const CommonProgressWidget()
+                    : const SizedBox(),
               ],
             ),
           ),
@@ -236,6 +233,7 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   void initState() {
+    super.initState();
     context.read<AddMenuCubit>().getFoodMenu();
     context.read<AddMenuCubit>().getCookingStyle();
     context.read<AddMenuCubit>().getSpecialDiet();

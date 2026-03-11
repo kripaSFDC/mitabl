@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/view/mikitchn_view.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/view/personal_view.dart';
 
 class ProfileCookPage extends StatefulWidget {
-  const ProfileCookPage({Key? key}) : super(key: key);
+  const ProfileCookPage({super.key});
 
   @override
   State<ProfileCookPage> createState() => _ProfileCookPageState();
@@ -24,7 +22,6 @@ class _ProfileCookPageState extends State<ProfileCookPage>
     super.initState();
     _tabController = TabController(vsync: this, length: 2);
     _tabController.addListener(() {
-      print('selectedIndex ${_tabController.index}');
       context
           .read<ProfileCookCubit>()
           .onTabChanged(index: _tabController.index);
@@ -51,7 +48,7 @@ class _ProfileCookPageState extends State<ProfileCookPage>
             child: Center(
               child: Text(
                 'Profile',
-                style: Theme.of(context).textTheme.headline5?.copyWith(
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontSize: config.AppConfig(context).appWidth(5.0),
                     ),
                 textAlign: TextAlign.center,
@@ -96,7 +93,7 @@ class _ProfileCookPageState extends State<ProfileCookPage>
                               decoration: BoxDecoration(
                                   color: state.tabIndex == 0
                                       ? Theme.of(context).primaryColor
-                                      : Color(0xffE9E9E9),
+                                      : const Color(0xffE9E9E9),
                                   borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(15),
                                     topLeft: Radius.circular(15),
@@ -126,7 +123,7 @@ class _ProfileCookPageState extends State<ProfileCookPage>
                               decoration: BoxDecoration(
                                   color: state.tabIndex == 1
                                       ? Theme.of(context).primaryColor
-                                      : Color(0xffE9E9E9),
+                                      : const Color(0xffE9E9E9),
                                   borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(15),
                                     topLeft: Radius.circular(15),
@@ -149,7 +146,7 @@ class _ProfileCookPageState extends State<ProfileCookPage>
               Expanded(
                 child: TabBarView(
                     controller: _tabController,
-                    children: [PersonalTabView(), MikitchnTabView()]),
+                    children: const [PersonalTabView(), MikitchnTabView()]),
               )
             ],
           ),

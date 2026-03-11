@@ -1,18 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({Key? key}) : super(key: key);
+  const LandingPage({super.key});
 
   Route route() {
     return MaterialPageRoute(builder: (context) {
-      return LandingPage();
+      return const LandingPage();
     });
   }
 
@@ -61,6 +59,9 @@ class _LandingPageState extends State<LandingPage> {
                   navigatorKey.currentState!.pushNamed('/LoginPage');
                 },
                 color: Theme.of(context).primaryColor,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        config.AppConfig(context).appWidth(10))),
                 child: Text(
                   'LOGIN',
                   /*style: GoogleFonts.gothicA1(
@@ -71,9 +72,6 @@ class _LandingPageState extends State<LandingPage> {
                       fontSize: 18,
                       fontWeight: config.FontFamily().book),
                 ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        config.AppConfig(context).appWidth(10))),
               ),
               SizedBox(
                 height: config.AppConfig(context).appHeight(2),
@@ -85,6 +83,9 @@ class _LandingPageState extends State<LandingPage> {
                   navigatorKey.currentState!.pushNamed('/SignUpPage');
                 },
                 color: Theme.of(context).primaryColorDark,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        config.AppConfig(context).appWidth(10))),
                 child: Text(
                   'CREATE NEW ACCOUNT',
                   style: TextStyle(
@@ -92,9 +93,6 @@ class _LandingPageState extends State<LandingPage> {
                       fontSize: 18,
                       fontWeight: config.FontFamily().book),
                 ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        config.AppConfig(context).appWidth(10))),
               )
             ],
           ),
@@ -110,7 +108,7 @@ class _LandingPageState extends State<LandingPage> {
               children: <TextSpan>[
                 TextSpan(
                   text: 'terms of services',
-                  recognizer: new TapGestureRecognizer()
+                  recognizer: TapGestureRecognizer()
                     ..onTap = () async {
                       _launchInBrowser(
                           Uri.parse(ApiContract.webUrl('terms')));
@@ -121,11 +119,11 @@ class _LandingPageState extends State<LandingPage> {
                       fontWeight: config.FontFamily().book,
                       decoration: TextDecoration.underline),
                 ),
-                TextSpan(
+                const TextSpan(
                   text: ' and',
                 ),
                 TextSpan(
-                    text: ' privacy policy',recognizer: new TapGestureRecognizer()
+                    text: ' privacy policy',recognizer: TapGestureRecognizer()
                   ..onTap = () async {
                     _launchInBrowser(
                         Uri.parse(ApiContract.webUrl('privacy-policy')));

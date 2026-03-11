@@ -43,9 +43,15 @@ class DiscoveryController extends Controller
     public function show(Request $request, int $id)
     {
         $query = Mikitchn::query();
-        if (is_numeric($request->query('lat')) && is_numeric($request->query('lon'))) {
-            $closest = Mikitchn::closest($request->query('lat'), $request->query('lon'));
-            $query->select('mikitchns.*', DB::raw($closest));
+        $latInput = $request->query('lat');
+        $lonInput = $request->query('lon');
+        if (is_numeric($latInput) && is_numeric($lonInput)) {
+            $lat = (float) $latInput;
+            $lon = (float) $lonInput;
+            if ($lat >= -90.0 && $lat <= 90.0 && $lon >= -180.0 && $lon <= 180.0) {
+                $closest = Mikitchn::closest($lat, $lon);
+                $query->select('mikitchns.*', DB::raw($closest));
+            }
         }
 
         $restaurant = $query

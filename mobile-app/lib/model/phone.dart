@@ -1,9 +1,9 @@
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 
 enum PhoneValidationError{empty}
 
 class Phone extends FormzInput<String ,PhoneValidationError>{
-  const Phone.dirty([String value='']) : super.dirty(value);
+  const Phone.dirty([super.value='']) : super.dirty();
   const Phone.pure():super.pure('');
 
   @override

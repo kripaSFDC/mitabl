@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/confirmpassword.dart';
@@ -18,7 +18,7 @@ import '../../../model/signup_response.dart';
 part 'sign_up_state.dart';
 
 class SignUpCubit extends Cubit<SignUpState> {
-  SignUpCubit(this.authenticationRepository) : super(SignUpState());
+  SignUpCubit(this.authenticationRepository) : super(const SignUpState());
 
   final AuthenticationRepository? authenticationRepository;
 
@@ -52,9 +52,9 @@ class SignUpCubit extends Cubit<SignUpState> {
         emit(state.copyWith(
             statusApi: FormzStatus.submissionFailure, serverMessage: message));
         emit(state.copyWith(
-            statusApi: FormzStatus.pure, serverMessage: '${message}'));
+            statusApi: FormzStatus.pure, serverMessage: message));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
       Helper.showToast('Something went wrong...');
     }
@@ -155,7 +155,7 @@ class SignUpCubit extends Cubit<SignUpState> {
   }
 
   onConfirmPasswordChanged(String? confirmPasswordValue) {
-    Map<String, String> map = Map();
+    Map<String, String> map = {};
     map['password'] = state.password.value!;
     map['confirmPassword'] = confirmPasswordValue ?? '';
 

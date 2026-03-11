@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:formz/formz.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
 import 'package:mitabl_user/model/food_menu.dart';
 import 'package:mitabl_user/model/name.dart';
@@ -16,7 +16,7 @@ part 'add_menu_state.dart';
 
 class AddMenuCubit extends Cubit<AddMenuState> {
   AddMenuCubit(this.cookRepository)
-      : super(AddMenuState(selectedCookingStyle: CookingStyleData(name: ''))) {}
+      : super(AddMenuState(selectedCookingStyle: CookingStyleData(name: '')));
 
   final CookRepository? cookRepository;
 
@@ -26,9 +26,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
   setFields({FoodData? foodData}) {
     List<Pictures> picturesList = [];
-    foodData!.pictures!.forEach((element) {
+    for (var element in foodData!.pictures!) {
       picturesList.add(element);
-    });
+    }
 
     final availableSpecialDiets =
         _cloneSpecialDietList(state.specialDietDataListOriginal);
@@ -42,13 +42,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         .firstWhere((element) => element.id == foodData.cookingstyle);
     List<CookingStyleData> cookingStyleListTemp = [];
     if (state.cookingStyleList.isNotEmpty) {
-      state.cookingStyleList.forEach((element) {
+      for (var element in state.cookingStyleList) {
         if (element.id == foodData.cookingstyle) {
           cookingStyleListTemp.add(element.copyWith(isSelected: true));
         } else {
           cookingStyleListTemp.add(element);
         }
-      });
+      }
     }
     emit(state.copyWith(
         selectedCookingStyle: cookingStyleData.copyWith(isSelected: true),
@@ -56,12 +56,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
     final idsDiet = _extractSpecialDietIds(foodData.specialDiet);
 
-    idsDiet.forEach((element) {
+    for (var element in idsDiet) {
       final parsed = int.tryParse(element.toString());
       if (parsed != null) {
         onSpecialDietChange(id: parsed, value: true);
       }
-    });
+    }
   }
 
   getFoodMenu() async {
@@ -78,7 +78,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       } else {
         emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
     }
   }
@@ -97,22 +97,23 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
       });
 
-      state.deleteImagesId.forEach((element) {
+      for (var element in state.deleteImagesId) {
         if (deleteImageString == '') {
           deleteImageString = element;
         } else {
-          deleteImageString = deleteImageString + ',' + element;
+          deleteImageString = '$deleteImageString,$element';
         }
-      });
+      }
 
       Map<String, dynamic> map = {};
       final currentUser =
           cookRepository!.userRepository!.currentUser ??
               await cookRepository!.userRepository!.getUser();
-      isEdit
-          ? map['food_id'] = foodId
-          : map['restaurant_id'] =
-              currentUser!.data!.user!.id;
+      if (isEdit == true) {
+        map['food_id'] = foodId;
+      } else {
+        map['restaurant_id'] = currentUser!.data!.user!.id;
+      }
       map['food_name'] = state.itemName!.value;
       map['price'] = state.price!.value;
       map['cookingstyle'] = state.selectedCookingStyle!.id;
@@ -123,9 +124,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
       List<String> localPaths = [];
-      paths.forEach((element) {
+      for (var element in paths) {
         localPaths.add(element.path!);
-      });
+      }
 
       var response = await cookRepository!.saveMenuItem(
           data: map,
@@ -133,7 +134,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
           isEdit: isEdit,
           deleteImagsId: state.deleteImagesId);
       if (response.statusCode == 200) {
-        if (isEdit) {
+        if (isEdit == true) {
           // Helper.showToast('Food updated successfully.');
         } else {
           // Helper.showToast('Food added successfully.');
@@ -147,7 +148,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         getFoodMenu();
         Helper.showToast('Something went wrong...');
       }
-    } on Exception catch (e) {
+    } on Exception {
       emit(state.copyWith(addFoodStatus: FormzStatus.submissionFailure));
     }
   }
@@ -155,7 +156,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   resetFields() {
     getCookingStyle();
     emit(AddMenuState(
-        deleteImagesId: [],
+        deleteImagesId: const [],
       cookingStyleList: _cloneCookingStyleList(state.cookingStyleList),
       specialDietDataListOriginal:
         _cloneSpecialDietList(state.specialDietDataListOriginal),
@@ -199,13 +200,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
     if (value!) {
       tempList.removeAt(index);
-      tempList.forEach((element) {
+      for (var element in tempList) {
         if (element.isSelected == true) {
           tempListNew.add(element.copyWith(isSelected: false));
         } else {
           tempListNew.add(element);
         }
-      });
+      }
 
       tempListNew.insert(index, specialDietData);
 
