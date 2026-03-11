@@ -20,15 +20,14 @@ class CookProfileCubit extends Cubit<CookProfileState> {
     setUpTimingModel();
   }
 
-  onOpenTimingDialog(){
+  onOpenTimingDialog() {
     emit(state.copyWith(daysTiming: state.daysTimingOriginal));
   }
 
-  onApplyDays({List<Days>? daysTiming}){
+  onApplyDays({List<Days>? daysTiming}) {
     navigatorKey.currentState!.pop();
     emit(state.copyWith(daysTimingOriginal: state.daysTiming));
   }
-
 
   onImageScroll({int? index}) {
     emit(state.copyWith(selectedPage: index));
@@ -43,7 +42,8 @@ class CookProfileCubit extends Cubit<CookProfileState> {
           timing: Timing(endTime: '23:59', startTime: '00:00')));
     }
 
-    emit(state.copyWith(daysTiming: daysTiming,daysTimingOriginal:daysTiming));
+    emit(
+        state.copyWith(daysTiming: daysTiming, daysTimingOriginal: daysTiming));
   }
 
   onSwitchChanged(
@@ -119,10 +119,8 @@ class CookProfileCubit extends Cubit<CookProfileState> {
           routeArguments: routeArguments,
           filePaths: state.pathFiles);
       if (response.statusCode == 200) {
-
         emit(state.copyWith(statusApi: FormzStatus.submissionSuccess));
-        authenticationRepository!.controller
-            .add(AuthenticationStatus.authenticated);
+        authenticationRepository!.notifyAuthenticated();
         // navigatorKey.currentState!.pushNamedAndRemoveUntil(
         //   '/DashboardCook',
         //   (route) => false,

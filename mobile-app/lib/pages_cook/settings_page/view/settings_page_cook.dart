@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 
 class SettingsCookPage extends StatefulWidget {
@@ -15,13 +15,7 @@ class SettingsCookPage extends StatefulWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-      builder:
-          (_) => /*BlocProvider(
-          create: (context) => CookProfileCubit(
-              context.read<AuthenticationRepository>(), routeArguments),
-          child:*/
-              SettingsCookPage(routeArguments: routeArguments),
-      // ));
+      builder: (_) => SettingsCookPage(routeArguments: routeArguments),
     );
   }
 
@@ -76,8 +70,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
         description: _descriptionController.text.trim(),
       );
 
-      final message =
-          result['message']?.toString() ?? 'Support ticket created successfully.';
+      final message = result['message']?.toString() ??
+          'Support ticket created successfully.';
       _showSnackBar(message);
     } catch (error) {
       _showSnackBar('Unable to create ticket: $error');

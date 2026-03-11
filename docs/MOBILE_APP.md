@@ -333,10 +333,55 @@ This section captures **every major code/config file class** under `mobile-app/`
 ### Auth
 
 - `POST /api/login`
+- `POST /api/token/refresh`
 - `POST /api/register`
 - `POST /api/verifyOtp`
 - `POST /api/password/reset`
 - `POST /api/v2/logout`
+
+### Token refresh contract
+
+- The backend exposes `POST /api/token/refresh` for renewing a bearer access token without interrupting the user session.
+- The request must include the current bearer JWT in the `Authorization` header.
+- No request body is required.
+- Success response returns a replacement `access_token`, token metadata, and the same verified mobile user snapshot shape used by login responses.
+- Failure response returns `401` when the presented token is missing, malformed, expired beyond refresh TTL, invalidated, or blacklisted.
+- The mobile app may keep its current forced-logout-on-401 fallback until an interceptor-based refresh flow is added.
+
+Example success payload:
+
+```json
+{
+  "status": 200,
+  "isSuccess": true,
+  "data": {
+    "access_token": "<new-jwt>",
+    "token_type": "bearer",
+    "expires_in_minutes": 60,
+    "refresh_expires_in_minutes": 20160,
+    "user": {
+      "id": 123,
+      "name": "Jane",
+      "role": "Foodie",
+      "role_id": 3
+    }
+  },
+  "message": "Token refreshed successfully."
+}
+```
+
+- Cook accounts also receive `is_kitchen_added` in the `user` payload, matching the login contract.
+
+Example failure payload:
+
+```json
+{
+  "status": 401,
+  "isSuccess": false,
+  "data": [],
+  "isError": "Refresh token is invalid or expired. Please login again."
+}
+```
 
 ### Kitchen and profile
 

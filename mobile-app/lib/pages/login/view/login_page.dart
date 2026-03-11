@@ -7,29 +7,17 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class LoginPage extends StatelessWidget {
-  // final RouteArguements? routeArguements;
+  LoginPage({super.key});
 
-  LoginPage({super.key /*, this.routeArguements*/
-      });
-
-  static Route route(/*{RouteArguements? routeArguements}*/) {
+  static Route route() {
     return MaterialPageRoute<void>(
-        builder:
-            (_) => /*BlocProvider(
-
-      //
-        create: (context) {
-          return cubit.LoginCubit(authenticationRepository: context.read<AuthenticationRepository>());
-        },
-        child:*/
-                BlocProvider(
-                  create: (context) => cubit.LoginCubit(
-                      authRepository:
-                          context.read<AuthenticationRepository>(),
-                      repo: context.read<UserRepository>()),
-                  child: LoginPage(/*routeArguements: routeArguements,*/),
-                ));
-    // );
+        builder: (_) => BlocProvider(
+              create: (context) => cubit.LoginCubit(
+                authRepository: context.read<AuthenticationRepository>(),
+                repo: context.read<UserRepository>(),
+              ),
+              child: LoginPage(),
+            ));
   }
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();

@@ -1,4 +1,66 @@
-## Code Quality Issues - (FIXED Usman)
+# Mobile App Code Quality + Bugs - (FIXED Usman):
+
+
+### 1. Security Issues
+
+| #   | Issue                                                                                                                                                                                                                          | Severity | Location                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------------------------------------- |
+| S1  | **`android:allowBackup` not disabled** — absent from AndroidManifest.xml, so it defaults to `true`. An attacker with ADB or a malicious backup agent can extract `SharedPreferences` data.                                     | High     | android/app/src/main/AndroidManifest.xml |
+| S2  | **No certificate pinning / network security config** — no `android:networkSecurityConfig` set. The app has no defence against MITM attacks on compromised devices.                                                             | High     | AndroidManifest.xml                      |
+| S3  | **`minSdkVersion 17`** — Android 4.2 (2012). No modern security primitives. `flutter_secure_storage` degrades to insecure storage on very old OS versions. Modern apps should use `minSdkVersion 23` (Android 6, Marshmallow). | Medium   | build.gradle:53                          |
+| S4  | **No token refresh mechanism** — if the JWT expires mid-session, all API calls silently fail with a thrown exception. There is no interceptor, no refresh-token flow, and no re-login prompt.                                  | Medium   | All repositories                         |
+
+**Files with bare `print()` leaks:** forgot_cubit.dart, login_form.dart, requests_page.dart, timing_edit.dart, profile_cook_cubit.dart, add_menu_page.dart, and others.
+
+* * *
+
+### 2. Performance Issues
+
+| #   | Issue                                                                                                                                                                                                                                                                                                                               | Location |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| P1  | **`timeDilation = 0.4` in `build()` method** — this globally slows every animation in the app by 2.5× and is called on every rebuild. Active in signup_page.dart:60 and forgot_page.dart:55. Debug testing artefact shipped to production.                                                                                          |          |
+| P2  | **Sequential home feed fetches** — `_fetchHomeFeeds()` in home_cubit.dart runs `await onRecommendedRestaurants(); await onNearByRestaurants(); await onTopRatedRestaurants()` sequentially. These are independent API calls and should be parallelised with `Future.wait()`.                                                        |          |
+| P3  | **`google_fonts: 2.3.2` pinned to an old version** — old versions download fonts at runtime by default (`allowRuntimeFetching = true`). This causes first-load network requests for fonts as well as potential failures offline. Should upgrade to 6.x and bundle fonts, or call `GoogleFonts.config.allowRuntimeFetching = false`. |          |
+| P4  | **No pagination on home feeds** — `topRatedRestaurants` hardcodes `{'page': 1, 'limit': 20}` and `nearByRestaurants` does the same. As data grows, this will load all 20 items at once with no lazy loading.                                                                                                                        |          |
+| P5  | **`HomeCubit` creates its own `HomeRepository` and `CookRepository`** — these are not shared/disposed via the DI tree, so HTTP connections are duplicated.                                                                                                                                                                          |          |
+
+* * *
+
+### 3. Functionality Issues
+
+| #   | Issue                                                                                                                                                                                                                                                                                | Location                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| F1  | **`DashboardCookCubit.getDashBoardData()` missing `dart:convert` import** — `jsonDecode` is called but the import is missing. This will cause a compile error.                                                                                                                       | dashboard_cook_cubit.dart:33 |
+| F2  | **`getDashBoardData()` silent failure** — the `else` branch is empty; API failures are swallowed with no state update or user feedback.                                                                                                                                              | dashboard_cook_cubit.dart:37 |
+| F3  | **`SplashPage` has no navigation logic** — `initState` is empty. The splash screen displays the logo but never navigates anywhere. Navigation is presumably driven by the `AuthenticationBloc` upstream, but there's no timeout/fallback if that doesn't emit.                       | splash.dart                  |
+| F4  | **`LoginCubit` double-provisioned** — `LoginCubit` is created in the global `MultiBlocProvider` in app.dart AND again in `LoginPage.route()`. The route-scoped one shadows the global one, which is never disposed.                                                                  |                              |
+| F5  | **`AddMenuCubit.cookRepository` is nullable** — declared as `CookRepository?` and force-unwrapped with `!` throughout. Any code path that creates `AddMenuCubit` without a repository will crash at runtime with a null dereference.                                                 | add_menu_cubit.dart          |
+| F6  | **`AuthenticationBloc` has redundant null assertions** — `assert(authenticationRepository != null)` on `required` non-nullable parameters. In sound null safety these are never `null`, so the asserts are dead code but add confusion.                                              | authentication_bloc.dart:18  |
+| F7  | **ABN / Certificate fields wired but ignored** — `abnNoTextEditor` and `certificateTextEditor` are initialized and disposed but their listeners do nothing (commented out). The fields appear in the UI but their data is never submitted.                                           | edit_kitchen_profile.dart:68 |
+| F8  | **No error state for `AddMenuCubit.getFoodMenu()`** — the `on Exception` catch block doesn't rethrow or show any user message; the spinner just stays forever on failure.                                                                                                            | add_menu_cubit.dart:79       |
+| F9  | **`BookingRepository.updateOrderStatus` sends body as `Map<String, dynamic>` not JSON** — it passes `body: data` (a `Map`) directly to an `http.post`, which uses URL-encoded form encoding, but the `Accept` header is `application/json`. This will mismatch with a JSON-only API. | bookings_repository.dart:60  |
+
+* * *
+
+### 4. Code Quality / Architecture Issues
+
+| #   | Issue                                                                                                                                                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | **Pervasive use of old Dart style** — all model classes use `new Map<String, dynamic>()`, `new Data.fromJson()`, and `new List()`. Dart 2+ does not require `new`; this is all over the model/ directory.                                                                                   |
+| Q2  | **Deprecated `TextTheme` API everywhere** — `headline5`, `headline6`, `bodyText1`, `bodyText2` were replaced in Flutter 3.x with `titleLarge`, `titleMedium`, `bodyLarge`, `bodyMedium`. All deprecated names are used in app.dart:164, menu_page.dart:41, requests_page.dart:44, and more. |
+| Q3  | **Dead commented-out code blocks** — large swaths of commented-out `mapEventToState`, `BlocProvider` wrappers, `timeDilation` calls, and business logic exist throughout the codebase adding significant noise.                                                                             |
+| Q4  | **`_accessToken()` logic duplicated in every repository** — the identical pattern exists in `UserRepository`, `CookRepository`, `BookingRepository`, `HomeRepository`, `AuthenticationRepository`. A shared base class or an HTTP client interceptor would eliminate this.                  |
+| Q5  | **No global `BlocObserver`** — there is no error monitoring or analytics hook. In production you'd want to log transitions to Sentry/Firebase Crashlytics or similar.                                                                                                                       |
+| Q6  | **`AppLogger` suppresses all errors in release mode** — `AppLogger.error()` wraps all output in `if (kDebugMode)`, meaning production crashes produce no logs at all. An error-reporting SDK (e.g., Firebase Crashlytics, Sentry) should capture non-debug errors.                          |
+| Q7  | **`linter` rules are all commented out** — analysis_options.yaml has no active custom rules beyond the base `flutter_lints` set. The `avoid_print` rule in particular should be enabled to catch the 20+ bare `print()` calls.                                                              |
+
+
+
+------
+
+
+
+# Backend Code Quality Issues - (FIXED Usman)
 
 1. **High - Authorization gaps on order actions let authenticated users act on other users’ orders.**  
    [OrderController.php:97](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:341](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [OrderController.php:393](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [api.php:144](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [api.php:146](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/), [api.php:195](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/nowus/.vscode/extensions/openai.chatgpt-0.5.79-win32-x64/webview/)
@@ -272,18 +334,15 @@
     `addBankAccToVendor` validates `bsb` and `number` as `required` but applies no numeric or format validation. Any string is passed directly to Stripe.
     **19. `completedOnBoarding` has no role guard**  
     Any authenticated user (customer) can call `/v2/mikitchn/editkitchen`-adjacent paths and trigger `completedOnBoarding`. It only fails gracefully because `Auth::user()->restaurant` returns null for non-cooks, but the endpoint has no explicit middleware role check.
-    
     #21 — public $data = [] mutable instance propertyStill declared in FoodsController.php:17, OrderController.php:31, ReviewController.php:15, and MikitchnController.php:32. Not a runtime risk in Laravel's per-request lifecycle, but remains a code smell.
-    
     #27 — Inconsistent HTTP response formatThe majority goes through $this->responser(), but login still builds its own array and uses return $this->responser([...], ''); — the success message is an empty string. Minor, but the response contract for login differs from every other endpoint (no status key in successful payload).
-    
     #42 — Mobile still calls legacy v2 aliasesuser_repository.dart still calls v2/getprofile, v2/getcustomerprofile, v2/getdashboarddata — the legacy unversioned aliases living under /v2, not the proper v2/account/profile endpoint. The canonical V2 AccountController routes exist but the mobile client hasn't been migrated to them.
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
 
     ### 🟡 Code Quality Issues
     
@@ -352,5 +411,3 @@
     No `dio` interceptor retry, no `hive`/`drift` local store, no cached state between sessions. Every cold start fires three separate network requests to the backend before showing anything. If any fails (poor signal), the section shows empty with a generic error.
     **48. `HomeState` cannot reset individual status fields**  
     `HomeState.copyWith` uses `?? this.field` null-coalescing, meaning you can never explicitly clear a field back to `null` using `copyWith`. To reset `nearByRestaurants` to null you'd need to reconstruct the state object manually.
-
-

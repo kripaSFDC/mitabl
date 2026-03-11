@@ -48,11 +48,13 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
     //         .toList();
 
     emit(state.copyWith(
-      daysTimingOriginal:timingModel.days,
+      daysTimingOriginal: timingModel.days,
       daysTiming: timingModel.days,
       pathFiles: routeArguments!.kitchen!.images,
       dineIn: routeArguments!.kitchen!.dineIn == 1 ? true : false,
       takeAway: routeArguments!.kitchen!.takeAway == 1 ? true : false,
+      abn: routeArguments!.kitchen!.abn ?? '',
+      certificateNo: routeArguments!.kitchen!.certificateNo ?? '',
     ));
   }
 
@@ -150,6 +152,8 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       map['address'] = state.address!.value;
       map['no_of_seats'] = state.noOfSeats.value;
       map['phone'] = state.phone.value;
+      map['abn'] = state.abn.trim();
+      map['certificate_no'] = state.certificateNo.trim();
       // map['user_id'] = routeArguments!.data!.user!.id;
       map['timings'] = jsonEncode(TimingModel(days: state.daysTimingOriginal));
       map['dine_in'] = state.dineIn == true ? 1 : 0;
@@ -244,5 +248,13 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
           seat,
           state.address!
         ])));
+  }
+
+  onAbnChanged({String? value}) {
+    emit(state.copyWith(abn: value ?? ''));
+  }
+
+  onCertificateNoChanged({String? value}) {
+    emit(state.copyWith(certificateNo: value ?? ''));
   }
 }

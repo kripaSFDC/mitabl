@@ -13,6 +13,8 @@ import 'package:mitabl_user/pages/home/element/near_by_restaurant.dart';
 import 'package:mitabl_user/pages/home/element/recomm_rest_widget.dart';
 import 'package:mitabl_user/pages/home/element/top_rated.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
+import 'package:mitabl_user/repos/cook_repository.dart';
+import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,12 +23,33 @@ class HomePage extends StatefulWidget {
   });
 
   static Route route() {
-    return MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-              create: (context) =>
-                  HomeCubit(repo: context.read<UserRepository>()),
-              child: const HomePage(),
-            ));
+    return MaterialPageRoute<void>(builder: (_) {
+      return MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider(
+            create: (context) => HomeRepository(
+              httpClient: context.read<UserRepository>().httpClient,
+            ),
+            dispose: (repository) => repository.dispose(),
+          ),
+          RepositoryProvider(
+            create: (context) => CookRepository(
+              context.read<UserRepository>(),
+              httpClient: context.read<UserRepository>().httpClient,
+            ),
+            dispose: (repository) => repository.dispose(),
+          ),
+        ],
+        child: BlocProvider(
+          create: (context) => HomeCubit(
+            repo: context.read<UserRepository>(),
+            homeRepository: context.read<HomeRepository>(),
+            cookRepository: context.read<CookRepository>(),
+          ),
+          child: const HomePage(),
+        ),
+      );
+    });
   }
 
   @override
@@ -34,104 +57,148 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePage extends State<HomePage> {
+  late final ScrollController _scrollController;
+
   @override
   void initState() {
+    _scrollController = ScrollController()..addListener(_handleScroll);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     context.read<ProfileFoodieCubit>().getFoodieProfile();
     super.initState();
   }
 
+  void _handleScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    if (_scrollController.position.extentAfter < 320) {
+      context.read<HomeCubit>().loadMoreNearBy();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<HomeCubit, HomeState>(builder: (context, state) {
-        return Container(
-          color: Colors.white,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(2)),
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: SizedBox(height: config.AppConfig(context).appHeight(1)),
-                ),
-                SliverToBoxAdapter(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(child: _LocationInput()),
-                      IconButton(
-                        onPressed: () => showDialog(
-                            context: context,
-                            builder: (contexts) {
-                              return BlocProvider.value(
-                                value: context.read<HomeCubit>(),
-                                child: const FilterDialog(),
+      body: BlocConsumer<HomeCubit, HomeState>(
+          builder: (context, state) {
+            return Container(
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: config.AppConfig(context).appWidth(2)),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                          height: config.AppConfig(context).appHeight(1)),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(child: _LocationInput()),
+                          IconButton(
+                            onPressed: () => showDialog(
+                                context: context,
+                                builder: (contexts) {
+                                  return BlocProvider.value(
+                                    value: context.read<HomeCubit>(),
+                                    child: const FilterDialog(),
+                                  );
+                                }),
+                            icon: SvgPicture.asset(
+                              'assets/img/filter.svg',
+                              height: config.AppConfig(context).appHeight(2.0),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    const _SectionTitle(title: 'mitabl recommended'),
+                    SliverToBoxAdapter(
+                      child: state.statusRecommRes!.isSubmissionInProgress
+                          ? const Center(
+                              child: CupertinoActivityIndicator(
+                                  color: Colors.grey))
+                          : (() {
+                              final recommendedItems = state
+                                      .recommendedRestResponse
+                                      ?.recommendedResturantList ??
+                                  const [];
+                              return CarouselSlider(
+                                options: CarouselOptions(
+                                  height:
+                                      config.AppConfig(context).appHeight(28.0),
+                                  initialPage: 0,
+                                  aspectRatio: 2.0,
+                                  enableInfiniteScroll: true,
+                                  autoPlay: recommendedItems.length > 1,
+                                  autoPlayInterval: const Duration(seconds: 3),
+                                  autoPlayAnimationDuration:
+                                      const Duration(milliseconds: 1000),
+                                  enlargeCenterPage: true,
+                                  autoPlayCurve: Curves.fastOutSlowIn,
+                                ),
+                                items: recommendedItems
+                                    .map((item) => RecommendedRestWidget(
+                                          recommendedResturant: item,
+                                        ))
+                                    .toList(),
                               );
-                            }),
-                        icon: SvgPicture.asset(
-                          'assets/img/filter.svg',
-                          height: config.AppConfig(context).appHeight(2.0),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                const _SectionTitle(title: 'mitabl recommended'),
-                SliverToBoxAdapter(
-                  child: state.statusRecommRes!.isSubmissionInProgress
-                      ? const Center(
-                          child: CupertinoActivityIndicator(color: Colors.grey))
-                      : (() {
-                          final recommendedItems = state.recommendedRestResponse
-                                  ?.recommendedResturantList ??
-                              const [];
-                          return CarouselSlider(
-                          options: CarouselOptions(
-                            height: config.AppConfig(context).appHeight(28.0),
-                            initialPage: 0,
-                            aspectRatio: 2.0,
-                            enableInfiniteScroll: true,
-                            autoPlay: recommendedItems.length > 1,
-                            autoPlayInterval: const Duration(seconds: 3),
-                            autoPlayAnimationDuration:
-                                const Duration(milliseconds: 1000),
-                            enlargeCenterPage: true,
-                            autoPlayCurve: Curves.fastOutSlowIn,
+                            })(),
+                    ),
+                    const _SectionTitle(title: 'top rated restaurants'),
+                    SliverToBoxAdapter(
+                      child: state.statusTopRes!.isSubmissionInProgress
+                          ? const Center(
+                              child: CupertinoActivityIndicator(
+                                  color: Colors.grey),
+                            )
+                          : TopRatedWidget(
+                              canLoadMore: state.hasMoreTopRated,
+                              isLoadingMore: state.isLoadingMoreTopRated,
+                              onLoadMore:
+                                  context.read<HomeCubit>().loadMoreTopRated,
+                              topReatedRestList: state.topReatedRestResponse
+                                  ?.data?.topReatedRestList),
+                    ),
+                    const _SectionTitle(title: 'micook near my location'),
+                    SliverToBoxAdapter(
+                      child: state.statusApi!.isSubmissionInProgress
+                          ? const Center(
+                              child: CupertinoActivityIndicator(
+                                  color: Colors.grey),
+                            )
+                          : NearByRestaurants(
+                              nearByRestaurantsList: state.nearByRestaurants
+                                  ?.data?.nearByRestaurantsList),
+                    ),
+                    if (state.isLoadingMoreNearBy)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child:
+                                CupertinoActivityIndicator(color: Colors.grey),
                           ),
-                          items: recommendedItems
-                              .map((item) => RecommendedRestWidget(
-                                    recommendedResturant: item,
-                                  ))
-                              .toList(),
-                        );
-                      })(),
+                        ),
+                      ),
+                  ],
                 ),
-                const _SectionTitle(title: 'top rated restaurants'),
-                SliverToBoxAdapter(
-                  child: state.statusTopRes!.isSubmissionInProgress
-                      ? const Center(
-                          child: CupertinoActivityIndicator(color: Colors.grey),
-                        )
-                      : TopRatedWidget(
-                          topReatedRestList: state.topReatedRestResponse?.data
-                              ?.topReatedRestList),
-                ),
-                const _SectionTitle(title: 'micook near my location'),
-                SliverToBoxAdapter(
-                  child: state.statusApi!.isSubmissionInProgress
-                      ? const Center(
-                          child: CupertinoActivityIndicator(color: Colors.grey),
-                        )
-                      : NearByRestaurants(
-                          nearByRestaurantsList:
-                              state.nearByRestaurants?.data?.nearByRestaurantsList),
-                ),
-              ],
-            ),
-          ),
-        );
-      }, listener: (context, state) async {}),
+              ),
+            );
+          },
+          listener: (context, state) async {}),
     );
   }
 }
@@ -198,8 +265,8 @@ class _LocationInputState extends State<_LocationInput> {
           TextFormField(
             controller: _controller,
             style: const TextStyle(color: Colors.black),
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true, signed: true),
+            keyboardType: const TextInputType.numberWithOptions(
+                decimal: true, signed: true),
             onChanged: context.read<HomeCubit>().onLocationQueryChanged,
             onFieldSubmitted: (_) =>
                 context.read<HomeCubit>().onLocationSubmitted(),
@@ -217,7 +284,8 @@ class _LocationInputState extends State<_LocationInput> {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CupertinoActivityIndicator(color: Colors.grey),
+                            child:
+                                CupertinoActivityIndicator(color: Colors.grey),
                           )
                         : Icon(
                             Icons.my_location_outlined,
@@ -238,7 +306,8 @@ class _LocationInputState extends State<_LocationInput> {
                   fontSize: config.AppConfig(context).appWidth(4)),
               hintText: 'latitude, longitude',
               helperText: 'Use current location or enter coordinates',
-              contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
+              contentPadding:
+                  EdgeInsets.all(config.AppConfig(context).appWidth(2)),
               fillColor: config.AppColors().textFieldBackgroundColor(1),
               filled: true,
               border: OutlineInputBorder(

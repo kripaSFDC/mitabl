@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
+import 'package:mitabl_user/repos/auth_headers.dart' as auth_headers;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/user_model.dart';
@@ -22,15 +23,20 @@ class UserRepository {
   http.Client get httpClient => _httpClient;
   UserModel? get currentUser => _user;
 
-  Future<String> _accessToken() async {
+  Future<String> requireAccessToken() async {
     final currentUser = _user ?? await getUser();
-    final token = currentUser?.data?.accessToken;
+    return auth_headers.requireAccessToken(currentUser);
+  }
 
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token unavailable. Please login again.');
-    }
-
-    return token;
+  Future<Map<String, String>> authorizedHeaders({
+    bool includeJsonContentType = false,
+    Map<String, String> additionalHeaders = const {},
+  }) async {
+    return auth_headers.buildBearerHeaders(
+      await requireAccessToken(),
+      includeJsonContentType: includeJsonContentType,
+      additionalHeaders: additionalHeaders,
+    );
   }
 
   Future<UserModel?> getUser() async {
@@ -107,13 +113,12 @@ class UserRepository {
 
   Future<http.Response> getCookProfile() async {
     try {
-      return _httpClient.get(
-        ApiContract.uri('v2/account/profile'),
-        headers: {
-          'Authorization': 'Bearer ${await _accessToken()}',
-          'Accept': 'application/json',
-        },
-      ).timeout(ApiContract.requestTimeout);
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/account/profile'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get cook profile', e);
       rethrow;
@@ -122,13 +127,12 @@ class UserRepository {
 
   Future<http.Response> getDashboardData() async {
     try {
-      return _httpClient.get(
-        ApiContract.uri('v2/account/dashboard'),
-        headers: {
-          'Authorization': 'Bearer ${await _accessToken()}',
-          'Accept': 'application/json',
-        },
-      ).timeout(ApiContract.requestTimeout);
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/account/dashboard'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get dashboard data', e);
       rethrow;
@@ -137,13 +141,12 @@ class UserRepository {
 
   Future<http.Response> getFoodieProfile() async {
     try {
-      return _httpClient.get(
-        ApiContract.uri('v2/account/profile'),
-        headers: {
-          'Authorization': 'Bearer ${await _accessToken()}',
-          'Accept': 'application/json',
-        },
-      ).timeout(ApiContract.requestTimeout);
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/account/profile'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
     } catch (e) {
       AppLogger.error('Failed to get foodie profile', e);
       rethrow;
@@ -154,10 +157,7 @@ class UserRepository {
     try {
       return _httpClient.post(
         ApiContract.uri('v2/deleteimage'),
-        headers: {
-          'Authorization': 'Bearer ${await _accessToken()}',
-          'Accept': 'application/json',
-        },
+        headers: await authorizedHeaders(),
         body: {'id': id, 'type': type},
       ).timeout(ApiContract.requestTimeout);
     } catch (e) {
@@ -184,17 +184,16 @@ class UserRepository {
         ApiContract.uri('v2/editprofile'),
       );
 
-      request.headers.addAll({
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      });
+      request.headers.addAll(await authorizedHeaders());
 
       if (filePath.isNotEmpty) {
-        request.files.add(await http.MultipartFile.fromPath('avatar', filePath));
+        request.files
+            .add(await http.MultipartFile.fromPath('avatar', filePath));
       }
 
       request.fields.addAll(data);
-      final response = await request.send().timeout(ApiContract.requestTimeout);
+      final response =
+          await _httpClient.send(request).timeout(ApiContract.requestTimeout);
       return http.Response.fromStream(response);
     } catch (e) {
       AppLogger.error('Failed to update profile', e);
@@ -211,10 +210,7 @@ class UserRepository {
         ApiContract.uri('v2/mikitchn/editkitchen'),
       );
 
-      request.headers.addAll({
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      });
+      request.headers.addAll(await authorizedHeaders());
 
       if (filePaths.isNotEmpty) {
         for (final element in filePaths) {
@@ -232,8 +228,11 @@ class UserRepository {
         'take_away': '${data['take_away']}',
         'dine_in': '${data['dine_in']}',
         'description': '${data['description']}',
+        'abn': '${data['abn'] ?? ''}',
+        'certificate_no': '${data['certificate_no'] ?? ''}',
       });
-      final response = await request.send().timeout(ApiContract.requestTimeout);
+      final response =
+          await _httpClient.send(request).timeout(ApiContract.requestTimeout);
 
       return http.Response.fromStream(response);
     } catch (e) {

@@ -41,17 +41,17 @@ class Data {
 
   Data(
       {this.id,
-        this.firstName,
-        this.lastName,
-        this.email,
-        this.emailVerified,
-        this.roleId,
-        this.avatar,
-        this.description,
-        this.phone,
-        this.address,
-        this.role,
-        this.kitchen});
+      this.firstName,
+      this.lastName,
+      this.email,
+      this.emailVerified,
+      this.roleId,
+      this.avatar,
+      this.description,
+      this.phone,
+      this.address,
+      this.role,
+      this.kitchen});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -66,7 +66,7 @@ class Data {
     address = json['address'];
     role = json['role'];
     kitchen =
-    json['kitchen'] != null ? Kitchen.fromJson(json['kitchen']) : null;
+        json['kitchen'] != null ? Kitchen.fromJson(json['kitchen']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -100,6 +100,9 @@ class Kitchen {
   int? dineIn;
   int? takeAway;
   String? description;
+  String? abn;
+  String? certificateNo;
+  dynamic certificateDoc;
   String? status;
   int? available;
   double? latitude;
@@ -112,24 +115,27 @@ class Kitchen {
 
   Kitchen(
       {this.id,
-        this.userId,
-        this.name,
-        this.address,
-        this.phone,
-        this.noOfSeats,
-        this.timings,
-        this.dineIn,
-        this.takeAway,
-        this.description,
-        this.status,
-        this.available,
-        this.latitude,
-        this.longitude,
-        this.createdAt,
-        this.updatedAt,
-        this.reviewsData,
-        this.ratingCount,
-        this.images});
+      this.userId,
+      this.name,
+      this.address,
+      this.phone,
+      this.noOfSeats,
+      this.timings,
+      this.dineIn,
+      this.takeAway,
+      this.description,
+      this.abn,
+      this.certificateNo,
+      this.certificateDoc,
+      this.status,
+      this.available,
+      this.latitude,
+      this.longitude,
+      this.createdAt,
+      this.updatedAt,
+      this.reviewsData,
+      this.ratingCount,
+      this.images});
 
   Kitchen.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -142,6 +148,9 @@ class Kitchen {
     dineIn = json['dine_in'];
     takeAway = json['take_away'];
     description = json['description'];
+    abn = json['abn'];
+    certificateNo = json['certificate_no'];
+    certificateDoc = json['certificate_doc'];
     status = json['status'];
     available = json['available'];
     latitude = json['latitude'];
@@ -175,6 +184,9 @@ class Kitchen {
     data['dine_in'] = dineIn;
     data['take_away'] = takeAway;
     data['description'] = description;
+    data['abn'] = abn;
+    data['certificate_no'] = certificateNo;
+    data['certificate_doc'] = certificateDoc;
     data['status'] = status;
     data['available'] = available;
     data['latitude'] = latitude;
@@ -203,7 +215,8 @@ class ReviewsData {
 
   ReviewsData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    rating = json['rating']!=null?double.parse(json['rating'].toString()):0.0;
+    rating =
+        json['rating'] != null ? double.parse(json['rating'].toString()) : 0.0;
     review = json['review'];
     reviewTag = json['review_tag'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
@@ -254,11 +267,11 @@ class ImagesCook {
 
   ImagesCook(
       {this.id,
-        this.refId,
-        this.modelName,
-        this.path,
-        this.createdAt,
-        this.updatedAt});
+      this.refId,
+      this.modelName,
+      this.path,
+      this.createdAt,
+      this.updatedAt});
 
   ImagesCook.fromJson(Map<String, dynamic> json) {
     id = json['id'];

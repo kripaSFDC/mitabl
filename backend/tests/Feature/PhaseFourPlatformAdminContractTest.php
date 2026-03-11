@@ -36,6 +36,7 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $integrationPage = (string) file_get_contents(app_path('Filament/Pages/IntegrationLogsPage.php'));
         $healthService = (string) file_get_contents(app_path('Services/SystemHealthService.php'));
         $settingRegistry = (string) file_get_contents(app_path('Services/PlatformSettingRegistry.php'));
+        $servicesConfig = (string) file_get_contents(config_path('services.php'));
         $kernel = (string) file_get_contents(app_path('Console/Kernel.php'));
         $syntheticCommand = (string) file_get_contents(app_path('Console/Commands/PlatformSyntheticHealthCheckCommand.php'));
         $activateDuePolicyCommand = (string) file_get_contents(app_path('Console/Commands/ActivateDuePoliciesCommand.php'));
@@ -59,6 +60,7 @@ class PhaseFourPlatformAdminContractTest extends TestCase
         $this->assertStringContainsString("'maintenance.read_only_mode'", $settingRegistry);
         $this->assertStringContainsString("'incident.degraded_mode'", $settingRegistry);
         $this->assertStringContainsString("'integrations.google_maps.api_key'", $settingRegistry);
+        $this->assertStringNotContainsString('GOOGLE_MAPS_API_KEY', $servicesConfig);
         $this->assertStringContainsString("'integrations.fcm.server_key'", $settingRegistry);
         $this->assertStringContainsString('refreshChecks', $healthPage);
         $this->assertStringContainsString('runChecks', $healthService);

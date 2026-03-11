@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:http/http.dart' as http;
@@ -11,17 +13,25 @@ class BookingRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
-  Future<String> _accessToken() async {
-    final userModel = await userRepository?.getUser();
-    final token = userModel?.data?.accessToken;
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token unavailable. Please login again.');
+  Future<Map<String, String>> _authorizedHeaders({
+    bool includeJsonContentType = false,
+  }) async {
+    final repo = userRepository;
+    if (repo == null) {
+      throw Exception('User repository unavailable.');
     }
-    return token;
+
+    return repo.authorizedHeaders(
+      includeJsonContentType: includeJsonContentType,
+    );
   }
 
   Future<http.Response> getBookings(
-      {int? page, int? limit, bool isUpcoming = false, String? sortBy, String? status = ''}) async {
+      {int? page,
+      int? limit,
+      bool isUpcoming = false,
+      String? sortBy,
+      String? status = ''}) async {
     final resolvedPage = page ?? 1;
     final resolvedLimit = limit ?? 10;
     final safeSortBy = sortBy ?? '';
@@ -38,13 +48,12 @@ class BookingRepository {
       },
     );
 
-    final response = await _httpClient.get(
-      url,
-      headers: {
-        "Authorization": "Bearer ${await _accessToken()}",
-        "Accept": "application/json",
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .get(
+          url,
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
 
     return response;
   }
@@ -53,12 +62,11 @@ class BookingRepository {
       {bool? isUpcoming, Map<String, dynamic>? data}) async {
     final url = ApiContract.uri('v2/updateorderstatus');
 
-    final response = await _httpClient.post(url,
-        headers: {
-          "Authorization": "Bearer ${await _accessToken()}",
-          "Accept": "application/json",
-        },
-        body: data).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .post(url,
+            headers: await _authorizedHeaders(includeJsonContentType: true),
+            body: jsonEncode(data ?? const <String, dynamic>{}))
+        .timeout(ApiContract.requestTimeout);
 
     return response;
   }
@@ -72,13 +80,12 @@ class BookingRepository {
       queryParameters: {'page': resolvedPage, 'limit': resolvedLimit},
     );
 
-    final response = await _httpClient.get(
-      url,
-      headers: {
-        "Authorization": "Bearer ${await _accessToken()}",
-        "Accept": "application/json",
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .get(
+          url,
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
 
     return response;
   }

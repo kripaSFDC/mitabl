@@ -9,6 +9,12 @@ class HomeState extends Equatable {
       this.statusTopRes = FormzStatus.pure,
       this.statusCooking = FormzStatus.pure,
       this.statusRecommRes = FormzStatus.pure,
+      this.topRatedPage = 1,
+      this.nearByPage = 1,
+      this.hasMoreTopRated = true,
+      this.hasMoreNearBy = true,
+      this.isLoadingMoreTopRated = false,
+      this.isLoadingMoreNearBy = false,
       this.isResolvingLocation = false,
       this.serverMessage = '',
       this.locationLabel = '',
@@ -28,6 +34,12 @@ class HomeState extends Equatable {
   final FormzStatus? statusApi;
   final FormzStatus? statusTopRes;
   final FormzStatus? statusRecommRes;
+  final int topRatedPage;
+  final int nearByPage;
+  final bool hasMoreTopRated;
+  final bool hasMoreNearBy;
+  final bool isLoadingMoreTopRated;
+  final bool isLoadingMoreNearBy;
   final bool isResolvingLocation;
 
   final List<CookingStyleData>? cookingStyleList;
@@ -49,6 +61,12 @@ class HomeState extends Equatable {
     FormzStatus? statusTopRes,
     FormzStatus? statusCooking,
     FormzStatus? statusRecommRes,
+    int? topRatedPage,
+    int? nearByPage,
+    bool? hasMoreTopRated,
+    bool? hasMoreNearBy,
+    bool? isLoadingMoreTopRated,
+    bool? isLoadingMoreNearBy,
     bool? isResolvingLocation,
     String? serverMessage,
     Object? locationLabel = _unset,
@@ -79,6 +97,13 @@ class HomeState extends Equatable {
             : longitude as double?,
         cookingStyleList: cookingStyleList ?? this.cookingStyleList,
         statusTopRes: statusTopRes ?? this.statusTopRes,
+        topRatedPage: topRatedPage ?? this.topRatedPage,
+        nearByPage: nearByPage ?? this.nearByPage,
+        hasMoreTopRated: hasMoreTopRated ?? this.hasMoreTopRated,
+        hasMoreNearBy: hasMoreNearBy ?? this.hasMoreNearBy,
+        isLoadingMoreTopRated:
+            isLoadingMoreTopRated ?? this.isLoadingMoreTopRated,
+        isLoadingMoreNearBy: isLoadingMoreNearBy ?? this.isLoadingMoreNearBy,
         selectedDistance: selectedDistance ?? this.selectedDistance,
         statusRecommRes: statusRecommRes ?? this.statusRecommRes,
         isResolvingLocation: isResolvingLocation ?? this.isResolvingLocation,
@@ -110,6 +135,12 @@ class HomeState extends Equatable {
         latitude,
         longitude,
         statusTopRes,
+        topRatedPage,
+        nearByPage,
+        hasMoreTopRated,
+        hasMoreNearBy,
+        isLoadingMoreTopRated,
+        isLoadingMoreNearBy,
         statusRecommRes,
         statusCooking,
         isResolvingLocation,

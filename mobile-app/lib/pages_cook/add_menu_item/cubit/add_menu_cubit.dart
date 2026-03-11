@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
 import 'package:mitabl_user/model/food_menu.dart';
 import 'package:mitabl_user/model/name.dart';
@@ -18,7 +19,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   AddMenuCubit(this.cookRepository)
       : super(AddMenuState(selectedCookingStyle: CookingStyleData(name: '')));
 
-  final CookRepository? cookRepository;
+  final CookRepository cookRepository;
 
   setUnChangedFood({FoodData? foodData}) {
     emit(state.copyWith(selectedFoodMenuUnChanged: foodData));
@@ -68,7 +69,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     try {
       emit(state.copyWith(foodMenuStatus: FormzStatus.submissionInProgress));
 
-      var response = await cookRepository!.getFoodMenu();
+      var response = await cookRepository.getFoodMenu();
 
       if (response.statusCode == 200) {
         FoodMenu foodMenu = FoodMenu.fromJson(jsonDecode(response.body));
@@ -77,9 +78,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
             foodMenu: foodMenu, foodMenuStatus: FormzStatus.submissionSuccess));
       } else {
         emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
+        Helper.showToast('Unable to load menu items.');
       }
-    } on Exception {
+    } catch (e) {
+      AppLogger.error('Unable to load menu items', e);
       emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
+      Helper.showToast('Unable to load menu items.');
     }
   }
 
@@ -94,7 +98,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
           .toList()
           .forEach((element) {
         diets.add(element.id.toString());
-
       });
 
       for (var element in state.deleteImagesId) {
@@ -106,9 +109,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       }
 
       Map<String, dynamic> map = {};
-      final currentUser =
-          cookRepository!.userRepository!.currentUser ??
-              await cookRepository!.userRepository!.getUser();
+      final currentUser = cookRepository.userRepository!.currentUser ??
+          await cookRepository.userRepository!.getUser();
       if (isEdit == true) {
         map['food_id'] = foodId;
       } else {
@@ -128,7 +130,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         localPaths.add(element.path!);
       }
 
-      var response = await cookRepository!.saveMenuItem(
+      var response = await cookRepository.saveMenuItem(
           data: map,
           filePaths: localPaths,
           isEdit: isEdit,
@@ -157,12 +159,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     getCookingStyle();
     emit(AddMenuState(
         deleteImagesId: const [],
-      cookingStyleList: _cloneCookingStyleList(state.cookingStyleList),
-      specialDietDataListOriginal:
-        _cloneSpecialDietList(state.specialDietDataListOriginal),
+        cookingStyleList: _cloneCookingStyleList(state.cookingStyleList),
+        specialDietDataListOriginal:
+            _cloneSpecialDietList(state.specialDietDataListOriginal),
         foodMenu: state.foodMenu,
-      specialDietDataList:
-        _cloneSpecialDietList(state.specialDietDataListOriginal),
+        specialDietDataList:
+            _cloneSpecialDietList(state.specialDietDataListOriginal),
         selectedCookingStyle: CookingStyleData(name: ''),
         selectedFoodMenu: state.selectedFoodMenu));
   }
@@ -244,25 +246,36 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   getCookingStyle() async {
-    var response = await cookRepository!.getCookingStyle();
-    CookingStyle cookingStyle =
-        CookingStyle.fromJson(jsonDecode(response.body));
+    try {
+      var response = await cookRepository.getCookingStyle();
+      CookingStyle cookingStyle =
+          CookingStyle.fromJson(jsonDecode(response.body));
 
-    if (cookingStyle.status == 200) {
-      emit(state.copyWith(
-          cookingStyleList: _cloneCookingStyleList(cookingStyle.data ?? [])));
+      if (cookingStyle.status == 200) {
+        emit(state.copyWith(
+            cookingStyleList: _cloneCookingStyleList(cookingStyle.data ?? [])));
+      }
+    } catch (e) {
+      AppLogger.error('Unable to load cooking styles', e);
+      Helper.showToast('Unable to load cooking styles.');
     }
   }
 
   getSpecialDiet() async {
-    var response = await cookRepository!.getSpecialDiets();
-    SpecialDiet specialDiet = SpecialDiet.fromJson(jsonDecode(response.body));
+    try {
+      var response = await cookRepository.getSpecialDiets();
+      SpecialDiet specialDiet = SpecialDiet.fromJson(jsonDecode(response.body));
 
-    if (specialDiet.status == 200) {
-      final specialDiets = _cloneSpecialDietList(specialDiet.data ?? const []);
-      emit(state.copyWith(
-          specialDietDataList: specialDiets,
-          specialDietDataListOriginal: _cloneSpecialDietList(specialDiets)));
+      if (specialDiet.status == 200) {
+        final specialDiets =
+            _cloneSpecialDietList(specialDiet.data ?? const []);
+        emit(state.copyWith(
+            specialDietDataList: specialDiets,
+            specialDietDataListOriginal: _cloneSpecialDietList(specialDiets)));
+      }
+    } catch (e) {
+      AppLogger.error('Unable to load special diets', e);
+      Helper.showToast('Unable to load special diets.');
     }
   }
 
@@ -298,8 +311,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         deletedImageIds.add(removedPicture.id.toString());
       }
 
-      allPaths.removeWhere(
-          (element) => element.path.toString() == path.toString());
+      allPaths
+          .removeWhere((element) => element.path.toString() == path.toString());
 
       emit(state.copyWith(
         pathFiles: allPaths,
@@ -330,7 +343,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   onFoodStatusChange({bool? value, String? foodId}) async {
     emit(
         state.copyWith(foodStatusFormStatus: FormzStatus.submissionInProgress));
-    var response = await cookRepository!.changFoodStatus(foodId: foodId);
+    var response = await cookRepository.changFoodStatus(foodId: foodId);
 
     if (response.statusCode == 200) {
       FoodData foodData = state.selectedFoodMenu!
@@ -348,7 +361,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
   @override
   Future<void> close() {
-    cookRepository?.dispose();
+    cookRepository.dispose();
     return super.close();
   }
 
@@ -393,8 +406,6 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       return const [];
     }
 
-    return specialDiets
-        .map((diet) => diet.copyWith())
-        .toList(growable: false);
+    return specialDiets.map((diet) => diet.copyWith()).toList(growable: false);
   }
 }

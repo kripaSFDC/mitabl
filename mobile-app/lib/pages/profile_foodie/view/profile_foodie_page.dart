@@ -305,7 +305,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               final userRepository = context.read<UserRepository>();
                               try {
                                 final user = await userRepository.getUser();
-                                final payload = await MobileContactRepository().fetch(user);
+                                final payload = await MobileContactRepository(
+                                  httpClient: userRepository.httpClient,
+                                ).fetch(user);
                                 final message = payload['message']?.toString() ?? 'Contact information loaded.';
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

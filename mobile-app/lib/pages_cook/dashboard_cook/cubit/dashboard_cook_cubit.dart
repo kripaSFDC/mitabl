@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/model/dashboard_data.dart' as dd;
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -27,13 +28,21 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
   }
 
   getDashBoardData() async {
-    var response = await userRepository!.getDashboardData();
-    if (response.statusCode == 200) {
-      dd.DashboardData dashboardData =
-          dd.DashboardData.fromJson(jsonDecode(response.body));
-      emit(state.copyWith(dashboardData: dashboardData));
-    }else{
-
+    try {
+      final response = await userRepository!.getDashboardData();
+      if (response.statusCode == 200) {
+        dd.DashboardData dashboardData =
+            dd.DashboardData.fromJson(jsonDecode(response.body));
+        emit(state.copyWith(dashboardData: dashboardData));
+      } else {
+        AppLogger.warn(
+          'Dashboard request failed with status ${response.statusCode}',
+        );
+        Helper.showToast('Unable to load dashboard data.');
+      }
+    } catch (e) {
+      AppLogger.error('Dashboard request failed', e);
+      Helper.showToast('Unable to load dashboard data.');
     }
   }
 

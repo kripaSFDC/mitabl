@@ -59,18 +59,16 @@ class LoginCubit extends Cubit<LoginState> {
             apiStatus: FormzStatus.submissionSuccess,
             serverMessage: 'Login Successfully...'));
 
-        _authenticationRepository.controller
-            .add(AuthenticationStatus.authenticated);
+        _authenticationRepository.notifyAuthenticated();
       } else {
         final payload = jsonDecode(response.body);
         String message = 'Request failed. Please try again.';
         if (payload is Map<String, dynamic>) {
-          message = (payload['isError'] ?? payload['message'] ?? message)
-              .toString();
+          message =
+              (payload['isError'] ?? payload['message'] ?? message).toString();
         }
         emit(state.copyWith(
-            apiStatus: FormzStatus.submissionFailure,
-            serverMessage: message));
+            apiStatus: FormzStatus.submissionFailure, serverMessage: message));
         emit(state.copyWith(
             apiStatus: FormzStatus.pure, serverMessage: message));
       }

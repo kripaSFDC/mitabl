@@ -11,8 +11,10 @@ import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
+import 'package:mitabl_user/model/near_by_restaurants_response.dart' as near_by;
 import 'package:mitabl_user/model/near_by_restaurants_response.dart';
 import 'package:mitabl_user/model/recommended_rest_response.dart';
+import 'package:mitabl_user/model/top_rated_rest_response.dart' as top_rated;
 import 'package:mitabl_user/model/top_rated_rest_response.dart';
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
@@ -28,8 +30,8 @@ class HomeCubit extends Cubit<HomeState> {
     HomeRepository? homeRepository,
     CookRepository? cookRepository,
   })  : userRepository = repo,
-        _homeRepository = homeRepository ??
-            HomeRepository(httpClient: repo.httpClient),
+        _homeRepository =
+            homeRepository ?? HomeRepository(httpClient: repo.httpClient),
         _cookRepository = cookRepository ??
             CookRepository(
               repo,
@@ -46,6 +48,7 @@ class HomeCubit extends Cubit<HomeState> {
   static const _cacheNearByPrefix = 'home_feed_nearby_v1';
   static const _cacheTimestampSuffix = '_ts';
   static const _cacheTtl = Duration(minutes: 10);
+  static const _feedPageSize = 10;
 
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
@@ -79,13 +82,58 @@ class HomeCubit extends Cubit<HomeState> {
 
     await Future.wait<void>([
       onRecommendedRestaurants(),
-      onNearByRestaurants(),
-      onTopratedRestaurants(),
+      onNearByRestaurants(page: 1),
+      onTopratedRestaurants(page: 1),
     ]);
   }
 
+  TopReatedRestResponse _mergeTopRatedResponses({
+    required TopReatedRestResponse existing,
+    required TopReatedRestResponse incoming,
+  }) {
+    final existingList = existing.data?.topReatedRestList ?? const [];
+    final incomingList = incoming.data?.topReatedRestList ?? const [];
+    final mergedList = <TopReatedRestList>[
+      ...existingList,
+      ...incomingList,
+    ];
+
+    return TopReatedRestResponse(
+      status: incoming.status ?? existing.status,
+      isSuccess: incoming.isSuccess ?? existing.isSuccess,
+      message: incoming.message ?? existing.message,
+      data: top_rated.Data(
+        totalCount: incoming.data?.totalCount ?? existing.data?.totalCount,
+        topReatedRestList: mergedList,
+      ),
+    );
+  }
+
+  NearByRestaurantsResponse _mergeNearByResponses({
+    required NearByRestaurantsResponse existing,
+    required NearByRestaurantsResponse incoming,
+  }) {
+    final existingList = existing.data?.nearByRestaurantsList ?? const [];
+    final incomingList = incoming.data?.nearByRestaurantsList ?? const [];
+    final mergedList = <NearByRestaurantsList>[
+      ...existingList,
+      ...incomingList,
+    ];
+
+    return NearByRestaurantsResponse(
+      status: incoming.status ?? existing.status,
+      isSuccess: incoming.isSuccess ?? existing.isSuccess,
+      message: incoming.message ?? existing.message,
+      data: near_by.Data(
+        totalCount: incoming.data?.totalCount ?? existing.data?.totalCount,
+        nearByRestaurantsList: mergedList,
+      ),
+    );
+  }
+
   Future<UserModel?> _resolveUserModel() async {
-    _cachedUserModel ??= userRepository.currentUser ?? await userRepository.getUser();
+    _cachedUserModel ??=
+        userRepository.currentUser ?? await userRepository.getUser();
     return _cachedUserModel;
   }
 
@@ -121,7 +169,8 @@ class HomeCubit extends Cubit<HomeState> {
     final topRatedJson = _readFreshCache(prefs, topRatedKey);
     if (topRatedJson != null && topRatedJson.isNotEmpty) {
       try {
-        final topRated = TopReatedRestResponse.fromJson(jsonDecode(topRatedJson));
+        final topRated =
+            TopReatedRestResponse.fromJson(jsonDecode(topRatedJson));
         nextState = nextState.copyWith(
           statusTopRes: FormzStatus.submissionSuccess,
           topReatedRestResponse: topRated,
@@ -136,7 +185,8 @@ class HomeCubit extends Cubit<HomeState> {
     final nearByJson = _readFreshCache(prefs, nearByKey);
     if (nearByJson != null && nearByJson.isNotEmpty) {
       try {
-        final nearBy = NearByRestaurantsResponse.fromJson(jsonDecode(nearByJson));
+        final nearBy =
+            NearByRestaurantsResponse.fromJson(jsonDecode(nearByJson));
         nextState = nextState.copyWith(
           statusApi: FormzStatus.submissionSuccess,
           nearByRestaurants: nearBy,
@@ -160,8 +210,8 @@ class HomeCubit extends Cubit<HomeState> {
     final prefs = await SharedPreferences.getInstance();
     final key = _cacheKey(prefix, userId);
     await prefs.setString(key, value);
-    await prefs.setInt('$key$_cacheTimestampSuffix',
-        DateTime.now().millisecondsSinceEpoch);
+    await prefs.setInt(
+        '$key$_cacheTimestampSuffix', DateTime.now().millisecondsSinceEpoch);
   }
 
   String? _readFreshCache(SharedPreferences prefs, String key) {
@@ -205,13 +255,13 @@ class HomeCubit extends Cubit<HomeState> {
     required T Function(String body) decode,
     required String cacheKey,
     required String feedName,
+    bool writeToCache = true,
   }) async {
     emit(loadingState(state));
 
     try {
       final userModel = await _resolveUserModel();
-      final response =
-          await _performRequestWithRetry(() => request(userModel));
+      final response = await _performRequestWithRetry(() => request(userModel));
 
       if (requestToken != _requestToken) {
         return;
@@ -220,11 +270,13 @@ class HomeCubit extends Cubit<HomeState> {
       if (response.statusCode == 200) {
         final data = decode(response.body);
         emit(successState(state, data));
-        await _writeCache(
-          prefix: cacheKey,
-          userId: userModel?.data?.user?.id,
-          value: response.body,
-        );
+        if (writeToCache) {
+          await _writeCache(
+            prefix: cacheKey,
+            userId: userModel?.data?.user?.id,
+            value: response.body,
+          );
+        }
       } else {
         emit(failureState(state));
         _showApiError(statusCode: response.statusCode, feedName: feedName);
@@ -265,6 +317,14 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void _showApiError({int? statusCode, required String feedName}) {
+    if (statusCode == 401) {
+      AppLogger.error(
+        'Home feed request failed',
+        {'feed': feedName, 'statusCode': statusCode},
+      );
+      return;
+    }
+
     AppLogger.error(
       'Home feed request failed',
       {'feed': feedName, 'statusCode': statusCode},
@@ -322,7 +382,8 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(locationLabel: label));
   }
 
-  Future<String> _resolveLocationLabel(double latitude, double longitude) async {
+  Future<String> _resolveLocationLabel(
+      double latitude, double longitude) async {
     try {
       final marks = await placemarkFromCoordinates(latitude, longitude);
       if (marks.isEmpty) {
@@ -332,7 +393,8 @@ class HomeCubit extends Cubit<HomeState> {
       final mark = marks.first;
       final parts = <String>[
         if ((mark.locality ?? '').isNotEmpty) mark.locality!,
-        if ((mark.administrativeArea ?? '').isNotEmpty) mark.administrativeArea!,
+        if ((mark.administrativeArea ?? '').isNotEmpty)
+          mark.administrativeArea!,
         if ((mark.country ?? '').isNotEmpty) mark.country!,
       ];
       if (parts.isEmpty) {
@@ -428,7 +490,8 @@ class HomeCubit extends Cubit<HomeState> {
       final coordinates = await _resolveCoordinates();
 
       if (coordinates == null) {
-        Helper.showToast('Unable to access current location. Check permissions.');
+        Helper.showToast(
+            'Unable to access current location. Check permissions.');
         return;
       }
 
@@ -511,48 +574,122 @@ class HomeCubit extends Cubit<HomeState> {
     );
   }
 
-  Future<void> onTopratedRestaurants() async {
+  Future<void> onTopratedRestaurants({int page = 1}) async {
     final requestToken = _requestToken;
+    final append = page > 1;
+    final existingItems = state.topReatedRestResponse?.data?.topReatedRestList;
+    if (append && (existingItems == null || existingItems.isEmpty)) {
+      return onTopratedRestaurants(page: 1);
+    }
+
     await _fetchDiscoveryFeed<TopReatedRestResponse>(
       requestToken: requestToken,
-      loadingState: (current) =>
-          current.copyWith(statusTopRes: FormzStatus.submissionInProgress),
-      successState: (current, data) => current.copyWith(
-        statusTopRes: FormzStatus.submissionSuccess,
-        topReatedRestResponse: data,
+      loadingState: (current) => append
+          ? current.copyWith(isLoadingMoreTopRated: true)
+          : current.copyWith(
+              statusTopRes: FormzStatus.submissionInProgress,
+              topRatedPage: 1,
+              hasMoreTopRated: true,
+            ),
+      successState: (current, data) {
+        final merged = append && current.topReatedRestResponse?.data != null
+            ? _mergeTopRatedResponses(
+                existing: current.topReatedRestResponse!,
+                incoming: data,
+              )
+            : data;
+        final loadedCount = merged.data?.topReatedRestList?.length ?? 0;
+        final totalCount = merged.data?.totalCount ?? loadedCount;
+        return current.copyWith(
+          statusTopRes: FormzStatus.submissionSuccess,
+          topReatedRestResponse: merged,
+          topRatedPage: page,
+          hasMoreTopRated: loadedCount < totalCount,
+          isLoadingMoreTopRated: false,
+        );
+      },
+      failureState: (current) => current.copyWith(
+        statusTopRes: FormzStatus.submissionFailure,
+        isLoadingMoreTopRated: false,
       ),
-      failureState: (current) =>
-          current.copyWith(statusTopRes: FormzStatus.submissionFailure),
       request: (userModel) => _homeRepository.topRatedRestaurants(
         data: _buildFilterMap(withLocation: true),
         userModel: userModel,
+        page: page,
+        limit: _feedPageSize,
       ),
       decode: (body) => TopReatedRestResponse.fromJson(jsonDecode(body)),
       cacheKey: _cacheTopRatedPrefix,
       feedName: 'top rated restaurants',
+      writeToCache: !append,
     );
   }
 
-  Future<void> onNearByRestaurants() async {
+  Future<void> onNearByRestaurants({int page = 1}) async {
     final requestToken = _requestToken;
+    final append = page > 1;
+    final existingItems = state.nearByRestaurants?.data?.nearByRestaurantsList;
+    if (append && (existingItems == null || existingItems.isEmpty)) {
+      return onNearByRestaurants(page: 1);
+    }
+
     await _fetchDiscoveryFeed<NearByRestaurantsResponse>(
       requestToken: requestToken,
-      loadingState: (current) =>
-          current.copyWith(statusApi: FormzStatus.submissionInProgress),
-      successState: (current, data) => current.copyWith(
-        statusApi: FormzStatus.submissionSuccess,
-        nearByRestaurants: data,
+      loadingState: (current) => append
+          ? current.copyWith(isLoadingMoreNearBy: true)
+          : current.copyWith(
+              statusApi: FormzStatus.submissionInProgress,
+              nearByPage: 1,
+              hasMoreNearBy: true,
+            ),
+      successState: (current, data) {
+        final merged = append && current.nearByRestaurants?.data != null
+            ? _mergeNearByResponses(
+                existing: current.nearByRestaurants!,
+                incoming: data,
+              )
+            : data;
+        final loadedCount = merged.data?.nearByRestaurantsList?.length ?? 0;
+        final totalCount = merged.data?.totalCount ?? loadedCount;
+        return current.copyWith(
+          statusApi: FormzStatus.submissionSuccess,
+          nearByRestaurants: merged,
+          nearByPage: page,
+          hasMoreNearBy: loadedCount < totalCount,
+          isLoadingMoreNearBy: false,
+        );
+      },
+      failureState: (current) => current.copyWith(
+        statusApi: FormzStatus.submissionFailure,
+        isLoadingMoreNearBy: false,
       ),
-      failureState: (current) =>
-          current.copyWith(statusApi: FormzStatus.submissionFailure),
       request: (userModel) => _homeRepository.nearByRestaurants(
         data: _buildFilterMap(withLocation: true),
         userModel: userModel,
+        page: page,
+        limit: _feedPageSize,
       ),
       decode: (body) => NearByRestaurantsResponse.fromJson(jsonDecode(body)),
       cacheKey: _cacheNearByPrefix,
       feedName: 'nearby restaurants',
+      writeToCache: !append,
     );
+  }
+
+  Future<void> loadMoreTopRated() async {
+    if (state.isLoadingMoreTopRated || !state.hasMoreTopRated) {
+      return;
+    }
+
+    await onTopratedRestaurants(page: state.topRatedPage + 1);
+  }
+
+  Future<void> loadMoreNearBy() async {
+    if (state.isLoadingMoreNearBy || !state.hasMoreNearBy) {
+      return;
+    }
+
+    await onNearByRestaurants(page: state.nearByPage + 1);
   }
 
   void onApplyFilter() {
@@ -560,8 +697,8 @@ class HomeCubit extends Cubit<HomeState> {
     _filterDebounce = Timer(const Duration(milliseconds: 300), () {
       _requestToken++;
       onRecommendedRestaurants();
-      onNearByRestaurants();
-      onTopratedRestaurants();
+      onNearByRestaurants(page: 1);
+      onTopratedRestaurants(page: 1);
     });
   }
 

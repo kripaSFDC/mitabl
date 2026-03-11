@@ -1,28 +1,87 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/model/top_rated_rest_response.dart';
 
-class TopRatedWidget extends StatelessWidget {
-  const TopRatedWidget({super.key, this.topReatedRestList});
+class TopRatedWidget extends StatefulWidget {
+  const TopRatedWidget({
+    super.key,
+    this.topReatedRestList,
+    this.onLoadMore,
+    this.canLoadMore = false,
+    this.isLoadingMore = false,
+  });
 
   final List<TopReatedRestList>? topReatedRestList;
+  final Future<void> Function()? onLoadMore;
+  final bool canLoadMore;
+  final bool isLoadingMore;
+
+  @override
+  State<TopRatedWidget> createState() => _TopRatedWidgetState();
+}
+
+class _TopRatedWidgetState extends State<TopRatedWidget> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    _scrollController = ScrollController()..addListener(_handleScroll);
+    super.initState();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients ||
+        !widget.canLoadMore ||
+        widget.isLoadingMore ||
+        widget.onLoadMore == null) {
+      return;
+    }
+
+    if (_scrollController.position.extentAfter < 200) {
+      widget.onLoadMore!.call();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final items = widget.topReatedRestList ?? const <TopReatedRestList>[];
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return SizedBox(
       height: config.AppConfig(context).appHeight(13),
       child: ListView.separated(
+          controller: _scrollController,
           scrollDirection: Axis.horizontal,
           separatorBuilder: (context, index) {
             return SizedBox(
               width: config.AppConfig(context).appWidth(2),
             );
           },
-          itemCount: topReatedRestList!.length,
+          itemCount: items.length + (widget.isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
+            if (index >= items.length) {
+              return SizedBox(
+                width: config.AppConfig(context).appWidth(20),
+                child: const Center(
+                  child: CupertinoActivityIndicator(color: Colors.grey),
+                ),
+              );
+            }
+
             return Container(
               width: config.AppConfig(context).appWidth(80),
               decoration: BoxDecoration(
@@ -38,12 +97,11 @@ class TopRatedWidget extends StatelessWidget {
                       alignment: AlignmentDirectional.bottomStart,
                       children: <Widget>[
                         ClipRRect(
-                          borderRadius: const BorderRadius.all(Radius.circular(10)),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
                           child: CachedNetworkImage(
-                            imageUrl: topReatedRestList!
-                                        .elementAt(index)
-                                        .images!.isNotEmpty
-                                ? '${GlobalConfiguration().getValue<String>('image_base_url')}${topReatedRestList!.elementAt(index).images![0].path}'
+                            imageUrl: items.elementAt(index).images!.isNotEmpty
+                                ? '${GlobalConfiguration().getValue<String>('image_base_url')}${items.elementAt(index).images![0].path}'
                                 : '',
                             progressIndicatorBuilder:
                                 (context, url, downloadProgress) =>
@@ -71,8 +129,8 @@ class TopRatedWidget extends StatelessWidget {
                                     image: imageProvider,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius:
-                                      const BorderRadius.all(Radius.circular(10))),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(10))),
                             ),
                           ),
                         ),
@@ -91,7 +149,7 @@ class TopRatedWidget extends StatelessWidget {
                               children: <Widget>[
                                 Expanded(
                                   child: Text(
-                                    '${topReatedRestList!.elementAt(index).name}',
+                                    '${items.elementAt(index).name}',
                                     overflow: TextOverflow.fade,
                                     softWrap: false,
                                     style: GoogleFonts.gothicA1(
@@ -112,7 +170,7 @@ class TopRatedWidget extends StatelessWidget {
                               children: <Widget>[
                                 Expanded(
                                   child: Text(
-                                    '${topReatedRestList!.elementAt(index).address}',
+                                    '${items.elementAt(index).address}',
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     // softWrap: false,
@@ -153,7 +211,7 @@ class TopRatedWidget extends StatelessWidget {
                                         width: 2,
                                       ),
                                       Text(
-                                        '${topReatedRestList!.elementAt(index).ratingCount!.toStringAsFixed(1)}',
+                                        '${items.elementAt(index).ratingCount!.toStringAsFixed(1)}',
                                         style: GoogleFonts.gothicA1(
                                           fontSize: config.AppConfig(context)
                                               .appWidth(2.7),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/cubit/add_menu_cubit.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
+import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 import 'package:mitabl_user/route_generator.dart';
@@ -20,11 +20,13 @@ import 'helper/appconstants.dart';
 class App extends StatelessWidget {
   final AuthenticationRepository authenticationRepository;
   final UserRepository userRepository;
+  final SessionRepository sessionRepository;
 
   const App(
       {super.key,
       required this.authenticationRepository,
-      required this.userRepository});
+      required this.userRepository,
+      required this.sessionRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,10 @@ class App extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (context) => authenticationRepository),
         RepositoryProvider(create: (context) => userRepository),
+        RepositoryProvider(
+          create: (context) => sessionRepository,
+          dispose: (repository) => repository.dispose(),
+        ),
         RepositoryProvider(
           create: (context) => SupportTicketRepository(
             userRepository: userRepository,
@@ -46,12 +52,6 @@ class App extends StatelessWidget {
             create: (_) => AuthenticationBloc(
               authenticationRepository: authenticationRepository,
               userRepository: userRepository,
-            ),
-          ),
-          BlocProvider(
-            create: (_) => LoginCubit(
-              authRepository: authenticationRepository,
-              repo: userRepository,
             ),
           ),
           BlocProvider(
@@ -97,8 +97,6 @@ class AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<AppView> {
-  // final _navigatorKey = GlobalKey<NavigatorState>();
-
   NavigatorState? get _navigator => navigatorKey.currentState;
 
   @override
@@ -109,32 +107,46 @@ class _AppViewState extends State<AppView> {
     super.initState();
   }
 
+  void _handleAuthenticationState(AuthenticationState state) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      final navigator = _navigator;
+      if (navigator == null) {
+        AppLogger.warn('Navigator unavailable while handling auth state.');
+        return;
+      }
+
+      switch (state.status) {
+        case AuthenticationStatus.authenticated:
+          final role = state.user?.data?.user?.role;
+          final routeName = role == AppConstants.IS_COOK.toString()
+              ? '/DashboardCook'
+              : '/HomePage';
+          navigator.pushNamedAndRemoveUntil(routeName, (route) => false);
+          break;
+
+        case AuthenticationStatus.unauthenticated:
+          navigator.pushNamedAndRemoveUntil('/LandingPage', (route) => false);
+          break;
+
+        case AuthenticationStatus.unknown:
+          break;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         navigatorKey: navigatorKey,
         builder: (context, child) {
           return BlocListener<AuthenticationBloc, AuthenticationState>(
-            listener: (context, state) async {
+            listener: (context, state) {
               AppLogger.debug('Authentication status: ${state.status}');
-              switch (state.status) {
-                case AuthenticationStatus.authenticated:
-                  state.user!.data!.user!.role ==
-                          AppConstants.IS_COOK.toString()
-                      ? _navigator!.pushNamedAndRemoveUntil(
-                          '/DashboardCook', (route) => false)
-                      : _navigator!.pushNamedAndRemoveUntil(
-                          '/HomePage', (route) => false);
-                  break;
-
-                case AuthenticationStatus.unauthenticated:
-                  _navigator!.pushNamedAndRemoveUntil(
-                      '/LandingPage', (route) => false);
-
-                  break;
-                default:
-                  break;
-              }
+              _handleAuthenticationState(state);
             },
             child: child,
           );
@@ -143,7 +155,6 @@ class _AppViewState extends State<AppView> {
         debugShowCheckedModeBanner: false,
         onGenerateRoute: RouteGenerator.generateRoute,
         theme: ThemeData(
-          // fontFamily: 'Poppins',
           fontFamily: config.FontFamily().itcAvantGardeGothicStdFontFamily,
           primaryColor: config.AppColors().colorPrimary(1),
           floatingActionButtonTheme: const FloatingActionButtonThemeData(

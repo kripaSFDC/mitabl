@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Mikitchn;
+use App\Models\Certificate;
 use App\Models\User;
 use App\Models\Review;
 use App\Models\Foods;
@@ -130,6 +131,8 @@ class MikitchnController extends Controller
             'no_of_seats' => 'required|integer',
             'timings' => 'required|string',
             'phone' => 'required|string',
+            'abn' => 'nullable|string',
+            'certificate_no' => 'nullable|string',
             'lat' => 'nullable|numeric|between:-90,90|required_with:lng',
             'lng' => 'nullable|numeric|between:-180,180|required_with:lat',
         ]
@@ -183,6 +186,16 @@ class MikitchnController extends Controller
                 $kitchen->longitude = (float) $request->lng;
             }
             $kitchen->save();
+
+            if ($request->exists('abn') || $request->exists('certificate_no')) {
+                Certificate::query()->updateOrCreate(
+                    ['mikitchn_id' => $kitchen->id],
+                    [
+                        'abn' => $request->input('abn') ?: null,
+                        'certificate_no' => $request->input('certificate_no') ?: '',
+                    ]
+                );
+            }
 
             foreach ($timings as $timing) {
                 $day = $this->normalizeTimingDay((string) ($timing->day ?? ''));
@@ -335,4 +348,3 @@ class MikitchnController extends Controller
     }
 
 }
-

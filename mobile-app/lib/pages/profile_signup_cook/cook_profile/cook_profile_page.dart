@@ -27,7 +27,6 @@ class CookProfilePage extends StatefulWidget {
                   context.read<AuthenticationRepository>(), routeArguments),
               child: const CookProfilePage(),
             ));
-    // );
   }
 
   @override
@@ -57,9 +56,6 @@ class _CookProfilePage extends State<CookProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    // timeDilation = 0.4;
-
-
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return SafeArea(
       child: Scaffold(
@@ -686,7 +682,8 @@ class _PhoneNoState extends State<_PhoneNo> {
                     color: Theme.of(context).hintColor),
               ),
             ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+            prefixIconConstraints:
+                const BoxConstraints(minWidth: 0, minHeight: 0),
             counterText: '',
             errorText:
                 state.phone.invalid ? 'Please enter a valid phone no' : null,
@@ -818,10 +815,8 @@ class _UploadbuttonState extends State<_UploadButton> {
                     if (!context.mounted) return;
                     if (value != null) {
                       if (value) {
-                        //Get from camera
                         _openCamera(context);
                       } else {
-                        //Get from gallery
                         _openGallery(context);
                       }
                     }
@@ -844,8 +839,7 @@ class _UploadbuttonState extends State<_UploadButton> {
 
   void _openGallery(BuildContext context) async {
     final cubit = context.read<CookProfileCubit>();
-    final picture =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
       if (!context.mounted || picture == null) {
@@ -915,9 +909,6 @@ class _LoginButton extends StatelessWidget {
               minWidth: config.AppConfig(context).appWidth(100),
               height: 50.0,
               onPressed: () {
-                //
-                // navigatorKey.currentState!.popAndPushNamed('/OTPPage');
-                // return;
                 if (state.status!.isValidated) {
                   context.read<CookProfileCubit>().onKitchnUpload();
                 }
@@ -934,4 +925,3 @@ class _LoginButton extends StatelessWidget {
     );
   }
 }
-

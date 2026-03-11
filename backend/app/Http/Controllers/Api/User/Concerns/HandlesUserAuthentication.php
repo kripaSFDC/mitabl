@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Validator;
 use JWTAuth;
 
@@ -129,6 +132,65 @@ trait HandlesUserAuthentication
         }
 
         return $this->responser(['user' => $uData], $msg);
+    }
+
+    /**
+     * @OA\Post(
+     * path="/api/token/refresh",
+     * summary="Refresh mobile access token",
+     * description="Returns a replacement bearer JWT when the presented token is still within the backend refresh TTL window.",
+     * operationId="token-refresh",
+     * tags={"User"},
+     * security={{"Authorization":{}}},
+     * @OA\Response(
+     *   response=200,
+     *   description="Token refreshed successfully",
+     *   @OA\JsonContent()
+     * ),
+     * @OA\Response(
+     *   response=401,
+     *   description="Refresh token missing, malformed, invalid, expired, or blacklisted",
+     *   @OA\JsonContent()
+     * ),
+     * @OA\Response(response=403, description="Suspended or forbidden account role")
+     * )
+     */
+    public function refreshToken(Request $request)
+    {
+        try {
+            $newToken = JWTAuth::parseToken()->refresh();
+            $user = JWTAuth::setToken($newToken)->authenticate();
+            if (! $user) {
+                return $this->responser([], 'Unable to resolve authenticated user.', 401);
+            }
+
+            if ($this->isAdminIdentityRole((int) $user->role_id)) {
+                $this->invalidateTokenQuietly($newToken);
+                return $this->forbiddenAdminIdentityResponse();
+            }
+
+            if ((bool) $user->suspended) {
+                $this->invalidateTokenQuietly($newToken);
+                return $this->suspendedAccountResponse();
+            }
+
+            UserAuthToken::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['latest_token' => $newToken]
+            );
+
+            return $this->responser([
+                'access_token' => $newToken,
+                'token_type' => 'bearer',
+                'expires_in_minutes' => config('jwt.ttl'),
+                'refresh_expires_in_minutes' => config('jwt.refresh_ttl'),
+                'user' => $this->buildVerifiedMobileUserPayload($user),
+            ], 'Token refreshed successfully.');
+        } catch (TokenExpiredException|TokenInvalidException|TokenBlacklistedException $exception) {
+            return $this->responser([], 'Refresh token is invalid or expired. Please login again.', 401);
+        } catch (JWTException $exception) {
+            return $this->responser([], 'Refresh token is missing or malformed.', 401);
+        }
     }
 
     public function register(Request $request)
@@ -451,6 +513,32 @@ trait HandlesUserAuthentication
     private function resolveKitchenAddedFlag(User $user): int
     {
         return Mikitchn::query()->where('user_id', $user->id)->exists() ? 1 : 0;
+    }
+
+    private function buildVerifiedMobileUserPayload(User $user): array
+    {
+        $data = [
+            'id' => $user->id,
+            'name' => $user->first_name,
+            'role' => $user->role->role,
+            'role_id' => $user->role_id,
+        ];
+
+        if ((int) $user->role_id === 2) {
+            $data['is_kitchen_added'] = $this->resolveKitchenAddedFlag($user);
+        }
+
+        return $data;
+    }
+
+    private function invalidateTokenQuietly(string $token): void
+    {
+        try {
+            JWTAuth::setToken($token);
+            JWTAuth::invalidate();
+        } catch (Throwable $throwable) {
+            report($throwable);
+        }
     }
 
     private function otpMatches(verifyOtp $otpRecord, string $providedOtp): bool

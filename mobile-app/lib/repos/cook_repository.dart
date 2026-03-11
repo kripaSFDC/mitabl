@@ -1,4 +1,3 @@
-
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
@@ -13,49 +12,42 @@ class CookRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
-  Future<String> _accessToken() async {
+  Future<Map<String, String>> _authorizedHeaders() async {
     final repo = userRepository;
     if (repo == null) {
       throw Exception('User repository unavailable.');
     }
-    final currentUser = repo.currentUser ?? await repo.getUser();
-    final token = currentUser?.data?.accessToken;
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token unavailable. Please login again.');
-    }
-    return token;
+
+    return repo.authorizedHeaders();
   }
 
   Future<http.Response> getFoodMenu() async {
-    final response = await _httpClient.get(
-      ApiContract.uri('v2/mymenu'),
-      headers: {
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .get(
+          ApiContract.uri('v2/mymenu'),
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
     return response;
   }
 
   Future<http.Response> getSpecialDiets() async {
-    final response = await _httpClient.get(
-      ApiContract.uri('v2/getspecialdiets'),
-      headers: {
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .get(
+          ApiContract.uri('v2/getspecialdiets'),
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
     return response;
   }
 
   Future<http.Response> getCookingStyle() async {
-    final response = await _httpClient.get(
-      ApiContract.uri('v2/getcookingstyles'),
-      headers: {
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .get(
+          ApiContract.uri('v2/getcookingstyles'),
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
     return response;
   }
 
@@ -70,14 +62,12 @@ class CookRepository {
       ApiContract.uri('v2/food/$urlSet'),
     );
 
-    request.headers.addAll({
-      'Authorization': 'Bearer ${await _accessToken()}',
-      'Accept': 'application/json',
-    });
+    request.headers.addAll(await _authorizedHeaders());
 
     if (filePaths.isNotEmpty) {
       for (final element in filePaths) {
-        request.files.add(await http.MultipartFile.fromPath('pictures[]', element));
+        request.files
+            .add(await http.MultipartFile.fromPath('pictures[]', element));
       }
     }
 
@@ -104,7 +94,8 @@ class CookRepository {
       request.fields.addAll({'restaurant_id': '${data['restaurant_id']}'});
     }
 
-    final response = await request.send().timeout(ApiContract.requestTimeout);
+    final response =
+        await _httpClient.send(request).timeout(ApiContract.requestTimeout);
     final resolved = await http.Response.fromStream(response);
     if (resolved.statusCode >= 500) {
       AppLogger.error('saveMenuItem server error', resolved.statusCode);
@@ -113,13 +104,12 @@ class CookRepository {
   }
 
   Future<http.Response> changFoodStatus({String? foodId}) async {
-    final response = await _httpClient.post(
-      ApiContract.uri('v2/food/status/$foodId'),
-      headers: {
-        'Authorization': 'Bearer ${await _accessToken()}',
-        'Accept': 'application/json',
-      },
-    ).timeout(ApiContract.requestTimeout);
+    final response = await _httpClient
+        .post(
+          ApiContract.uri('v2/food/status/$foodId'),
+          headers: await _authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
     return response;
   }
 

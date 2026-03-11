@@ -209,11 +209,9 @@ The following values are now DB-managed through Platform Settings:
 - `integrations.google_maps.api_key` -> `services.google_maps.api_key`
 - `integrations.fcm.server_key` -> `services.fcm.server_key`
 
-This removes dependence on:
-- `GOOGLE_MAPS_API_KEY`
-- `FCM_SERVER_KEY`
+Google Maps runtime operations no longer depend on the `GOOGLE_MAPS_API_KEY` environment variable. The backend geocoding flow reads the key from Platform Settings via runtime config.
 
-for runtime operations.
+FCM runtime operations no longer depend on `FCM_SERVER_KEY`.
 
 ---
 

@@ -5,6 +5,8 @@ class EditKitchenProfileState extends Equatable {
       {this.phone = const Phone.pure(),
       this.nameKitchn = const Name.pure(),
       this.address = const Name.pure(),
+      this.abn = '',
+      this.certificateNo = '',
       this.bio = const Name.pure(),
       this.status = FormzStatus.pure,
       this.statusApi = FormzStatus.pure,
@@ -20,6 +22,8 @@ class EditKitchenProfileState extends Equatable {
 
   final Name? nameKitchn;
   final Name? address;
+  final String abn;
+  final String certificateNo;
   final Name? bio;
   final Phone phone;
   final Phone noOfSeats;
@@ -47,6 +51,8 @@ class EditKitchenProfileState extends Equatable {
       FormzStatus? statusApi,
       Name? nameKitchn,
       Name? address,
+      String? abn,
+      String? certificateNo,
       Phone? noOfSeats,
       String? serverMessage,
       Phone? phone}) {
@@ -61,6 +67,8 @@ class EditKitchenProfileState extends Equatable {
         statusApi: statusApi ?? this.statusApi,
         status: status ?? this.status,
         address: address ?? this.address,
+        abn: abn ?? this.abn,
+        certificateNo: certificateNo ?? this.certificateNo,
         nameKitchn: nameKitchn ?? this.nameKitchn,
         noOfSeats: noOfSeats ?? this.noOfSeats,
         serverMessage: serverMessage ?? this.serverMessage,
@@ -79,6 +87,8 @@ class EditKitchenProfileState extends Equatable {
         noOfSeats,
         statusApi,
         address,
+        abn,
+        certificateNo,
         status,
         nameKitchn,
         phone,

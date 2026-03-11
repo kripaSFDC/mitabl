@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
+import 'package:mitabl_user/repos/auth_headers.dart';
 
 class HomeRepository {
   HomeRepository({http.Client? httpClient})
@@ -9,14 +10,6 @@ class HomeRepository {
 
   final http.Client _httpClient;
   final bool _ownsHttpClient;
-
-  String _bearerToken(UserModel? userModel) {
-    final token = userModel?.data?.accessToken;
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token unavailable. Please login again.');
-    }
-    return token;
-  }
 
   Future<http.Response> _discoveryGet({
     required String endpoint,
@@ -31,13 +24,12 @@ class HomeRepository {
 
     final url = ApiContract.uri(endpoint, queryParameters: queryParameters);
 
-    return _httpClient.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer ${_bearerToken(userModel)}',
-        'Accept': 'application/json',
-      },
-    ).timeout(ApiContract.requestTimeout);
+    return _httpClient
+        .get(
+          url,
+          headers: authorizedHeadersForUser(userModel),
+        )
+        .timeout(ApiContract.requestTimeout);
   }
 
   Future<http.Response> recommendedRestaurants(
@@ -51,23 +43,27 @@ class HomeRepository {
 
   Future<http.Response> topRatedRestaurants(
       {required Map<String, dynamic> data,
-      required UserModel? userModel}) {
+      required UserModel? userModel,
+      int page = 1,
+      int limit = 20}) {
     return _discoveryGet(
       endpoint: 'v2/discovery/top-rated',
       filters: data,
       userModel: userModel,
-      defaultParams: {'page': 1, 'limit': 20},
+      defaultParams: {'page': page, 'limit': limit},
     );
   }
 
   Future<http.Response> nearByRestaurants(
       {required Map<String, dynamic> data,
-      required UserModel? userModel}) {
+      required UserModel? userModel,
+      int page = 1,
+      int limit = 20}) {
     return _discoveryGet(
       endpoint: 'v2/discovery/nearest',
       filters: data,
       userModel: userModel,
-      defaultParams: {'page': 1, 'limit': 20},
+      defaultParams: {'page': page, 'limit': limit},
     );
   }
 

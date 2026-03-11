@@ -53,6 +53,7 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
     return response()->json($summary, $isReady ? 200 : 503);
 });
 Route::post('login', [UserController::class, 'login'])->middleware('throttle:10,1');
+Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:30,1');
 Route::post('register', [UserController::class, 'register']);
 Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:10,1');
 Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:5,1');

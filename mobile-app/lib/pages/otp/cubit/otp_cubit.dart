@@ -41,8 +41,7 @@ class OtpCubit extends Cubit<OtpState> {
         await userRepository!.setCurrentUser(response.body).then((value) async {
           emit(state.copyWith(statusAPI: FormzStatus.submissionSuccess));
           if (routeArguments!.role == AppConstants.FOODI) {
-            authenticationRepository!.controller
-                .add(AuthenticationStatus.authenticated);
+            authenticationRepository!.notifyAuthenticated();
           } else {
             navigatorKey.currentState!.popAndPushNamed('/CookProfile',
                 arguments: RouteArguments(data: otpResponse.data));
