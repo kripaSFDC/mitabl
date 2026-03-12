@@ -172,12 +172,27 @@ class UserRepository {
 
   Future<http.Response> deleteAccount() async {
     try {
-      return _httpClient
+      final headers = await authorizedHeaders();
+      final uri = ApiContract.uri('v2/account/delete');
+      final deleteResponse = await _httpClient
           .delete(
-            ApiContract.uri('v2/account/delete'),
-            headers: await authorizedHeaders(),
+            uri,
+            headers: headers,
           )
           .timeout(ApiContract.requestTimeout);
+
+      if (deleteResponse.statusCode == 404 ||
+          deleteResponse.statusCode == 405 ||
+          deleteResponse.statusCode == 501) {
+        return _httpClient
+            .post(
+              uri,
+              headers: headers,
+            )
+            .timeout(ApiContract.requestTimeout);
+      }
+
+      return deleteResponse;
     } catch (e) {
       AppLogger.error('Failed to delete account', e);
       rethrow;

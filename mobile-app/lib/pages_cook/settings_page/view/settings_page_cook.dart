@@ -127,6 +127,12 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
           setState(() => _notificationsEnabled = previous);
         }
         _showSnackBar(serverMessage);
+      } else {
+        _showSnackBar(
+          enabled
+              ? 'Notifications enabled successfully.'
+              : 'Notifications disabled successfully.',
+        );
       }
     } catch (error) {
       await _persistNotificationPreference(previous);
@@ -322,6 +328,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
       final repository = context.read<UserRepository>();
       final response = await repository.deleteAccount();
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        await _persistNotificationPreference(true);
         _showSnackBar('Account deleted successfully.');
         if (mounted) {
           await context.read<AuthenticationRepository>().logOut();

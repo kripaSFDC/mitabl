@@ -23,12 +23,18 @@ class _LandingPageState extends State<LandingPage> {
   late final TapGestureRecognizer _privacyRecognizer;
 
   Future<void> _launchInBrowser(Uri url) async {
-    final launched = await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    );
+    try {
+      final launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
 
-    if (!launched) {
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open ${url.toString()}')),
+        );
+      }
+    } on Exception {
       if (!mounted) {
         return;
       }
