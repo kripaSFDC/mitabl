@@ -2,36 +2,43 @@
 
 ## Document intent
 
-This document is a **deep, engineering-grade overview** of the `mobile-app/` codebase for architecture review, onboarding, security assessment, platform operations, QA planning, and modernization roadmapping.
+This document is a **code-first, implementation-accurate** technical overview of the `mobile-app/` project for onboarding, architecture reviews, QA planning, operations, and modernization decisions.
 
-It reflects a code-first audit across app entry points, routing, feature modules, state management, repositories, models, native wrappers, configuration, and tests.
+It has been updated to match the **current repository state** and focuses on real runtime behavior from Flutter app wiring, repositories, cubits/blocs, route contracts, API usage, native wrappers, and tests.
 
 ---
 
 ## 1. System snapshot
 
-- **Platform**: Flutter (single codebase with Android + iOS wrappers).
-- **App package name**: `mitabl_user`.
-- **User personas**:
+- **Platform**: Flutter (single codebase; Android + iOS wrappers).
+- **App package**: `mitabl_user`.
+- **Primary personas**:
   - Foodie (consumer)
   - Cook/Restaurant (vendor)
-- **Runtime style**: Route-driven app with `BLoC/Cubit` state and repository-based data access.
-- **Session persistence**: `SharedPreferences` with serialized `current_user` payload.
-- **Environment config**: Runtime JSON config (`assets/cfg/configuration.json`) loaded on startup.
+- **State management mix**:
+  - App-wide auth state: `AuthenticationBloc`
+  - Feature/local state: `Cubit`-based modules
+- **HTTP architecture**:
+  - Shared `AuthAwareHttpClient` wraps `http.Client`
+  - Automatic 401 handling + token refresh retry via `SessionRepository`
+- **Runtime config**:
+  - `GlobalConfiguration().loadFromAsset('configuration')`
+  - Config file: `assets/cfg/configuration.json`
+- **Session persistence**:
+  - Primary store: `flutter_secure_storage` (`current_user_secure`)
+  - Legacy migration path from `SharedPreferences` (`current_user`) remains for backward compatibility.
 
 ### FAQ content source policy
 
-- The canonical FAQ source for all clients is the public website page: `https://mitabl.com/faq`.
-- The mobile app must not ship duplicated static FAQ copy as native text content.
-- Any FAQ content updates are website-owned changes and should be done only in the website FAQ source files.
+- The FAQ source used by mobile is website-owned: `https://mitabl.com/faq`.
+- The app displays FAQ via a dedicated webview page (`FaqWebviewPage`) and enforces host/scheme restrictions.
+- Mobile should not maintain duplicate hardcoded FAQ copy.
 
-### Scale indicators
+### Current scale indicators
 
-- `118` Dart source files.
-- `~24,060` lines of Dart.
-- `6` repositories.
-- `21` model files.
-- `18` Bloc/Cubit state-management files.
+- `129` Dart files under `lib/`.
+- `9` repositories under `lib/repos/`.
+- `5` repo-focused tests under `test/` (including auth headers/http/repo tests + default widget test).
 
 ---
 
@@ -39,50 +46,64 @@ It reflects a code-first audit across app entry points, routing, feature modules
 
 ## 2.1 Boot sequence
 
-1. `main.dart`
-   
-   - Calls `WidgetsFlutterBinding.ensureInitialized()`.
-   - Loads `GlobalConfiguration().loadFromAsset('configuration')`.
-   - Creates one shared `http.Client` and injects it into `UserRepository` and `AuthenticationRepository`.
-   - Starts `App(authenticationRepository, userRepository)`.
+1. `lib/main.dart`
+   - Initializes Flutter binding.
+   - Loads runtime configuration.
+   - Disables Google Fonts runtime fetching.
+   - Installs `AppBlocObserver`.
+   - Creates:
+     - `SessionRepository`
+     - shared `AuthAwareHttpClient`
+     - `UserRepository` using shared client
+     - `AuthenticationRepository` using shared client + user/session repositories
+   - Attaches `UserRepository` into `SessionRepository` for token refresh operations.
 
-2. `app.dart`
-   
-   - Registers repositories globally (`AuthenticationRepository`, `UserRepository`, `SupportTicketRepository`).
-   - Registers cross-cutting blocs/cubits (`AuthenticationBloc`, `LoginCubit`, `DashboardCookCubit`, `ProfileCookCubit`, `ProfileFoodieCubit`, `AddMenuCubit`).
-   - Configures a global `MaterialApp` with `RouteGenerator` and app theme.
-   - Locks orientation to portrait (`SystemChrome.setPreferredOrientations`).
+2. `lib/app.dart`
+   - Registers app-level repositories:
+     - `AuthenticationRepository`
+     - `UserRepository`
+     - `SessionRepository`
+     - `SupportTicketRepository`
+   - Registers global feature blocs/cubits:
+     - `AuthenticationBloc`
+     - `DashboardCookCubit`
+     - `ProfileCookCubit`
+     - `ProfileFoodieCubit`
+     - `AddMenuCubit`
+   - Forces portrait orientation (up/down).
+   - Builds `MaterialApp` + `RouteGenerator`.
 
-3. `AuthenticationBloc` + `navigatorKey`
-   
-   - Auth status stream controls root navigation:
-     - authenticated + role=Restaurant → `/DashboardCook`
-     - authenticated + non-cook → `/HomePage`
-     - unauthenticated → `/LandingPage`
+3. Authentication-driven root routing
+   - `AuthenticationBloc` listens to `AuthenticationRepository.status`.
+   - Auth state transitions route users using `navigatorKey`:
+     - authenticated cook: `/DashboardCook`
+     - authenticated foodie: `/HomePage`
+     - unauthenticated: `/LandingPage`
+   - Splash fallback sends unknown state to landing after 3 seconds.
 
 ## 2.2 Route registry contract
 
-`lib/route_generator.dart` is the single route dispatcher.
+`lib/route_generator.dart` remains the centralized route dispatcher.
 
-### Registered route map
+### Route families
 
-| Domain               | Routes                                                                                                                                                                                             |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Launch/auth          | `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage`                                                                                                                  |
-| Shared profile setup | `/CookProfile`                                                                                                                                                                                     |
-| Foodie               | `/HomePage`, `/EditProfileFoodie`, `/ProfileFoodie`                                                                                                                                                |
-| Cook shell & ops     | `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails` |
+| Domain | Routes |
+|---|---|
+| Launch/auth | `/Splash`, `/LandingPage`, `/LoginPage`, `/SignUpPage`, `/ForgotPage`, `/OTPPage` |
+| Shared onboarding/profile | `/CookProfile` |
+| Foodie | `/HomePage`, `/EditProfileFoodie`, `/ProfileFoodie` |
+| Cook shell + operations | `/DashboardCook`, `/SettingsCook`, `/ProfileCook`, `/EditKitchenProfile`, `/CustomerReviewPage`, `/AddMenuPage`, `/Bookings`, `/UpcomingBookings`, `/MenuDetails`, `/UserDetails`, `/OrderDetails` |
 
-### Observations
+### Runtime route safety posture
 
-- Centralized named route control is good for governance.
-- Several routes require `RouteArguments` cast at runtime; bad payload types can crash at navigation boundaries.
+- `RouteArguments` are validated in the route generator for routes that require payload.
+- Missing/invalid arguments now fail with explicit route-error screens instead of unchecked force-casts.
 
 ---
 
 ## 3. Complete source inventory (code-facing files)
 
-This section captures **every major code/config file class** under `mobile-app/` (excluding binary image/font/icon payloads).
+This section captures major source categories that are currently active.
 
 ## 3.1 Core entry and wiring
 
@@ -99,165 +120,64 @@ This section captures **every major code/config file class** under `mobile-app/`
 
 ## 3.3 Helper/util layer
 
-- `lib/helper/api_contract.dart`
-- `lib/helper/app_config.dart`
-- `lib/helper/app_logger.dart`
-- `lib/helper/appconstants.dart`
-- `lib/helper/common_appbar.dart`
-- `lib/helper/common_progress.dart`
-- `lib/helper/helper.dart`
-- `lib/helper/no_data_widget.dart`
-- `lib/helper/route_arguement.dart`
-- `lib/helper/shape_custom.dart`
+- Includes API contract, logging, app constants, routing arguments, UI helpers, and bloc observer.
+- Notable files:
+  - `lib/helper/api_contract.dart`
+  - `lib/helper/app_logger.dart`
+  - `lib/helper/app_bloc_observer.dart`
+  - `lib/helper/route_arguement.dart`
 
-## 3.4 Data repositories
+## 3.4 Data repositories (current)
 
 - `lib/repos/authentication_repository.dart`
-- `lib/repos/bookings_repository.dart`
-- `lib/repos/cook_repository.dart`
-- `lib/repos/home_repository.dart`
-- `lib/repos/support_ticket_repository.dart`
+- `lib/repos/session_repository.dart`
+- `lib/repos/auth_aware_http_client.dart`
+- `lib/repos/auth_headers.dart`
 - `lib/repos/user_repository.dart`
+- `lib/repos/home_repository.dart`
+- `lib/repos/cook_repository.dart`
+- `lib/repos/bookings_repository.dart`
+- `lib/repos/support_ticket_repository.dart`
+- `lib/repos/mobile_contact_repository.dart`
 
-## 3.5 Transport/domain model files
+## 3.5 Models
 
-- `lib/model/bookings.dart`
-- `lib/model/confirmpassword.dart`
-- `lib/model/cooking_style.dart`
-- `lib/model/dashboard_data.dart`
-- `lib/model/email.dart`
-- `lib/model/food_menu.dart`
-- `lib/model/get_profile_model.dart`
-- `lib/model/kitchen_profile.dart`
-- `lib/model/name.dart`
-- `lib/model/near_by_restaurants_response.dart`
-- `lib/model/otp.dart`
-- `lib/model/otp_response.dart`
-- `lib/model/password.dart`
-- `lib/model/phone.dart`
-- `lib/model/recommended_rest_response.dart`
-- `lib/model/requests.dart`
-- `lib/model/signup_response.dart`
-- `lib/model/special_diet.dart`
-- `lib/model/timing_model.dart`
-- `lib/model/top_rated_rest_response.dart`
-- `lib/model/user_model.dart`
+- User/account/auth: `user_model.dart`, `signup_response.dart`, `otp_response.dart`, etc.
+- Discovery/menu/order/profile: `recommended_rest_response.dart`, `top_rated_rest_response.dart`, `near_by_restaurants_response.dart`, `food_menu.dart`, `bookings.dart`, `requests.dart`, `kitchen_profile.dart`, and related request models.
 
 ## 3.6 Foodie/auth/profile features
 
-- `lib/pages/landing_page/landing_page.dart`
-- `lib/pages/login/view/login_page.dart`, `lib/pages/login/view/login_form.dart`
-- `lib/pages/login/cubit/login_cubit.dart`, `lib/pages/login/cubit/login_state.dart`
-- `lib/pages/signup/view/signup_page.dart`
-- `lib/pages/signup/cubit/sign_up_cubit.dart`, `lib/pages/signup/cubit/sign_up_state.dart`
-- `lib/pages/forgot/view/forgot_page.dart`
-- `lib/pages/forgot/cubit/forgot_cubit.dart`, `lib/pages/forgot/cubit/forgot_state.dart`
-- `lib/pages/otp/view/otp_page.dart`
-- `lib/pages/otp/cubit/otp_cubit.dart`, `lib/pages/otp/cubit/otp_state.dart`
-- `lib/pages/home/view/home_page.dart`
-- `lib/pages/home/cubit/home_cubit.dart`, `lib/pages/home/cubit/home_state.dart`
-- `lib/pages/home/element/filter_dialog.dart`
-- `lib/pages/home/element/near_by_restaurant.dart`
-- `lib/pages/home/element/near_by_widget.dart`
-- `lib/pages/home/element/recomm_rest_widget.dart`
-- `lib/pages/home/element/top_rated.dart`
-- `lib/pages/profile_foodie/view/profile_foodie_page.dart`
-- `lib/pages/profile_foodie/cubit/profile_foodie_cubit.dart`, `lib/pages/profile_foodie/cubit/profile_foodie_state.dart`
-- `lib/pages/edit_profile_foodie/view/edit_profile_foodie_page.dart`
-- `lib/pages/profile_signup_cook/cook_profile/cook_profile_page.dart`
-- `lib/pages/profile_signup_cook/cook_profile/cubit/cook_profile_cubit.dart`
-- `lib/pages/profile_signup_cook/cook_profile/cubit/cook_profile_state.dart`
-- `lib/pages/profile_signup_cook/cook_profile/element/timing_dialog.dart`
+- Auth journeys: login/signup/forgot/otp pages + cubits.
+- Home discovery:
+  - `pages/home/...` with filter dialog/widgets.
+- Foodie profile + edit pages.
+- Shared FAQ webview page:
+  - `lib/pages/common/view/faq_webview_page.dart`.
 
 ## 3.7 Cook operations features
 
-- Dashboard/home/menu/requests shell:
-  
-  - `lib/pages_cook/dashboard_cook/view/dashboard_cook_page.dart`
-  - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart`
-  - `lib/pages_cook/dashboard_cook/cubit/dashboard_cook_state.dart`
-  - `lib/pages_cook/home_page/view/home_cook_page.dart`
-  - `lib/pages_cook/home_page/element/home_cook_header.dart`
-  - `lib/pages_cook/menu/view/menu_page.dart`
-  - `lib/pages_cook/menu/cubit/menu_cubit.dart`
-  - `lib/pages_cook/menu/cubit/menu_state.dart`
-  - `lib/pages_cook/menu_detail/view/menu_detail.dart`
-
-- Add/edit menu and food metadata:
-  
-  - `lib/pages_cook/add_menu_item/view/add_menu_page.dart`
-  - `lib/pages_cook/add_menu_item/cubit/add_menu_cubit.dart`
-  - `lib/pages_cook/add_menu_item/cubit/add_menu_state.dart`
-  - `lib/pages_cook/add_menu_item/elements/cooking_style_dialog.dart`
-  - `lib/pages_cook/add_menu_item/elements/special_diet/special_diet_dialog.dart`
-  - `lib/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_cubit.dart`
-  - `lib/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_state.dart`
-
-- Requests/bookings/order actions:
-  
-  - `lib/pages_cook/requests/view/requests_page.dart`
-  - `lib/pages_cook/requests/cubit/requests_cubit.dart`
-  - `lib/pages_cook/requests/cubit/requests_state.dart`
-  - `lib/pages_cook/requests/elements/accept_reject_dialog.dart`
-  - `lib/pages_cook/requests/elements/order_details_view.dart`
-  - `lib/pages_cook/bookings/view/bookings_page.dart`
-  - `lib/pages_cook/bookings/cubit/bookings_cubit.dart`
-  - `lib/pages_cook/bookings/cubit/bookings_state.dart`
-  - `lib/pages_cook/bookings/elements/booking_filter_dialog.dart`
-  - `lib/pages_cook/bookings/elements/order_details_booking.dart`
-  - `lib/pages_cook/upcoming_bookings/view/upcoming_bookings.dart`
-
-- Cook profile and kitchen profile:
-  
-  - `lib/pages_cook/profile_cook/view/profile_cook_page.dart`
-  - `lib/pages_cook/profile_cook/view/personal_view.dart`
-  - `lib/pages_cook/profile_cook/view/mikitchn_view.dart`
-  - `lib/pages_cook/profile_cook/cubit/profile_cook_cubit.dart`
-  - `lib/pages_cook/profile_cook/cubit/profile_cook_state.dart`
-  - `lib/pages_cook/profile_cook/elements/timing_view.dart`
-  - `lib/pages_cook/edit_profile_cook/view/edit_profile_cook_page.dart`
-  - `lib/pages_cook/edit_profile_cook/cubit/edit_profile_cook_cubit.dart`
-  - `lib/pages_cook/edit_profile_cook/cubit/edit_profile_cook_state.dart`
-  - `lib/pages_cook/edit_kitchen_profile/view/edit_kitchen_profile.dart`
-  - `lib/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_cubit.dart`
-  - `lib/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_state.dart`
-  - `lib/pages_cook/edit_kitchen_profile/elements/timing_edit.dart`
-
-- Other cook pages:
-  
-  - `lib/pages_cook/settings_page/view/settings_page_cook.dart`
-  - `lib/pages_cook/settings_page/cubit/settings_cook_cubit.dart`
-  - `lib/pages_cook/settings_page/cubit/settings_cook_state.dart`
-  - `lib/pages_cook/customer_reviews/view/customer_review_page.dart`
-  - `lib/pages_cook/user_details_page/user_details.dart`
+- Dashboard shell with tabbed cook experience.
+- Menu listing/add/edit/status.
+- Requests/bookings/upcoming flows and order detail views.
+- Cook profile, personal details, kitchen profile editing, settings.
 
 ## 3.8 Test files
 
+- `test/repos/auth_headers_test.dart`
+- `test/repos/auth_aware_http_client_test.dart`
+- `test/repos/bookings_repository_test.dart`
 - `test/repos/support_ticket_repository_test.dart`
 - `test/widget_test.dart`
 
 ## 3.9 Android layer
 
-- `android/app/src/main/AndroidManifest.xml`
-- `android/app/src/debug/AndroidManifest.xml`
-- `android/app/src/profile/AndroidManifest.xml`
-- `android/app/src/main/kotlin/com/mitabl/user/mitabl_user/MainActivity.kt`
-- `android/app/build.gradle`
-- `android/build.gradle`
-- `android/settings.gradle`
-- `android/gradle.properties`
-- `android/gradle/wrapper/gradle-wrapper.properties`
+- Manifest + gradle stack + kotlin activity wrapper.
+- Network security config is active and cleartext traffic is disabled.
 
 ## 3.10 iOS layer
 
-- `ios/Runner/Info.plist`
-- `ios/Runner/AppDelegate.swift`
-- `ios/Runner/Base.lproj/Main.storyboard`
-- `ios/Runner/Base.lproj/LaunchScreen.storyboard`
-- `ios/Runner.xcodeproj/project.pbxproj`
-- `ios/Flutter/Debug.xcconfig`
-- `ios/Flutter/Release.xcconfig`
-- `ios/Flutter/AppFrameworkInfo.plist`
+- `Info.plist`, `AppDelegate.swift`, launch/main storyboards, Xcode project files.
+- Portrait-only orientation in plist aligns with Flutter runtime orientation lock.
 
 ## 3.11 Build/runtime metadata
 
@@ -272,57 +192,64 @@ This section captures **every major code/config file class** under `mobile-app/`
 
 ## 4.1 Authentication and account lifecycle
 
-- `AuthenticationRepository` provides login, signup, OTP verify, forgot password, logout API, and kitchen onboarding upload.
-- `AuthenticationBloc` subscribes to repository auth stream and emits `unknown/authenticated/unauthenticated`.
-- Session user payload is persisted/loaded by `UserRepository` from `SharedPreferences`.
+- `AuthenticationRepository` handles:
+  - login (`login`)
+  - signup (`register`)
+  - otp verify (`verifyOtp`)
+  - password reset (`password/reset`)
+  - logout (`v2/logout`)
+  - cook kitchen upload (`v2/mikitchn/store`)
+- `AuthenticationBloc` emits `unknown/authenticated/unauthenticated` from repository stream.
+- Unauthorized session events from `SessionRepository` trigger:
+  - user data clear
+  - user-facing session-expired toast
+  - auth state transition to unauthenticated.
 
 ### End-to-end auth flow
 
-1. Launch in `/Splash`.
-2. `AuthenticationRepository.status` checks session after delay.
-3. If no user, route to `/LandingPage`.
-4. Login/signup flows issue API calls and persist response.
-5. Auth event propagates through `AuthenticationBloc` to route user based on role.
+1. App boots into `/Splash`.
+2. Authentication status resolves from persisted user payload.
+3. Unknown state fallback routes to `/LandingPage` after 3s.
+4. Successful login/signup/otp stores normalized user payload.
+5. Role-aware navigation sends cook to dashboard and foodie to home.
 
 ## 4.2 Foodie discovery and profile
 
-- `HomeCubit` orchestrates:
-  - recommended restaurants
-  - top-rated restaurants
-  - nearby restaurants
-  - filter toggles (dine-in / take-away, cooking style, distance)
-  - debounced filter re-application and stale-response dropping to reduce race conditions
-  - location query parsing (`latitude, longitude`) with range validation and fallback coordinates
-- Home network operations are in `HomeRepository` with bearer-token validation before request dispatch.
-- Foodie profile fetch/update paths are in `ProfileFoodieCubit` + `UserRepository`.
-
-### Recently implemented mobile fixes (current branch baseline)
-
-- Home feed now uses `CustomScrollView` slivers instead of one large `SingleChildScrollView` column, improving section-level rendering behavior.
-- `SystemChrome.setSystemUIOverlayStyle` was moved out of rebuild-prone paths to state init.
-- Home location input is now actionable: users can submit `latitude, longitude`, with parsing + bounds checks and debounced filter refresh.
-- Settings profile navigation now uses null-safe route argument checks to avoid force-unwrapped crash paths.
+- `HomeCubit` responsibilities include:
+  - discovery feed orchestration (recommended/top-rated/nearby)
+  - filter state management (dine-in, take-away, cooking style, distance)
+  - request de-duplication using request tokens
+  - debounced filter execution
+  - cache hydration and 10-minute TTL cache persistence via `SharedPreferences`
+  - best-effort retry for server/network failures
+  - coordinate resolution using geolocator + optional geocoding label
+- `HomeRepository` executes discovery API requests with auth headers.
+- Foodie profile fetch/update flows run through `UserRepository` + foodie profile cubit.
 
 ## 4.3 Cook/vendor operations
 
-- `DashBoardCookPage` hosts 4-tab shell: home/menu/requests/profile.
-- Menu management:
-  - listing (`mymenu`), special diets, cooking styles, add/edit food, food active/inactive toggle.
-  - image uploads via multipart requests.
-- Order operations:
-  - requests list, bookings list/upcoming list, status updates.
-- Profile/kitchen updates:
-  - profile edit and avatar update.
-  - kitchen details and timings update.
+- `DashBoardCookPage` is the cook shell.
+- Menu operations:
+  - menu fetch
+  - special diet/cooking style metadata
+  - add/edit food
+  - toggle food active status
+  - multipart image upload support
+- Orders:
+  - requests, bookings, upcoming bookings
+  - status updates (`v2/updateorderstatus`)
+- Profile/kitchen:
+  - account profile read/update
+  - kitchen edit + timing/image update support.
 
 ## 4.4 Settings and support workflow
 
-- Settings includes:
-  - profile navigation
-  - notification toggle UI placeholder
-  - support bottom sheet with create/get/reply ticket actions
-  - delete-account placeholder row
-- Support workflow uses dedicated `SupportTicketRepository` and channel headers.
+- Settings now has live backend-wired actions:
+  - edit profile navigation (foodie/cook context aware)
+  - notification preference toggle with optimistic UI + rollback on failure
+  - support ticket bottom sheet (create/get/reply)
+  - delete-account confirmation + API call + logout on success
+- Notification preference persists locally in settings key and syncs to backend endpoint.
 
 ---
 
@@ -339,59 +266,17 @@ This section captures **every major code/config file class** under `mobile-app/`
 - `POST /api/password/reset`
 - `POST /api/v2/logout`
 
-### Token refresh contract
+### Account/Profile/Kitchen
 
-- The backend exposes `POST /api/token/refresh` for renewing a bearer access token without interrupting the user session.
-- The request must include the current bearer JWT in the `Authorization` header.
-- No request body is required.
-- Success response returns a replacement `access_token`, token metadata, and the same verified mobile user snapshot shape used by login responses.
-- Failure response returns `401` when the presented token is missing, malformed, expired beyond refresh TTL, invalidated, or blacklisted.
-- The mobile app may keep its current forced-logout-on-401 fallback until an interceptor-based refresh flow is added.
-
-Example success payload:
-
-```json
-{
-  "status": 200,
-  "isSuccess": true,
-  "data": {
-    "access_token": "<new-jwt>",
-    "token_type": "bearer",
-    "expires_in_minutes": 60,
-    "refresh_expires_in_minutes": 20160,
-    "user": {
-      "id": 123,
-      "name": "Jane",
-      "role": "Foodie",
-      "role_id": 3
-    }
-  },
-  "message": "Token refreshed successfully."
-}
-```
-
-- Cook accounts also receive `is_kitchen_added` in the `user` payload, matching the login contract.
-
-Example failure payload:
-
-```json
-{
-  "status": 401,
-  "isSuccess": false,
-  "data": [],
-  "isError": "Refresh token is invalid or expired. Please login again."
-}
-```
-
-### Kitchen and profile
-
+- `GET /api/v2/account/profile`
+- `PUT /api/v2/account/profile` (effective profile update also via multipart `POST /api/v2/editprofile` in current client)
+- `GET /api/v2/account/dashboard`
+- `POST /api/v2/account/notification-preferences`
+- `DELETE /api/v2/account/delete` (with POST fallback if backend does not support DELETE)
+- `POST /api/v2/deleteimage`
+- `POST /api/v2/editprofile`
 - `POST /api/v2/mikitchn/store`
 - `POST /api/v2/mikitchn/editkitchen`
-- `GET /api/v2/account/profile`
-- `PUT /api/v2/account/profile`
-- `GET /api/v2/account/dashboard`
-- `POST /api/v2/editprofile` (legacy-compatible alias retained under v2)
-- `POST /api/v2/deleteimage` (legacy-compatible alias retained under v2)
 
 ### Discovery
 
@@ -421,66 +306,76 @@ Example failure payload:
 - `GET /api/support/ticket/{id}`
 - `POST /api/support/ticket/{id}/reply`
 
+### Mobile contact
+
+- `GET /api/v2/mob-contact`
+
 ## 5.2 API client posture
 
-Strengths:
+Current strengths:
 
-- Central URI helper (`ApiContract.uri`) handles path/query normalization.
-- Modern support ticket repository has better header + parsing discipline.
+- Shared URI normalization via `ApiContract.uri`.
+- Shared auth header helpers (`auth_headers.dart`).
+- Request timeout baseline (`15s`) centralized in `ApiContract`.
+- Auto-refresh + retry path for authorized requests through `AuthAwareHttpClient` + `SessionRepository`.
+- Repository constructors generally accept injected `http.Client` for testability.
 
-Weak points (remaining):
-- `dynamic` response contracts still exist in several repository/cubit boundaries outside the recently refactored paths.
-- Timeout/retry/backoff policy is still not centralized across all repositories.
-- Unified typed exception taxonomy is still incomplete.
+Current tradeoffs / remaining technical debt:
 
-Recent improvements:
-- Auth/user/home repositories now support injected `http.Client` usage and explicit disposal for owned clients.
-- Sensitive raw `print` usage was reduced by introducing a debug-gated `AppLogger` helper.
-- Home feed request construction is centralized (`_buildFilterMap`) with debounce + stale response protection.
-
----
-
-## 6. Data/state design
-
-## 6.1 State-management inventory
-
-- 1 global bloc (`AuthenticationBloc`).
-- 17 feature cubits for auth/forms/home/cook/menu/requests/bookings/profile.
-- Validation largely uses `Formz` for form states.
-
-## 6.2 Data modeling
-
-- 21 explicit model files cover auth payloads, restaurants, menu, bookings, requests, profiles, and validation wrappers.
-- Model layer is largely API-DTO oriented (tight coupling with current backend responses).
-
-### Enterprise recommendation
-
-Add a domain abstraction layer for high-change business domains (orders/menu/support), leaving DTO transformations at repository boundaries.
+- Several response boundaries still use loosely typed maps in UI workflows.
+- Some feature modules still parse raw dynamic payloads in cubits/pages.
+- No global circuit-breaker or advanced retry policy beyond selective local retries.
 
 ---
 
-## 7. Security, privacy, and compliance review
+## 6. Data model and state-management details
 
-## 7.1 Security positives
+## 6.1 State model
 
-- Bearer token used for authenticated endpoints.
-- Support channel headers (`X-Authenticated-Channel`, `X-Client-Channel`) provide backend channel context.
+- Auth lifecycle: event/state bloc (`AuthenticationBloc`).
+- Feature modules: cubits with immutable `copyWith` state patterns.
+- Home feed state tracks:
+  - independent status flags per feed
+  - filter values
+  - pagination state
+  - location/label fields
+  - cached payload hydration signals.
 
-## 7.2 Material risks
+## 6.2 Persistence boundaries
 
-- Access token persisted in `SharedPreferences` instead of secure keystore/keychain storage.
-- Android manifest enables `usesCleartextTraffic=true`.
-- Legacy storage permissions still requested (`WRITE_EXTERNAL_STORAGE`, `READ_EXTERNAL_STORAGE`, legacy external storage mode).
-- Sensitive logging exposure risk has been reduced in key paths by replacing raw `print` with debug-gated logging (`AppLogger`), but full-codebase redaction governance is still an ongoing hardening area.
-- Permission UX appears partial (dialog helper exists, but not all permission lifecycles are centrally managed).
+- **Secure session payload**:
+  - `flutter_secure_storage` key `current_user_secure`.
+- **Legacy compatibility**:
+  - one-time migration from `SharedPreferences.current_user` if present.
+- **Feature cache/settings**:
+  - home feed cache keys with per-user prefixes + timestamps.
+  - cook settings notification toggle key in shared preferences.
+
+---
+
+## 7. Security posture and risks
+
+## 7.1 Positive security controls now present
+
+- `usesCleartextTraffic="false"` in Android manifest.
+- App uses Android `networkSecurityConfig`.
+- Session payload migrated to secure storage for primary persistence.
+- FAQ webview restricts navigation to HTTPS + approved hosts and disables JavaScript.
+- Unauthorized handling is centralized through session event pipeline.
+
+## 7.2 Remaining risks / hardening opportunities
+
+- Token refresh relies on access token semantics; dedicated refresh-token lifecycle is backend-dependent and not modeled separately in client storage.
+- Some user-facing/server errors still surfaced via generic exception strings.
+- No built-in jailbreak/root detection or anti-tampering checks in current code.
+- Structured log redaction strategy is partial (improved but not fully formalized).
 
 ## 7.3 Enterprise controls to prioritize
 
-1. Migrate auth token/session secret material to secure storage.
-2. Enforce HTTPS-only transport and remove cleartext if not required.
-3. Minimize Android permissions to current scoped-storage standards.
-4. Introduce redaction-safe structured logging.
-5. Add mobile security checks to CI (SCA, manifest linting, secret scanning).
+1. Formalize token/credential lifecycle and backend refresh guarantees.
+2. Define log schema with PII redaction standards.
+3. Add client hardening checks (device integrity, secure screenshots policy where needed).
+4. Add security CI checks for mobile manifests/plists/dependencies.
 
 ---
 
@@ -488,128 +383,124 @@ Add a domain abstraction layer for high-change business domains (orders/menu/sup
 
 ## 8.1 Android
 
-- `applicationId`: `com.mitabl.user.mitabl_user`
-- `minSdkVersion`: 17
-- Permissions include internet, camera, phone state, external storage read/write.
-- `requestLegacyExternalStorage=true` present.
-- Build stack includes older Android Gradle plugin/Kotlin combinations.
+- Application ID: `com.mitabl.user.mitabl_user`.
+- Build uses modern Android Gradle + Kotlin plugin configuration and Java 17 targets.
+- Active permissions include:
+  - internet
+  - camera
+  - coarse/fine location
+- Legacy external storage permissions are no longer present in current manifest.
 
 ## 8.2 iOS
 
-- `Info.plist` includes camera/photo usage descriptions and URL query schemes (`sms`, `tel`).
-- iOS supports landscape orientations in plist, while Flutter runtime forces portrait; alignment should be clarified.
-- Standard Flutter `AppDelegate` plugin registration pattern is in place.
+- Usage descriptions present for camera, photo library, and in-use location.
+- URL query schemes include `sms` and `tel`.
+- Supported orientation is portrait (iPhone/iPad), aligned with Flutter runtime lock.
 
 ## 8.3 Environment config
 
-- Base URLs are runtime-loaded from `mobile-app/assets/cfg/configuration.json` at app startup (`GlobalConfiguration().loadFromAsset('configuration')`).
-- Active default values are now set to:
+- Runtime config loaded from `assets/cfg/configuration.json`.
+- Current default config:
   - `base_url`: `https://mitabl.com/`
   - `api_base_url`: `https://mitabl.com/api/`
   - `image_base_url`: `https://mitabl.com/`
-- To point the app to a different backend (e.g. staging), edit this JSON file and rebuild the app.
-- No explicit environment flavor strategy is currently wired in code (dev/stage/prod variants should be formalized).
+- No multi-flavor environment wiring is currently implemented in code.
 
 ---
 
 ## 9. UX and product implementation notes
 
-- Theme is globally defined with custom font family + color helpers.
-- Extensive icon/asset library under `assets/img`.
-- Core UX implemented for both personas with rich cook operations.
-- Some UI controls are placeholders (e.g., notification toggle behavior, delete account action wiring).
+- App has a custom theming baseline + bundled assets and fonts.
+- Landing page links Terms/Privacy to website routes using external browser launching.
+- FAQ entry opens in in-app webview with constrained navigation policy.
+- Cook and foodie profile surfaces include contact-us flows, support ticket actions, and profile editing.
+- Discovery screens support filter-driven feed updates with location support.
 
 ---
 
 ## 10. Testing and quality posture
 
-Current automated test reality:
+Current automated tests include:
 
-- `test/repos/support_ticket_repository_test.dart` provides meaningful repository contract tests (headers/path/body behavior).
-- `test/widget_test.dart` is still scaffold boilerplate and not representative of the real app shell.
+- `auth_headers` contract tests.
+- `AuthAwareHttpClient` behavior tests.
+- `BookingsRepository` tests.
+- `SupportTicketRepository` tests.
+- default Flutter widget smoke test scaffold.
 
-### Enterprise quality roadmap
+### Quality roadmap
 
-- Add bloc/cubit unit tests for each critical state machine.
-- Add repository tests for all endpoint families (auth/menu/orders/profile).
-- Add widget/golden tests for primary screens and important states.
-- Add integration tests for top journeys:
-  - login and role routing
-  - signup + OTP
-  - cook add/edit menu with image handling
-  - booking/request status transitions
-  - support ticket create/read/reply
+- Expand cubit/bloc unit tests (auth transitions, home filters/pagination, settings actions).
+- Add integration tests for role routing and critical user journeys.
+- Add golden/widget tests for core pages and edge states.
+- Add API contract tests for all repositories with representative backend payload fixtures.
 
 ---
 
 ## 11. Observability and operability
 
 Current:
-- Lightweight central logging abstraction exists (`AppLogger`) with debug/error helpers gated by build mode.
-- No crash/performance pipeline described in code.
-- No request correlation/trace IDs are propagated yet.
 
-Required for enterprise operation:
+- `AppLogger` is available as a central logging abstraction.
+- `AppBlocObserver` is active, improving bloc/cubit transition visibility.
+- No integrated crash analytics/performance product is wired in repo.
 
-- Structured logs with environment-aware levels.
-- Crash analytics + performance instrumentation.
-- Correlation IDs for API requests.
-- Runtime health toggles/feature flags for safe rollout and incident response.
+Needed:
+
+- Production-grade structured logging.
+- Crash + performance instrumentation.
+- Request correlation IDs and API call tracing.
+- Runtime feature flags for safer rollout and incident mitigation.
 
 ---
 
 ## 12. Delivery and governance readiness
 
-- Containerized build helper exists (`Dockerfile`).
-- Project lint policy uses Flutter lints (`analysis_options.yaml`).
+Current:
 
-To move to enterprise delivery:
+- Flutter lint baseline via `analysis_options.yaml`.
+- Dockerfile exists for build/development workflows.
+- Improved repository testability through injected HTTP clients.
 
-1. Introduce build flavors and environment segregation.
-2. Require CI gates: format, analyze, tests, dependency audit.
-3. Enforce release checklist: security review, API compatibility, store policy validation, rollback plan.
-4. Maintain architecture decision records for major module changes.
+Recommended governance enhancements:
+
+1. Add CI gates for format/analyze/test + dependency audit.
+2. Add release checklists (security, API compatibility, rollback strategy).
+3. Introduce explicit environment flavors (dev/stage/prod).
+4. Maintain architecture decision records for major client changes.
 
 ---
 
 ## 13. Priority modernization plan
 
-## Phase 1 (Immediate hardening)
+## Phase 1 (Hardening + consistency)
 
-- Secure storage migration.
-- Remove cleartext transport and legacy storage where possible.
-- Standardize HTTP timeout/error handling.
-- Complete migration to redaction-safe structured logging across all features (beyond auth/user/home/app-level paths).
+- Complete typed API response/result wrappers in remaining dynamic paths.
+- Standardize user-facing error mapping across repositories and cubits.
+- Expand secure storage governance to all sensitive local data.
 
-## Phase 2 (Reliability + quality)
+## Phase 2 (Reliability + QA depth)
 
-- Expand test suite (bloc, repository, widget, integration).
-- Introduce typed result wrappers and API error taxonomy.
-- Add retry/backoff and offline-aware UX for key flows.
+- Increase coverage for cubits/repositories/routes.
+- Add integration tests for auth, discovery filters, cook menu/order workflows.
+- Introduce more robust retry/backoff strategies where business-critical.
 
-## Phase 3 (Scale + governance)
+## Phase 3 (Scale + operations)
 
-- Split into clearer feature modules/packages where appropriate.
-- Add observability stack and release analytics.
-- Add formal SDLC controls around mobile security and compliance.
+- Strengthen observability stack.
+- Formalize release channels/flavors.
+- Improve modular boundaries as feature scope grows.
 
 ---
 
 ## 14. Conclusion
 
-The Mitabl mobile app is a substantial dual-persona Flutter application with clear functional breadth and a workable architecture foundation. It is production-capable but not yet enterprise-optimized. The highest-value improvements are concentrated in security hardening, reliability controls, test depth, and operational governance.
-
-This document is intended to be the baseline reference for executing that transition.
+The Mitabl mobile app is a feature-rich dual-persona Flutter application with materially improved security and session handling compared to earlier baselines. It now includes secure session storage migration, centralized auth-aware HTTP behavior, stronger route argument guards, and expanded repository-level tests. The next major value comes from deeper test coverage, stricter typed contracts, and production observability.
 
 ---
 
 ## Contact endpoint migration (2026)
 
-- **Deprecated now**: `/api/mobcontact` and `/api/v1/mob-contact`.
-- **Current endpoint**: `/api/v2/mob-contact` (authenticated route group).
-- **Deprecation behavior**:
-  - old endpoints now return **HTTP 410 Gone**
-  - include `Deprecation: true`
-  - include `Sunset: Wed, 01 Jul 2026 00:00:00 GMT`
-  - include successor `Link` header pointing to `/api/v2/mob-contact`
-- Mobile clients should stop calling `v1/mob-contact` immediately and migrate to the v2 path in their API contracts.
+- **Current mobile contact endpoint in code**: `/api/v2/mob-contact`.
+- No client calls to legacy `/api/mobcontact` or `/api/v1/mob-contact` remain in the current mobile repository.
+- Backend-side deprecation behavior for old routes should remain documented in backend/API docs and communicated to older client versions.
