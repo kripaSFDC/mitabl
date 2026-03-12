@@ -38,62 +38,36 @@ class AppConfig {
 }
 
 class AppColors {
+  double _normalizedOpacity(double opacity) {
+    return opacity.clamp(0.0, 1.0);
+  }
+
+  Color _withOpacity(Color color, double opacity) {
+    return color.withValues(alpha: _normalizedOpacity(opacity));
+  }
+
   Color mainColor(double opacity) {
-    try {
-      return const Color.fromARGB(255, 28, 36, 89);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color.fromARGB(255, 28, 36, 89), opacity);
   }
 
   Color secondColor(double opacity) {
-    try {
-      // return const Color(0xFF90A0B7);
-      return Colors.grey.shade500;
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(Colors.grey.shade500, opacity);
   }
 
   Color accentColor(double opacity) {
-    try {
-      return const Color(0xFF18489C);
-      // return  const Color(0xFF4FCD07);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xFF18489C), opacity);
   }
 
   Color colorPrimary(double opacity) {
-    try {
-      // return  const Color.fromARGB(255, 42, 49, 91);
-      return const Color(0xff0071BC);
-      // return const Color(0xFF4A439F);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xff0071BC), opacity);
   }
 
   Color colorPrimaryLight(double opacity) {
-    try {
-      // return  const Color.fromARGB(255, 42, 49, 91);
-      return Colors.grey;
-      // return Color(0xffaca1f2);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(Colors.grey, opacity);
   }
 
   Color colorPrimaryDark(double opacity) {
-    try {
-      // return  const Color(0xFF286704).withValues(alpha: opacity);
-      // return  Colors.black;
-      return const Color(0xFF666666);
-      // return const Color(0xFF4A439F);
-      // return const Color(0xFF7366FF);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xFF666666), opacity);
   }
 
   Color colorDivider(double opacity) {
@@ -144,54 +118,30 @@ class AppColors {
   //   }
   // }
 
-  Color scaffoldColor(double opacity) {
-    // TODO test if brightness is dark or not
-    try {
-      // return  const Color(0xffeee6ff).withValues(alpha: 1);
-      return Colors.white;
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+  Color scaffoldColor(double opacity, {Brightness brightness = Brightness.light}) {
+    final baseColor =
+        brightness == Brightness.dark ? const Color(0xFF121212) : Colors.white;
+    return _withOpacity(baseColor, opacity);
   }
 
   Color presentButtonColor(double opacity) {
-    try {
-      return const Color(0xff8CD0E8).withValues(alpha: 1);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xff8CD0E8), opacity);
   }
 
   Color absentButtonColor(double opacity) {
-    try {
-      return const Color(0xff8CB648).withValues(alpha: 1);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xff8CB648), opacity);
   }
 
   Color presentButtonBorderColor(double opacity) {
-    try {
-      return const Color(0xff63B8DD).withValues(alpha: 1);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xff63B8DD), opacity);
   }
 
   Color buttonDisableColor(double opacity) {
-    try {
-      return const Color(0xffF2F3F6).withValues(alpha: 1);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xffF2F3F6), opacity);
   }
 
   Color buttonDisableBorderColor(double opacity) {
-    try {
-      return const Color(0xffDCE1E7).withValues(alpha: 1);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xffDCE1E7), opacity);
   }
 }
 class FontFamily {

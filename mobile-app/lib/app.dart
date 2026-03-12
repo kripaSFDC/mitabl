@@ -163,7 +163,8 @@ class _AppViewState extends State<AppView> {
           dividerColor: config.AppColors().accentColor(0.1),
           focusColor: config.AppColors().secondColor(1),
           hintColor: config.AppColors().hintTextBackgroundColor(1),
-          scaffoldBackgroundColor: config.AppColors().scaffoldColor(1),
+          scaffoldBackgroundColor:
+              config.AppColors().scaffoldColor(1, brightness: Brightness.light),
           primaryColorLight: config.AppColors().colorPrimaryLight(1),
           primaryColorDark: config.AppColors().colorPrimaryDark(1),
           textTheme: TextTheme(
