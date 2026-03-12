@@ -92,7 +92,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'noreply@mitabl.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'admin@mitabl.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 

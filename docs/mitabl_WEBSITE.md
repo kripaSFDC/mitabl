@@ -145,7 +145,7 @@ Recent templating updates include:
 ### Contact (`src/pages/contact.html`)
 
 - Contact narrative for Foodies, miCooks, and partners.
-- Direct email link (`mailto:mitablinfo@gmail.com`).
+- Direct email link (`mailto:admin@mitabl.com`).
 - Social links (Instagram, Facebook, LinkedIn, X).
 - Contact form posts via `mailto:` with plain-text encoding.
 

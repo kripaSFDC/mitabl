@@ -31,10 +31,20 @@ class AuthService
                 return ['status' => 401, 'message' => 'Invalid'];
             }
 
-            Mail::to($email)->queue(new sendOTP([
+            $mailable = new sendOTP([
                 'subject' => $subject,
                 'otp' => $otp,
-            ]));
+            ]);
+
+            try {
+                Mail::to($email)->queue($mailable);
+            } catch (Throwable $queueThrowable) {
+                report($queueThrowable);
+
+                // OTP delivery is part of the registration path, so fall back
+                // to synchronous delivery when the queue backend is unhealthy.
+                Mail::to($email)->send($mailable);
+            }
 
             return ['status' => 200, 'message' => 'OTP sent successfully'];
         } catch (Throwable $throwable) {
