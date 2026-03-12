@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
