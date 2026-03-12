@@ -153,6 +153,37 @@ class UserRepository {
     }
   }
 
+  Future<http.Response> updateNotificationPreference({
+    required bool enabled,
+  }) async {
+    try {
+      return _httpClient
+          .post(
+            ApiContract.uri('v2/account/notification-preferences'),
+            headers: await authorizedHeaders(includeJsonContentType: true),
+            body: json.encode({'notifications_enabled': enabled}),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to update notification preferences', e);
+      rethrow;
+    }
+  }
+
+  Future<http.Response> deleteAccount() async {
+    try {
+      return _httpClient
+          .delete(
+            ApiContract.uri('v2/account/delete'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to delete account', e);
+      rethrow;
+    }
+  }
+
   Future<http.Response> deleteImage({String? type, String? id}) async {
     try {
       return _httpClient.post(

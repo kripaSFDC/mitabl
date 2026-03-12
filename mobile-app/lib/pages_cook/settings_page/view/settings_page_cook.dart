@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -6,7 +8,10 @@ import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsCookPage extends StatefulWidget {
   const SettingsCookPage({super.key, this.routeArguments});
@@ -24,6 +29,9 @@ class SettingsCookPage extends StatefulWidget {
 }
 
 class _SettingsCookPageState extends State<SettingsCookPage> {
+  static const _notificationsPreferenceKey =
+      'settings_notifications_enabled_cook';
+
   late final TextEditingController _emailController;
   late final TextEditingController _subjectController;
   late final TextEditingController _descriptionController;
@@ -31,6 +39,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   late final TextEditingController _replyController;
 
   bool _supportActionInFlight = false;
+  bool _notificationsEnabled = true;
+  bool _notificationsUpdating = false;
+  bool _deleteInFlight = false;
 
   @override
   void initState() {
@@ -40,6 +51,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     _descriptionController = TextEditingController();
     _ticketIdController = TextEditingController();
     _replyController = TextEditingController();
+    _loadNotificationPreference();
   }
 
   @override
@@ -52,11 +64,81 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     super.dispose();
   }
 
+  Future<void> _loadNotificationPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPreference = prefs.getBool(_notificationsPreferenceKey);
+
+    if (!mounted || savedPreference == null) {
+      return;
+    }
+
+    setState(() {
+      _notificationsEnabled = savedPreference;
+    });
+  }
+
+  Future<void> _persistNotificationPreference(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsPreferenceKey, enabled);
+  }
+
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  Future<void> _onNotificationChanged(bool enabled) async {
+    if (_notificationsUpdating) {
+      return;
+    }
+
+    final previous = _notificationsEnabled;
+    setState(() {
+      _notificationsEnabled = enabled;
+      _notificationsUpdating = true;
+    });
+
+    try {
+      await _persistNotificationPreference(enabled);
+      final repository = context.read<UserRepository>();
+      final response = await repository.updateNotificationPreference(
+        enabled: enabled,
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final body = response.body;
+        String serverMessage = 'Failed to update notification preference.';
+        if (body.isNotEmpty) {
+          try {
+            final decoded = jsonDecode(body) as Map<String, dynamic>;
+            final message = decoded['message']?.toString();
+            if (message != null && message.isNotEmpty) {
+              serverMessage = message;
+            }
+          } on FormatException {
+            // Leave fallback message.
+          }
+        }
+
+        await _persistNotificationPreference(previous);
+        if (mounted) {
+          setState(() => _notificationsEnabled = previous);
+        }
+        _showSnackBar(serverMessage);
+      }
+    } catch (error) {
+      await _persistNotificationPreference(previous);
+      if (mounted) {
+        setState(() => _notificationsEnabled = previous);
+      }
+      _showSnackBar('Unable to update notification setting: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _notificationsUpdating = false);
+      }
+    }
   }
 
   Future<void> _submitSupportTicket() async {
@@ -201,6 +283,74 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     );
   }
 
+  Future<void> _onDeleteAccountTapped() async {
+    if (_deleteInFlight) {
+      return;
+    }
+
+    final shouldDelete =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Delete Account'),
+              content: const Text(
+                'This action permanently deletes your account and cannot be undone. Continue?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setState(() => _deleteInFlight = true);
+
+    try {
+      final repository = context.read<UserRepository>();
+      final response = await repository.deleteAccount();
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _showSnackBar('Account deleted successfully.');
+        if (mounted) {
+          await context.read<AuthenticationRepository>().logOut();
+        }
+        return;
+      }
+
+      String message = 'Unable to delete account. Please try again.';
+      if (response.body.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          final parsed = decoded['message']?.toString();
+          if (parsed != null && parsed.isNotEmpty) {
+            message = parsed;
+          }
+        } on FormatException {
+          // Keep fallback message.
+        }
+      }
+      _showSnackBar(message);
+    } catch (error) {
+      _showSnackBar('Unable to delete account: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _deleteInFlight = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -299,10 +449,13 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 ),
                 trailing: SizedBox(
                   width: config.AppConfig(context).appWidth(18),
-                  child: Switch(
-                    value: true,
-                    inactiveTrackColor: Theme.of(context).primaryColorDark,
-                    onChanged: (val) {},
+                  child: IgnorePointer(
+                    ignoring: _notificationsUpdating,
+                    child: Switch(
+                      value: _notificationsEnabled,
+                      inactiveTrackColor: Theme.of(context).primaryColorDark,
+                      onChanged: _onNotificationChanged,
+                    ),
                   ),
                 ),
               ),
@@ -338,9 +491,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 ),
               ),
               ListTile(
-                onTap: () {
-                  // Delete account flow placeholder.
-                },
+                onTap: _deleteInFlight ? null : _onDeleteAccountTapped,
                 minVerticalPadding: 0,
                 contentPadding: EdgeInsets.zero,
                 leading: Row(
@@ -362,11 +513,17 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     ),
                   ],
                 ),
-                trailing: Icon(
-                  Icons.arrow_forward,
-                  size: config.AppConfig(context).appWidth(6),
-                  color: Theme.of(context).primaryColorDark,
-                ),
+                trailing: _deleteInFlight
+                    ? SizedBox(
+                        width: config.AppConfig(context).appWidth(6),
+                        height: config.AppConfig(context).appWidth(6),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        Icons.arrow_forward,
+                        size: config.AppConfig(context).appWidth(6),
+                        color: Theme.of(context).primaryColorDark,
+                      ),
               ),
             ],
           ),

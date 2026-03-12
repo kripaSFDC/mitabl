@@ -102,7 +102,7 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameFirst!,
           state.phone,
           email,
-          state.nameFirst!,
+          state.nameLast!,
           state.password,
           state.confirmPassword,
           state.address!
@@ -117,7 +117,7 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameFirst!,
           phone,
           state.email!,
-          state.nameFirst!,
+          state.nameLast!,
           state.password,
           state.confirmPassword,
           state.address!
