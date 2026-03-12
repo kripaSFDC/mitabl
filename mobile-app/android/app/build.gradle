@@ -1,3 +1,9 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -21,12 +27,6 @@ def hasReleaseKeystore = keystorePropertiesFile.exists() &&
         keystoreProperties['storeFile'] &&
         keystoreProperties['storePassword']
 
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'dev.flutter.flutter-gradle-plugin'
-}
-
 android {
     namespace 'com.mitabl.user.mitabl_user'
     compileSdk flutter.compileSdkVersion
@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         applicationId 'com.mitabl.user.mitabl_user'
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
