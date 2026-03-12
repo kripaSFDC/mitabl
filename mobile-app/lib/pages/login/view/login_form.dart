@@ -32,20 +32,6 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
     super.initState();
   }
 
-/*  setUpFields() async {
-    var prefs = await SharedPreferences.getInstance();
-    bool? isRemebered = prefs.getBool(AppConstants.REMEMBER_ME);
-    var mobileNo, password;
-    if (isRemebered != null && isRemebered) {
-      mobileNo = prefs.getString(AppConstants.MOBILE_NO);
-      password = prefs.getString(AppConstants.PASSWORD);
-    }
-    if (mobileNo != null && password != null) {
-      mobileNoTextEditor!.text = mobileNo.toString();
-      passwordTextEditor!.text = password.toString();
-    }
-  }*/
-
   TextEditingController? mobileNoTextEditor = TextEditingController();
   TextEditingController? passwordTextEditor = TextEditingController();
 

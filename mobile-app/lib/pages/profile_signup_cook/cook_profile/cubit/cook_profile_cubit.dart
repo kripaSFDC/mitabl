@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 
 import 'package:mitabl_user/helper/route_arguement.dart';
@@ -126,10 +127,9 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         //   (route) => false,
         // );
       } else {
-        // Helper.showToast(jsonDecode(response.body)['isError']);
         emit(state.copyWith(
             statusApi: FormzStatus.submissionFailure,
-            serverMessage: jsonDecode(response.body)['isError']));
+            serverMessage: ApiErrorParser.parseMessage(response.body)));
       }
     } on Exception {
       emit(state.copyWith(

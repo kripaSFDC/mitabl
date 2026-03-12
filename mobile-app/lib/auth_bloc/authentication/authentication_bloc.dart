@@ -30,27 +30,6 @@ class AuthenticationBloc
   final UserRepository _userRepository;
   StreamSubscription<AuthenticationStatus>? _authenticationStatusSubscription;
 
-  /* @override
-  Stream<AuthenticationState> mapEventToState(
-    AuthenticationEvent event,
-  ) async* {
-    if (event is AuthenticationStatusChanged) {
-
-      // yield await _mapAuthenticationStatusChangedToState(event);
-    } else if (event is AuthenticationLogoutRequested) {
-      _authenticationRepository.logOut();
-    } else if (event is GetVersionInfo) {
-      yield* mapGetVersionInfo(event);
-    }
-  }*/
-
-  Stream<AuthenticationState> mapGetVersionInfo(GetVersionInfo event) async* {
-    // var response =await _authenticationRepository.getVersionInfo();
-    // if(!response!.error!){
-    //
-    // }
-  }
-
   @override
   Future<void> close() {
     _authenticationStatusSubscription?.cancel();

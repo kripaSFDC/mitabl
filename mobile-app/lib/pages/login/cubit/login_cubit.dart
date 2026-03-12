@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/model/password.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:http/http.dart';
@@ -61,12 +62,10 @@ class LoginCubit extends Cubit<LoginState> {
 
         _authenticationRepository.notifyAuthenticated();
       } else {
-        final payload = jsonDecode(response.body);
-        String message = 'Request failed. Please try again.';
-        if (payload is Map<String, dynamic>) {
-          message =
-              (payload['isError'] ?? payload['message'] ?? message).toString();
-        }
+        final message = ApiErrorParser.parseMessage(
+          response.body,
+          fallbackMessage: 'Request failed. Please try again.',
+        );
         emit(state.copyWith(
             apiStatus: FormzStatus.submissionFailure, serverMessage: message));
         emit(state.copyWith(
