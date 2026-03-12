@@ -19,13 +19,49 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
+
   Future<void> _launchInBrowser(Uri url) async {
-    if (!await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    )) {
-      throw 'Could not launch $url';
+    try {
+      final launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open ${url.toString()}')),
+        );
+      }
+    } on Exception {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open ${url.toString()}')),
+      );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        _launchInBrowser(Uri.parse(ApiContract.webUrl('terms')));
+      };
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        _launchInBrowser(Uri.parse(ApiContract.webUrl('privacy-policy')));
+      };
+  }
+
+  @override
+  void dispose() {
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
+    super.dispose();
   }
 
   @override
@@ -108,11 +144,7 @@ class _LandingPageState extends State<LandingPage> {
               children: <TextSpan>[
                 TextSpan(
                   text: 'terms of services',
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () async {
-                      _launchInBrowser(
-                          Uri.parse(ApiContract.webUrl('terms')));
-                    },
+                  recognizer: _termsRecognizer,
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark,
                       fontSize: 14,
@@ -123,11 +155,8 @@ class _LandingPageState extends State<LandingPage> {
                   text: ' and',
                 ),
                 TextSpan(
-                    text: ' privacy policy',recognizer: TapGestureRecognizer()
-                  ..onTap = () async {
-                    _launchInBrowser(
-                        Uri.parse(ApiContract.webUrl('privacy-policy')));
-                  },
+                    text: ' privacy policy',
+                    recognizer: _privacyRecognizer,
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: 14,
