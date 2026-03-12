@@ -1,234 +1,300 @@
-# Environment Variables & Secrets Rotation Runbook
+# Environment Variables and Secrets Rotation
 
-## Active Environment Variable Inventory
+This document is limited to what the current codebase actually uses.
 
-Total active env variables: **171**.
+## Source of Truth
 
-> Keep `backend/.env.example` and deployment env templates under `deploy/environments/` in sync with this list.
+These files are the env sources currently present in the repo:
 
-- `ABLY_KEY`
-- `APP_DEBUG`
-- `APP_ENV`
-- `APP_FAKER_LOCALE`
-- `APP_FALLBACK_LOCALE`
-- `APP_KEY`
-- `APP_LOCALE`
-- `APP_MAINTENANCE_DRIVER`
-- `APP_MAINTENANCE_STORE`
+- `backend/.env.example`: local backend defaults.
+- `backend/.env.test`: PHPUnit/test defaults.
+- `deploy/environments/dev/backend-api.env`: Docker dev runtime.
+- `deploy/environments/staging/backend-api.env`: staging runtime template.
+- `deploy/environments/prod/backend-api.env`: production runtime template.
+- `.env.example`: root-level compose variable source for `DB_ROOT_PASSWORD`.
+
+The backend container startup flow is implemented in `backend/start-server.sh`. Production compose wiring is in `deploy/docker-compose.prod.contabo.yml`. Local Docker wiring is in `docker-compose.yml`.
+
+## Variables Actively Configured in This Repo
+
+These are the variables currently populated in one or more committed env templates and consumed by the running stack.
+
+### Core application
+
 - `APP_NAME`
-- `APP_PREVIOUS_KEYS`
-- `APP_SERVICE`
+- `APP_ENV`
+- `APP_DEBUG`
 - `APP_URL`
-- `ASSET_URL`
-- `AUTH_GUARD`
-- `AUTH_MODEL`
-- `AUTH_PASSWORD_BROKER`
-- `AUTH_PASSWORD_RESET_TOKEN_TABLE`
-- `AUTH_PASSWORD_TIMEOUT`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_BUCKET`
-- `AWS_DEFAULT_REGION`
-- `AWS_ENDPOINT`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_URL`
-- `AWS_USE_PATH_STYLE_ENDPOINT`
-- `BCRYPT_ROUNDS`
-- `BEANSTALKD_QUEUE`
-- `BEANSTALKD_QUEUE_HOST`
-- `BEANSTALKD_QUEUE_RETRY_AFTER`
-- `BROADCAST_DRIVER`
-- `CACHE_DRIVER`
-- `CACHE_PREFIX`
-- `CACHE_STORE`
-- `DATABASE_URL`
-- `DB_CACHE_CONNECTION`
-- `DB_CACHE_LOCK_CONNECTION`
-- `DB_CACHE_LOCK_TABLE`
-- `DB_CACHE_TABLE`
-- `DB_CHARSET`
-- `DB_COLLATION`
-- `DB_CONNECTION`
-- `DB_DATABASE`
-- `DB_ENCRYPT`
-- `DB_FOREIGN_KEYS`
-- `DB_HOST`
-- `DB_PASSWORD`
-- `DB_PORT`
-- `DB_QUEUE`
-- `DB_QUEUE_CONNECTION`
-- `DB_QUEUE_RETRY_AFTER`
-- `DB_QUEUE_TABLE`
-- `DB_SOCKET`
-- `DB_SSLMODE`
-- `DB_TRUST_SERVER_CERTIFICATE`
-- `DB_URL`
-- `DB_USERNAME`
-- `DYNAMODB_CACHE_TABLE`
-- `DYNAMODB_ENDPOINT`
-- `FILESYSTEM_DISK`
-- `FILESYSTEM_DRIVER`
-- `HORIZON_DOMAIN`
-- `HORIZON_PATH`
-- `HORIZON_PREFIX`
-- `JWT_ALGO`
-- `JWT_BLACKLIST_ENABLED`
-- `JWT_BLACKLIST_GRACE_PERIOD`
-- `JWT_LEEWAY`
-- `JWT_PASSPHRASE`
-- `JWT_PRIVATE_KEY`
-- `JWT_PUBLIC_KEY`
-- `JWT_REFRESH_TTL`
+- `APP_SERVICE`
+- `APP_KEY`
+
+### JWT auth
+
 - `JWT_SECRET`
 - `JWT_TTL`
-- `L5_FORMAT_TO_USE_FOR_DOCS`
-- `L5_SWAGGER_BASE_PATH`
-- `L5_SWAGGER_CONST_HOST`
-- `L5_SWAGGER_GENERATE_ALWAYS`
-- `L5_SWAGGER_GENERATE_YAML_COPY`
-- `L5_SWAGGER_OPERATIONS_SORT`
-- `L5_SWAGGER_UI_ASSETS_PATH`
-- `L5_SWAGGER_UI_DOC_EXPANSION`
-- `L5_SWAGGER_UI_FILTERS`
-- `L5_SWAGGER_UI_PERSIST_AUTHORIZATION`
-- `L5_SWAGGER_USE_ABSOLUTE_PATH`
-- `LOG_CHANNEL`
-- `LOG_DAILY_DAYS`
-- `LOG_DEPRECATIONS_CHANNEL`
-- `LOG_DEPRECATIONS_TRACE`
-- `LOG_LEVEL`
-- `LOG_PAPERTRAIL_HANDLER`
-- `LOG_SLACK_EMOJI`
-- `LOG_SLACK_USERNAME`
-- `LOG_SLACK_WEBHOOK_URL`
-- `LOG_STACK`
-- `LOG_STDERR_FORMATTER`
-- `LOG_SYSLOG_FACILITY`
-- `MAILGUN_DOMAIN`
-- `MAILGUN_ENDPOINT`
-- `MAILGUN_SECRET`
-- `MAIL_EHLO_DOMAIN`
+- `JWT_REFRESH_TTL`
+
+### Database
+
+- `DB_CONNECTION`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_DATABASE`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_ROOT_PASSWORD`
+
+### Queue, cache, session, Redis
+
+- `QUEUE_CONNECTION`
+- `HORIZON_PREFIX`
+- `CACHE_DRIVER`
+- `SESSION_DRIVER`
+- `REDIS_HOST`
+- `REDIS_PASSWORD`
+- `REDIS_PORT`
+
+### Boot-time automation
+
+- `RUN_MIGRATIONS_ON_BOOT`
+- `RUN_SEEDERS_ON_BOOT`
+- `RUN_PERMISSION_SEED_ON_BOOT`
+
+### Production bootstrap admin
+
+Used only by `Database\\Seeders\\AdminUserSeeder` in production, and only matters when `RUN_SEEDERS_ON_BOOT=true`.
+
+- `ADMIN_BOOTSTRAP_EMAIL`
+- `ADMIN_BOOTSTRAP_NAME`
+- `ADMIN_BOOTSTRAP_PASSWORD`
+
+## Variables Supported by Code But Not Populated in Deployment Templates
+
+These variables are still live in the codebase, but they are not part of the committed `deploy/environments/*/backend-api.env` files today.
+
+### Mail
+
+- `MAIL_MAILER`
+- `MAIL_HOST`
+- `MAIL_PORT`
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
 - `MAIL_ENCRYPTION`
+- `MAIL_SENDMAIL_PATH`
+- `MAIL_LOG_CHANNEL`
 - `MAIL_FROM_ADDRESS`
 - `MAIL_FROM_NAME`
-- `MAIL_HOST`
-- `MAIL_LOG_CHANNEL`
-- `MAIL_MAILER`
-- `MAIL_PASSWORD`
-- `MAIL_PORT`
-- `MAIL_SCHEME`
-- `MAIL_SENDMAIL_PATH`
-- `MAIL_URL`
-- `MAIL_USERNAME`
-- `MEMCACHED_HOST`
-- `MEMCACHED_PASSWORD`
-- `MEMCACHED_PERSISTENT_ID`
-- `MEMCACHED_PORT`
-- `MEMCACHED_USERNAME`
-- `MYSQL_ATTR_SSL_CA`
-- `PAPERTRAIL_PORT`
-- `PAPERTRAIL_URL`
-- `PERMISSION_CACHE_STORE`
-- `POSTMARK_API_KEY`
-- `POSTMARK_MESSAGE_STREAM_ID`
+- `MAILGUN_DOMAIN`
+- `MAILGUN_SECRET`
+- `MAILGUN_ENDPOINT`
 - `POSTMARK_TOKEN`
-- `PUSHER_APP_CLUSTER`
+
+### Stripe
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_CLIENT_ID`
+- `STRIPE_REDIRECT_URI`
+- `STRIPE_AUTHORIZATION_URI`
+- `STRIPE_WEBHOOK_SIGNING_SECRET`
+- `STRIPE_CURRENCY`
+- `STRIPE_CONNECTED_ACCOUNT_COUNTRY`
+- `STRIPE_DASHBOARD_BASE_URL`
+
+### Session hardening
+
+- `SESSION_CONNECTION`
+- `SESSION_STORE`
+- `SESSION_COOKIE`
+- `SESSION_DOMAIN`
+- `SESSION_SECURE_COOKIE`
+
+### OTP behavior
+
+- `OTP_EXPIRE_MINUTES`
+- `OTP_MAX_ATTEMPTS`
+- `OTP_LOCK_MINUTES`
+- `OTP_MAIL_SUBJECT`
+
+### Logging
+
+- `LOG_CHANNEL`
+- `LOG_DEPRECATIONS_CHANNEL`
+- `LOG_LEVEL`
+- `LOG_SLACK_WEBHOOK_URL`
+- `LOG_STDERR_FORMATTER`
+- `PAPERTRAIL_URL`
+- `PAPERTRAIL_PORT`
+
+### Storage and AWS-backed integrations
+
+- `FILESYSTEM_DRIVER`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_DEFAULT_REGION`
+- `AWS_BUCKET`
+- `AWS_URL`
+- `AWS_ENDPOINT`
+- `AWS_USE_PATH_STYLE_ENDPOINT`
+
+### Broadcasting
+
+- `BROADCAST_DRIVER`
 - `PUSHER_APP_ID`
 - `PUSHER_APP_KEY`
 - `PUSHER_APP_SECRET`
-- `QUEUE_CONNECTION`
-- `QUEUE_FAILED_DRIVER`
-- `REDIS_BACKOFF_ALGORITHM`
-- `REDIS_BACKOFF_BASE`
-- `REDIS_BACKOFF_CAP`
-- `REDIS_CACHE_CONNECTION`
-- `REDIS_CACHE_DB`
-- `REDIS_CACHE_LOCK_CONNECTION`
+- `PUSHER_APP_CLUSTER`
+- `ABLY_KEY`
+
+### Redis, queue, cache, and database advanced options
+
+- `DATABASE_URL`
+- `DB_FOREIGN_KEYS`
+- `DB_SOCKET`
+- `MYSQL_ATTR_SSL_CA`
 - `REDIS_CLIENT`
-- `REDIS_CLUSTER`
+- `REDIS_URL`
 - `REDIS_DB`
-- `REDIS_HOST`
-- `REDIS_MAX_RETRIES`
-- `REDIS_PASSWORD`
-- `REDIS_PERSISTENT`
-- `REDIS_PORT`
+- `REDIS_CACHE_DB`
+- `REDIS_CLUSTER`
 - `REDIS_PREFIX`
 - `REDIS_QUEUE`
-- `REDIS_QUEUE_CONNECTION`
-- `REDIS_QUEUE_RETRY_AFTER`
-- `REDIS_URL`
-- `REDIS_USERNAME`
-- `RESEND_API_KEY`
-- `SANCTUM_STATEFUL_DOMAINS`
-- `SESSION_CONNECTION`
-- `SESSION_COOKIE`
-- `SESSION_DOMAIN`
-- `SESSION_DRIVER`
-- `SESSION_ENCRYPT`
-- `SESSION_HTTP_ONLY`
-- `SESSION_PARTITIONED_COOKIE`
-- `SESSION_PATH`
-- `SESSION_SAME_SITE`
-- `SESSION_SECURE_COOKIE`
-- `SESSION_STORE`
-- `SESSION_TABLE`
-- `SLACK_BOT_USER_DEFAULT_CHANNEL`
-- `SLACK_BOT_USER_OAUTH_TOKEN`
+- `CACHE_PREFIX`
+- `QUEUE_FAILED_DRIVER`
 - `SQS_PREFIX`
 - `SQS_QUEUE`
 - `SQS_SUFFIX`
+- `HORIZON_DOMAIN`
+- `HORIZON_PATH`
+- `PERMISSION_CACHE_STORE`
+
+### JWT advanced options
+
+- `JWT_PUBLIC_KEY`
+- `JWT_PRIVATE_KEY`
+- `JWT_PASSPHRASE`
+- `JWT_ALGO`
+- `JWT_LEEWAY`
+- `JWT_BLACKLIST_ENABLED`
+- `JWT_BLACKLIST_GRACE_PERIOD`
+
+### Swagger and misc Laravel config
+
+- `ASSET_URL`
+- `SANCTUM_STATEFUL_DOMAINS`
+- `BCRYPT_ROUNDS`
 - `VIEW_COMPILED_PATH`
+- `MEMCACHED_PERSISTENT_ID`
+- `MEMCACHED_USERNAME`
+- `MEMCACHED_PASSWORD`
+- `MEMCACHED_HOST`
+- `MEMCACHED_PORT`
+- `DYNAMODB_CACHE_TABLE`
+- `DYNAMODB_ENDPOINT`
+- `L5_SWAGGER_USE_ABSOLUTE_PATH`
+- `L5_FORMAT_TO_USE_FOR_DOCS`
+- `L5_SWAGGER_BASE_PATH`
+- `L5_SWAGGER_UI_ASSETS_PATH`
+- `L5_SWAGGER_GENERATE_ALWAYS`
+- `L5_SWAGGER_GENERATE_YAML_COPY`
+- `L5_SWAGGER_OPERATIONS_SORT`
+- `L5_SWAGGER_UI_DOC_EXPANSION`
+- `L5_SWAGGER_UI_FILTERS`
+- `L5_SWAGGER_UI_PERSIST_AUTHORIZATION`
+- `L5_SWAGGER_CONST_HOST`
 
+## Secrets vs Non-Secrets
 
+Treat these as secrets:
 
+- `APP_KEY`
+- `JWT_SECRET`
+- `DB_PASSWORD`
+- `DB_ROOT_PASSWORD`
+- `ADMIN_BOOTSTRAP_PASSWORD`
+- `MAIL_PASSWORD`
+- `MAILGUN_SECRET`
+- `POSTMARK_TOKEN`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SIGNING_SECRET`
+- `AWS_SECRET_ACCESS_KEY`
+- `PUSHER_APP_SECRET`
+- `ABLY_KEY`
+- `JWT_PRIVATE_KEY`
+- `JWT_PASSPHRASE`
 
------
+Usually not secrets:
 
+- `APP_ENV`
+- `APP_DEBUG`
+- `APP_URL`
+- `APP_SERVICE`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_DATABASE`
+- `DB_USERNAME`
+- `QUEUE_CONNECTION`
+- `CACHE_DRIVER`
+- `SESSION_DRIVER`
+- `REDIS_HOST`
+- `REDIS_PORT`
 
+## Rotation Runbook
 
-# Secrets Rotation Runbook
+Use this workflow for any real secret currently used by the stack.
 
-This runbook covers operational rotation for platform-level API keys and secrets used by the backend API, backend-admin surface (`/admin`), and website integrations.
+1. Identify the secret and every place it is set:
+   - root compose `.env` / `.env.example` for `DB_ROOT_PASSWORD`
+   - `deploy/environments/<env>/backend-api.env`
+   - any external secret manager if one is used outside git
+2. Generate the replacement value.
+3. Update the target environment file or secret store.
+4. Redeploy or restart the affected containers:
+   - `backend`
+   - `queue-worker`
+   - `scheduler`
+5. Validate:
+   - `curl -fsS http://127.0.0.1:8000/api/health/live`
+   - `curl -fsS http://127.0.0.1:8000/api/health/ready`
+   - `php artisan platform:health:synthetic`
+   - `php artisan horizon:status`
+6. Revoke the old provider-side credential after the new one is confirmed healthy.
 
-## Triggers
+## Rotation Notes by Secret Type
 
-* Scheduled quarterly rotation.
-* Credential leak suspicion or confirmed exposure.
-* Vendor-directed credential rollover.
-* Personnel offboarding impacting shared secret access.
+### `APP_KEY`
 
-## Rotation workflow
+- High impact.
+- Rotating it invalidates Laravel encrypted payloads and can affect sessions and any data encrypted with the old key.
+- Rotate only in a planned maintenance window.
 
-1. **Prepare**
-   * Open an incident/change ticket and assign an owner + approver.
-   * Identify all dependent services and environment scopes (`dev`, `staging`, `prod`).
-   * Confirm rollback window and communication channel.
-2. **Generate replacement credentials**
-   * Create new API key/secret pair from provider console.
-   * Prefer overlap mode (old and new valid concurrently) where provider allows.
-3. **Store and distribute securely**
-   * Save replacement values in the secret manager (not in git).
-   * Update deployment references for each environment.
-4. **Deploy incrementally**
-   * Roll out to `dev`, then `staging`, then `prod`.
-   * Restart PHP-FPM/queue workers/Horizon after env refresh.
-5. **Validate**
-   * Run health checks: `/api/health/ready` and `php artisan platform:health:synthetic`.
-   * Confirm queue processing and integration logs show no auth failures.
-6. **Deactivate old credential**
-   * Revoke old key/secret after production verification.
-7. **Audit evidence**
-   * Capture ticket ID, rotated providers, affected envs, and completion time.
+### `JWT_SECRET`
 
-## Minimum validation checklist
+- Rotating it invalidates existing JWTs.
+- Expect API/mobile users to be forced to authenticate again.
 
-* No `401`/`403` spikes in outbound integration logs.
-* No failed jobs caused by auth/signature errors.
-* Stripe/FCM/SMTP dependent flows continue to pass health checks.
-* Platform setting `incident.degraded_mode` remains disabled unless an incident is active.
+### `DB_PASSWORD` and `DB_ROOT_PASSWORD`
 
-## Rollback
+- Change the database credential first in MySQL, then update compose/env configuration, then restart services.
+- `DB_ROOT_PASSWORD` is only for the MySQL container itself.
+- `DB_PASSWORD` is the backend application's database credential.
 
-* Re-enable previous key in provider console (if still available).
-* Revert secret manager references.
-* Redeploy and restart workers.
-* Mark rotation as failed and keep incident mode active until stabilization.
+### `ADMIN_BOOTSTRAP_PASSWORD`
+
+- This is not a standing runtime dependency.
+- It is only consumed by `AdminUserSeeder` during production seeding.
+- After first bootstrap, keep it unset unless you intentionally re-run bootstrap seeding.
+
+### Provider secrets such as Stripe, mail, AWS, Pusher, Ably
+
+- Rotate in the provider console first.
+- Update the env value.
+- Restart `backend` and `queue-worker` so web requests and async jobs pick up the new credential.
+
+## What Was Removed From the Old Version
+
+The previous version of this document listed a generic Laravel inventory of 171 variables and implied that all of them were active. That was not true for this repo. This version keeps only:
+
+- variables committed in current env templates
+- variables directly referenced by current code
+- rotation steps that match the actual health checks and process model in this repository

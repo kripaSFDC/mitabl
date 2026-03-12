@@ -54,15 +54,21 @@ class PlatformSettingsPage extends Page implements HasForms
                     ->schema([
                         Forms\Components\Repeater::make('settings')
                             ->label('Settings')
+                            ->helperText('Each card is titled from its runtime key so admins can quickly identify the setting domain before editing.')
                             ->default([])
+                            ->itemLabel(fn (array $state): ?string => $this->settingCardHeading((string) ($state['key'] ?? '')))
                             ->schema([
                                 Forms\Components\Hidden::make('id'),
                                 Forms\Components\TextInput::make('key')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Stable runtime identifier used by the application code and config loaders.')
                                     ->required()
                                     ->maxLength(255)
                                     ->placeholder('feature.flag_name')
-                                    ->helperText('Use stable dot-notation keys (for example auth.lockout.window_minutes). Keys under support/session/admin/stripe are platform-managed runtime controls.'),
+                                    ->helperText(fn (Forms\Get $get): string => 'Section: ' . $this->settingCardHeading((string) $get('key')) . '. Use stable dot-notation keys (for example auth.lockout.window_minutes). Keys under support/session/admin/stripe are platform-managed runtime controls.'),
                                 Forms\Components\Select::make('value_type')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Controls how the value is validated, stored, and parsed at runtime.')
                                     ->required()
                                     ->helperText('Choose the expected backend type so runtime parsing stays safe.')
                                     ->options([
@@ -74,25 +80,35 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->default('boolean')
                                     ->live(),
                                 Forms\Components\Textarea::make('description')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Visible admin guidance for when to use this setting, safe ranges, and rollback notes.')
                                     ->rows(2)
                                     ->maxLength(1000)
-                                    ->helperText('Describe impact, safe ranges, and rollback hints for operators. This text serves as inline admin guidance.'),
+                                    ->helperText(fn (Forms\Get $get): string => 'Explain when to use ' . $this->settingCardHeading((string) $get('key')) . ', which values are safe, and how to roll it back if needed.'),
                                 Forms\Components\Toggle::make('value_boolean')
                                     ->label('Boolean value')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Use for on/off runtime controls. Changes may take effect immediately after save or activation.')
                                     ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'boolean'),
                                 Forms\Components\TextInput::make('value_integer')
                                     ->label('Integer value')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Use whole numbers only. Prefer documenting units such as minutes, hours, retries, or seconds.')
                                     ->numeric()
                                     ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'integer'),
                                 Forms\Components\Textarea::make('value_string')
                                     ->label('String value')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Use plain text for keys, URLs, provider names, and other non-structured values.')
                                     ->rows(3)
                                     ->helperText(fn (Forms\Get $get): string => $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'string'),
                                 Forms\Components\Textarea::make('value_json')
                                     ->label('JSON value')
+                                    ->hintIcon('heroicon-m-question-mark-circle')
+                                    ->hintIconTooltip('Use structured JSON objects or arrays for grouped runtime controls.')
                                     ->rows(8)
                                     ->helperText(fn (Forms\Get $get): string => 'Must be valid JSON. ' . $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'json'),
@@ -526,6 +542,41 @@ class PlatformSettingsPage extends Page implements HasForms
         $user = Filament::auth()->user();
 
         return (bool) ($user && $user->hasRole('super_admin'));
+    }
+
+    private function settingCardHeading(string $key): string
+    {
+        $normalized = strtolower(trim($key));
+
+        return match (true) {
+            $normalized === '' => 'New Runtime Setting',
+            $normalized === 'onboarding.enabled' => 'Onboarding Availability',
+            $normalized === 'onboarding.require_identity_verification' => 'Onboarding Identity Verification',
+            $normalized === 'maintenance.read_only_mode' => 'Maintenance Read-Only Mode',
+            $normalized === 'operations.synthetic_checks_enabled' => 'Synthetic Health Monitoring',
+            $normalized === 'incident.degraded_mode' => 'Incident Degraded Mode',
+            str_starts_with($normalized, 'support.sla.') => 'Support SLA Targets',
+            str_starts_with($normalized, 'support.duplicate_') => 'Support Duplicate Protection',
+            $normalized === 'support.reopen_window_hours' => 'Support Reopen Policy',
+            $normalized === 'support.honeypot_field' => 'Support Spam Protection',
+            $normalized === 'admin.security.reauth_minutes' => 'Admin Step-Up Authentication',
+            str_starts_with($normalized, 'session.') => 'Session Management',
+            str_starts_with($normalized, 'otp.') => 'OTP Security Controls',
+            str_starts_with($normalized, 'stripe.') => 'Stripe Payment Integration',
+            str_starts_with($normalized, 'integrations.google_maps.') => 'Google Maps Integration',
+            str_starts_with($normalized, 'integrations.fcm.') => 'Push Notification Delivery',
+            str_starts_with($normalized, 'email.') => 'Email Delivery Configuration',
+            str_starts_with($normalized, 'support.') => 'Support Operations',
+            str_starts_with($normalized, 'onboarding.') => 'Onboarding Controls',
+            str_starts_with($normalized, 'operations.') => 'Operations Monitoring',
+            str_starts_with($normalized, 'maintenance.') => 'Maintenance Controls',
+            str_starts_with($normalized, 'incident.') => 'Incident Response',
+            str_starts_with($normalized, 'admin.') => 'Admin Security',
+            default => str($normalized)
+                ->replace(['.', '_', '-'], ' ')
+                ->title()
+                ->toString(),
+        };
     }
 
     private function settingHelpForKey(string $key): string

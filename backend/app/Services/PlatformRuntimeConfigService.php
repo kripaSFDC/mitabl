@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PlatformSetting;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Config;
 
 class PlatformRuntimeConfigService
@@ -64,6 +65,8 @@ class PlatformRuntimeConfigService
 
             Config::set($configPath, $value);
         }
+
+        $this->refreshResolvedMailers();
     }
 
     /**
@@ -99,5 +102,19 @@ class PlatformRuntimeConfigService
             'string' => (string) $raw,
             default => $raw,
         };
+    }
+
+    private function refreshResolvedMailers(): void
+    {
+        if (! app()->resolved('mail.manager')) {
+            return;
+        }
+
+        $mailManager = app('mail.manager');
+        if ($mailManager instanceof MailManager) {
+            $mailManager->forgetMailers();
+        }
+
+        app()->forgetInstance('mailer');
     }
 }
