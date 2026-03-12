@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/model/email.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
@@ -40,7 +41,7 @@ class ForgotCubit extends Cubit<ForgotState> {
               serverMessage: '${res['isError']}'));
         }
       } else {
-        String message = jsonDecode(response.body)['message'];
+        String message = ApiErrorParser.parseMessage(response.body);
 
         emit(state.copyWith(
             status: FormzStatus.submissionFailure,

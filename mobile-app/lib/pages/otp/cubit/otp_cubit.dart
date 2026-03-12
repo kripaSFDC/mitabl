@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/otp_response.dart';
@@ -48,7 +49,7 @@ class OtpCubit extends Cubit<OtpState> {
           }
         });
       } else {
-        String message = jsonDecode(response.body)['isError'];
+        String message = ApiErrorParser.parseMessage(response.body);
         emit(state.copyWith(
             statusAPI: FormzStatus.submissionFailure, serverMessage: message));
         emit(state.copyWith(statusAPI: FormzStatus.pure, serverMessage: ''));
