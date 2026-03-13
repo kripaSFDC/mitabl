@@ -9,8 +9,10 @@ use App\Models\Payment;
 use App\Models\Refund;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
+use Throwable;
 
 class AdminPaymentRefundService
 {
@@ -99,7 +101,11 @@ class AdminPaymentRefundService
                 );
 
                 if ($order->user?->email) {
-                    Mail::to($order->user->email)->queue((new RefundInvoice($order->user, $order, 1, 100))->afterCommit());
+                    $this->safeQueueRefundMail($order->user->email, new RefundInvoice($order->user, $order, 1, 100), [
+                        'order_id' => $order->id,
+                        'payment_id' => $payment->id,
+                        'recipient' => $order->user->email,
+                    ]);
                 }
 
                 return [
@@ -131,5 +137,16 @@ class AdminPaymentRefundService
         ]);
 
         return $result;
+    }
+
+    private function safeQueueRefundMail(string $recipient, object $mailable, array $context = []): void
+    {
+        try {
+            Mail::to($recipient)->queue(method_exists($mailable, 'afterCommit') ? $mailable->afterCommit() : $mailable);
+        } catch (Throwable $throwable) {
+            Log::error('payments.refund_mail_failed', $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 }

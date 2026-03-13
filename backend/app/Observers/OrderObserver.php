@@ -7,8 +7,11 @@ use App\Models\Mikitchn;
 use App\Models\User;
 use App\Models\CancelReason;
 use App\Mail\Invoice;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushOrderNotification;
+use Throwable;
 use Auth;
 
 class OrderObserver
@@ -105,25 +108,38 @@ class OrderObserver
                 
                 
                 if ($kitchenUser) {
-                    Notification::send($kitchenUser, new PushOrderNotification($order, $kMsg, $type));
+                    $this->safeSendNotification($kitchenUser, new PushOrderNotification($order, $kMsg, $type), 'orders.kitchen_notification_failed', [
+                        'order_id' => $order->id,
+                        'recipient_id' => $kitchenUser->id,
+                        'status' => $new_status,
+                    ]);
                 }
                 
 
             } else {
 
                 if ($user instanceof \Illuminate\Support\Collection && $user->isNotEmpty()) {
-                    Notification::send($user, new PushOrderNotification($order, $sMsg, $type));
+                    $this->safeSendNotification($user, new PushOrderNotification($order, $sMsg, $type), 'orders.user_notification_failed', [
+                        'order_id' => $order->id,
+                        'status' => $new_status,
+                    ]);
                 }
                 
             }
             
             if ((int) $new_status === Order::STATUS_COMPLETED) {
                 if ($order->user?->email) {
-                    \Mail::to($order->user->email)->send(new Invoice($order->user, $order, 1));
+                    $this->safeQueueMail($order->user->email, new Invoice($order->user, $order, 1), 'orders.customer_invoice_failed', [
+                        'order_id' => $order->id,
+                        'recipient' => $order->user->email,
+                    ]);
                 }
 
                 if ($kitchenUser?->email) {
-                    \Mail::to($kitchenUser->email)->send(new Invoice($order->user, $order, 0));
+                    $this->safeQueueMail($kitchenUser->email, new Invoice($order->user, $order, 0), 'orders.kitchen_invoice_failed', [
+                        'order_id' => $order->id,
+                        'recipient' => $kitchenUser->email,
+                    ]);
                 }
             }
              
@@ -163,5 +179,27 @@ class OrderObserver
     public function forceDeleted(Order $order)
     {
         //
+    }
+
+    private function safeSendNotification(mixed $notifiables, object $notification, string $logEvent, array $context = []): void
+    {
+        try {
+            Notification::send($notifiables, $notification);
+        } catch (Throwable $throwable) {
+            Log::error($logEvent, $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
+    }
+
+    private function safeQueueMail(string $recipient, object $mailable, string $logEvent, array $context = []): void
+    {
+        try {
+            Mail::to($recipient)->queue(method_exists($mailable, 'afterCommit') ? $mailable->afterCommit() : $mailable);
+        } catch (Throwable $throwable) {
+            Log::error($logEvent, $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 }

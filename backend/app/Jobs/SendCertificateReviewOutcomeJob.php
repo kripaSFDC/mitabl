@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Throwable;
@@ -61,19 +62,20 @@ class SendCertificateReviewOutcomeJob implements ShouldQueue
     private function sendApprovedNotifications(object $recipient, Certificate $certificate, string $token): void
     {
         $mailKey = "certificate:approved:mail:{$token}";
-        $mailLock = Cache::lock("{$mailKey}:lock", 15);
-        $mailLock->block(5, function () use ($mailKey, $recipient, $certificate): void {
+        $this->safeLockedDelivery("{$mailKey}:lock", function () use ($mailKey, $recipient, $certificate): void {
             if (Cache::has($mailKey)) {
                 return;
             }
 
             Mail::to($recipient->email)->sendNow(new CertificateApproved($recipient, $certificate));
             Cache::put($mailKey, true, now()->addDays(14));
-        });
+        }, 'certificates.approved_mail_failed', [
+            'certificate_id' => $certificate->id,
+            'recipient' => $recipient->email,
+        ]);
 
         $notificationKey = "certificate:approved:db:{$token}";
-        $notificationLock = Cache::lock("{$notificationKey}:lock", 15);
-        $notificationLock->block(5, function () use ($notificationKey, $recipient, $certificate): void {
+        $this->safeLockedDelivery("{$notificationKey}:lock", function () use ($notificationKey, $recipient, $certificate): void {
             if (Cache::has($notificationKey)) {
                 return;
             }
@@ -83,25 +85,29 @@ class SendCertificateReviewOutcomeJob implements ShouldQueue
                 new CertificateStatusUpdatedNotification('approved', null, $certificate->id)
             );
             Cache::put($notificationKey, true, now()->addDays(14));
-        });
+        }, 'certificates.approved_notification_failed', [
+            'certificate_id' => $certificate->id,
+            'recipient_id' => $recipient->id ?? null,
+        ]);
     }
 
     private function sendRejectedNotifications(object $recipient, Certificate $certificate, string $token): void
     {
         $mailKey = "certificate:rejected:mail:{$token}";
-        $mailLock = Cache::lock("{$mailKey}:lock", 15);
-        $mailLock->block(5, function () use ($mailKey, $recipient, $certificate): void {
+        $this->safeLockedDelivery("{$mailKey}:lock", function () use ($mailKey, $recipient, $certificate): void {
             if (Cache::has($mailKey)) {
                 return;
             }
 
             Mail::to($recipient->email)->sendNow(new CertificateRejected($recipient, $certificate));
             Cache::put($mailKey, true, now()->addDays(14));
-        });
+        }, 'certificates.rejected_mail_failed', [
+            'certificate_id' => $certificate->id,
+            'recipient' => $recipient->email,
+        ]);
 
         $notificationKey = "certificate:rejected:db:{$token}";
-        $notificationLock = Cache::lock("{$notificationKey}:lock", 15);
-        $notificationLock->block(5, function () use ($notificationKey, $recipient, $certificate): void {
+        $this->safeLockedDelivery("{$notificationKey}:lock", function () use ($notificationKey, $recipient, $certificate): void {
             if (Cache::has($notificationKey)) {
                 return;
             }
@@ -111,7 +117,10 @@ class SendCertificateReviewOutcomeJob implements ShouldQueue
                 new CertificateStatusUpdatedNotification('rejected', $certificate->rejection_reason, $certificate->id)
             );
             Cache::put($notificationKey, true, now()->addDays(14));
-        });
+        }, 'certificates.rejected_notification_failed', [
+            'certificate_id' => $certificate->id,
+            'recipient_id' => $recipient->id ?? null,
+        ]);
     }
 
     private function decisionToken(Certificate $certificate): string
@@ -126,5 +135,16 @@ class SendCertificateReviewOutcomeJob implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         report($exception);
+    }
+
+    private function safeLockedDelivery(string $lockKey, callable $callback, string $logEvent, array $context = []): void
+    {
+        try {
+            Cache::lock($lockKey, 15)->block(5, $callback);
+        } catch (Throwable $throwable) {
+            Log::error($logEvent, $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 }

@@ -5,8 +5,10 @@ namespace App\Observers;
 use App\Models\User;
 use App\Mail\Registered;
 use App\Mail\DeleteAccount;
-use Illuminate\Support\Facades\Notification;
-use App\Notifications\PushUserNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
+
 class UserObserver
 {
     /**
@@ -36,7 +38,19 @@ class UserObserver
      */
     public function updated(User $user)
     {
-        //
+        if (! $user->wasChanged('email_verified') || ! (bool) $user->email_verified) {
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->queue((new Registered($user))->afterCommit());
+        } catch (Throwable $throwable) {
+            Log::error('users.email_verified_notification_failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -47,15 +61,7 @@ class UserObserver
      */
     public function updating(User $user)
     {
-        if($user->isDirty('email_verified')){
-
-            $new_status = $user->email_verified;
-            // echo "string"; die();
-            if ($new_status == 1) {
-                \Mail::to($user->email)->send(new Registered($user));
-            }
-
-        }
+        //
     }
 
     /**
@@ -66,7 +72,15 @@ class UserObserver
      */
     public function deleted(User $user)
     {
-        \Mail::to($user->email)->send(new DeleteAccount($user));
+        try {
+            Mail::to($user->email)->queue((new DeleteAccount($user))->afterCommit());
+        } catch (Throwable $throwable) {
+            Log::error('users.delete_notification_failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 
     /**

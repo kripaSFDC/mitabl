@@ -5,10 +5,12 @@ namespace App\Observers;
 use App\Models\Review;
 use App\Models\User;
 use App\Models\Mikitchn;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushReviewNotification;
 use Auth;
 use App\Services\KitchenService;
+use Throwable;
 
 class ReviewObserver
 {
@@ -35,7 +37,15 @@ class ReviewObserver
             $kMsg = 'new review from kitchen '.$restaurant->name;
         }
         
-        Notification::send($user ,new PushReviewNotification($user,$kMsg,$review,$type));
+        try {
+            Notification::send($user, new PushReviewNotification($user, $kMsg, $review, $type));
+        } catch (Throwable $throwable) {
+            Log::error('reviews.notification_failed', [
+                'review_id' => $review->id,
+                'user_id' => $user?->id,
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 
     /**

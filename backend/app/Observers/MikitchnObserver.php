@@ -5,9 +5,13 @@ namespace App\Observers;
 use App\Models\Mikitchn;
 use App\Models\User;
 use App\Mail\KitchenActivation;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushUserNotification;
 use App\Services\KitchenService;
+use Throwable;
+
 class MikitchnObserver
 {
     /**
@@ -43,9 +47,17 @@ class MikitchnObserver
                     break;
             }
 
-            Notification::send($user ,new PushUserNotification($user,$sMsg,$type)); 
+            $this->safeSendNotification($user, new PushUserNotification($user, $sMsg, $type), 'kitchens.notification_failed', [
+                'kitchen_id' => $mikitchn->id,
+                'user_id' => $user?->id,
+                'status' => $new_status,
+            ]);
             if ($new_status) {
-                \Mail::to($user->email)->send(new KitchenActivation($user));
+                $this->safeQueueMail((string) $user->email, new KitchenActivation($user), 'kitchens.activation_mail_failed', [
+                    'kitchen_id' => $mikitchn->id,
+                    'user_id' => $user?->id,
+                    'recipient' => $user?->email,
+                ]);
             }
             
         }
@@ -95,5 +107,27 @@ class MikitchnObserver
     public function forceDeleted(Mikitchn $mikitchn)
     {
         //
+    }
+
+    private function safeSendNotification(mixed $notifiable, object $notification, string $logEvent, array $context = []): void
+    {
+        try {
+            Notification::send($notifiable, $notification);
+        } catch (Throwable $throwable) {
+            Log::error($logEvent, $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
+    }
+
+    private function safeQueueMail(string $recipient, object $mailable, string $logEvent, array $context = []): void
+    {
+        try {
+            Mail::to($recipient)->queue(method_exists($mailable, 'afterCommit') ? $mailable->afterCommit() : $mailable);
+        } catch (Throwable $throwable) {
+            Log::error($logEvent, $context + [
+                'error' => $throwable->getMessage(),
+            ]);
+        }
     }
 }

@@ -140,21 +140,26 @@ Routine upgrades/restarts:
 ```bash
 cd ~/mitabl
 git pull --ff-only origin main
+export DB_ROOT_PASSWORD='Usman111!'
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d --remove-orphans
 ```
 
 Important password handling note:
 
 - `DB_ROOT_PASSWORD` is required by compose, but you do **not** need to run `export DB_ROOT_PASSWORD=...` and `echo ... > .env` on every deploy.
-- Set it once and keep it persistent in repo root `.env`:
 
+- Set it once and keep it persistent in repo root `.env`:
+  
   ```bash
   cd ~/mitabl
-  printf 'DB_ROOT_PASSWORD=%s\n' 'replace_with_strong_password' > .env
+  printf 'DB_ROOT_PASSWORD=%s\n' 'Usman111!' > .env
   chmod 600 .env
   ```
 
 - On future deploys, just run `git pull` and `docker compose ... up -d --build`.
+
+- If compose still reports `DB_ROOT_PASSWORD is required`, export it in the current shell before running `docker compose ...`.
+
 - Only update `.env` again if you intentionally rotate the DB root password.
 
 Stop:
@@ -172,7 +177,19 @@ Production code update (recommended):
 ```bash
 cd ~/mitabl
 git pull --ff-only origin main
+export DB_ROOT_PASSWORD='Usman111!'
 docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --remove-orphans
+```
+
+If the release includes auth, runtime config, or admin routing changes, prefer a forced refresh of the app containers and Laravel caches:
+
+```bash
+cd ~/mitabl
+git pull --ff-only origin main
+export DB_ROOT_PASSWORD='Usman111!'
+docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --force-recreate backend queue-worker scheduler
+docker exec -it mitabl-prod-contabo-backend-1 php artisan optimize:clear
+docker exec -it mitabl-prod-contabo-backend-1 php artisan config:cache
 ```
 
 If `.env` does not exist yet (first server setup only):
@@ -273,6 +290,7 @@ Production note:
 - The supported Contabo stack does not use a `website` container in front of Laravel.
 - Public ingress should be host nginx on `80/443` using [deploy/nginx/mitabl.host.unified.conf](/c:/Code/mitabl/deploy/nginx/mitabl.host.unified.conf).
 - If any old listener still exposes `8443`, remove it before debugging admin redirects.
+- Admin login should land on the canonical admin URL. If a browser still redirects to an old host/port immediately after a fix, test once in a private window before investigating server state again.
 
 ## 8) Troubleshooting
 
