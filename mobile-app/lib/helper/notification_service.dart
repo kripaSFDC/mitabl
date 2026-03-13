@@ -46,6 +46,14 @@ class NotificationService {
     UserRepository? userRepository,
   }) async {
     if (_initialized) return;
+
+    if (Firebase.apps.isEmpty) {
+      AppLogger.warn(
+        'NotificationService init skipped: Firebase not initialized.',
+      );
+      return;
+    }
+
     _initialized = true;
     _userRepository = userRepository;
 

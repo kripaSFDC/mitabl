@@ -454,6 +454,34 @@ Needed:
 
 ---
 
+
+## 11.1 Release automation vs manual requirements (Play Store / App Store)
+
+### What is already automated in code/repo
+
+- Push notification runtime wiring is code-complete (Firebase initialization, token sync, foreground/background handlers, and route handling).
+- Android/iOS manifests/plists/entitlements include notification-related capabilities and permissions.
+- The app now degrades gracefully when Firebase is not configured (app still starts, notifications are disabled).
+
+### What still requires manual setup (cannot be fully automated in-repo)
+
+1. **Firebase project binding per app**
+   - Run `flutterfire configure` for the target Firebase project.
+   - This generates platform files (`google-services.json`, `GoogleService-Info.plist`) and a real `lib/firebase_options.dart`.
+2. **Apple Developer portal / APNs configuration**
+   - Push Notifications capability must be enabled for the App ID.
+   - APNs key/certificate must be uploaded in Firebase Cloud Messaging settings.
+3. **Store account actions**
+   - App Store Connect and Google Play Console metadata, policy declarations, screenshots, and signing enrollment steps remain console-driven.
+4. **Release signing assets**
+   - Android upload keystore and iOS signing certificates/profiles must be provisioned and securely injected in CI secrets.
+
+### Recommended automation boundary
+
+- Fully automate **build/test/archive** in CI once secrets are available.
+- Keep console/legal/compliance acknowledgements as a final human gate.
+- Keep Firebase/native config validation as a CI preflight (fail build if required files/values are missing for release lanes).
+
 ## 12. Delivery and governance readiness
 
 Current:
