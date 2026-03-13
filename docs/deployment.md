@@ -244,6 +244,7 @@ sudo cp deploy/nginx/mitabl.host.unified.conf /etc/nginx/sites-available/mitabl.
 sudo ln -sf /etc/nginx/sites-available/mitabl.com /etc/nginx/sites-enabled/mitabl.com
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
+sudo systemctl enable nginx
 sudo systemctl restart nginx
 ```
 

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\Auth\AdminLoginResponse;
 use App\Services\PlatformRuntimeConfigService;
+use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Support\ServiceProvider;
 use App\Observers\OrderObserver;
 use App\Observers\MikitchnObserver;
@@ -30,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind(LoginResponseContract::class, AdminLoginResponse::class);
     }
 
     /**
