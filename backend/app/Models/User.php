@@ -36,6 +36,8 @@ class User extends Authenticatable implements JWTSubject
         'suspension_reason',
         'suspended_at',
         'suspended_by',
+        'avatar',
+        'description',
     ];
 
     /**

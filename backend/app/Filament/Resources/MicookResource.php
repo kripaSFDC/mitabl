@@ -54,8 +54,7 @@ class MicookResource extends Resource
                 ->required()
                 ->email()
                 ->unique(ignoreRecord: true)
-                ->maxLength(255)
-                ->disabled(fn (string $operation): bool => $operation === 'edit'),
+                ->maxLength(255),
             Forms\Components\TextInput::make('password')
                 ->password()
                 ->revealable(false)
@@ -75,6 +74,44 @@ class MicookResource extends Resource
                 ->maxLength(255),
             Forms\Components\TextInput::make('address')
                 ->maxLength(1001),
+            Forms\Components\TextInput::make('avatar')
+                ->label('Avatar URL')
+                ->maxLength(1000)
+                ->helperText('Public path or URL for profile image.'),
+            Forms\Components\Textarea::make('description')
+                ->rows(3)
+                ->columnSpanFull(),
+            Forms\Components\Toggle::make('suspended')
+                ->inline(false),
+            Forms\Components\Textarea::make('suspension_reason')
+                ->rows(2)
+                ->columnSpanFull()
+                ->visible(fn (callable $get): bool => (bool) $get('suspended')),
+            Forms\Components\Section::make('System Fields')
+                ->schema([
+                    Forms\Components\Placeholder::make('id')
+                        ->content(fn (?User $record): string => (string) ($record?->id ?? '-')),
+                    Forms\Components\Placeholder::make('email_verified')
+                        ->content(fn (?User $record): string => (string) ($record?->email_verified ?? '-')),
+                    Forms\Components\Placeholder::make('device_token')
+                        ->content(fn (?User $record): string => (string) ($record?->device_token ?? '-')),
+                    Forms\Components\Placeholder::make('remember_token')
+                        ->content(fn (?User $record): string => filled($record?->remember_token) ? 'Set' : '-'),
+                    Forms\Components\Placeholder::make('suspended_by')
+                        ->label('Suspended by admin')
+                        ->content(fn (?User $record): string => (string) ($record?->suspendedBy?->email ?? '-')),
+                    Forms\Components\Placeholder::make('suspended_at')
+                        ->content(fn (?User $record): string => (string) ($record?->suspended_at?->toDateTimeString() ?? '-')),
+                    Forms\Components\Placeholder::make('created_at')
+                        ->content(fn (?User $record): string => (string) ($record?->created_at?->toDateTimeString() ?? '-')),
+                    Forms\Components\Placeholder::make('updated_at')
+                        ->content(fn (?User $record): string => (string) ($record?->updated_at?->toDateTimeString() ?? '-')),
+                    Forms\Components\Placeholder::make('deleted_at')
+                        ->content(fn (?User $record): string => (string) ($record?->deleted_at?->toDateTimeString() ?? '-')),
+                ])
+                ->columns(3)
+                ->collapsible()
+                ->visible(fn (?User $record): bool => (bool) $record),
         ])->columns(2);
     }
 
@@ -95,6 +132,21 @@ class MicookResource extends Resource
                     ->copyable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('address')
+                    ->limit(40)
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('avatar')
+                    ->limit(35)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('description')
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('email_verified')
+                    ->label('Email verified')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('device_token')
+                    ->limit(30)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('suspended')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
