@@ -15,6 +15,7 @@ class CustomerDirectoryResourceCoverageTest extends TestCase
             $this->assertStringContainsString("TextInput::make('first_name')", $resource);
             $this->assertStringContainsString("TextInput::make('last_name')", $resource);
             $this->assertStringContainsString("TextInput::make('email')", $resource);
+            $this->assertStringContainsString("Toggle::make('email_verified')", $resource);
             $this->assertStringContainsString("TextInput::make('phone')", $resource);
             $this->assertStringContainsString("TextInput::make('address')", $resource);
             $this->assertStringContainsString("TextInput::make('avatar')", $resource);
@@ -23,6 +24,8 @@ class CustomerDirectoryResourceCoverageTest extends TestCase
             $this->assertStringContainsString("Textarea::make('suspension_reason')", $resource);
             $this->assertStringContainsString("Placeholder::make('email_verified')", $resource);
             $this->assertStringContainsString("Placeholder::make('device_token')", $resource);
+            $this->assertStringContainsString("Placeholder::make('role_id')", $resource);
+            $this->assertStringContainsString("Placeholder::make('password')", $resource);
             $this->assertStringNotContainsString("->disabled(fn (string $operation): bool => $operation === 'edit')", $resource);
         }
     }
@@ -45,6 +48,7 @@ class CustomerDirectoryResourceCoverageTest extends TestCase
         $this->assertStringContainsString("Toggle::make('open')", $resource);
         $this->assertStringContainsString("Select::make('status')", $resource);
         $this->assertStringContainsString("Placeholder::make('id')", $resource);
+        $this->assertStringContainsString("Placeholder::make('certificate_status_system')", $resource);
         $this->assertStringContainsString("Placeholder::make('created_at')", $resource);
         $this->assertStringContainsString("Placeholder::make('updated_at')", $resource);
     }

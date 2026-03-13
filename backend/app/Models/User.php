@@ -50,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     protected $casts = [
+        'email_verified' => 'boolean',
         'suspended' => 'boolean',
         'suspended_at' => 'datetime',
         'deleted_at' => 'datetime',

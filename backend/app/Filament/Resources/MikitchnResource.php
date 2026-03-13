@@ -155,6 +155,9 @@ class MikitchnResource extends Resource
                     ->schema([
                         Forms\Components\Placeholder::make('id')
                             ->content(fn (?Mikitchn $record): string => (string) ($record?->id ?? '-')),
+                        Forms\Components\Placeholder::make('certificate_status_system')
+                            ->label('Certificate status (system)')
+                            ->content(fn (?Mikitchn $record): string => (string) (optional($record?->certificate)->status ?? '-')),
                         Forms\Components\Placeholder::make('created_at')
                             ->content(fn (?Mikitchn $record): string => (string) ($record?->created_at?->toDateTimeString() ?? '-')),
                         Forms\Components\Placeholder::make('updated_at')

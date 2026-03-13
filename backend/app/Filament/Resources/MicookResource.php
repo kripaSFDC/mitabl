@@ -55,6 +55,9 @@ class MicookResource extends Resource
                 ->email()
                 ->unique(ignoreRecord: true)
                 ->maxLength(255),
+            Forms\Components\Toggle::make('email_verified')
+                ->label('Email verified')
+                ->inline(false),
             Forms\Components\TextInput::make('password')
                 ->password()
                 ->revealable(false)
@@ -91,6 +94,12 @@ class MicookResource extends Resource
                 ->schema([
                     Forms\Components\Placeholder::make('id')
                         ->content(fn (?User $record): string => (string) ($record?->id ?? '-')),
+                    Forms\Components\Placeholder::make('role_id')
+                        ->label('Role ID')
+                        ->content(fn (?User $record): string => (string) ($record?->role_id ?? '-')),
+                    Forms\Components\Placeholder::make('password')
+                        ->label('Password hash')
+                        ->content(fn (?User $record): string => filled($record?->password) ? 'Set' : '-'),
                     Forms\Components\Placeholder::make('email_verified')
                         ->content(fn (?User $record): string => (string) ($record?->email_verified ?? '-')),
                     Forms\Components\Placeholder::make('device_token')
@@ -149,6 +158,24 @@ class MicookResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('suspended')
                     ->boolean(),
+                Tables\Columns\IconColumn::make('email_verified')
+                    ->label('Email verified')
+                    ->boolean()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('suspension_reason')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('suspended_at')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('suspendedBy.email')
+                    ->label('Suspended by')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('d M Y H:i')
                     ->sortable()
