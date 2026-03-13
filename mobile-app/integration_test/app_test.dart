@@ -31,5 +31,10 @@ void main() {
     // The splash screen should be visible or auth navigation should have
     // triggered. We just assert that the app runs without throwing.
     expect(find.byType(MaterialApp), findsOneWidget);
+
+    // Force-dispose the mounted app tree so long-lived timers/subscriptions
+    // do not keep the test process running on device.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 300));
   });
 }
