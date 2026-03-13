@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Top-level background message handler (must be a top-level function).
 @pragma('vm:entry-point')
@@ -29,14 +31,23 @@ class NotificationService {
 
   static const _channelId = 'mitabl_default';
   static const _channelName = 'Mitabl Notifications';
+  static const _notificationsPreferenceKeyCook =
+      'settings_notifications_enabled_cook';
+
   bool _initialized = false;
+  String? _lastSyncedToken;
+  UserRepository? _userRepository;
 
   /// Initialise FCM, local notifications, and navigation wiring.
   ///
   /// [navigatorKey] is used to push routes when the user taps a notification.
-  Future<void> init(GlobalKey<NavigatorState> navigatorKey) async {
+  Future<void> init(
+    GlobalKey<NavigatorState> navigatorKey, {
+    UserRepository? userRepository,
+  }) async {
     if (_initialized) return;
     _initialized = true;
+    _userRepository = userRepository;
 
     // 1. Request permission (iOS / Android 13+).
     await _messaging.requestPermission(
@@ -56,6 +67,12 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
+
+    // 2.5 Keep token synced once a user is authenticated.
+    await syncTokenWithBackendIfPossible();
+    _messaging.onTokenRefresh.listen((token) {
+      syncTokenWithBackendIfPossible(tokenOverride: token);
+    });
 
     await _localNotifications.initialize(
       const InitializationSettings(
@@ -101,6 +118,41 @@ class NotificationService {
     }
   }
 
+  /// Tries to sync the current FCM token to backend.
+  ///
+  /// Safe to call repeatedly; no-op when token is unchanged or when user repo
+  /// is unavailable.
+  Future<void> syncTokenWithBackendIfPossible({String? tokenOverride}) async {
+    final repository = _userRepository;
+    if (repository == null) return;
+
+    try {
+      final token = tokenOverride ?? await _messaging.getToken();
+      if (token == null || token.isEmpty || token == _lastSyncedToken) return;
+
+      final notificationsEnabled = await _resolveNotificationEnabledPreference();
+      final response = await repository.updateNotificationPreference(
+        enabled: notificationsEnabled,
+        deviceToken: token,
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _lastSyncedToken = token;
+      } else {
+        AppLogger.warn(
+          'Failed to sync FCM token with backend: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      AppLogger.warn('Unable to sync FCM token with backend: $e');
+    }
+  }
+
+  Future<bool> _resolveNotificationEnabledPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationsPreferenceKeyCook) ?? true;
+  }
+
   /// Returns the current FCM token (for registration with the backend).
   Future<String?> getToken() => _messaging.getToken();
 
@@ -113,8 +165,7 @@ class NotificationService {
     return id != null ? '$type:$id' : type;
   }
 
-  void _routeFromPayload(
-      GlobalKey<NavigatorState> key, String? payload) {
+  void _routeFromPayload(GlobalKey<NavigatorState> key, String? payload) {
     if (payload == null) return;
     final parts = payload.split(':');
     _routeFromData(key, {
@@ -123,8 +174,7 @@ class NotificationService {
     });
   }
 
-  void _routeFromData(
-      GlobalKey<NavigatorState> key, Map<String, dynamic> data) {
+  void _routeFromData(GlobalKey<NavigatorState> key, Map<String, dynamic> data) {
     final navigator = key.currentState;
     if (navigator == null) return;
 
@@ -140,8 +190,7 @@ class NotificationService {
         break;
       case 'new_order':
         if (id != null) {
-          navigator.pushNamed('/OrderDetails',
-              arguments: RouteArguments(id: id));
+          navigator.pushNamed('/OrderDetails', arguments: RouteArguments(id: id));
         }
         break;
       case 'upcoming_booking':
@@ -151,5 +200,4 @@ class NotificationService {
         AppLogger.warn('FCM unknown notification type: $type');
     }
   }
-
 }

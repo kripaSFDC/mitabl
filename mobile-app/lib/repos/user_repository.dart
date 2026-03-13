@@ -155,13 +155,19 @@ class UserRepository {
 
   Future<http.Response> updateNotificationPreference({
     required bool enabled,
+    String? deviceToken,
   }) async {
     try {
+      final payload = <String, dynamic>{'notifications_enabled': enabled};
+      if (deviceToken != null && deviceToken.isNotEmpty) {
+        payload['device_key'] = deviceToken;
+      }
+
       return _httpClient
           .post(
             ApiContract.uri('v2/account/notification-preferences'),
             headers: await authorizedHeaders(includeJsonContentType: true),
-            body: json.encode({'notifications_enabled': enabled}),
+            body: json.encode(payload),
           )
           .timeout(ApiContract.requestTimeout);
     } catch (e) {

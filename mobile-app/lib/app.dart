@@ -118,7 +118,10 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
     });
     // Phase 4: wire up push notifications and deep links after first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService.instance.init(navigatorKey);
+      NotificationService.instance.init(
+        navigatorKey,
+        userRepository: widget.userRepository,
+      );
       DeepLinkService.instance.init(navigatorKey);
     });
   }
@@ -130,26 +133,35 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
   }
 
   bool _isBiometricLockShowing = false;
+  bool _biometricBypassedForSession = false;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _biometricBypassedForSession = false;
+      return;
+    }
+
     if (state == AppLifecycleState.resumed) {
       _showBiometricLockIfNeeded();
     }
   }
 
   Future<void> _showBiometricLockIfNeeded() async {
-    if (_isBiometricLockShowing) return;
-    
+    if (_isBiometricLockShowing || _biometricBypassedForSession) return;
+
     final enabled = await BiometricService.instance.isEnabled();
     if (!enabled) return;
-    
+
     final navigator = _navigator;
     if (navigator == null || !mounted) return;
 
     _isBiometricLockShowing = true;
-    await navigator.push(BiometricLockPage.route());
+    final unlocked = await navigator.push<bool>(BiometricLockPage.route());
     _isBiometricLockShowing = false;
+    if (unlocked == false) {
+      _biometricBypassedForSession = true;
+    }
   }
 
 
@@ -165,6 +177,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
 
       switch (state.status) {
         case AuthenticationStatus.authenticated:
+          NotificationService.instance.syncTokenWithBackendIfPossible();
           final role = state.user?.data?.user?.role;
           final routeName = role == AppConstants.IS_COOK.toString()
               ? '/DashboardCook'

@@ -20,7 +20,7 @@ class UpdateGateWidget extends StatelessWidget {
     if (result.type == UpdateType.none) return;
     await showDialog<void>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: result.type == UpdateType.optional,
       builder: (_) => UpdateGateWidget(result: result),
     );
   }
