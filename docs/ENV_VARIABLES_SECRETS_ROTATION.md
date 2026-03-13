@@ -24,6 +24,11 @@ Env sources currently present and relevant:
 > - `backend/.env.test` (does not exist)
 > - root `.env.example` (does not exist)
 
+Explicit exclusions from managed env inventory:
+
+- `REQUEST_URI` is a web-server request variable (`$_SERVER`), not a configurable deployment env.
+- `APP_BASE_PATH` is a Laravel bootstrap internal override and not part of runtime env management in this repo.
+
 ---
 
 ## 2) Canonical environment variable inventory (with descriptions)
@@ -210,18 +215,9 @@ Status legend:
 
 ### I. Test-only env variables
 
-| Variable | Status | Description |
-|---|---|---|
-| `TELESCOPE_ENABLED` | Test-only/Obsolete candidate | Present in `phpunit.xml` test server vars, but no current code references found. |
-
----
-
-### J. Runtime/system-provided variables (not operator-managed env templates)
-
-| Variable | Status | Description |
-|---|---|---|
-| `APP_BASE_PATH` | Runtime/internal | Optional bootstrap override read in `bootstrap/app.php`; normally unset and defaults to project root. |
-| `REQUEST_URI` | Runtime/internal | Web server request path from `$_SERVER`; not a deploy-time environment variable. |
+> No active test-only env toggles require operator management.
+>
+> `TELESCOPE_ENABLED` appears in `backend/phpunit.xml` but has no code-level usage and is treated as obsolete.
 
 ---
 
@@ -286,32 +282,29 @@ Status legend:
 
 ## 5) Recommendation: envs that should move to platform-admin configurable controls
 
-These values are safe/high-value to move from deployment env into DB-backed platform settings with audited admin controls:
+These values are safe/high-value to move from deployment env into DB-backed platform settings with audited admin controls.
 
-### Strong candidates (move first)
+### Priority migration matrix
 
-- **App version policy:** `APP_VERSION_MINIMUM`, `APP_VERSION_LATEST`, `APP_VERSION_IOS_URL`, `APP_VERSION_ANDROID_URL`
-  - Why: product/ops tuning; frequent updates; no redeploy needed.
-- **OTP policy:** `OTP_EXPIRE_MINUTES`, `OTP_MAX_ATTEMPTS`, `OTP_LOCK_MINUTES`, `OTP_MAIL_SUBJECT`
-  - Why: risk/fraud tuning driven by support/security ops.
-- **Operational toggles currently in env:** `RUN_MIGRATIONS_ON_BOOT`, `RUN_SEEDERS_ON_BOOT`, `RUN_PERMISSION_SEED_ON_BOOT`
-  - Why: should become explicit runbook actions or protected admin operations, not static env flips.
-- **Horizon/UI knobs:** `HORIZON_PATH` (possibly), queue policy defaults like `REDIS_QUEUE`
-  - Why: operational ergonomics; can be guarded behind advanced settings.
-- **Observability knobs:** `LOG_LEVEL` (bounded enum), selected `LOG_CHANNEL` profiles
-  - Why: incident response often needs temporary verbosity changes.
+| Priority | Env variable(s) | Proposed platform-admin control | Why move | Guardrail needed |
+|---|---|---|---|---|
+| P0 | `APP_VERSION_MINIMUM`, `APP_VERSION_LATEST`, `APP_VERSION_IOS_URL`, `APP_VERSION_ANDROID_URL` | **Mobile Version Policy** | Frequent product updates without redeploy | Validation: semver + URL checks, publish approval |
+| P0 | `OTP_EXPIRE_MINUTES`, `OTP_MAX_ATTEMPTS`, `OTP_LOCK_MINUTES`, `OTP_MAIL_SUBJECT` | **OTP/Security Policy** | Security and fraud tuning by operations | Bounded ranges, reason required, staged rollout |
+| P1 | `LOG_LEVEL`, selected `LOG_CHANNEL` profile | **Incident Logging Profile** | Fast incident diagnostics | Auto-expiry + auto-revert to baseline |
+| P1 | `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | **Notification Sender Profile** | Brand/comms updates without release | Domain allowlist + test email before apply |
+| P2 | `RUN_MIGRATIONS_ON_BOOT`, `RUN_SEEDERS_ON_BOOT`, `RUN_PERMISSION_SEED_ON_BOOT` | Replace with **explicit Admin Operations actions** | Avoid risky hidden boot behavior | Step-up auth + dry-run + job execution logs |
+| P2 | `HORIZON_PATH`, queue defaults such as `REDIS_QUEUE` | **Queue Runtime Settings** | Ops ergonomics and live tuning | Restrict to super-admin + health gates |
 
-### Conditional candidates (move only with guardrails)
+### Conditional candidates (move only in non-production or with strict controls)
 
-- **Mail sender identity:** `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`
-- **Session policy:** `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`
-- **API docs behavior:** `L5_SWAGGER_*` values for non-prod admin environments
+- `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`
+- `L5_SWAGGER_*`
 
-### Keep as environment secrets (do **not** move to plain admin settings)
+### Keep as environment-managed secrets (do **not** move to plain admin settings)
 
 - `APP_KEY`, JWT signing keys/secrets, DB credentials, Stripe/AWS/mail provider secrets, webhook secrets.
 
-If credentials are editable in admin, they must use secret-vault references and never be stored plaintext in app DB.
+If credentials are editable in admin, store only a vault reference (`secret_ref`) and never plaintext values in the application database.
 
 ---
 
@@ -344,4 +337,4 @@ If credentials are editable in admin, they must use secret-vault references and 
 
 - `backend/.env.test` reference is obsolete (file absent).
 - root `.env.example` reference is obsolete (file absent).
-- `TELESCOPE_ENABLED` appears only in `phpunit.xml` and has no active code usage; safe to remove from tests unless planned for future use.
+- `TELESCOPE_ENABLED` appears only in `phpunit.xml` and has no active code usage; it has been removed from the managed-env inventory and should be deleted from `phpunit.xml` unless intentionally reintroduced.
