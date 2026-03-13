@@ -3,7 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'dev.flutter.flutter-gradle-plugin'
     // Required for Firebase — processes google-services.json.
-    id 'com.google.gms.google-services'
+    // Temporarily disabled if google-services.json is missing
+    id 'com.google.gms.google-services' apply false
 }
 
 def localProperties = new Properties()
