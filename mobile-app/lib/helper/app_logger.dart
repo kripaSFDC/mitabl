@@ -1,6 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 class AppLogger {
+  static void info(String message) {
+    if (kDebugMode) {
+      debugPrint('[INFO] $message');
+    }
+  }
+
   static void debug(String message) {
     if (kDebugMode) {
       debugPrint(message);

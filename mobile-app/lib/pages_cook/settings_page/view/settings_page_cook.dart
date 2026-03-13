@@ -92,6 +92,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
   Future<void> _onBiometricChanged(bool enabled) async {
     final available = await BiometricService.instance.isAvailable();
+    if (!mounted) return;
     if (!available && enabled) {
       _showSnackBar('Biometric authentication is not available on this device.');
       return;
@@ -125,6 +126,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
     try {
       await _persistNotificationPreference(enabled);
+      if (!mounted) return;
       final repository = context.read<UserRepository>();
       final response = await repository.updateNotificationPreference(
         enabled: enabled,
@@ -340,6 +342,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
           },
         ) ??
         false;
+
+    if (!mounted) return;
 
     if (!shouldDelete) {
       return;
