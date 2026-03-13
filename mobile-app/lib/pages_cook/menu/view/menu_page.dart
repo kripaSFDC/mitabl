@@ -11,6 +11,7 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/no_data_widget.dart';
+import '../../../helper/offline_error_widget.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -69,7 +70,12 @@ class _MenuPageState extends State<MenuPage> {
               children: [
                 state.foodMenuStatus!.isSubmissionInProgress
                     ? const Center()
-                    : state.foodMenu != null &&
+                    : state.foodMenuStatus!.isSubmissionFailure &&
+                            (state.foodMenu?.foodData?.isEmpty ?? true)
+                        ? OfflineErrorWidget(
+                            onRetry: context.read<AddMenuCubit>().getFoodMenu,
+                          )
+                        : state.foodMenu != null &&
                             state.foodMenu!.foodData!.isNotEmpty
                         ? Padding(
                             padding: EdgeInsets.only(

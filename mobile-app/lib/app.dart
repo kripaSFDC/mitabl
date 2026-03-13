@@ -127,6 +127,8 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  bool _isBiometricLockShowing = false;
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -135,14 +137,17 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
   }
 
   Future<void> _showBiometricLockIfNeeded() async {
+    if (_isBiometricLockShowing) return;
+    
     final enabled = await BiometricService.instance.isEnabled();
     if (!enabled) return;
+    
     final navigator = _navigator;
     if (navigator == null || !mounted) return;
-    // Only push if no lock page is already on top.
-    final currentRoute = ModalRoute.of(navigator.context);
-    if (currentRoute?.settings.name == '/BiometricLock') return;
-    navigator.push(BiometricLockPage.route());
+
+    _isBiometricLockShowing = true;
+    await navigator.push(BiometricLockPage.route());
+    _isBiometricLockShowing = false;
   }
 
 

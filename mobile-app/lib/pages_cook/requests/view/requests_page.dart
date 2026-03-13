@@ -10,6 +10,7 @@ import 'package:mitabl_user/helper/formz_compat.dart';
 import '../../../helper/common_progress.dart';
 import '../../../helper/no_data_widget.dart';
 import '../../../repos/authentication_repository.dart';
+import '../../../helper/offline_error_widget.dart';
 import '../elements/accept_reject_dialog.dart';
 import '../elements/order_details_view.dart';
 
@@ -58,9 +59,14 @@ class _RequestsPageState extends State<RequestsPage> {
             children: [
               state.requestBookingStatus!.isSubmissionInProgress
                   ? const Center()
-                  : state.requestBookingModel == null ||
-                          state.requestBookingModel!.data!.bookings!.isEmpty
-                      ? const NoDataWidget()
+                  : state.requestBookingStatus!.isSubmissionFailure &&
+                          (state.requestBookingModel?.data?.bookings?.isEmpty ?? true)
+                      ? OfflineErrorWidget(
+                          onRetry: context.read<RequestsCubit>().getRequests,
+                        )
+                      : state.requestBookingModel == null ||
+                              state.requestBookingModel!.data!.bookings!.isEmpty
+                          ? const NoDataWidget()
                       : ListView.separated(
                           // shrinkWrap: true,
                           itemBuilder: (context, index) {

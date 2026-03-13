@@ -12,6 +12,7 @@ import 'package:mitabl_user/pages/home/element/filter_dialog.dart';
 import 'package:mitabl_user/pages/home/element/near_by_restaurant.dart';
 import 'package:mitabl_user/pages/home/element/recomm_rest_widget.dart';
 import 'package:mitabl_user/pages/home/element/top_rated.dart';
+import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
@@ -130,32 +131,46 @@ class _HomePage extends State<HomePage> {
                           ? const Center(
                               child: CupertinoActivityIndicator(
                                   color: Colors.grey))
-                          : (() {
-                              final recommendedItems = state
-                                      .recommendedRestResponse
-                                      ?.recommendedResturantList ??
-                                  const [];
-                              return CarouselSlider(
-                                options: CarouselOptions(
-                                  height:
-                                      config.AppConfig(context).appHeight(28.0),
-                                  initialPage: 0,
-                                  aspectRatio: 2.0,
-                                  enableInfiniteScroll: true,
-                                  autoPlay: recommendedItems.length > 1,
-                                  autoPlayInterval: const Duration(seconds: 3),
-                                  autoPlayAnimationDuration:
-                                      const Duration(milliseconds: 1000),
-                                  enlargeCenterPage: true,
-                                  autoPlayCurve: Curves.fastOutSlowIn,
-                                ),
-                                items: recommendedItems
-                                    .map((item) => RecommendedRestWidget(
-                                          recommendedResturant: item,
-                                        ))
-                                    .toList(),
-                              );
-                            })(),
+                          : state.statusRecommRes!.isSubmissionFailure &&
+                                  (state.recommendedRestResponse
+                                          ?.recommendedResturantList?.isEmpty ??
+                                      true)
+                              ? OfflineErrorWidget(
+                                  onRetry: context
+                                      .read<HomeCubit>()
+                                      .onRecommendedRestaurants,
+                                )
+                              : (() {
+                                  final recommendedItems = state
+                                          .recommendedRestResponse
+                                          ?.recommendedResturantList ??
+                                      const [];
+                                  if (recommendedItems.isEmpty &&
+                                      state.statusRecommRes!.isSubmissionSuccess) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return CarouselSlider(
+                                    options: CarouselOptions(
+                                      height: config.AppConfig(context)
+                                          .appHeight(28.0),
+                                      initialPage: 0,
+                                      aspectRatio: 2.0,
+                                      enableInfiniteScroll: true,
+                                      autoPlay: recommendedItems.length > 1,
+                                      autoPlayInterval:
+                                          const Duration(seconds: 3),
+                                      autoPlayAnimationDuration:
+                                          const Duration(milliseconds: 1000),
+                                      enlargeCenterPage: true,
+                                      autoPlayCurve: Curves.fastOutSlowIn,
+                                    ),
+                                    items: recommendedItems
+                                        .map((item) => RecommendedRestWidget(
+                                              recommendedResturant: item,
+                                            ))
+                                        .toList(),
+                                  );
+                                })(),
                     ),
                     const _SectionTitle(title: 'top rated restaurants'),
                     SliverToBoxAdapter(
@@ -164,13 +179,23 @@ class _HomePage extends State<HomePage> {
                               child: CupertinoActivityIndicator(
                                   color: Colors.grey),
                             )
-                          : TopRatedWidget(
-                              canLoadMore: state.hasMoreTopRated,
-                              isLoadingMore: state.isLoadingMoreTopRated,
-                              onLoadMore:
-                                  context.read<HomeCubit>().loadMoreTopRated,
-                              topReatedRestList: state.topReatedRestResponse
-                                  ?.data?.topReatedRestList),
+                          : state.statusTopRes!.isSubmissionFailure &&
+                                  (state.topReatedRestResponse?.data
+                                          ?.topReatedRestList?.isEmpty ??
+                                      true)
+                              ? OfflineErrorWidget(
+                                  onRetry: context
+                                      .read<HomeCubit>()
+                                      .onTopratedRestaurants,
+                                )
+                              : TopRatedWidget(
+                                  canLoadMore: state.hasMoreTopRated,
+                                  isLoadingMore: state.isLoadingMoreTopRated,
+                                  onLoadMore: context
+                                      .read<HomeCubit>()
+                                      .loadMoreTopRated,
+                                  topReatedRestList: state.topReatedRestResponse
+                                      ?.data?.topReatedRestList),
                     ),
                     const _SectionTitle(title: 'micook near my location'),
                     SliverToBoxAdapter(
@@ -179,9 +204,18 @@ class _HomePage extends State<HomePage> {
                               child: CupertinoActivityIndicator(
                                   color: Colors.grey),
                             )
-                          : NearByRestaurants(
-                              nearByRestaurantsList: state.nearByRestaurants
-                                  ?.data?.nearByRestaurantsList),
+                          : state.statusApi!.isSubmissionFailure &&
+                                  (state.nearByRestaurants?.data
+                                          ?.nearByRestaurantsList?.isEmpty ??
+                                      true)
+                              ? OfflineErrorWidget(
+                                  onRetry: context
+                                      .read<HomeCubit>()
+                                      .onNearByRestaurants,
+                                )
+                              : NearByRestaurants(
+                                  nearByRestaurantsList: state.nearByRestaurants
+                                      ?.data?.nearByRestaurantsList),
                     ),
                     if (state.isLoadingMoreNearBy)
                       const SliverToBoxAdapter(
