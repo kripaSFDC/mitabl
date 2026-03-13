@@ -81,7 +81,6 @@ class SupportTicketResource extends Resource
                             'urgent' => 'Urgent',
                         ])
                         ->default('normal')
-                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Select::make('status')
                         ->helperText('Set to Pending User when waiting on the customer — this pauses internal SLA pressure.')
@@ -89,10 +88,11 @@ class SupportTicketResource extends Resource
                             SupportTicket::STATUS_OPEN => 'Open',
                             SupportTicket::STATUS_IN_PROGRESS => 'In progress',
                             SupportTicket::STATUS_PENDING_USER => 'Pending user',
+                            SupportTicket::STATUS_RESOLVED => 'Resolved',
+                            SupportTicket::STATUS_CLOSED => 'Closed',
                             SupportTicket::STATUS_SPAM => 'Spam',
                         ])
                         ->default(SupportTicket::STATUS_OPEN)
-                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Select::make('category')
                         ->options([
@@ -103,7 +103,6 @@ class SupportTicketResource extends Resource
                             SupportTicket::CATEGORY_OTHER => 'Other',
                         ])
                         ->default(SupportTicket::CATEGORY_GENERAL)
-                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->required(),
                     Forms\Components\Textarea::make('description')
                         ->rows(5)
@@ -132,7 +131,6 @@ class SupportTicketResource extends Resource
                         ->relationship('assignee', 'name')
                         ->searchable()
                         ->preload()
-                        ->disabled(fn (string $operation): bool => $operation === 'edit')
                         ->helperText('Leave blank to keep in the unassigned queue.'),
                     Forms\Components\TextInput::make('order_id')
                         ->label('Linked order ID')
@@ -940,4 +938,3 @@ class SupportTicketResource extends Resource
         return false;
     }
 }
-
