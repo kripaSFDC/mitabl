@@ -41,6 +41,8 @@ Required production values before first boot:
 
 - `APP_KEY` (format `base64:...`)
 - `JWT_SECRET`
+- `JWT_TTL` (must be a positive integer, e.g. `10080`)
+- `JWT_REFRESH_TTL` (must be a positive integer, e.g. `20160`)
 - `DB_ROOT_PASSWORD` (must be set in shell env or repo root `.env`)
 - `ADMIN_BOOTSTRAP_EMAIL` (only for first prod bootstrap when seeding)
 - `ADMIN_BOOTSTRAP_PASSWORD` (only for first prod bootstrap when seeding)
@@ -128,6 +130,14 @@ First boot on fresh DB:
    - After host nginx + TLS: `https://www.mitabl.com/admin`
 
 4. After initialization, set both flags back to `false` and clear bootstrap password/email.
+
+  Production bootstrap password policy:
+  - Minimum 12 characters
+  - At least one uppercase letter
+  - At least one lowercase letter
+  - At least one digit
+
+  If this policy is not met, `AdminUserSeeder` intentionally fails in production.
 
 5. Apply:
    
@@ -312,6 +322,21 @@ Common fixes:
   - repo root `.env` has correct `DB_ROOT_PASSWORD`
 
 - If compose says `DB_ROOT_PASSWORD is required`, export it and write `.env` before `up`.
+
+- If mobile login returns `Could not create token.` and backend logs show `Token has expired` during `auth()->attempt(...)`, check JWT TTL values:
+
+  ```bash
+  docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan tinker --execute='dump(["jwt_ttl"=>config("jwt.ttl"),"jwt_refresh_ttl"=>config("jwt.refresh_ttl"),"env_jwt_ttl"=>env("JWT_TTL"),"env_jwt_refresh_ttl"=>env("JWT_REFRESH_TTL")]);'
+  ```
+
+  If `jwt_ttl` or `jwt_refresh_ttl` is `null` or non-positive, set safe values and recreate app containers:
+
+  ```bash
+  sed -i -E 's/^JWT_TTL=.*/JWT_TTL=10080/; s/^JWT_REFRESH_TTL=.*/JWT_REFRESH_TTL=20160/' deploy/environments/prod/backend-api.env
+  docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --force-recreate backend queue-worker scheduler
+  ```
+
+- If backend restart loops after deploy with `Refusing to seed admin user with weak ADMIN_BOOTSTRAP_PASSWORD in production.`, either set a strong bootstrap password that matches policy or clear bootstrap credentials after first successful bootstrap.
 
 - If admin login returns `419` right after restart, clear cookies / use private window and retry.
 

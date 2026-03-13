@@ -79,21 +79,6 @@ trait HandlesUserAuthentication
         }
 
         if ($user->email_verified == 1) {
-            if (! $this->hasStripeAccountForRole($user)) {
-                $stripeProvisionError = $this->ensureStripeAccountForRole($user);
-                if ($stripeProvisionError !== null) {
-                    $user->email_verified = 0;
-                    $user->save();
-                    $this->sendOtp($user->id, $user->email);
-
-                    Auth::guard('api')->logout();
-                    return $this->responser(
-                        [],
-                        'Your account verification needs to be retried. A new OTP has been sent to your email.',
-                        422
-                    );
-                }
-            }
 
             $previousToken = (string) optional($user->Token)->latest_token;
             if ($previousToken !== '') {
@@ -383,12 +368,6 @@ trait HandlesUserAuthentication
         $verifiedUser = User::query()->find($verifiedUserId);
         if (! $verifiedUser) {
             return $this->responser([], 'User not found.', 404);
-        }
-
-        $stripeProvisionError = $this->ensureStripeAccountForRole($verifiedUser);
-        if ($stripeProvisionError !== null) {
-            $this->sendOtp($verifiedUser->id, $verifiedUser->email);
-            return $this->responser([], 'Unable to create Stripe account. A new OTP has been sent, please verify again.', 422);
         }
 
         DB::transaction(function () use ($verifiedUser): void {

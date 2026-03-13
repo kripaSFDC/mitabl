@@ -2,6 +2,19 @@
 
 This file contains all environment variables that are referenced by the current codebase/deployment manifests.
 
+## Production guardrails
+
+- JWT settings are mandatory for stable mobile authentication:
+	- `JWT_SECRET` must be set.
+	- `JWT_TTL` and `JWT_REFRESH_TTL` must be positive integers (recommended: `10080` and `20160`).
+	- Leaving TTLs empty can cause login-time token creation failures (`Token has expired`).
+- Production bootstrap admin settings:
+	- `ADMIN_BOOTSTRAP_PASSWORD` must be strong: minimum 12 chars, with uppercase, lowercase, and digit.
+	- After first successful production bootstrap, clear `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
+- Startup seeding is idempotent for both first-time deploy and later updates:
+	- Core mobile roles (`roles` table): Admin, Restaurant, Foodie.
+	- Admin/CRM RBAC roles and permissions.
+
 ## Excluded from operator-managed env inventory
 
 - `APP_BASE_PATH`: Laravel bootstrap override, not an operator-managed runtime setting.
@@ -145,3 +158,7 @@ This file contains all environment variables that are referenced by the current 
 | `STRIPE_WEBHOOK_SIGNING_SECRET`       | Yes                 |
 
 # 
+
+## Notes
+
+- `RUN_PERMISSION_SEED_ON_BOOT` may still exist in env files for compatibility but startup now uses `DeploymentBootstrapSeeder` for idempotent baseline seeding.
