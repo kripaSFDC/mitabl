@@ -45,7 +45,10 @@ class UpdateGateWidget extends StatelessWidget {
     return PopScope(
       canPop: !isRequired,
       child: AlertDialog(
-        title: Text(isRequired ? 'Update Required' : 'Update Available'),
+        title: Semantics(
+          header: true,
+          child: Text(isRequired ? 'Update Required' : 'Update Available'),
+        ),
         content: Text(
           isRequired
               ? 'A required update (${result.latestVersion}) is available. '
@@ -55,13 +58,21 @@ class UpdateGateWidget extends StatelessWidget {
         ),
         actions: [
           if (!isRequired)
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Later'),
+            Semantics(
+              button: true,
+              label: 'Skip update for now',
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Later'),
+              ),
             ),
-          FilledButton(
-            onPressed: _openStore,
-            child: const Text('Update Now'),
+          Semantics(
+            button: true,
+            label: 'Open app store and update now',
+            child: FilledButton(
+              onPressed: _openStore,
+              child: const Text('Update Now'),
+            ),
           ),
         ],
       ),

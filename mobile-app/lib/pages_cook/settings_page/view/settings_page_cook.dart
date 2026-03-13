@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
@@ -40,6 +41,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   bool _supportActionInFlight = false;
   bool _notificationsEnabled = true;
   bool _notificationsUpdating = false;
+  bool _biometricEnabled = false;
   bool _deleteInFlight = false;
 
   @override
@@ -51,6 +53,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     _ticketIdController = TextEditingController();
     _replyController = TextEditingController();
     _loadNotificationPreference();
+    _loadBiometricPreference();
   }
 
   @override
@@ -79,6 +82,27 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _persistNotificationPreference(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsPreferenceKey, enabled);
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    final enabled = await BiometricService.instance.isEnabled();
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _onBiometricChanged(bool enabled) async {
+    final available = await BiometricService.instance.isAvailable();
+    if (!available && enabled) {
+      _showSnackBar('Biometric authentication is not available on this device.');
+      return;
+    }
+
+    await BiometricService.instance.setEnabled(enabled);
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
+    _showSnackBar(
+      enabled ? 'Biometric lock enabled.' : 'Biometric lock disabled.',
+    );
   }
 
   void _showSnackBar(String message) {
@@ -462,6 +486,35 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                       inactiveTrackColor: Theme.of(context).primaryColorDark,
                       onChanged: _onNotificationChanged,
                     ),
+                  ),
+                ),
+              ),
+              ListTile(
+                minVerticalPadding: 0,
+                contentPadding: EdgeInsets.zero,
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.fingerprint),
+                    SizedBox(
+                      width: config.AppConfig(context).appWidth(4),
+                    ),
+                    Text(
+                      'Biometric lock',
+                      style: GoogleFonts.gothicA1(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: config.AppConfig(context).appWidth(4.5),
+                          fontWeight: FontWeight.w400),
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  ],
+                ),
+                trailing: SizedBox(
+                  width: config.AppConfig(context).appWidth(18),
+                  child: Switch(
+                    value: _biometricEnabled,
+                    inactiveTrackColor: Theme.of(context).primaryColorDark,
+                    onChanged: _onBiometricChanged,
                   ),
                 ),
               ),

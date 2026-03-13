@@ -22,17 +22,21 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.transparent,
       title: Padding(
         padding: EdgeInsets.only(top: config.AppConfig(context).appHeight(0.5)),
-        child: Text(
-          title!,
-          maxLines: 1,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontSize: config.AppConfig(context).appWidth(5.0),
-              ),
+        child: Semantics(
+          header: true,
+          child: Text(
+            title!,
+            maxLines: 1,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontSize: config.AppConfig(context).appWidth(5.0),
+                ),
+          ),
         ),
       ),
       elevation: 0,
       iconTheme: IconThemeData(color: config.AppColors().colorPrimaryDark(1)),
       leading: IconButton(
+        tooltip: 'Go back',
         onPressed: () {
           Navigator.pop(context);
         },
@@ -44,6 +48,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         isFilter!
             ? IconButton(
+                tooltip: 'Open filters',
                 onPressed: () => onFilterSelected!(),
                 icon: SvgPicture.asset(
                   'assets/img/filter.svg',

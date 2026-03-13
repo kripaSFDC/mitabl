@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
@@ -19,8 +21,13 @@ class DeepLinkService {
   static final DeepLinkService instance = DeepLinkService._();
 
   final _appLinks = AppLinks();
+  StreamSubscription<Uri>? _subscription;
+  bool _initialized = false;
 
   Future<void> init(GlobalKey<NavigatorState> navigatorKey) async {
+    if (_initialized) return;
+    _initialized = true;
+
     // Handle the link that launched the app from a terminated state.
     try {
       final initialLink = await _appLinks.getInitialLink();
@@ -32,7 +39,7 @@ class DeepLinkService {
     }
 
     // Handle links while app is running.
-    _appLinks.uriLinkStream.listen(
+    _subscription = _appLinks.uriLinkStream.listen(
       (uri) => _route(navigatorKey, uri),
       onError: (e) =>
           AppLogger.warn('DeepLinkService: stream error — $e'),

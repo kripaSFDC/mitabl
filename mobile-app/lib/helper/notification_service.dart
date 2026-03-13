@@ -3,13 +3,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
 
 /// Top-level background message handler (must be a top-level function).
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Firebase.initializeApp() is called in main.dart before this runs.
+  await Firebase.initializeApp();
   AppLogger.info('FCM background message: ${message.messageId}');
 }
+
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) =>
+    _firebaseMessagingBackgroundHandler(message);
 
 /// Manages Firebase Cloud Messaging registration, foreground display, and
 /// tap-based navigation.
@@ -25,11 +29,15 @@ class NotificationService {
 
   static const _channelId = 'mitabl_default';
   static const _channelName = 'Mitabl Notifications';
+  bool _initialized = false;
 
   /// Initialise FCM, local notifications, and navigation wiring.
   ///
   /// [navigatorKey] is used to push routes when the user taps a notification.
   Future<void> init(GlobalKey<NavigatorState> navigatorKey) async {
+    if (_initialized) return;
+    _initialized = true;
+
     // 1. Request permission (iOS / Android 13+).
     await _messaging.requestPermission(
       alert: true,
@@ -59,10 +67,7 @@ class NotificationService {
       },
     );
 
-    // 3. Background handler (registered at app level).
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // 4. Foreground messages — show via local notifications.
+    // 3. Foreground messages — show via local notifications.
     FirebaseMessaging.onMessage.listen((message) {
       final notification = message.notification;
       if (notification == null) return;
@@ -84,12 +89,12 @@ class NotificationService {
       );
     });
 
-    // 5. Notification tapped from background/terminated state.
+    // 4. Notification tapped from background/terminated state.
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       _routeFromData(navigatorKey, message.data);
     });
 
-    // 6. App opened directly from a terminated-state notification.
+    // 5. App opened directly from a terminated-state notification.
     final initial = await _messaging.getInitialMessage();
     if (initial != null) {
       _routeFromData(navigatorKey, initial.data);
@@ -136,7 +141,7 @@ class NotificationService {
       case 'new_order':
         if (id != null) {
           navigator.pushNamed('/OrderDetails',
-              arguments: _routeArgs({'id': id}));
+              arguments: RouteArguments(id: id));
         }
         break;
       case 'upcoming_booking':
@@ -147,6 +152,4 @@ class NotificationService {
     }
   }
 
-  // ignore: prefer_typing_uninitialized_variables
-  dynamic _routeArgs(Map<String, dynamic> data) => data;
 }

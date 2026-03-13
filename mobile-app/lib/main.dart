@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:mitabl_user/app.dart';
 import 'package:mitabl_user/firebase_options.dart';
 import 'package:mitabl_user/helper/app_bloc_observer.dart';
+import 'package:mitabl_user/helper/notification_service.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/auth_aware_http_client.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
@@ -23,6 +25,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
 
   final sessionRepository = SessionRepository();

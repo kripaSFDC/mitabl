@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/common/view/faq_webview_page.dart';
@@ -24,9 +25,35 @@ class ProfileFoodiePage extends StatefulWidget {
 }
 
 class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
+  bool _biometricEnabled = false;
+
   @override
   void initState() {
     super.initState();
+    _loadBiometricPreference();
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    final enabled = await BiometricService.instance.isEnabled();
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _onBiometricChanged(bool enabled) async {
+    final available = await BiometricService.instance.isAvailable();
+    if (!available && enabled) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Biometric authentication is not available on this device.'),
+        ),
+      );
+      return;
+    }
+
+    await BiometricService.instance.setEnabled(enabled);
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
   }
 
   @override
@@ -396,6 +423,40 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                   overflow: TextOverflow.ellipsis,
                                 )
                               ],
+                            ),
+                          ),
+                          ListTile(
+                            minVerticalPadding: 0,
+                            contentPadding: EdgeInsets.zero,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.fingerprint,
+                                  size: config.AppConfig(context).appHeight(4),
+                                ),
+                                SizedBox(
+                                  width: config.AppConfig(context).appWidth(4),
+                                ),
+                                Text(
+                                  'biometric lock',
+                                  style: GoogleFonts.gothicA1(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: config.AppConfig(context)
+                                          .appWidth(4.5),
+                                      fontWeight: FontWeight.w400),
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              ],
+                            ),
+                            trailing: SizedBox(
+                              width: config.AppConfig(context).appWidth(20),
+                              child: Switch(
+                                value: _biometricEnabled,
+                                inactiveTrackColor:
+                                    Theme.of(context).primaryColorDark,
+                                onChanged: _onBiometricChanged,
+                              ),
                             ),
                           ),
                         ],

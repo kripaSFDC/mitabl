@@ -9,6 +9,17 @@
       <string>sms</string>
       <string>tel</string>
     </array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mitabl.user</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mitabl</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires to access photos to upload</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -46,6 +57,10 @@
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
