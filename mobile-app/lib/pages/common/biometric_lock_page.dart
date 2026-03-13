@@ -4,15 +4,13 @@ import 'package:mitabl_user/helper/biometric_service.dart';
 /// Full-screen biometric lock shown on cold start or app resume when the
 /// user has enabled biometric authentication.
 ///
-/// On success it simply pops itself from the navigator, revealing the
-/// underlying route. On repeated failure, an "Use PIN" fallback is offered
-/// which also pops (local_auth already includes PIN as a fallback when
-/// [AuthenticationOptions.biometricOnly] is false).
+/// Returns `true` when authentication succeeds and `false` when user chooses
+/// to bypass for the current foreground session.
 class BiometricLockPage extends StatefulWidget {
   const BiometricLockPage({super.key});
 
-  static Route<void> route() =>
-      MaterialPageRoute<void>(builder: (_) => const BiometricLockPage());
+  static Route<bool> route() =>
+      MaterialPageRoute<bool>(builder: (_) => const BiometricLockPage());
 
   @override
   State<BiometricLockPage> createState() => _BiometricLockPageState();
@@ -43,13 +41,17 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
     } else {
       setState(() {
         _authenticating = false;
         _error = 'Authentication failed. Please try again.';
       });
     }
+  }
+
+  void _bypassForSession() {
+    Navigator.of(context).pop(false);
   }
 
   @override
@@ -97,7 +99,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                 const SizedBox(height: 32),
                 if (_authenticating)
                   const CircularProgressIndicator()
-                else
+                else ...[
                   Semantics(
                     button: true,
                     label: 'Try biometric authentication again',
@@ -107,6 +109,16 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                       label: const Text('Try Again'),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Semantics(
+                    button: true,
+                    label: 'Use passcode and bypass biometric lock for now',
+                    child: TextButton(
+                      onPressed: _bypassForSession,
+                      child: const Text('Use Passcode'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
