@@ -37,8 +37,6 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ConnectivityService.instance.init();
-
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => authenticationRepository),
@@ -114,6 +112,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     WidgetsBinding.instance.addObserver(this);
+    ConnectivityService.instance.init();
     // Phase 4: wire up push notifications and deep links after first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService.instance.init(navigatorKey);

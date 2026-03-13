@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mitabl_user/helper/connectivity_service.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/model/dashboard_data.dart' as dd;
@@ -40,6 +41,8 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
         );
         Helper.showToast('Unable to load dashboard data.');
       }
+    } on OfflineException {
+      Helper.showToast('No internet connection. Please try again.');
     } catch (e) {
       AppLogger.error('Dashboard request failed', e);
       Helper.showToast('Unable to load dashboard data.');

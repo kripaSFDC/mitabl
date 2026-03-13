@@ -29,12 +29,17 @@ class ConnectivityService {
   final _controller = StreamController<bool>.broadcast();
 
   StreamSubscription<List<ConnectivityResult>>? _subscription;
+  bool _initialized = false;
 
   /// Broadcast stream that emits `true` when online, `false` when offline.
   Stream<bool> get onConnectivityChanged => _controller.stream;
 
   /// Initialise the listener. Call once from [main] or [App].
   void init() {
+    if (_initialized) return;
+    _initialized = true;
+
+    isOnline().then(_controller.add);
     _subscription =
         _connectivity.onConnectivityChanged.listen((results) {
       _controller.add(_isOnline(results));
