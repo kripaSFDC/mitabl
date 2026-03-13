@@ -35,11 +35,18 @@ trait HandlesUserAuthentication
 
         $credentials = $request->only('email', 'password');
 
+        $jwtSecret = trim((string) config('jwt.secret', ''));
+        if ($jwtSecret === '') {
+            report(new JWTException('JWT secret is not configured.'));
+            return $this->responser([], 'Authentication service is not configured. Please contact support.', 503);
+        }
+
         try {
             if (! $token = auth()->attempt($credentials)) {
                 return $this->responser([], 'Login credentials are invalid.', 401);
             }
         } catch (JWTException $e) {
+            report($e);
             return $this->responser([], 'Could not create token.', 500);
         }
 
