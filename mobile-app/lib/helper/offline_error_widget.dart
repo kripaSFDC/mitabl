@@ -23,8 +23,12 @@ class OfflineErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.wifi_off_rounded,
-                size: 64, color: colorScheme.onSurface.withOpacity(0.4)),
+            Semantics(
+              label: 'Offline status icon',
+              image: true,
+              child: Icon(Icons.wifi_off_rounded,
+                  size: 64, color: colorScheme.onSurface.withOpacity(0.4)),
+            ),
             const SizedBox(height: 16),
             Text(
               message,
@@ -35,10 +39,14 @@ class OfflineErrorWidget extends StatelessWidget {
                   ?.copyWith(color: colorScheme.onSurface.withOpacity(0.6)),
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+            Semantics(
+              button: true,
+              label: 'Retry loading content',
+              child: FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry'),
+              ),
             ),
           ],
         ),
@@ -72,8 +80,12 @@ class ConnectivityBanner extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.wifi_off_rounded,
-                      color: Colors.white, size: 18),
+                  const Semantics(
+                    label: 'Offline',
+                    image: true,
+                    child: Icon(Icons.wifi_off_rounded,
+                        color: Colors.white, size: 18),
+                  ),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(

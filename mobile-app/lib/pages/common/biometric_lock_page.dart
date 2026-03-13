@@ -63,15 +63,22 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.fingerprint_rounded,
-                  size: 80,
-                  color: theme.primaryColor,
+                Semantics(
+                  image: true,
+                  label: 'Biometric authentication icon',
+                  child: Icon(
+                    Icons.fingerprint_rounded,
+                    size: 80,
+                    color: theme.primaryColor,
+                  ),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  'Unlock Mitabl',
-                  style: theme.textTheme.headlineSmall,
+                Semantics(
+                  header: true,
+                  child: Text(
+                    'Unlock Mitabl',
+                    style: theme.textTheme.headlineSmall,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -91,10 +98,14 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                 if (_authenticating)
                   const CircularProgressIndicator()
                 else
-                  FilledButton.icon(
-                    onPressed: _authenticate,
-                    icon: const Icon(Icons.fingerprint_rounded),
-                    label: const Text('Try Again'),
+                  Semantics(
+                    button: true,
+                    label: 'Try biometric authentication again',
+                    child: FilledButton.icon(
+                      onPressed: _authenticate,
+                      icon: const Icon(Icons.fingerprint_rounded),
+                      label: const Text('Try Again'),
+                    ),
                   ),
               ],
             ),
