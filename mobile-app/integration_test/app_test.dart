@@ -4,6 +4,17 @@ import 'package:integration_test/integration_test.dart';
 
 import 'package:mitabl_user/main.dart' as app;
 
+Future<void> _pumpFor(
+  WidgetTester tester,
+  Duration duration, {
+  Duration step = const Duration(milliseconds: 100),
+}) async {
+  final steps = duration.inMilliseconds ~/ step.inMilliseconds;
+  for (var i = 0; i < steps; i++) {
+    await tester.pump(step);
+  }
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -12,7 +23,10 @@ void main() {
     // (google-services.json / GoogleService-Info.plist) in place.
     // It is a smoke test only — it does not log in.
     app.main();
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    await _pumpFor(tester, const Duration(seconds: 8));
+
+    final frameworkError = tester.takeException();
+    expect(frameworkError, isNull, reason: 'Unexpected framework exception during app startup');
 
     // The splash screen should be visible or auth navigation should have
     // triggered. We just assert that the app runs without throwing.
