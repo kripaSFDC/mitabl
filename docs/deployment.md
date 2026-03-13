@@ -196,7 +196,7 @@ If `.env` does not exist yet (first server setup only):
 
 ```bash
 cd ~/mitabl
-printf 'DB_ROOT_PASSWORD=%s\n' 'replace_with_strong_password' > .env
+printf 'DB_ROOT_PASSWORD=%s\n' 'Usman111!' > .env
 chmod 600 .env
 docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --remove-orphans
 ```
