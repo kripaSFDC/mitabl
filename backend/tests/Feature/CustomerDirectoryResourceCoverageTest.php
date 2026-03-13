@@ -26,7 +26,7 @@ class CustomerDirectoryResourceCoverageTest extends TestCase
             $this->assertStringContainsString("Placeholder::make('device_token')", $resource);
             $this->assertStringContainsString("Placeholder::make('role_id')", $resource);
             $this->assertStringContainsString("Placeholder::make('password')", $resource);
-            $this->assertStringNotContainsString("->disabled(fn (string $operation): bool => $operation === 'edit')", $resource);
+            $this->assertStringNotContainsString('->disabled(fn (string $operation): bool => $operation === \'edit\')', $resource);
         }
     }
 

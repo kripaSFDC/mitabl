@@ -108,8 +108,18 @@ class SupportTicketResource extends Resource
                         ->rows(5)
                         ->required()
                         ->columnSpanFull(),
+                    Forms\Components\Textarea::make('resolution_summary')
+                        ->label('Resolution summary')
+                        ->rows(3)
+                        ->helperText('Required when resolving a ticket. Used before a ticket can be closed.')
+                        ->visible(fn (Forms\Get $get, ?SupportTicket $record): bool => in_array(
+                            (string) ($get('status') ?? $record?->status ?? SupportTicket::STATUS_OPEN),
+                            [SupportTicket::STATUS_RESOLVED, SupportTicket::STATUS_CLOSED],
+                            true
+                        ))
+                        ->columnSpanFull(),
                     Forms\Components\FileUpload::make('attachments')
-                        ->helperText('Upload screenshots, receipts, or logs. Sensitive data is auto-redacted in admin views.')
+                        ->helperText('Upload screenshots, receipts, or logs. On edit, new uploads are appended as an internal note.')
                         ->multiple()
                         ->maxFiles((int) config('support.attachments.max_files', 5))
                         ->disk('public')

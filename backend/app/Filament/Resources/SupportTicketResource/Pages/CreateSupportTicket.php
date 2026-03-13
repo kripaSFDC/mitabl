@@ -39,28 +39,27 @@ class CreateSupportTicket extends CreateRecord
         /** @var SupportTicket $ticket */
         $ticket = $result['ticket'];
 
-        if (! empty($data['assigned_to'])) {
-            $ticket = $service->assignTicket(
-                $ticket,
-                (int) $data['assigned_to'],
-                'Initial assignment from admin create',
-                Filament::auth()->id()
-            );
-        }
-
-        $targetStatus = (string) ($data['status'] ?? SupportTicket::STATUS_OPEN);
-        if ($targetStatus !== $ticket->status) {
-            try {
-                $ticket = $service->transitionStatus(
-                    $ticket,
-                    $targetStatus,
-                    'Initial status from admin create',
-                    Filament::auth()->id()
-                );
-            } catch (\Throwable $throwable) {
-                // Keep created ticket if requested transition is invalid.
-            }
-        }
+        $ticket = $service->updateFromAdminForm(
+            $ticket,
+            [
+                'user_id' => $data['user_id'] ?? null,
+                'requester_name' => $data['requester_name'] ?? null,
+                'requester_email' => $data['requester_email'] ?? '',
+                'requester_phone' => $data['requester_phone'] ?? null,
+                'subject' => $data['subject'] ?? 'General enquiry',
+                'description' => $data['description'] ?? '',
+                'category' => $data['category'] ?? SupportTicket::CATEGORY_GENERAL,
+                'priority' => $data['priority'] ?? SupportTicket::PRIORITY_NORMAL,
+                'status' => $data['status'] ?? SupportTicket::STATUS_OPEN,
+                'assigned_to' => $data['assigned_to'] ?? null,
+                'order_id' => $data['order_id'] ?? null,
+                'mikitchn_id' => $data['mikitchn_id'] ?? null,
+                'resolution_summary' => $data['resolution_summary'] ?? null,
+                'change_reason' => 'Initial state from admin create',
+            ],
+            Filament::auth()->id(),
+            $ticket->updated_at?->toISOString()
+        );
 
         return $ticket;
     }

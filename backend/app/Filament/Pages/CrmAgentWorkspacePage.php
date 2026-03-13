@@ -234,6 +234,6 @@ class CrmAgentWorkspacePage extends Page
 
     public static function canAccess(): bool
     {
-        return (bool) Filament::auth()->user()?->can('support_ticket.view');
+        return (bool) Filament::auth()->user()?->can('support_tickets.view');
     }
 }

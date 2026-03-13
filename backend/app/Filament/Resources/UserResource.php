@@ -47,8 +47,7 @@ class UserResource extends Resource
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
-                            ->maxLength(255)
-                            ->disabled(fn (string $operation): bool => $operation === 'edit'),
+                            ->maxLength(255),
                         Forms\Components\Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()

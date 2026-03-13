@@ -531,6 +531,179 @@ class SupportTicketService
         });
     }
 
+    public function updateFromAdminForm(
+        SupportTicket $ticket,
+        array $payload,
+        ?int $actorAdminId,
+        ?string $expectedUpdatedAt = null
+    ): SupportTicket {
+        $reason = trim((string) ($payload['change_reason'] ?? 'Updated from admin ticket form.'));
+
+        return DB::transaction(function () use ($ticket, $payload, $actorAdminId, $expectedUpdatedAt, $reason): SupportTicket {
+            $locked = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+            $this->guardAgainstCollision($locked, $expectedUpdatedAt);
+
+            $requesterEmail = Str::lower(trim((string) ($payload['requester_email'] ?? $locked->requester_email ?? '')));
+            if ($requesterEmail === '' || ! filter_var($requesterEmail, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidArgumentException('Requester email is invalid.');
+            }
+
+            $description = trim((string) ($payload['description'] ?? $locked->description ?? ''));
+            if ($description === '') {
+                throw new InvalidArgumentException('Ticket description is required.');
+            }
+
+            $locked->user_id = $payload['user_id'] ?? null;
+            $locked->requester_name = trim((string) ($payload['requester_name'] ?? '')) ?: null;
+            $locked->requester_email = $requesterEmail;
+            $locked->requester_phone = $this->normalizePhone($payload['requester_phone'] ?? null);
+            $locked->subject = trim((string) ($payload['subject'] ?? $locked->subject ?? 'General enquiry'));
+            $locked->description = $description;
+            $locked->order_id = ($payload['order_id'] ?? $locked->order_id) ?: null;
+            $locked->mikitchn_id = ($payload['mikitchn_id'] ?? $locked->mikitchn_id) ?: null;
+
+            $newPriority = $this->normalizePriority((string) ($payload['priority'] ?? $locked->priority));
+            $newCategory = $this->normalizeCategory((string) ($payload['category'] ?? $locked->category));
+            if ($newPriority !== $locked->priority || $newCategory !== $locked->category) {
+                $before = [
+                    'priority' => $locked->priority,
+                    'category' => $locked->category,
+                ];
+
+                $locked->priority = $newPriority;
+                $locked->category = $newCategory;
+
+                if ($locked->first_responded_at === null) {
+                    $locked->first_response_due_at = $this->firstResponseDueAt($newPriority);
+                }
+                if ($locked->resolved_at === null) {
+                    $locked->resolution_due_at = $this->resolutionDueAt($newPriority);
+                }
+
+                $this->recordEvent($locked, 'classification_changed', 'admin', $actorAdminId, [
+                    'from' => $before,
+                    'to' => [
+                        'priority' => $newPriority,
+                        'category' => $newCategory,
+                    ],
+                    'reason' => $reason,
+                ]);
+            }
+
+            $assignedTo = array_key_exists('assigned_to', $payload)
+                ? (($payload['assigned_to'] === null || $payload['assigned_to'] === '') ? null : (int) $payload['assigned_to'])
+                : $locked->assigned_to;
+            if ((int) ($locked->assigned_to ?? 0) !== (int) ($assignedTo ?? 0)) {
+                $beforeAssignee = $locked->assigned_to;
+                $locked->assigned_to = $assignedTo;
+                if ($locked->status === SupportTicket::STATUS_OPEN && $assignedTo !== null) {
+                    $locked->status = SupportTicket::STATUS_IN_PROGRESS;
+                }
+
+                $this->recordEvent($locked, 'assigned', 'admin', $actorAdminId, [
+                    'from' => $beforeAssignee,
+                    'to' => $assignedTo,
+                    'reason' => $reason,
+                ]);
+            }
+
+            $targetStatus = (string) ($payload['status'] ?? $locked->status);
+            if (! in_array($targetStatus, SupportTicket::statuses(), true)) {
+                throw new InvalidArgumentException('Invalid support ticket status.');
+            }
+
+            if ($targetStatus !== $locked->status) {
+                if (! $this->canTransition($locked->status, $targetStatus, $locked)) {
+                    throw new InvalidArgumentException("Cannot transition from {$locked->status} to {$targetStatus}.");
+                }
+
+                if ($targetStatus === SupportTicket::STATUS_RESOLVED) {
+                    $summary = trim((string) ($payload['resolution_summary'] ?? ''));
+                    if ($summary === '') {
+                        throw new InvalidArgumentException('Resolution summary is required when resolving a ticket.');
+                    }
+
+                    $locked->status = SupportTicket::STATUS_RESOLVED;
+                    $locked->resolved_at = now();
+                    $locked->resolution_summary = $summary;
+
+                    $this->recordEvent($locked, 'resolved', 'admin', $actorAdminId, [
+                        'summary' => $summary,
+                    ]);
+                } else {
+                    if ($targetStatus === SupportTicket::STATUS_CLOSED && trim((string) ($locked->resolution_summary ?? '')) === '') {
+                        throw new InvalidArgumentException('A resolution summary is required before closing a ticket.');
+                    }
+
+                    if ($locked->status === SupportTicket::STATUS_RESOLVED && $targetStatus === SupportTicket::STATUS_OPEN) {
+                        $locked->reopened_count = (int) $locked->reopened_count + 1;
+                        $locked->resolved_at = null;
+                        $locked->resolution_summary = null;
+                        $locked->resolution_breached_at = null;
+                    }
+
+                    if ($targetStatus === SupportTicket::STATUS_CLOSED) {
+                        $locked->closed_at = now();
+                    } elseif ($locked->status === SupportTicket::STATUS_CLOSED) {
+                        $locked->closed_at = null;
+                    }
+
+                    if ($targetStatus === SupportTicket::STATUS_SPAM) {
+                        $locked->spam_score = max((int) $locked->spam_score, 100);
+                        $locked->spam_detected_at = now();
+                    }
+
+                    $fromStatus = $locked->status;
+                    $locked->status = $targetStatus;
+
+                    $this->recordEvent($locked, 'status_changed', 'admin', $actorAdminId, [
+                        'from' => $fromStatus,
+                        'to' => $targetStatus,
+                        'reason' => $reason,
+                    ]);
+                }
+            } elseif (array_key_exists('resolution_summary', $payload) && $locked->status === SupportTicket::STATUS_RESOLVED) {
+                $summary = trim((string) ($payload['resolution_summary'] ?? ''));
+                if ($summary === '') {
+                    throw new InvalidArgumentException('Resolution summary is required for resolved tickets.');
+                }
+
+                $locked->resolution_summary = $summary;
+            }
+
+            $locked->save();
+
+            $attachments = $this->extractUploadedFiles($payload['attachments'] ?? []);
+            if ($attachments !== []) {
+                $message = SupportTicketMessage::create([
+                    'ticket_id' => $locked->id,
+                    'sender_type' => 'admin',
+                    'sender_id' => $actorAdminId,
+                    'message' => 'Admin added attachments from ticket edit form.',
+                    'is_internal_note' => true,
+                ]);
+
+                $this->attachmentPolicy->storeForMessage(
+                    $locked,
+                    $message,
+                    $attachments,
+                    'admin',
+                    $actorAdminId
+                );
+
+                $locked->last_message_at = now();
+                $locked->save();
+
+                $this->recordEvent($locked, 'ticket_reply', 'admin', $actorAdminId, [
+                    'is_internal_note' => true,
+                    'message_id' => $message->id,
+                ]);
+            }
+
+            return $locked->fresh();
+        });
+    }
+
     private function normalizePayload(array $payload, string $source): array
     {
         $priority = $this->normalizePriority((string) ($payload['priority'] ?? SupportTicket::PRIORITY_NORMAL));

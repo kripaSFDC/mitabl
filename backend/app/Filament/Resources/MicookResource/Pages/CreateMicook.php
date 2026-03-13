@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MicookResource\Pages;
 
 use App\Filament\Resources\MicookResource;
+use Filament\Facades\Filament;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,6 +20,16 @@ class CreateMicook extends CreateRecord
         }
 
         $data['phone'] = preg_replace('/\D+/', '', (string) ($data['phone'] ?? ''));
+
+        if ((bool) ($data['suspended'] ?? false)) {
+            $data['suspended_at'] = now();
+            $data['suspended_by'] = Filament::auth()->id();
+        } else {
+            $data['suspended_at'] = null;
+            $data['suspended_by'] = null;
+            $data['suspension_reason'] = null;
+        }
+
         unset($data['password_confirmation']);
 
         return $data;
