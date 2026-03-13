@@ -57,7 +57,9 @@ class MicookResource extends Resource
                 ->maxLength(255),
             Forms\Components\Toggle::make('email_verified')
                 ->label('Email verified')
-                ->inline(false),
+                ->inline(false)
+                ->disabled(fn (): bool => ! static::canManageVerificationStatus())
+                ->helperText('Only super admin and platform admin can edit verification status.'),
             Forms\Components\TextInput::make('password')
                 ->password()
                 ->revealable(false)
@@ -326,5 +328,21 @@ class MicookResource extends Resource
     private static function canDeleteUsers(): bool
     {
         return (bool) Filament::auth()->user()?->can('users.delete');
+    }
+
+    private static function canManageVerificationStatus(): bool
+    {
+        $user = Filament::auth()->user();
+        if (! $user) {
+            return false;
+        }
+
+        foreach (['super_admin', 'platform_admin', 'super admin', 'platform admin'] as $role) {
+            if ($user->hasRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

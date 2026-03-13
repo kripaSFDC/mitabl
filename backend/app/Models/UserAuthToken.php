@@ -9,5 +9,5 @@ class UserAuthToken extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['latest_token'];
+    protected $fillable = ['user_id', 'latest_token'];
 }
