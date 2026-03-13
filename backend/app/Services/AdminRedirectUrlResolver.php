@@ -4,7 +4,14 @@ namespace App\Services;
 
 class AdminRedirectUrlResolver
 {
-    public function resolveFromSession(): string
+    public function resolveAfterLogin(): string
+    {
+        session()->forget('url.intended');
+
+        return $this->fallbackUrl();
+    }
+
+    public function resolveForAuthenticatedVisit(): string
     {
         $intendedUrl = session()->pull('url.intended');
 

@@ -17,7 +17,7 @@ class AdminLogin extends Login
     public function mount(): void
     {
         if (Filament::auth()->check()) {
-            redirect()->to(app(AdminRedirectUrlResolver::class)->resolveFromSession());
+            redirect()->to(app(AdminRedirectUrlResolver::class)->resolveForAuthenticatedVisit());
 
             return;
         }

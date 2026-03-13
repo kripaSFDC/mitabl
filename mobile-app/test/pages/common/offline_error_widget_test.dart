@@ -5,12 +5,11 @@ import 'package:mitabl_user/helper/offline_error_widget.dart';
 void main() {
   group('OfflineErrorWidget', () {
     testWidgets('renders icon, message, and retry button', (tester) async {
-      var tapped = false;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: OfflineErrorWidget(
-              onRetry: () => tapped = true,
+              onRetry: () {},
             ),
           ),
         ),
@@ -18,7 +17,9 @@ void main() {
 
       expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
-      expect(find.text('No internet connection.\nPlease check your network and try again.'),
+      expect(
+          find.text(
+              'No internet connection.\nPlease check your network and try again.'),
           findsOneWidget);
     });
 

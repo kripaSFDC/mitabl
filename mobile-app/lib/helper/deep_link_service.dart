@@ -41,9 +41,14 @@ class DeepLinkService {
     // Handle links while app is running.
     _subscription = _appLinks.uriLinkStream.listen(
       (uri) => _route(navigatorKey, uri),
-      onError: (e) =>
-          AppLogger.warn('DeepLinkService: stream error — $e'),
+      onError: (e) => AppLogger.warn('DeepLinkService: stream error — $e'),
     );
+  }
+
+  Future<void> dispose() async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _initialized = false;
   }
 
   void _route(GlobalKey<NavigatorState> key, Uri uri) {

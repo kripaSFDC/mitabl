@@ -101,14 +101,14 @@ class NotificationService {
         notification.hashCode,
         notification.title,
         notification.body,
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             _channelId,
             _channelName,
             importance: Importance.high,
             priority: Priority.high,
           ),
-          iOS: const DarwinNotificationDetails(),
+          iOS: DarwinNotificationDetails(),
         ),
         payload: _buildPayload(message.data),
       );
@@ -138,7 +138,8 @@ class NotificationService {
       final token = tokenOverride ?? await _messaging.getToken();
       if (token == null || token.isEmpty || token == _lastSyncedToken) return;
 
-      final notificationsEnabled = await _resolveNotificationEnabledPreference();
+      final notificationsEnabled =
+          await _resolveNotificationEnabledPreference();
       final response = await repository.updateNotificationPreference(
         enabled: notificationsEnabled,
         deviceToken: token,
@@ -182,7 +183,8 @@ class NotificationService {
     });
   }
 
-  void _routeFromData(GlobalKey<NavigatorState> key, Map<String, dynamic> data) {
+  void _routeFromData(
+      GlobalKey<NavigatorState> key, Map<String, dynamic> data) {
     final navigator = key.currentState;
     if (navigator == null) return;
 
@@ -198,7 +200,8 @@ class NotificationService {
         break;
       case 'new_order':
         if (id != null) {
-          navigator.pushNamed('/OrderDetails', arguments: RouteArguments(id: id));
+          navigator.pushNamed('/OrderDetails',
+              arguments: RouteArguments(id: id));
         }
         break;
       case 'upcoming_booking':

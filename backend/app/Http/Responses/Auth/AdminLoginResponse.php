@@ -15,6 +15,6 @@ class AdminLoginResponse implements LoginResponseContract
 
     public function toResponse($request): RedirectResponse | Redirector
     {
-        return redirect()->to($this->redirectUrlResolver->resolveFromSession());
+        return redirect()->to($this->redirectUrlResolver->resolveAfterLogin());
     }
 }
