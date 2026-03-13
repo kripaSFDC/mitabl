@@ -29,11 +29,15 @@ class NotificationService {
 
   static const _channelId = 'mitabl_default';
   static const _channelName = 'Mitabl Notifications';
+  bool _initialized = false;
 
   /// Initialise FCM, local notifications, and navigation wiring.
   ///
   /// [navigatorKey] is used to push routes when the user taps a notification.
   Future<void> init(GlobalKey<NavigatorState> navigatorKey) async {
+    if (_initialized) return;
+    _initialized = true;
+
     // 1. Request permission (iOS / Android 13+).
     await _messaging.requestPermission(
       alert: true,

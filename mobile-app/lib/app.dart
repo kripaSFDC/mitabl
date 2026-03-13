@@ -113,6 +113,9 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     WidgetsBinding.instance.addObserver(this);
     ConnectivityService.instance.init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showBiometricLockIfNeeded();
+    });
     // Phase 4: wire up push notifications and deep links after first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationService.instance.init(navigatorKey);
