@@ -27,7 +27,7 @@ class OfflineErrorWidget extends StatelessWidget {
               label: 'Offline status icon',
               image: true,
               child: Icon(Icons.wifi_off_rounded,
-                  size: 64, color: colorScheme.onSurface.withOpacity(0.4)),
+                  size: 64, color: colorScheme.onSurface.withValues(alpha: 0.4)),
             ),
             const SizedBox(height: 16),
             Text(
@@ -36,7 +36,7 @@ class OfflineErrorWidget extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: colorScheme.onSurface.withOpacity(0.6)),
+                  ?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 24),
             Semantics(
