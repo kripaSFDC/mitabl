@@ -18,7 +18,9 @@ import 'package:mitabl_user/repos/user_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GlobalConfiguration().loadFromAsset('configuration');
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // GothicA1 is used through google_fonts across many screens but is not
+  // bundled in assets. Allow runtime fetching to avoid hard crashes.
+  GoogleFonts.config.allowRuntimeFetching = true;
   Bloc.observer = AppBlocObserver();
 
   // Firebase: requires google-services.json (Android) and

@@ -133,6 +133,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('password/change', [V2AccountController::class, 'changePassword']);
 		Route::post('device-token', [V2AccountController::class, 'updateDeviceToken']);
 		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);
+        Route::post('notification-preferences', [V2AccountController::class, 'updateNotificationPreferences']);
 		Route::get('mobile-contact', [V2AccountController::class, 'mobileContact']);
 	});
 

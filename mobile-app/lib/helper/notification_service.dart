@@ -27,7 +27,7 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   final _localNotifications = FlutterLocalNotificationsPlugin();
-  final _messaging = FirebaseMessaging.instance;
+  FirebaseMessaging? _messaging;
 
   static const _channelId = 'mitabl_default';
   static const _channelName = 'Mitabl Notifications';
@@ -38,6 +38,23 @@ class NotificationService {
   String? _lastSyncedToken;
   UserRepository? _userRepository;
 
+  FirebaseMessaging? _messagingOrNull() {
+    if (_messaging != null) {
+      return _messaging;
+    }
+
+    try {
+      if (Firebase.apps.isEmpty) {
+        return null;
+      }
+      _messaging = FirebaseMessaging.instance;
+      return _messaging;
+    } catch (e) {
+      AppLogger.warn('Firebase messaging unavailable: $e');
+      return null;
+    }
+  }
+
   /// Initialise FCM, local notifications, and navigation wiring.
   ///
   /// [navigatorKey] is used to push routes when the user taps a notification.
@@ -47,7 +64,8 @@ class NotificationService {
   }) async {
     if (_initialized) return;
 
-    if (Firebase.apps.isEmpty) {
+    final messaging = _messagingOrNull();
+    if (messaging == null) {
       AppLogger.warn(
         'NotificationService init skipped: Firebase not initialized.',
       );
@@ -58,7 +76,7 @@ class NotificationService {
     _userRepository = userRepository;
 
     // 1. Request permission (iOS / Android 13+).
-    await _messaging.requestPermission(
+    await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -78,7 +96,7 @@ class NotificationService {
 
     // 2.5 Keep token synced once a user is authenticated.
     await syncTokenWithBackendIfPossible();
-    _messaging.onTokenRefresh.listen((token) {
+    messaging.onTokenRefresh.listen((token) {
       syncTokenWithBackendIfPossible(tokenOverride: token);
     });
 
@@ -120,7 +138,7 @@ class NotificationService {
     });
 
     // 5. App opened directly from a terminated-state notification.
-    final initial = await _messaging.getInitialMessage();
+    final initial = await messaging.getInitialMessage();
     if (initial != null) {
       _routeFromData(navigatorKey, initial.data);
     }
@@ -134,8 +152,11 @@ class NotificationService {
     final repository = _userRepository;
     if (repository == null) return;
 
+    final messaging = _messagingOrNull();
+    if (messaging == null) return;
+
     try {
-      final token = tokenOverride ?? await _messaging.getToken();
+      final token = tokenOverride ?? await messaging.getToken();
       if (token == null || token.isEmpty || token == _lastSyncedToken) return;
 
       final notificationsEnabled =
@@ -163,7 +184,11 @@ class NotificationService {
   }
 
   /// Returns the current FCM token (for registration with the backend).
-  Future<String?> getToken() => _messaging.getToken();
+  Future<String?> getToken() async {
+    final messaging = _messagingOrNull();
+    if (messaging == null) return null;
+    return messaging.getToken();
+  }
 
   // ─── Routing helpers ────────────────────────────────────────────────────
 
@@ -199,10 +224,9 @@ class NotificationService {
         navigator.pushNamed('/Bookings');
         break;
       case 'new_order':
-        if (id != null) {
-          navigator.pushNamed('/OrderDetails',
-              arguments: RouteArguments(id: id));
-        }
+        // OrderDetails requires a full booking object; notification payloads
+        // may only provide an id. Route to list view to prevent null crashes.
+        navigator.pushNamed('/Bookings', arguments: RouteArguments(id: id));
         break;
       case 'upcoming_booking':
         navigator.pushNamed('/UpcomingBookings');

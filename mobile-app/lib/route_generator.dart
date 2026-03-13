@@ -122,6 +122,9 @@ class RouteGenerator {
         if (routeArguments == null) {
           return _routeError('Missing route arguments for /OrderDetails');
         }
+        if (routeArguments.bookings == null) {
+          return Bookings.route();
+        }
         return OrderDetails.route(routeArguments: routeArguments);
 
       default:

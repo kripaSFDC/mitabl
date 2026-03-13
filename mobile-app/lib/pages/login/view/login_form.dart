@@ -5,8 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
+import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 
 class LoginForm extends StatefulWidget {
   // final RouteArguements? routeArguements;
@@ -168,7 +170,15 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(state.serverMessage)));
       } else if (state.apiStatus.isSubmissionSuccess) {
-        // Helper.showToast('${state.serverMessage}');
+        // Fallback redirect: keep login UX responsive even if global auth
+        // listener misses a single state transition.
+        final user = await context.read<UserRepository>().getUser();
+        final role = user?.data?.user?.role;
+        final routeName = AppConstants.isCookRole(role)
+            ? '/DashboardCook'
+            : '/HomePage';
+        navigatorKey.currentState
+            ?.pushNamedAndRemoveUntil(routeName, (route) => false);
       }
     });
   }

@@ -179,7 +179,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
         case AuthenticationStatus.authenticated:
           NotificationService.instance.syncTokenWithBackendIfPossible();
           final role = state.user?.data?.user?.role;
-          final routeName = role == AppConstants.IS_COOK.toString()
+          final routeName = AppConstants.isCookRole(role)
               ? '/DashboardCook'
               : '/HomePage';
           navigator.pushNamedAndRemoveUntil(routeName, (route) => false);

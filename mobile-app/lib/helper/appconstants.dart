@@ -11,6 +11,24 @@ class AppConstants {
   static const String DINE_IN = 'DINE_IN';
   static const String TAKE_AWAY = 'TAKE_AWAY';
   static const String IS_COOK = 'Restaurant';
+  static const Set<String> _cookRoleAliases = {
+    'restaurant',
+    'cook',
+    'micook',
+    'mikitchn',
+    'kitchen',
+    'vendor',
+  };
+
+  static bool isCookRole(String? role) {
+    final normalized = role?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) {
+      return false;
+    }
+
+    return _cookRoleAliases.contains(normalized);
+  }
+
   static const List<String> DAYS = [
     'Mon',
     'Tue',

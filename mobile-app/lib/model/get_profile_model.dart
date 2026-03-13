@@ -54,12 +54,12 @@ class Data {
       this.kitchen});
 
   Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = _asInt(json['id']);
     firstName = json['first_name'];
     lastName = json['last_name'];
     email = json['email'];
-    emailVerified = json['email_verified'];
-    roleId = json['role_id'];
+    emailVerified = _asInt(json['email_verified']);
+    roleId = _asInt(json['role_id']);
     avatar = json['avatar'];
     description = json['description'];
     phone = json['phone'];
@@ -138,23 +138,23 @@ class Kitchen {
       this.images});
 
   Kitchen.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    userId = json['user_id'];
+    id = _asInt(json['id']);
+    userId = _asInt(json['user_id']);
     name = json['name'];
     address = json['address'];
     phone = json['phone'];
-    noOfSeats = json['no_of_seats'];
+    noOfSeats = _asInt(json['no_of_seats']);
     timings = json['timings'];
-    dineIn = json['dine_in'];
-    takeAway = json['take_away'];
+    dineIn = _asInt(json['dine_in']);
+    takeAway = _asInt(json['take_away']);
     description = json['description'];
     abn = json['abn'];
     certificateNo = json['certificate_no'];
     certificateDoc = json['certificate_doc'];
     status = json['status'];
-    available = json['available'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    available = _asInt(json['available']);
+    latitude = _asDouble(json['latitude']);
+    longitude = _asDouble(json['longitude']);
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     if (json['reviewsData'] != null) {
@@ -163,7 +163,7 @@ class Kitchen {
         reviewsData!.add(ReviewsData.fromJson(v));
       });
     }
-    ratingCount = json['rating_count'];
+    ratingCount = _asDouble(json['rating_count']);
     if (json['images'] != null) {
       images = <ImagesCook>[];
       json['images'].forEach((v) {
@@ -214,9 +214,8 @@ class ReviewsData {
   ReviewsData({this.id, this.rating, this.review, this.reviewTag, this.user});
 
   ReviewsData.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    rating =
-        json['rating'] != null ? double.parse(json['rating'].toString()) : 0.0;
+    id = _asInt(json['id']);
+    rating = _asDouble(json['rating']) ?? 0.0;
     review = json['review'];
     reviewTag = json['review_tag'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
@@ -243,7 +242,7 @@ class User {
   User({this.id, this.name, this.avatar});
 
   User.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = _asInt(json['id']);
     name = json['name'];
     avatar = json['avatar'];
   }
@@ -274,8 +273,8 @@ class ImagesCook {
       this.updatedAt});
 
   ImagesCook.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    refId = json['ref_id'];
+    id = _asInt(json['id']);
+    refId = _asInt(json['ref_id']);
     modelName = json['model_name'];
     path = json['path'];
     createdAt = json['created_at'];
@@ -292,4 +291,24 @@ class ImagesCook {
     data['updated_at'] = updatedAt;
     return data;
   }
+}
+
+int? _asInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is bool) return value ? 1 : 0;
+  if (value is double) return value.toInt();
+  if (value is String) {
+    return int.tryParse(value) ?? double.tryParse(value)?.toInt();
+  }
+  return null;
+}
+
+double? _asDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is bool) return value ? 1.0 : 0.0;
+  if (value is String) return double.tryParse(value);
+  return null;
 }

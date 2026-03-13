@@ -60,6 +60,17 @@ class AccountController extends Controller
         return $this->responser(['updated' => true], 'User notifications updated successfully.');
     }
 
+    public function updateNotificationPreferences(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        $result = $this->accountProfileService->updateNotificationPreferences($user, $request);
+        if (isset($result['error'])) {
+            return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
+        }
+
+        return $this->responser($result, 'Notification preferences updated successfully.');
+    }
+
     public function mobileContact(Request $request)
     {
         $user = Auth::user();

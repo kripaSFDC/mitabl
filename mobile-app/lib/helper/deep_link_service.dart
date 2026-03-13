@@ -77,12 +77,9 @@ class DeepLinkService {
 
       case 'order':
         final id = segments.length > 1 ? segments[1] : null;
-        if (id != null) {
-          navigator.pushNamed(
-            '/OrderDetails',
-            arguments: RouteArguments(id: id),
-          );
-        }
+        // OrderDetails requires a full booking object; deep links currently
+        // carry only an id, so open bookings safely.
+        navigator.pushNamed('/Bookings', arguments: RouteArguments(id: id));
         break;
 
       default:

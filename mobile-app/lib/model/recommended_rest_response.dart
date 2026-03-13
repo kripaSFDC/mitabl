@@ -16,12 +16,39 @@ class RecommendedRestResponse {
     status = json['status'];
     isSuccess = json['isSuccess'];
     message = json['message'];
-    if (json['data'] != null) {
-      recommendedResturantList = <RecommendedResturant>[];
-      json['data'].forEach((v) {
-        recommendedResturantList!.add(RecommendedResturant.fromJson(v));
-      });
+    final normalizedList = _extractRecommendedList(json['data']);
+    if (normalizedList.isNotEmpty) {
+      recommendedResturantList = normalizedList
+          .whereType<Map<String, dynamic>>()
+          .map(RecommendedResturant.fromJson)
+          .toList();
     }
+  }
+
+  List<dynamic> _extractRecommendedList(dynamic rawData) {
+    if (rawData is List) {
+      return rawData;
+    }
+
+    if (rawData is Map<String, dynamic>) {
+      const candidateKeys = [
+        'kitchens',
+        'recommended_resturant_list',
+        'recommended_restaurant_list',
+        'recommendedResturantList',
+        'recommendedRestaurantList',
+        'data',
+      ];
+
+      for (final key in candidateKeys) {
+        final candidate = rawData[key];
+        if (candidate is List) {
+          return candidate;
+        }
+      }
+    }
+
+    return const [];
   }
 
   Map<String, dynamic> toJson() {
@@ -30,8 +57,7 @@ class RecommendedRestResponse {
     data['isSuccess'] = isSuccess;
     data['message'] = message;
     if (recommendedResturantList != null) {
-      data['data'] =
-          recommendedResturantList!.map((v) => v.toJson()).toList();
+      data['data'] = recommendedResturantList!.map((v) => v.toJson()).toList();
     }
     return data;
   }

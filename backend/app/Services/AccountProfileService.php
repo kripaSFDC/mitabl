@@ -91,6 +91,52 @@ class AccountProfileService
         return ['updated' => true];
     }
 
+    public function updateNotificationPreferences(User $user, Request $request): array
+    {
+        $validator = Validator::make($request->all(), [
+            'notifications_enabled' => 'nullable|boolean',
+            'device_key' => 'nullable|string|max:2048',
+            'device_token' => 'nullable|string|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return ['error' => $validator->errors()->first(), 'status' => 422];
+        }
+
+        $deviceToken = $request->input('device_key', $request->input('device_token'));
+        if (is_string($deviceToken) && trim($deviceToken) !== '') {
+            $user->device_token = trim($deviceToken);
+        }
+
+        if ($request->has('notifications_enabled')) {
+            $enabled = filter_var($request->input('notifications_enabled'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($enabled === null) {
+                return ['error' => 'notifications_enabled must be a boolean value.', 'status' => 422];
+            }
+
+            if ($enabled) {
+                NotifyDisable::where('user_id', $user->id)->delete();
+            } else {
+                $existing = NotifyDisable::where('user_id', $user->id)->first();
+                if (! $existing) {
+                    $notifyDisable = new NotifyDisable();
+                    $notifyDisable->user_id = $user->id;
+                    $notifyDisable->save();
+                }
+            }
+        }
+
+        if ($user->isDirty('device_token')) {
+            $user->save();
+        }
+
+        return [
+            'updated' => true,
+            'notifications_enabled' => ! (bool) $user->notifyDisable,
+            'has_device_token' => ! empty($user->device_token),
+        ];
+    }
+
     public function mobileContact(User $user): array
     {
         return [
