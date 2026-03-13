@@ -193,7 +193,15 @@ Commands when nginx changes are made:
 
 ```bash
 sudo nginx -t
-sudo systemctl reload nginx
+sudo systemctl restart nginx
+```
+
+If `restart` fails while `nginx -t` succeeds, treat it as a runtime/process issue rather than a syntax issue:
+
+```bash
+sudo systemctl status nginx --no-pager -l
+sudo journalctl -xeu nginx.service --no-pager
+sudo ss -ltnp '( sport = :80 or sport = :443 or sport = :8443 )'
 ```
 
 
@@ -259,6 +267,12 @@ Expected:
 - `X-Forwarded-Proto https`
 - `X-Forwarded-Port 443`
 
+Production note:
+
+- The supported Contabo stack does not use a `website` container in front of Laravel.
+- Public ingress should be host nginx on `80/443` using [deploy/nginx/mitabl.host.unified.conf](/c:/Code/mitabl/deploy/nginx/mitabl.host.unified.conf).
+- If any old listener still exposes `8443`, remove it before debugging admin redirects.
+
 ## 8) Troubleshooting
 
 Logs:
@@ -288,4 +302,12 @@ Common fixes:
   docker rm -f mitabl-website 2>/dev/null || true
   docker rm -f mitabl-prod-contabo-website-1 2>/dev/null || true
   docker compose -f deploy/docker-compose.prod.contabo.yml up -d --remove-orphans
+  ```
+
+- If `nginx -t` passes but `systemctl restart nginx` fails, inspect service logs and port conflicts:
+  
+  ```bash
+  sudo systemctl status nginx --no-pager -l
+  sudo journalctl -xeu nginx.service --no-pager
+  sudo ss -ltnp '( sport = :80 or sport = :443 or sport = :8443 )'
   ```

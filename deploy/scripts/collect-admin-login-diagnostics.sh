@@ -51,13 +51,24 @@ echo "== Compose services =="
 docker compose -f "$COMPOSE_FILE" ps || true
 
 echo
-echo "== Health checks from host =="
-curl -sS -o /tmp/mitabl_backend_health.txt -w "backend /api/health/live => HTTP %{http_code}\n" http://127.0.0.1:8000/api/health/live || true
-curl -sS -o /tmp/mitabl_website_health.txt -w "website /health => HTTP %{http_code}\n" http://127.0.0.1:8080/health || true
+echo "== Host nginx service state =="
+systemctl status nginx --no-pager -l || true
 
 echo
-echo "== Backend/Website recent logs (last 200 lines each) =="
-docker compose -f "$COMPOSE_FILE" logs --tail=200 backend website || true
+echo "== Ports 80/443/8000/8443 listeners =="
+ss -ltnp '( sport = :80 or sport = :443 or sport = :8000 or sport = :8443 )' || true
+
+echo
+echo "== Active nginx proxy config =="
+nginx -T 2>/dev/null | grep -nE "listen |server_name|proxy_pass|X-Forwarded-Proto|X-Forwarded-Port|Host " || true
+
+echo
+echo "== Health checks from host =="
+curl -sS -o /tmp/mitabl_backend_health.txt -w "backend /api/health/live => HTTP %{http_code}\n" http://127.0.0.1:8000/api/health/live || true
+
+echo
+echo "== Backend recent logs (last 200 lines) =="
+docker compose -f "$COMPOSE_FILE" logs --tail=200 backend || true
 
 echo
 echo "== Laravel app env/config snapshot (sanitized) =="
@@ -100,7 +111,7 @@ if [ "$REPAIR_MODE" = "true" ]; then
   docker compose -f "$COMPOSE_FILE" exec -T backend php artisan optimize:clear || true
   docker compose -f "$COMPOSE_FILE" exec -T backend php artisan config:cache || true
   docker compose -f "$COMPOSE_FILE" exec -T backend php artisan migrate --force || true
-  docker compose -f "$COMPOSE_FILE" restart backend website || true
+  docker compose -f "$COMPOSE_FILE" restart backend || true
 else
   echo
   echo "== Repair actions skipped (default read-only mode) =="
