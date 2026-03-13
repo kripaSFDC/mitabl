@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class DeploymentBootstrapSeeder extends Seeder
 {
@@ -23,9 +24,18 @@ class DeploymentBootstrapSeeder extends Seeder
             $this->call(AdminRolePermissionSeeder::class);
         }
 
-        // First-deploy bootstrap admin creation is idempotent and env-gated inside the seeder.
+        // First-deploy bootstrap admin creation: only run when explicitly configured.
         if (Schema::hasTable('admin_users') && Schema::hasTable($adminRolesTable)) {
-            $this->call(AdminUserSeeder::class);
+            $bootstrapEmail = trim((string) env('ADMIN_BOOTSTRAP_EMAIL', ''));
+            $bootstrapPassword = trim((string) env('ADMIN_BOOTSTRAP_PASSWORD', ''));
+
+            if ($bootstrapEmail !== '' && $bootstrapPassword !== '') {
+                try {
+                    $this->call(AdminUserSeeder::class);
+                } catch (Throwable $throwable) {
+                    report($throwable);
+                }
+            }
         }
     }
 }
