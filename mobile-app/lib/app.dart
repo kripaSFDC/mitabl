@@ -118,7 +118,10 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
     });
     // Phase 4: wire up push notifications and deep links after first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService.instance.init(navigatorKey);
+      NotificationService.instance.init(
+        navigatorKey,
+        userRepository: widget.userRepository,
+      );
       DeepLinkService.instance.init(navigatorKey);
     });
   }

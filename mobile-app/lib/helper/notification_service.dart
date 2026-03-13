@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 
 /// Top-level background message handler (must be a top-level function).
 @pragma('vm:entry-point')
@@ -30,13 +31,18 @@ class NotificationService {
   static const _channelId = 'mitabl_default';
   static const _channelName = 'Mitabl Notifications';
   bool _initialized = false;
+  UserRepository? _userRepository;
 
   /// Initialise FCM, local notifications, and navigation wiring.
   ///
   /// [navigatorKey] is used to push routes when the user taps a notification.
-  Future<void> init(GlobalKey<NavigatorState> navigatorKey) async {
+  Future<void> init(
+    GlobalKey<NavigatorState> navigatorKey, {
+    UserRepository? userRepository,
+  }) async {
     if (_initialized) return;
     _initialized = true;
+    _userRepository = userRepository;
 
     // 1. Request permission (iOS / Android 13+).
     await _messaging.requestPermission(
@@ -57,6 +63,11 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
 
+    // 2.5 Register/update token with backend when available.
+    await _syncTokenWithBackend();
+    _messaging.onTokenRefresh.listen((token) {
+      _syncTokenWithBackend(tokenOverride: token);
+    });
     await _localNotifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
@@ -98,6 +109,29 @@ class NotificationService {
     final initial = await _messaging.getInitialMessage();
     if (initial != null) {
       _routeFromData(navigatorKey, initial.data);
+    }
+  }
+
+  Future<void> _syncTokenWithBackend({String? tokenOverride}) async {
+    final repository = _userRepository;
+    if (repository == null) return;
+
+    try {
+      final token = tokenOverride ?? await _messaging.getToken();
+      if (token == null || token.isEmpty) return;
+
+      final response = await repository.updateNotificationPreference(
+        enabled: true,
+        deviceToken: token,
+      );
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        AppLogger.warn(
+          'Failed to sync FCM token with backend: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      AppLogger.warn('Unable to sync FCM token with backend: $e');
     }
   }
 
