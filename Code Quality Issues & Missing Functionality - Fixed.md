@@ -1,4 +1,19 @@
+# 
+
+
+
 # Mobile App Code Quality + Bugs - (FIXED Usman):
+
+### **Missing Features - Implemented**
+
+* **No push notifications** — no `firebase_messaging` or APNs integration. No booking/order alerts.
+* **No biometric authentication** — `flutter_secure_storage` is in place but no fingerprint/FaceID unlock layer.
+* **No deep linking / universal links** — `url_launcher` is available but no incoming link handling is wired.
+* **No app update check** — no version-gate to prompt users to upgrade when the API changes.
+* **No offline error handling** — when the device loses connectivity, all API calls throw and show a generic "something went wrong" toast with no retry button.
+* **No accessibility / semantics** — no `Semantics` wrappers on interactive elements. Screen readers will struggle.
+* **Essentially no tests** — test/widget_test.dart contains only a commented-out smoke test that tests a non-existent counter. Zero meaningful unit, widget, or integration tests exist.
+
 
 
 ### 1. Security Issues

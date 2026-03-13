@@ -80,10 +80,10 @@ class ConnectivityBanner extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  const Semantics(
+                  Semantics(
                     label: 'Offline',
                     image: true,
-                    child: Icon(Icons.wifi_off_rounded,
+                    child: const Icon(Icons.wifi_off_rounded,
                         color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 8),
