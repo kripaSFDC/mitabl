@@ -144,6 +144,4 @@ This file contains all environment variables that are referenced by the current 
 | `STRIPE_SECRET_KEY`                   | Yes                 |
 | `STRIPE_WEBHOOK_SIGNING_SECRET`       | Yes                 |
 
-## Cleanup performed
-
-- Removed obsolete test-only variable `TELESCOPE_ENABLED` from `backend/phpunit.xml` because it has no runtime/config usage in the codebase.
+# 

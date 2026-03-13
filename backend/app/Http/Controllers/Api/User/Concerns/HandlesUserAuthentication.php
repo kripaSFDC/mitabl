@@ -66,6 +66,18 @@ trait HandlesUserAuthentication
             return $this->suspendedAccountResponse();
         }
 
+        if (! in_array((int) $user->role_id, [2, 3], true)) {
+            Auth::guard('api')->logout();
+            return $this->responser([], 'Unsupported account role for mobile authentication.', 422);
+        }
+
+        $roleName = $this->resolveMobileRoleName($user);
+        if ($roleName === null) {
+            Auth::guard('api')->logout();
+            report(new \RuntimeException('User role mapping is missing for user id ' . (string) $user->id));
+            return $this->responser([], 'Account role is not configured. Please contact support.', 422);
+        }
+
         if ($user->email_verified == 1) {
             if (! $this->hasStripeAccountForRole($user)) {
                 $stripeProvisionError = $this->ensureStripeAccountForRole($user);
@@ -106,7 +118,7 @@ trait HandlesUserAuthentication
             $uData = [
                 'id' => $user->id,
                 'name' => $user->first_name,
-                'role' => $user->role->role,
+                'role' => $roleName,
                 'role_id' => $user->role_id,
             ];
 
@@ -129,7 +141,7 @@ trait HandlesUserAuthentication
         $uData = [
             'id' => $user->id,
             'name' => $user->first_name,
-            'role' => $user->role->role,
+            'role' => $roleName,
             'role_id' => $user->role_id,
             'is_email_verfied' => 0,
         ];
@@ -241,7 +253,7 @@ trait HandlesUserAuthentication
             'name' => $user->first_name . ' ' . $user->last_name,
             'email' => $user->email,
             'role_id' => $user->role_id,
-            'role' => $user->role->role,
+            'role' => $this->resolveMobileRoleName($user) ?? 'Unknown',
         ];
 
         $otpResponse = $this->sendOtp($user->id, $user->email);
@@ -359,7 +371,7 @@ trait HandlesUserAuthentication
                     'id' => $user->id,
                     'name' => $user->first_name . ' ' . $user->last_name,
                     'email' => $user->email,
-                    'role' => $user->role->role,
+                    'role' => $this->resolveMobileRoleName($user) ?? 'Unknown',
                 ],
             ], 'OTP Verified');
         });
@@ -524,10 +536,12 @@ trait HandlesUserAuthentication
 
     private function buildVerifiedMobileUserPayload(User $user): array
     {
+        $roleName = $this->resolveMobileRoleName($user) ?? 'Unknown';
+
         $data = [
             'id' => $user->id,
             'name' => $user->first_name,
-            'role' => $user->role->role,
+            'role' => $roleName,
             'role_id' => $user->role_id,
         ];
 
@@ -536,6 +550,21 @@ trait HandlesUserAuthentication
         }
 
         return $data;
+    }
+
+    private function resolveMobileRoleName(User $user): ?string
+    {
+        $fromRelation = optional($user->role)->role;
+        if (is_string($fromRelation) && trim($fromRelation) !== '') {
+            return $fromRelation;
+        }
+
+        return match ((int) $user->role_id) {
+            1 => 'Admin',
+            2 => 'Restaurant',
+            3 => 'Foodie',
+            default => null,
+        };
     }
 
     private function invalidateTokenQuietly(string $token): void

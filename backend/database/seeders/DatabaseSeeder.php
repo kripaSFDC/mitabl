@@ -21,6 +21,10 @@ class DatabaseSeeder extends Seeder
         $rolesTable = $permissionTableNames['roles'] ?? 'admin_roles';
         $permissionsTable = $permissionTableNames['permissions'] ?? 'admin_permissions';
 
+        if (Schema::hasTable('roles')) {
+            $this->call(CoreUserRolesSeeder::class);
+        }
+
         if (Schema::hasTable('cooking_styles')) {
             $this->call(CookingStylesSeeder::class);
         }
