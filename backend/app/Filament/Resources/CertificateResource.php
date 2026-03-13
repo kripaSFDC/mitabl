@@ -83,17 +83,36 @@ class CertificateResource extends Resource
                                 2 => 'Rejected',
                             ])
                             ->required()
-                            ->disabled(fn (string $operation): bool => $operation === 'edit')
-                            ->helperText('Status transitions on existing certificates must use Approve/Reject actions for audit-safe processing.'),
+                            ->helperText('Editable status for certificate lifecycle management.'),
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Rejection reason')
                             ->rows(3)
-                            ->disabled(fn (string $operation): bool => $operation === 'edit')
                             ->columnSpanFull()
-                            ->helperText('Required when rejecting. Emailed to the cook.')
+                            ->helperText('Provide reason when status is Rejected. Emailed to the cook.')
                             ->visible(fn (Forms\Get $get): bool => (int) $get('status') === 2),
                     ])
                     ->columns(2),
+
+                Forms\Components\Section::make('System Fields')
+                    ->schema([
+                        Forms\Components\Placeholder::make('id')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->id ?? '-')),
+                        Forms\Components\Placeholder::make('mikitchn_id')
+                            ->label('Kitchen ID')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->mikitchn_id ?? '-')),
+                        Forms\Components\Placeholder::make('reviewed_by')
+                            ->label('Reviewed by admin ID')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->reviewed_by ?? '-')),
+                        Forms\Components\Placeholder::make('reviewed_at')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->reviewed_at?->toDateTimeString() ?? '-')),
+                        Forms\Components\Placeholder::make('created_at')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->created_at?->toDateTimeString() ?? '-')),
+                        Forms\Components\Placeholder::make('updated_at')
+                            ->content(fn (?Certificate $record): string => (string) ($record?->updated_at?->toDateTimeString() ?? '-')),
+                    ])
+                    ->columns(3)
+                    ->collapsible()
+                    ->visible(fn (?Certificate $record): bool => (bool) $record),
             ]);
     }
 
@@ -146,6 +165,15 @@ class CertificateResource extends Resource
                     ->label('ABN')
                     ->searchable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('abn_gst')
+                    ->label('GST')
+                    ->formatStateUsing(fn (?int $state): string => (int) $state === 1 ? 'Yes' : 'No')
+                    ->badge()
+                    ->color(fn (?int $state): string => (int) $state === 1 ? 'success' : 'gray')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('rejection_reason')
+                    ->limit(45)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('certificate_doc')
                     ->label('Document')
                     ->formatStateUsing(fn (?string $state): string => $state ? 'View' : 'Missing')
@@ -164,6 +192,19 @@ class CertificateResource extends Resource
                     ->label('Uploaded')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('mikitchn_id')
+                    ->label('Kitchen ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('reviewed_by')
+                    ->label('Reviewer ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

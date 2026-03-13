@@ -36,6 +36,8 @@ class User extends Authenticatable implements JWTSubject
         'suspension_reason',
         'suspended_at',
         'suspended_by',
+        'avatar',
+        'description',
     ];
 
     /**
@@ -48,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     protected $casts = [
+        'email_verified' => 'boolean',
         'suspended' => 'boolean',
         'suspended_at' => 'datetime',
         'deleted_at' => 'datetime',

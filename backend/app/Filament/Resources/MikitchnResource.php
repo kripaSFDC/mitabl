@@ -36,6 +36,12 @@ class MikitchnResource extends Resource
                     ->description('Core display information shown to customers in search results and on the kitchen profile page.')
                     ->icon('heroicon-o-building-storefront')
                     ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->label('Micook account')
+                            ->relationship('user', 'email', fn ($query) => $query->where('role_id', 2))
+                            ->searchable()
+                            ->preload()
+                            ->required(),
                         Forms\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -78,6 +84,11 @@ class MikitchnResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->helperText('Max dine-in capacity. Leave 0 if not applicable.'),
+                        Forms\Components\Textarea::make('timings')
+                            ->label('Operating timings')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->helperText('Store schedule payload exactly as provided by operations/mobile.'),
                     ])
                     ->columns(3),
 
@@ -139,6 +150,22 @@ class MikitchnResource extends Resource
                     ->columns(3)
                     ->collapsible()
                     ->visible(fn (?Mikitchn $record): bool => (bool) $record),
+
+                Forms\Components\Section::make('System Fields')
+                    ->schema([
+                        Forms\Components\Placeholder::make('id')
+                            ->content(fn (?Mikitchn $record): string => (string) ($record?->id ?? '-')),
+                        Forms\Components\Placeholder::make('certificate_status_system')
+                            ->label('Certificate status (system)')
+                            ->content(fn (?Mikitchn $record): string => (string) (optional($record?->certificate)->status ?? '-')),
+                        Forms\Components\Placeholder::make('created_at')
+                            ->content(fn (?Mikitchn $record): string => (string) ($record?->created_at?->toDateTimeString() ?? '-')),
+                        Forms\Components\Placeholder::make('updated_at')
+                            ->content(fn (?Mikitchn $record): string => (string) ($record?->updated_at?->toDateTimeString() ?? '-')),
+                    ])
+                    ->columns(3)
+                    ->collapsible()
+                    ->visible(fn (?Mikitchn $record): bool => (bool) $record),
             ]);
     }
 
@@ -193,6 +220,25 @@ class MikitchnResource extends Resource
                     ->searchable(query: function ($query, string $search): void {
                         $query->where('address', 'like', "%{$search}%");
                     }),
+                Tables\Columns\TextColumn::make('phone')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('no_of_seats')
+                    ->label('Seats')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('timings')
+                    ->limit(40)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('open')
+                    ->boolean()
+                    ->label('Open now'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('dine_in')
                     ->boolean()
                     ->label('Dine-in'),
