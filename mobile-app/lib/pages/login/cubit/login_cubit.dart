@@ -1,6 +1,7 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mitabl_user/helper/connectivity_service.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/model/password.dart';
@@ -70,6 +71,10 @@ class LoginCubit extends Cubit<LoginState> {
         emit(state.copyWith(
             apiStatus: FormzStatus.pure, serverMessage: message));
       }
+    } on OfflineException {
+      emit(state.copyWith(
+          apiStatus: FormzStatus.submissionFailure,
+          serverMessage: 'No internet connection. Please try again.'));
     } catch (e) {
       AppLogger.error('Login failed', e);
       emit(state.copyWith(

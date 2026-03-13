@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/update_check_service.dart';
+import 'package:mitabl_user/pages/common/update_gate_widget.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import 'auth_bloc/authentication/authentication_bloc.dart';
@@ -25,6 +27,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _runStartupChecks();
     _fallbackTimer = Timer(_fallbackDelay, _navigateToLandingIfStillUnknown);
   }
 
@@ -34,15 +37,20 @@ class _SplashPageState extends State<SplashPage> {
     super.dispose();
   }
 
+  /// Runs the update check during the natural splash delay.
+  /// Never blocks navigation — the fallback timer handles the worst case.
+  Future<void> _runStartupChecks() async {
+    if (!mounted) return;
+    final result = await UpdateCheckService.instance.check();
+    if (!mounted) return;
+    await UpdateGateWidget.showIfNeeded(context, result);
+  }
+
   void _navigateToLandingIfStillUnknown() {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     final authState = context.read<AuthenticationBloc>().state;
-    if (authState.status != AuthenticationStatus.unknown) {
-      return;
-    }
+    if (authState.status != AuthenticationStatus.unknown) return;
 
     Navigator.of(context).pushNamedAndRemoveUntil(
       '/LandingPage',

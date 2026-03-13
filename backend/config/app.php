@@ -56,6 +56,16 @@ return [
 
     'asset_url' => env('ASSET_URL', null),
 
+    // ─── Mobile App Version Gate ─────────────────────────────────────────────
+    // Set these in .env to control the update-check dialog in the mobile app.
+    // Bumping `version_minimum` forces a hard update; `version_latest` shows
+    // an optional prompt.
+    'version_minimum'     => env('APP_VERSION_MINIMUM', '1.0.0'),
+    'version_latest'      => env('APP_VERSION_LATEST',  '1.0.0'),
+    'version_ios_url'     => env('APP_VERSION_IOS_URL',     'https://apps.apple.com/app/mitabl/id0000000000'),
+    'version_android_url' => env('APP_VERSION_ANDROID_URL', 'https://play.google.com/store/apps/details?id=com.mitabl.user.mitabl_user'),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

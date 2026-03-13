@@ -1,5 +1,4 @@
-<?php
-
+use App\Http\Controllers\Api\AppVersionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\MikitchnController;
@@ -52,6 +51,12 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
 
     return response()->json($summary, $isReady ? 200 : 503);
 });
+
+// Mobile app version gate — no auth required.
+// Returns minimum/latest version info for the update check dialog.
+Route::get('/app/version', [AppVersionController::class, 'show'])
+    ->middleware('throttle:60,1');
+
 Route::post('login', [UserController::class, 'login'])->middleware('throttle:10,1');
 Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:30,1');
 Route::post('register', [UserController::class, 'register']);

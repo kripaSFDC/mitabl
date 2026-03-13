@@ -93,6 +93,7 @@ void main() {
       final client = AuthAwareHttpClient(
         inner: innerClient,
         sessionRepository: sessionRepository,
+        onlineChecker: () async => true,
       );
 
       final response = await client.get(
@@ -135,6 +136,7 @@ void main() {
       final client = AuthAwareHttpClient(
         inner: innerClient,
         sessionRepository: sessionRepository,
+        onlineChecker: () async => true,
       );
 
       final unauthorizedEventFuture = sessionRepository.events.first;
@@ -203,6 +205,7 @@ void main() {
       final client = AuthAwareHttpClient(
         inner: innerClient,
         sessionRepository: sessionRepository,
+        onlineChecker: () async => true,
       );
 
       final request = http.MultipartRequest(

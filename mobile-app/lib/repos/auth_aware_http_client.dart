@@ -4,20 +4,29 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
+import 'package:mitabl_user/helper/connectivity_service.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 
 class AuthAwareHttpClient extends http.BaseClient {
   AuthAwareHttpClient({
     required http.Client inner,
     required SessionRepository sessionRepository,
+    Future<bool> Function()? onlineChecker,
   })  : _inner = inner,
-        _sessionRepository = sessionRepository;
+        _sessionRepository = sessionRepository,
+        _onlineChecker = onlineChecker ?? ConnectivityService.instance.isOnline;
 
   final http.Client _inner;
   final SessionRepository _sessionRepository;
+  final Future<bool> Function() _onlineChecker;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final online = await _onlineChecker();
+    if (!online) {
+      throw const OfflineException();
+    }
+
     final preparedRequest = await _prepareRequest(request);
     final accessToken = _extractBearerToken(request);
     final response = await _inner.send(preparedRequest.initialRequest);
