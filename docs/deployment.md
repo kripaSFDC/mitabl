@@ -138,10 +138,24 @@ First boot on fresh DB:
 Routine upgrades/restarts:
 
 ```bash
-export DB_ROOT_PASSWORD='replace_with_strong_password'
-echo "DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD" > .env
+cd ~/mitabl
+git pull --ff-only origin main
 docker compose -f deploy/docker-compose.prod.contabo.yml up --build -d --remove-orphans
 ```
+
+Important password handling note:
+
+- `DB_ROOT_PASSWORD` is required by compose, but you do **not** need to run `export DB_ROOT_PASSWORD=...` and `echo ... > .env` on every deploy.
+- Set it once and keep it persistent in repo root `.env`:
+
+  ```bash
+  cd ~/mitabl
+  printf 'DB_ROOT_PASSWORD=%s\n' 'replace_with_strong_password' > .env
+  chmod 600 .env
+  ```
+
+- On future deploys, just run `git pull` and `docker compose ... up -d --build`.
+- Only update `.env` again if you intentionally rotate the DB root password.
 
 Stop:
 
@@ -153,14 +167,33 @@ Note: `down` does not delete DB data unless `-v` is used.
 
 ## 6) Deploying Updates to Production & Health verification
 
-Production code update:
+Production code update (recommended):
 
-```
+```bash
 cd ~/mitabl
 git pull --ff-only origin main
-export DB_ROOT_PASSWORD='Usman111!'   # example pwd, replace with actual pwd
-echo 'DB_ROOT_PASSWORD=Usman111!' > .env
-docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build
+docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --remove-orphans
+```
+
+If `.env` does not exist yet (first server setup only):
+
+```bash
+cd ~/mitabl
+printf 'DB_ROOT_PASSWORD=%s\n' 'replace_with_strong_password' > .env
+chmod 600 .env
+docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --remove-orphans
+```
+
+Nginx after code deploy:
+
+- You do **not** need to restart/reload nginx for normal application code updates.
+- Reload nginx only when nginx config or TLS certs change.
+
+Commands when nginx changes are made:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 
