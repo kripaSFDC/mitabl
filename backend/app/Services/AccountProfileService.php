@@ -186,7 +186,7 @@ class AccountProfileService
             return null;
         }
 
-        $user->loadMissing('restaurant.certificate', 'vendor');
+        $user->load(['restaurant.certificate', 'vendor']);
 
         $missing = [];
         if (! $user->vendor || ! $user->vendor->account_id) {

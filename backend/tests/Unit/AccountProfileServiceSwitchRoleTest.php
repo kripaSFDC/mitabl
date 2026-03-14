@@ -96,6 +96,21 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate'], $result['role_transition']['missing']);
     }
 
+
+    public function test_switch_role_to_micook_uses_fresh_relations_after_vendor_provisioning(): void
+    {
+        $user = $this->createUser(3);
+        $user->load('vendor');
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+    }
+
     public function test_switch_role_allows_micook_when_vendor_onboarding_exists(): void
     {
         $user = $this->createUser(3);
