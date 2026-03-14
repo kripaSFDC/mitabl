@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "isSuccess": true,
+  "data": {
+    "role": "Foodie",
+    "role_id": 3,
+    "role_transition": {
+      "state": "ready",
+      "onboarding_required": false,
+      "missing": [],
+      "next_required_step": null
+    }
+  }
+}

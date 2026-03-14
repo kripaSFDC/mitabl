@@ -31,6 +31,39 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
   bool _switchingRole = false;
 
+  String _onboardingStepDescription(String? step) {
+    switch (step) {
+      case 'kitchen_profile':
+        return 'Please set up your mikitchn profile to continue as micook.';
+      case 'certificate':
+        return 'Please upload your kitchen certification to continue as micook.';
+      case 'payout_setup':
+      case 'vendor_account':
+        return 'Please complete payout account setup to continue as micook.';
+      default:
+        return 'Your micook onboarding is not complete yet. Continue setup to proceed.';
+    }
+  }
+
+  void _showOnboardingCta(Map<String, dynamic> transition) {
+    final step = transition['next_required_step']?.toString();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_onboardingStepDescription(step)),
+        action: SnackBarAction(
+          label: 'Continue',
+          onPressed: () {
+            navigatorKey.currentState!.pushNamedAndRemoveUntil(
+              '/CookProfile',
+              (route) => false,
+              arguments: RouteArguments(data: transition),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -77,10 +110,10 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
             transition['onboarding_required'] == true;
 
         if (onboardingRequired) {
-          navigatorKey.currentState!.pushNamedAndRemoveUntil(
-            '/CookProfile',
-            (route) => false,
-            arguments: RouteArguments(data: transition),
+          _showOnboardingCta(
+            transition is Map<String, dynamic>
+                ? transition
+                : <String, dynamic>{},
           );
         } else {
           navigatorKey.currentState!.pushNamedAndRemoveUntil(
