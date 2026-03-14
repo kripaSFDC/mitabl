@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:global_configuration/global_configuration.dart';
+import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
 import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
 import 'package:mitabl_user/pages/payments/view/payments_page.dart';
@@ -12,7 +13,8 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/payments_repository.dart';
-import 'package:mitabl_user/model/user_model.dart';
+import 'package:mitabl_user/repos/repository_http_exception.dart';
+import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 void main() {
@@ -79,101 +81,100 @@ void main() {
     expect(find.text('payments route'), findsOneWidget);
   });
 
-  testWidgets('miorders page renders empty state with no records', (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: MiOrdersPage(repository: _FakeMiOrdersRepository()),
-        ),
-      ),
+  testWidgets('miorders page keeps empty-state for successful empty payload', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: MiOrdersPage(repository: _FakeMiOrdersRepository()),
     );
-
-    await tester.pumpAndSettle();
-
     expect(find.text('No data found'), findsOneWidget);
   });
 
-  testWidgets('favourites page renders empty state with no records', (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: FavouritesPage(repository: _FakeFavouritesRepository()),
-        ),
-      ),
+  testWidgets('miorders page shows switch CTA for 403', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: MiOrdersPage(repository: _ForbiddenMiOrdersRepository()),
     );
+    expect(find.text('Switch to mifoodi to access this page'), findsOneWidget);
+    expect(find.text('Switch to mifoodi'), findsOneWidget);
+  });
 
-    await tester.pumpAndSettle();
+  testWidgets('miorders page shows server message and retry for 422', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: MiOrdersPage(repository: _UnprocessableMiOrdersRepository()),
+    );
+    expect(find.text('Invalid filters for orders'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
 
+  testWidgets('favourites page keeps empty-state for successful empty payload', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: FavouritesPage(repository: _FakeFavouritesRepository()),
+    );
     expect(find.text('No data found'), findsOneWidget);
   });
 
-  testWidgets('payments page renders empty state with no records', (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: PaymentsPage(repository: _FakePaymentsRepository()),
-        ),
-      ),
+  testWidgets('favourites page shows switch CTA for 403', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: FavouritesPage(repository: _ForbiddenFavouritesRepository()),
     );
+    expect(find.text('Switch to mifoodi to access this page'), findsOneWidget);
+    expect(find.text('Switch to mifoodi'), findsOneWidget);
+  });
 
-    await tester.pumpAndSettle();
+  testWidgets('favourites page shows server message and retry for 422', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: FavouritesPage(repository: _UnprocessableFavouritesRepository()),
+    );
+    expect(find.text('Favourite list request is invalid'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
 
+  testWidgets('payments page keeps empty-state for successful empty payload', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: PaymentsPage(repository: _FakePaymentsRepository()),
+    );
     expect(find.text('No data found'), findsOneWidget);
   });
 
-  testWidgets('miorders page renders retry error state when repository throws',
-      (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: MiOrdersPage(repository: _ThrowingMiOrdersRepository()),
-        ),
-      ),
+  testWidgets('payments page shows switch CTA for 403', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: PaymentsPage(repository: _ForbiddenPaymentsRepository()),
     );
-
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('No internet connection'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Switch to mifoodi to access this page'), findsOneWidget);
+    expect(find.text('Switch to mifoodi'), findsOneWidget);
   });
 
-  testWidgets('favourites page renders retry error state when repository throws',
-      (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: FavouritesPage(repository: _ThrowingFavouritesRepository()),
-        ),
-      ),
+  testWidgets('payments page shows server message and retry for 422', (tester) async {
+    await _pumpWithProviders(
+      tester,
+      home: PaymentsPage(repository: _UnprocessablePaymentsRepository()),
     );
-
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('No internet connection'), findsOneWidget);
+    expect(find.text('Payment request is invalid'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
   });
+}
 
-  testWidgets('payments page renders retry error state when repository throws',
-      (tester) async {
-    await tester.pumpWidget(
-      RepositoryProvider<UserRepository>.value(
-        value: _FakeUserRepository(),
-        child: MaterialApp(
-          home: PaymentsPage(repository: _ThrowingPaymentsRepository()),
-        ),
-      ),
-    );
+Future<void> _pumpWithProviders(
+  WidgetTester tester, {
+  required Widget home,
+}) async {
+  await tester.pumpWidget(
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<UserRepository>.value(value: _FakeUserRepository()),
+        RepositoryProvider<SessionRepository>(create: (_) => SessionRepository()),
+      ],
+      child: MaterialApp(home: home),
+    ),
+  );
 
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('No internet connection'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
-  });
+  await tester.pumpAndSettle();
 }
 
 class _FakeUserRepository extends UserRepository {
@@ -192,6 +193,28 @@ class _FakeMiOrdersRepository extends MiOrdersRepository {
   }
 }
 
+class _ForbiddenMiOrdersRepository extends MiOrdersRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchOrdersHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 403, message: 'Forbidden');
+  }
+}
+
+class _UnprocessableMiOrdersRepository extends MiOrdersRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchOrdersHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 422, message: 'Invalid filters for orders');
+  }
+}
+
 class _FakeFavouritesRepository extends FavouritesRepository {
   @override
   Future<List<Map<String, dynamic>>> fetchFavourites({
@@ -200,6 +223,28 @@ class _FakeFavouritesRepository extends FavouritesRepository {
     int limit = 20,
   }) async {
     return const [];
+  }
+}
+
+class _ForbiddenFavouritesRepository extends FavouritesRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchFavourites({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 403, message: 'Forbidden');
+  }
+}
+
+class _UnprocessableFavouritesRepository extends FavouritesRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchFavourites({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 422, message: 'Favourite list request is invalid');
   }
 }
 
@@ -219,40 +264,34 @@ class _FakePaymentsRepository extends PaymentsRepository {
   }
 }
 
-class _ThrowingMiOrdersRepository extends MiOrdersRepository {
-  @override
-  Future<List<Map<String, dynamic>>> fetchOrdersHistory({
-    required UserModel? userModel,
-    int page = 1,
-    int limit = 20,
-  }) async {
-    throw Exception('network issue');
-  }
-}
-
-class _ThrowingFavouritesRepository extends FavouritesRepository {
-  @override
-  Future<List<Map<String, dynamic>>> fetchFavourites({
-    required UserModel? userModel,
-    int page = 1,
-    int limit = 20,
-  }) async {
-    throw Exception('network issue');
-  }
-}
-
-class _ThrowingPaymentsRepository extends PaymentsRepository {
+class _ForbiddenPaymentsRepository extends PaymentsRepository {
   @override
   Future<List<Map<String, dynamic>>> fetchPaymentsHistory({
     required UserModel? userModel,
     int page = 1,
     int limit = 20,
   }) async {
-    throw Exception('network issue');
+    throw RepositoryHttpException(statusCode: 403, message: 'Forbidden');
   }
 
   @override
   Future<List<Map<String, dynamic>>> fetchSavedCards({required UserModel? userModel}) async {
-    throw Exception('network issue');
+    return const [];
+  }
+}
+
+class _UnprocessablePaymentsRepository extends PaymentsRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchPaymentsHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 422, message: 'Payment request is invalid');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchSavedCards({required UserModel? userModel}) async {
+    return const [];
   }
 }

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/auth_headers.dart';
+import 'package:mitabl_user/repos/repository_http_exception.dart';
 
 class PaymentsRepository {
   PaymentsRepository({http.Client? httpClient})
@@ -29,7 +30,11 @@ class PaymentsRepository {
         .timeout(ApiContract.requestTimeout);
 
     if (response.statusCode != 200) {
-      throw Exception('Unable to fetch payment history');
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to fetch payment history',
+      );
     }
 
     final dynamic decoded = jsonDecode(response.body);
@@ -51,7 +56,11 @@ class PaymentsRepository {
         .timeout(ApiContract.requestTimeout);
 
     if (response.statusCode != 200) {
-      throw Exception('Unable to fetch cards');
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to fetch cards',
+      );
     }
 
     final dynamic decoded = jsonDecode(response.body);
