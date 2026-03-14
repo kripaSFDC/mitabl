@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\NotifyDisable;
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -53,11 +54,9 @@ class AccountProfileService
         }
 
         $targetRoleId = (int) $request->input('role_id');
-        if ((int) $user->role_id === $targetRoleId) {
-            return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
-        }
+        $membership = $user->roleMembershipFor($targetRoleId);
 
-        if ($targetRoleId === 2) {
+        if (! $membership && $targetRoleId === 2) {
             $hasCookProfile = $user->restaurant()->exists();
             $hasCookOnboardingFootprint = $user->vendor()->exists();
             if (! $hasCookProfile && ! $hasCookOnboardingFootprint) {
@@ -66,12 +65,43 @@ class AccountProfileService
                     'status' => 422,
                 ];
             }
+
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => $targetRoleId,
+                'status' => UserRole::STATUS_ACTIVE,
+            ]);
+        }
+
+        if (! $membership && $targetRoleId === 3) {
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => $targetRoleId,
+                'status' => UserRole::STATUS_ACTIVE,
+            ]);
+        }
+
+        if (! $membership) {
+            return [
+                'error' => 'Requested role is not available for this account.',
+                'status' => 422,
+            ];
+        }
+
+        if ($membership->status === UserRole::STATUS_DISABLED) {
+            return [
+                'error' => 'Requested role is disabled for this account.',
+                'status' => 422,
+            ];
         }
 
         $user->role_id = $targetRoleId;
         $user->save();
 
-        return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
+        return [
+            'user' => $user->fresh(['role', 'roleMemberships.role', 'restaurant.certificate', 'notifyDisable']),
+            'onboarding_required' => $membership->status === UserRole::STATUS_ONBOARDING,
+        ];
     }
 
     public function changePassword(User $user, Request $request): array
