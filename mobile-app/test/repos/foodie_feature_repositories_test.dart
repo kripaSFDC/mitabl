@@ -8,6 +8,7 @@ import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/payments_repository.dart';
+import 'package:mitabl_user/repos/repository_http_exception.dart';
 
 UserModel _buildUser() {
   return UserModel.fromJson({
@@ -70,6 +71,40 @@ void main() {
       expect(records, hasLength(1));
       expect(records.first['id'], 'ord-1');
     });
+
+
+    test('fetchOrdersHistory throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Forbidden from orders'}), 403);
+      });
+      final repository = MiOrdersRepository(httpClient: client);
+
+      expect(
+        repository.fetchOrdersHistory(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Forbidden from orders'),
+        ),
+      );
+    });
+
+    test('fetchOrdersHistory throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid pagination'}), 422);
+      });
+      final repository = MiOrdersRepository(httpClient: client);
+
+      expect(
+        repository.fetchOrdersHistory(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid pagination'),
+        ),
+      );
+    });
+
   });
 
   group('FavouritesRepository', () {
@@ -114,13 +149,87 @@ void main() {
       expect(capturedRequest.bodyFields['restaurant_id'], 'kitchen-42');
     });
 
-    test('fetchFavourites throws on non-200 response', () async {
-      final client = MockClient((_) async => http.Response('{}', 500));
+
+
+
+
+    test('toggleFavourite throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Not allowed to change favourite'}), 403);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Not allowed to change favourite'),
+        ),
+      );
+    });
+
+    test('toggleFavourite throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid favourite target'}), 422);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid favourite target'),
+        ),
+      );
+    });
+
+    test('fetchFavourites throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Forbidden from favourites'}), 403);
+      });
       final repository = FavouritesRepository(httpClient: client);
 
       expect(
         repository.fetchFavourites(userModel: _buildUser()),
-        throwsException,
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Forbidden from favourites'),
+        ),
+      );
+    });
+
+    test('fetchFavourites throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid favourites request'}), 422);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.fetchFavourites(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid favourites request'),
+        ),
+      );
+    });
+
+    test('fetchFavourites throws typed exception for non-200 response', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Temporary failure'}), 500);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.fetchFavourites(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 500)
+              .having((error) => error.message, 'message', 'Temporary failure'),
+        ),
       );
     });
   });
@@ -162,6 +271,74 @@ void main() {
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
+    });
+
+
+
+    test('fetchPaymentsHistory throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Forbidden from payments'}), 403);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchPaymentsHistory(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Forbidden from payments'),
+        ),
+      );
+    });
+
+    test('fetchPaymentsHistory throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Unsupported payment filter'}), 422);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchPaymentsHistory(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Unsupported payment filter'),
+        ),
+      );
+    });
+
+
+
+    test('fetchSavedCards throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Forbidden from cards'}), 403);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchSavedCards(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Forbidden from cards'),
+        ),
+      );
+    });
+
+    test('fetchSavedCards throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid cards request'}), 422);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchSavedCards(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid cards request'),
+        ),
+      );
     });
 
     test('fetchSavedCards parses cards list payload shape', () async {
