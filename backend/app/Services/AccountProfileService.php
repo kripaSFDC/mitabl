@@ -42,6 +42,34 @@ class AccountProfileService
         return ['user' => $user];
     }
 
+    public function switchRole(User $user, Request $request): array
+    {
+        $validator = Validator::make($request->all(), [
+            'role_id' => 'required|integer|in:2,3',
+        ]);
+
+        if ($validator->fails()) {
+            return ['error' => $validator->errors()->first(), 'status' => 422];
+        }
+
+        $targetRoleId = (int) $request->input('role_id');
+        if ((int) $user->role_id === $targetRoleId) {
+            return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
+        }
+
+        if ($targetRoleId === 2 && ! $user->restaurant()->exists()) {
+            return [
+                'error' => 'micook profile is not available for this account.',
+                'status' => 422,
+            ];
+        }
+
+        $user->role_id = $targetRoleId;
+        $user->save();
+
+        return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
+    }
+
     public function changePassword(User $user, Request $request): array
     {
         $validator = Validator::make($request->all(), [

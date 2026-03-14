@@ -53,13 +53,20 @@ class User {
   int? id;
   String? name;
   String? role;
+  int? roleId;
 
-  User({this.id, this.name, this.role});
+  User({this.id, this.name, this.role, this.roleId});
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     role = json['role'];
+    final roleIdValue = json['role_id'];
+    if (roleIdValue is int) {
+      roleId = roleIdValue;
+    } else if (roleIdValue is String) {
+      roleId = int.tryParse(roleIdValue);
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -67,6 +74,7 @@ class User {
     data['id'] = id;
     data['name'] = name;
     data['role'] = role;
+    data['role_id'] = roleId;
     return data;
   }
 }

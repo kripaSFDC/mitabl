@@ -30,6 +30,17 @@ class AccountController extends Controller
         return $this->responser(new UserResource($result['user']), 'User Profile Updated');
     }
 
+    public function switchRole(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        $result = $this->accountProfileService->switchRole($user, $request);
+        if (isset($result['error'])) {
+            return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
+        }
+
+        return $this->responser(new UserResource($result['user']), 'Profile switched successfully.');
+    }
+
     public function changePassword(Request $request)
     {
         $user = Auth::user();
