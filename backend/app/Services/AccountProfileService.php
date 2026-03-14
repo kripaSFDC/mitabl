@@ -76,16 +76,26 @@ class AccountProfileService
             ]);
         }
 
-        if ($targetRoleId === 2) {
-            $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
-        }
-
         if ($membership->status === UserRole::STATUS_DISABLED) {
             return [
                 'error' => 'Requested role is disabled for this account.',
                 'status' => 422,
                 'role_transition' => null,
             ];
+        }
+
+        if ($targetRoleId === 2) {
+            $foodieMembership = $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
+            if ($foodieMembership->status === UserRole::STATUS_ONBOARDING) {
+                $foodieMembership->status = UserRole::STATUS_ACTIVE;
+                $foodieMembership->save();
+            }
+        }
+
+        if ($targetRoleId === 3 && $membership->status !== UserRole::STATUS_ACTIVE) {
+            $membership->status = UserRole::STATUS_ACTIVE;
+            $membership->save();
+            $membership->refresh();
         }
 
         if ((int) $user->role_id !== $targetRoleId) {
