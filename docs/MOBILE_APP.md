@@ -532,3 +532,26 @@ The Mitabl mobile app is a feature-rich dual-persona Flutter application with ma
 - **Current mobile contact endpoint in code**: `/api/v2/mob-contact`.
 - No client calls to legacy `/api/mobcontact` or `/api/v1/mob-contact` remain in the current mobile repository.
 - Backend-side deprecation behavior for old routes should remain documented in backend/API docs and communicated to older client versions.
+
+---
+
+## 15. Cook role transition and onboarding progression contract (v2)
+
+Mobile clients should treat cook activation as a **progressive onboarding flow** rather than a blocking Stripe dependency.
+
+### Endpoints
+
+- `POST /api/v2/account/switch-role` with `role_id=2`
+- `POST /api/v2/account/roles/cook/activate` (alias: `POST /api/v2/account/onboarding/cook/start`)
+- `POST /api/v2/account/onboarding/cook/vendor-account` (dedicated vendor-account provisioning step)
+
+### Expected behavior
+
+- Switching to cook (`role_id=2`) **must not hard-fail** if Stripe vendor provisioning is unavailable.
+- API returns `200` with:
+  - `onboarding_required=true`
+  - `role_transition.state="onboarding_required"`
+  - `role_transition.missing` including `vendor_account` when no vendor Stripe account exists
+  - `role_transition.next_required_step` preserved (typically `vendor_account` first)
+- Mobile should continue onboarding step-by-step based on `role_transition` instead of expecting a hard error for temporary Stripe failures.
+- Vendor Stripe provisioning is handled by the dedicated `vendor-account` onboarding step (or server-side retry mechanisms), not as a prerequisite for the role switch response.

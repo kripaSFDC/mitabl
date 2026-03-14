@@ -68,9 +68,9 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
         $this->assertTrue($result['onboarding_required']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
-        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
-        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
-        $this->assertDatabaseHas('stripe_accounts', [
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
+        $this->assertDatabaseMissing('stripe_accounts', [
             'user_id' => $user->id,
             'account_type' => 'vendor',
         ]);
@@ -88,8 +88,8 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertArrayHasKey('user', $result);
         $this->assertTrue($result['onboarding_required']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
-        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
-        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
     }
 
     public function test_switch_role_to_micook_uses_fresh_relations_after_vendor_provisioning(): void
@@ -104,8 +104,8 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         );
 
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
-        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
-        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
     }
 
     public function test_cook_to_foodie_switch_works_with_existing_memberships(): void
@@ -193,8 +193,8 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertArrayHasKey('user', $result);
         $this->assertSame(2, (int) $user->fresh()->role_id);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
-        $this->assertSame(['certificate'], $result['role_transition']['missing']);
-        $this->assertSame('certificate', $result['role_transition']['next_required_step']);
+        $this->assertSame(['vendor_account', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
     }
 
     public function test_start_cook_onboarding_promotes_role_and_returns_next_step(): void
@@ -208,8 +208,8 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertTrue($result['onboarding_required']);
         $this->assertTrue($result['role_transition']['onboarding_started']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
-        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
-        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
     }
 
     public function test_switch_role_to_micook_creates_foodie_membership_for_cook_first_accounts(): void
@@ -242,26 +242,64 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertDatabaseHas('user_role_onboarding_checklists', [
             'user_id' => $user->id,
             'role_id' => 2,
-            'vendor_account_completed' => 1,
+            'vendor_account_completed' => 0,
             'kitchen_profile_completed' => 0,
             'certificate_completed' => 0,
         ]);
     }
 
-    public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void
+    public function test_start_cook_onboarding_promotes_role_even_when_vendor_provisioning_would_fail_later(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertTrue($result['onboarding_required']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
+    }
+
+
+    public function test_switch_role_to_micook_returns_onboarding_payload_when_vendor_provisioning_fails(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
 
         $paymentService = Mockery::mock(PaymentService::class);
         $paymentService->shouldReceive('createVendor')->andThrow(new \RuntimeException('stripe unavailable'));
         $paymentService->shouldReceive('createCustomer')->andReturn((object) ['id' => 'cus_test_123']);
         $this->app->instance(PaymentService::class, $paymentService);
 
-        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
 
-        $this->assertSame(422, $result['status']);
-        $this->assertSame('Unable to create Stripe account.', $result['error']);
-        $this->assertSame(3, (int) $user->fresh()->role_id);
+        $this->assertArrayNotHasKey('error', $result);
+        $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertTrue($result['onboarding_required']);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
+        $this->assertSame('vendor_account', $result['role_transition']['next_required_step']);
+    }
+
+    public function test_complete_cook_vendor_account_step_reports_failure_without_hard_error(): void
+    {
+        $user = User::factory()->create(['role_id' => 2]);
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('createVendor')->andThrow(new \RuntimeException('stripe unavailable'));
+        $paymentService->shouldReceive('createCustomer')->andReturn((object) ['id' => 'cus_test_123']);
+        $this->app->instance(PaymentService::class, $paymentService);
+
+        $result = app(AccountProfileService::class)->completeCookVendorAccountStep($user);
+
+        $this->assertFalse($result['provisioned']);
+        $this->assertSame('Unable to create Stripe account.', $result['provision_error']);
+        $this->assertTrue($result['onboarding_required']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate', 'payout_setup'], $result['role_transition']['missing']);
     }
 
     public function test_switch_role_rejects_disabled_membership(): void

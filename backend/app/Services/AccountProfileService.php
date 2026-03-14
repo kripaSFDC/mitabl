@@ -64,13 +64,6 @@ class AccountProfileService
 
         $targetRoleId = (int) $request->input('role_id');
 
-        if ($targetRoleId === 2) {
-            $provisionError = $this->ensureStripeAccountForRole($user, 2);
-            if ($provisionError !== null) {
-                return ['error' => $provisionError, 'status' => 422];
-            }
-        }
-
         $membership = $user->roleMembershipFor($targetRoleId);
 
         if (! $membership) {
@@ -111,11 +104,6 @@ class AccountProfileService
 
     public function startCookOnboarding(User $user): array
     {
-        $provisionError = $this->ensureStripeAccountForRole($user, 2);
-        if ($provisionError !== null) {
-            return ['error' => $provisionError, 'status' => 422];
-        }
-
         $membership = $user->roleMembershipFor(2);
         if (! $membership) {
             $membership = $this->ensureRoleMembership($user->id, 2, UserRole::STATUS_ONBOARDING);
@@ -142,6 +130,22 @@ class AccountProfileService
                 'onboarding_started' => true,
                 'next_required_step' => $transition['missing'][0] ?? null,
             ],
+            'onboarding_required' => (bool) ($transition['onboarding_required'] ?? false),
+        ];
+    }
+
+    public function completeCookVendorAccountStep(User $user): array
+    {
+        $this->ensureRoleMembership($user->id, 2, UserRole::STATUS_ONBOARDING);
+
+        $provisionError = $this->ensureStripeAccountForRole($user, 2);
+        $membership = $user->roleMembershipFor(2);
+        $transition = $this->buildRoleTransitionState($user, 2, $membership);
+
+        return [
+            'provisioned' => $provisionError === null,
+            'provision_error' => $provisionError,
+            'role_transition' => $transition,
             'onboarding_required' => (bool) ($transition['onboarding_required'] ?? false),
         ];
     }

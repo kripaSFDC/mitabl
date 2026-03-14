@@ -60,6 +60,20 @@ class AccountController extends Controller
         ], 'Cook onboarding started.');
     }
 
+
+    public function completeCookVendorAccountStep(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        $result = $this->accountProfileService->completeCookVendorAccountStep($user);
+
+        return $this->responser([
+            'provisioned' => (bool) ($result['provisioned'] ?? false),
+            'provision_error' => $result['provision_error'] ?? null,
+            'role_transition' => $result['role_transition'] ?? null,
+            'onboarding_required' => (bool) ($result['onboarding_required'] ?? false),
+        ], 'Cook vendor account step processed.');
+    }
+
     public function changePassword(Request $request)
     {
         $user = Auth::user();
