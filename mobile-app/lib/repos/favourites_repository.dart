@@ -21,7 +21,7 @@ class FavouritesRepository {
     final response = await _httpClient
         .get(
           ApiContract.uri(
-            'v1/foodie/favourites',
+            'v2/account/favorites',
             queryParameters: {'page': page, 'limit': limit},
           ),
           headers: authorizedHeadersForUser(userModel),
@@ -33,7 +33,7 @@ class FavouritesRepository {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    final records = _extractList(decoded, const ['data', 'favourites', 'results']);
+    final records = _extractList(decoded, const ['items', 'data', 'favourites', 'results']);
     return records
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item as Map))
@@ -46,9 +46,9 @@ class FavouritesRepository {
   }) {
     return _httpClient
         .post(
-          ApiContract.uri('v1/foodie/favourites/toggle'),
+          ApiContract.uri('v2/account/favorites/toggle'),
           headers: authorizedHeadersForUser(userModel),
-          body: {'target_id': targetId},
+          body: {'restaurant_id': targetId},
         )
         .timeout(ApiContract.requestTimeout);
   }

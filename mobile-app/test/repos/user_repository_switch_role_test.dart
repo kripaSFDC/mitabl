@@ -81,6 +81,37 @@ void main() {
       expect(repository.syncedRoleId, 2);
     });
 
+
+    test('syncs role from nested user payload format', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'status': 200,
+            'isSuccess': true,
+            'data': {
+              'user': {
+                'data': {'role': 'Restaurant', 'role_id': 2}
+              },
+              'role_transition': {
+                'state': 'onboarding_required',
+                'onboarding_required': true,
+              }
+            }
+          }),
+          200,
+        );
+      });
+
+      final repository = _SpyUserRepository(httpClient: client);
+
+      final response = await repository.switchRole(roleId: 2);
+
+      expect(response.statusCode, 200);
+      expect(repository.syncCalls, 1);
+      expect(repository.syncedRole, 'Restaurant');
+      expect(repository.syncedRoleId, 2);
+    });
+
     test('does not sync local role when API is not successful', () async {
       final client = MockClient((_) async {
         return http.Response(

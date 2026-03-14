@@ -70,10 +70,24 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        navigatorKey.currentState!.pushNamedAndRemoveUntil(
-          '/DashboardCook',
-          (route) => false,
-        );
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = payload['data'];
+        final transition = data is Map<String, dynamic> ? data['role_transition'] : null;
+        final onboardingRequired = transition is Map<String, dynamic> &&
+            transition['onboarding_required'] == true;
+
+        if (onboardingRequired) {
+          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+            '/CookProfile',
+            (route) => false,
+            arguments: RouteArguments(data: transition),
+          );
+        } else {
+          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+            '/DashboardCook',
+            (route) => false,
+          );
+        }
         return;
       }
 

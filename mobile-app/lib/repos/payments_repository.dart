@@ -21,7 +21,7 @@ class PaymentsRepository {
     final response = await _httpClient
         .get(
           ApiContract.uri(
-            'v1/foodie/payments/history',
+            'v2/account/payments/history',
             queryParameters: {'page': page, 'limit': limit},
           ),
           headers: authorizedHeadersForUser(userModel),
@@ -33,7 +33,7 @@ class PaymentsRepository {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    final records = _extractList(decoded, const ['data', 'history', 'results']);
+    final records = _extractList(decoded, const ['items', 'data', 'history', 'results']);
     return records
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item as Map))
@@ -45,7 +45,7 @@ class PaymentsRepository {
   }) async {
     final response = await _httpClient
         .get(
-          ApiContract.uri('v1/foodie/payments/cards'),
+          ApiContract.uri('v2/payments/cards'),
           headers: authorizedHeadersForUser(userModel),
         )
         .timeout(ApiContract.requestTimeout);
@@ -55,7 +55,7 @@ class PaymentsRepository {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    final records = _extractList(decoded, const ['data', 'cards', 'results']);
+    final records = _extractList(decoded, const ['items', 'data', 'cards', 'results']);
     return records
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item as Map))

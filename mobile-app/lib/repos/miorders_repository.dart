@@ -21,7 +21,7 @@ class MiOrdersRepository {
     final response = await _httpClient
         .get(
           ApiContract.uri(
-            'v1/foodie/orders/history',
+            'v2/account/orders',
             queryParameters: {'page': page, 'limit': limit},
           ),
           headers: authorizedHeadersForUser(userModel),
@@ -33,7 +33,7 @@ class MiOrdersRepository {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    final records = _extractList(decoded, const ['data', 'orders', 'results']);
+    final records = _extractList(decoded, const ['items', 'data', 'orders', 'results']);
     return records
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item as Map))
