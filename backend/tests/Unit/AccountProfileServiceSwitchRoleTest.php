@@ -8,18 +8,45 @@ use App\Models\StripeAccount;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Services\AccountProfileService;
+use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Mockery;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AccountProfileServiceSwitchRoleTest extends TestCase
 {
     use RefreshDatabase;
 
+    private int $vendorSequence = 1;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('createVendor')
+            ->andReturnUsing(function () {
+                return (object) ['id' => 'acct_vendor_' . $this->vendorSequence++];
+            });
+        $paymentService->shouldReceive('createCustomer')->andReturn((object) ['id' => 'cus_test_123']);
+
+        $this->app->instance(PaymentService::class, $paymentService);
+    }
+
+
+    private function createUser(int $roleId): User
+    {
+        return User::query()->create([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'user' . uniqid('', true) . '@example.test',
+            'password' => Hash::make('password123'),
+            'phone' => '0400000000',
+            'role_id' => $roleId,
+            'email_verified' => true,
+            'address' => 'test',
         Role::query()->insert([
             ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
             ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
@@ -28,6 +55,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
     public function test_switch_role_rejects_invalid_target_role(): void
     {
+        $user = $this->createUser(3);
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
 
@@ -41,6 +69,9 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
+    public function test_switch_role_to_micook_returns_transition_state_for_first_time_conversion(): void
+    {
+        $user = $this->createUser(3);
     public function test_switch_role_blocks_micook_when_no_profile_or_membership(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -51,9 +82,44 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
             Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
         );
 
-        $this->assertSame(422, $result['status']);
-        $this->assertSame('micook profile is not available for this account.', $result['error']);
-        $this->assertSame(3, (int) $user->fresh()->role_id);
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+
+        $this->assertDatabaseHas('stripe_accounts', [
+            'user_id' => $user->id,
+            'account_type' => 'vendor',
+        ]);
+    }
+
+    public function test_switch_role_to_existing_micook_still_returns_transition_payload(): void
+    {
+        $user = $this->createUser(2);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+    }
+
+
+    public function test_switch_role_to_micook_uses_fresh_relations_after_vendor_provisioning(): void
+    {
+        $user = $this->createUser(3);
+        $user->load('vendor');
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
     }
 
     public function test_cook_to_foodi_switch_works_with_existing_memberships(): void
@@ -74,6 +140,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
     public function test_foodie_to_cook_switch_returns_onboarding_when_membership_is_onboarding(): void
     {
+        $user = $this->createUser(3);
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
@@ -107,6 +174,8 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertArrayHasKey('user', $result);
         $this->assertTrue($result['onboarding_required']);
         $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
         $this->assertDatabaseHas('user_roles', [
             'user_id' => $user->id,
             'role_id' => 2,
@@ -116,6 +185,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
     public function test_switch_role_allows_micook_when_kitchen_profile_exists(): void
     {
+        $user = $this->createUser(3);
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         Mikitchn::query()->create([
@@ -134,10 +204,43 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
         $this->assertArrayHasKey('user', $result);
         $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['certificate'], $result['role_transition']['missing']);
+    }
+
+    public function test_start_cook_onboarding_promotes_role_and_returns_next_step(): void
+    {
+        $user = $this->createUser(3);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertTrue($result['role_transition']['onboarding_started']);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+    }
+
+    public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void
+    {
+        $user = $this->createUser(3);
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('createVendor')->andThrow(new \RuntimeException('stripe unavailable'));
+        $paymentService->shouldReceive('createCustomer')->andReturn((object) ['id' => 'cus_test_123']);
+        $this->app->instance(PaymentService::class, $paymentService);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Unable to create Stripe account.', $result['error']);
+        $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
     public function test_switch_role_rejects_disabled_membership(): void
     {
+        $user = $this->createUser(2);
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_DISABLED]);
@@ -150,6 +253,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(422, $result['status']);
         $this->assertSame('Requested role is disabled for this account.', $result['error']);
         $this->assertSame(3, (int) $user->fresh()->role_id);
+        $this->assertNull($result['role_transition']);
     }
 
 }

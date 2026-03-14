@@ -3,14 +3,22 @@
 namespace App\Services;
 
 use App\Models\NotifyDisable;
+use App\Models\StripeAccount;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AccountProfileService
 {
+    public function __construct(private PaymentService $paymentService)
+    {
+    }
+
     public function updateProfile(User $user, Request $request, callable $uploadImage): array
     {
         $validator = Validator::make($request->all(), [
@@ -54,6 +62,17 @@ class AccountProfileService
         }
 
         $targetRoleId = (int) $request->input('role_id');
+        if ((int) $user->role_id === $targetRoleId) {
+            return [
+                'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+                'role_transition' => $this->buildRoleTransitionState($user, $targetRoleId),
+            ];
+        }
+
+        if ($targetRoleId === 2) {
+            $provisionError = $this->ensureStripeAccountForRole($user, 2);
+            if ($provisionError !== null) {
+                return ['error' => $provisionError, 'status' => 422];
         $membership = $user->roleMembershipFor($targetRoleId);
 
         if (! $membership && $targetRoleId === 2) {
@@ -101,6 +120,129 @@ class AccountProfileService
         $user->save();
 
         return [
+            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+            'role_transition' => $this->buildRoleTransitionState($user, $targetRoleId),
+        ];
+    }
+
+    public function startCookOnboarding(User $user): array
+    {
+        $provisionError = $this->ensureStripeAccountForRole($user, 2);
+        if ($provisionError !== null) {
+            return ['error' => $provisionError, 'status' => 422];
+        }
+
+        if ((int) $user->role_id === 3) {
+            $user->role_id = 2;
+            $user->save();
+        }
+
+        $transition = $this->buildRoleTransitionState($user, 2) ?? ['state' => 'ready', 'missing' => []];
+
+        return [
+            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+            'role_transition' => $transition + [
+                'onboarding_started' => true,
+                'next_required_step' => $transition['missing'][0] ?? null,
+            ],
+        ];
+    }
+
+    public function ensureStripeAccountForRole(User $user, ?int $roleId = null): ?string
+    {
+        $targetRoleId = $roleId ?? (int) $user->role_id;
+        $accountType = null;
+        if ($targetRoleId === 3) {
+            $accountType = 'customer';
+        } elseif ($targetRoleId === 2) {
+            $accountType = 'vendor';
+        }
+
+        if ($accountType === null) {
+            return 'Unsupported account role for payment account provisioning.';
+        }
+
+        $existing = StripeAccount::query()
+            ->where('user_id', $user->id)
+            ->where('account_type', $accountType)
+            ->first();
+        if ($existing && $existing->account_id) {
+            return null;
+        }
+
+        try {
+            if ($accountType === 'customer') {
+                $account = $this->paymentService->createCustomer(['name' => $user->first_name, 'email' => $user->email]);
+            } else {
+                $account = $this->paymentService->createVendor($user);
+            }
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return 'Unable to create Stripe account.';
+        }
+        if (! is_object($account) || ! isset($account->id)) {
+            return 'Unable to create Stripe account.';
+        }
+
+        try {
+            DB::transaction(function () use ($user, $accountType, $account): void {
+                $locked = StripeAccount::query()
+                    ->where('user_id', $user->id)
+                    ->where('account_type', $accountType)
+                    ->lockForUpdate()
+                    ->first();
+                if ($locked && $locked->account_id) {
+                    return;
+                }
+
+                if ($locked) {
+                    $locked->account_id = (string) $account->id;
+                    $locked->save();
+                    return;
+                }
+
+                $stripeAccount = new StripeAccount();
+                $stripeAccount->user_id = $user->id;
+                $stripeAccount->account_type = $accountType;
+                $stripeAccount->account_id = (string) $account->id;
+                $stripeAccount->save();
+            });
+        } catch (QueryException $exception) {
+            report($exception);
+            $existing = StripeAccount::query()
+                ->where('user_id', $user->id)
+                ->where('account_type', $accountType)
+                ->first();
+            if (! $existing || ! $existing->account_id) {
+                return 'Unable to create Stripe account.';
+            }
+        }
+
+        return null;
+    }
+
+    private function buildRoleTransitionState(User $user, int $targetRoleId): ?array
+    {
+        if ($targetRoleId !== 2) {
+            return null;
+        }
+
+        $user->load(['restaurant.certificate', 'vendor']);
+
+        $missing = [];
+        if (! $user->vendor || ! $user->vendor->account_id) {
+            $missing[] = 'vendor_account';
+        }
+        if (! $user->restaurant) {
+            $missing[] = 'kitchen_profile';
+            $missing[] = 'certificate';
+        } elseif (! $user->restaurant->certificate) {
+            $missing[] = 'certificate';
+        }
+
+        return [
+            'state' => count($missing) > 0 ? 'onboarding_required' : 'ready',
+            'missing' => $missing,
             'user' => $user->fresh(['role', 'roleMemberships.role', 'restaurant.certificate', 'notifyDisable']),
             'onboarding_required' => $membership->status === UserRole::STATUS_ONBOARDING,
         ];
@@ -203,11 +345,17 @@ class AccountProfileService
 
     public function mobileContact(User $user): array
     {
+        $user->loadMissing(['role', 'notifyDisable']);
+
         return [
-            'role' => $user->role_id,
-            'id' => $user->id,
-            'email' => $user->email,
-            'phone' => $user->phone,
+            'id' => (int) $user->id,
+            'name' => trim((string) ($user->first_name . ' ' . $user->last_name)),
+            'email' => (string) $user->email,
+            'phone' => (string) ($user->phone ?? ''),
+            'role_id' => (int) $user->role_id,
+            'role' => (string) optional($user->role)->name,
+            'notifications_enabled' => ! (bool) $user->notifyDisable,
+            'has_device_token' => ! empty($user->device_token),
         ];
     }
 }

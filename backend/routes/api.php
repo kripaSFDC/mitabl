@@ -137,6 +137,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
             });
 			Route::put('profile', [V2AccountController::class, 'update']);
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
+            Route::post('roles/cook/activate', [V2AccountController::class, 'startCookOnboarding']);
+            Route::post('onboarding/cook/start', [V2AccountController::class, 'startCookOnboarding']);
 			Route::get('dashboard', [MikitchnController::class, 'getDashboardData'])->middleware('restaurant');
 		Route::post('password/change', [V2AccountController::class, 'changePassword']);
 		Route::post('device-token', [V2AccountController::class, 'updateDeviceToken']);
