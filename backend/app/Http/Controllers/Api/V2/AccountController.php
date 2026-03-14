@@ -38,7 +38,24 @@ class AccountController extends Controller
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
         }
 
-        return $this->responser(new UserResource($result['user']), 'Profile switched successfully.');
+        return $this->responser([
+            'user' => new UserResource($result['user']),
+            'role_transition' => $result['role_transition'] ?? null,
+        ], 'Profile switched successfully.');
+    }
+
+    public function startCookOnboarding(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        $result = $this->accountProfileService->startCookOnboarding($user);
+        if (isset($result['error'])) {
+            return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
+        }
+
+        return $this->responser([
+            'user' => new UserResource($result['user']),
+            'role_transition' => $result['role_transition'] ?? null,
+        ], 'Cook onboarding started.');
     }
 
     public function changePassword(Request $request)

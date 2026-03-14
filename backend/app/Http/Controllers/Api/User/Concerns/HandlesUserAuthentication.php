@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Api\User\Concerns;
 
 use App\Models\Mikitchn;
-use App\Models\StripeAccount;
 use App\Models\User;
 use App\Models\UserAuthToken;
 use App\Models\verifyOtp;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -432,67 +429,7 @@ trait HandlesUserAuthentication
 
     private function ensureStripeAccountForRole(User $user): ?string
     {
-        $accountType = null;
-        if ((int) $user->role_id === 3) {
-            $accountType = 'customer';
-        } elseif ((int) $user->role_id === 2) {
-            $accountType = 'vendor';
-        }
-
-        if ($accountType === null) {
-            return 'Unsupported account role for payment account provisioning.';
-        }
-
-        $existing = StripeAccount::query()
-            ->where('user_id', $user->id)
-            ->where('account_type', $accountType)
-            ->first();
-        if ($existing && $existing->account_id) {
-            return null;
-        }
-
-        try {
-            if ($accountType === 'customer') {
-                $account = $this->paymentService->createCustomer(['name' => $user->first_name, 'email' => $user->email]);
-            } else {
-                $account = $this->paymentService->createVendor($user);
-            }
-        } catch (Throwable $throwable) {
-            report($throwable);
-            return 'Unable to create Stripe account.';
-        }
-        if (! is_object($account) || ! isset($account->id)) {
-            return 'Unable to create Stripe account.';
-        }
-
-        try {
-            DB::transaction(function () use ($user, $accountType, $account): void {
-                $locked = StripeAccount::query()
-                    ->where('user_id', $user->id)
-                    ->where('account_type', $accountType)
-                    ->lockForUpdate()
-                    ->first();
-                if ($locked && $locked->account_id) {
-                    return;
-                }
-
-                StripeAccount::query()->updateOrCreate(
-                    ['user_id' => $user->id, 'account_type' => $accountType],
-                    ['account_id' => (string) $account->id]
-                );
-            });
-        } catch (QueryException $exception) {
-            report($exception);
-            $existing = StripeAccount::query()
-                ->where('user_id', $user->id)
-                ->where('account_type', $accountType)
-                ->first();
-            if (! $existing || ! $existing->account_id) {
-                return 'Unable to create Stripe account.';
-            }
-        }
-
-        return null;
+        return $this->accountProfileService->ensureStripeAccountForRole($user, (int) $user->role_id);
     }
 
     private function hasStripeAccountForRole(User $user): bool
