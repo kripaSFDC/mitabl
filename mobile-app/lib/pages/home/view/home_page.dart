@@ -105,23 +105,58 @@ class _HomePage extends State<HomePage> {
                     ),
                     SliverToBoxAdapter(
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Expanded(child: _LocationInput()),
-                          IconButton(
-                            onPressed: () => showDialog(
-                                context: context,
-                                builder: (contexts) {
-                                  return BlocProvider.value(
-                                    value: context.read<HomeCubit>(),
-                                    child: const FilterDialog(),
-                                  );
-                                }),
-                            icon: SvgPicture.asset(
-                              'assets/img/filter.svg',
-                              height: config.AppConfig(context).appHeight(2.0),
-                            ),
-                          )
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed('/ProfileFoodie'),
+                                icon: Icon(
+                                  Icons.person_outline,
+                                  size: config.AppConfig(context).appWidth(4.5),
+                                ),
+                                label: Text(
+                                  'Profile',
+                                  style: GoogleFonts.gothicA1(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize:
+                                        config.AppConfig(context).appWidth(3.4),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        config.AppConfig(context).appWidth(2),
+                                    vertical:
+                                        config.AppConfig(context).appHeight(0.2),
+                                  ),
+                                  side: BorderSide(
+                                      color: Theme.of(context).dividerColor),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Open filters',
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (contexts) {
+                                    return BlocProvider.value(
+                                      value: context.read<HomeCubit>(),
+                                      child: const FilterDialog(),
+                                    );
+                                  },
+                                ),
+                                icon: SvgPicture.asset(
+                                  'assets/img/filter.svg',
+                                  height:
+                                      config.AppConfig(context).appHeight(2.0),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
