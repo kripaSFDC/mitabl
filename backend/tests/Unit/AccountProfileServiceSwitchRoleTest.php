@@ -69,6 +69,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertTrue($result['onboarding_required']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
         $this->assertDatabaseHas('stripe_accounts', [
             'user_id' => $user->id,
             'account_type' => 'vendor',
@@ -88,6 +89,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertTrue($result['onboarding_required']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
     }
 
     public function test_switch_role_to_micook_uses_fresh_relations_after_vendor_provisioning(): void
@@ -103,6 +105,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
     }
 
     public function test_cook_to_foodie_switch_works_with_existing_memberships(): void
@@ -118,7 +121,9 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
         $this->assertArrayHasKey('user', $result);
         $this->assertFalse($result['onboarding_required']);
-        $this->assertNull($result['role_transition']);
+        $this->assertSame('ready', $result['role_transition']['state']);
+        $this->assertSame([], $result['role_transition']['missing']);
+        $this->assertNull($result['role_transition']['next_required_step']);
         $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
@@ -159,6 +164,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
         $this->assertDatabaseHas('user_roles', [
             'user_id' => $user->id,
             'role_id' => 2,
@@ -188,6 +194,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['certificate'], $result['role_transition']['missing']);
+        $this->assertSame('certificate', $result['role_transition']['next_required_step']);
     }
 
     public function test_start_cook_onboarding_promotes_role_and_returns_next_step(): void
@@ -203,6 +210,42 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
         $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+    }
+
+    public function test_switch_role_to_micook_creates_foodie_membership_for_cook_first_accounts(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+
+        app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $user->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_ACTIVE,
+        ]);
+    }
+
+    public function test_switch_role_to_micook_persists_onboarding_checklist_state(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+
+        app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertDatabaseHas('user_role_onboarding_checklists', [
+            'user_id' => $user->id,
+            'role_id' => 2,
+            'vendor_account_completed' => 1,
+            'kitchen_profile_completed' => 0,
+            'certificate_completed' => 0,
+        ]);
     }
 
     public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void

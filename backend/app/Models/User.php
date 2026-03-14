@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\WatchSubscription;
 use App\Models\Tag;
 use App\Models\InternalNote;
+use App\Models\UserRoleOnboardingChecklist;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -107,6 +108,11 @@ class User extends Authenticatable implements JWTSubject
     public function roleMemberships()
     {
         return $this->hasMany(UserRole::class);
+    }
+
+    public function roleOnboardingChecklists()
+    {
+        return $this->hasMany(UserRoleOnboardingChecklist::class);
     }
 
     public function roles()

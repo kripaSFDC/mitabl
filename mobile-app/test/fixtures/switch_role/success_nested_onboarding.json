@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "isSuccess": true,
+  "data": {
+    "user": {
+      "data": {
+        "role": "Restaurant",
+        "role_id": 2
+      }
+    },
+    "role_transition": {
+      "state": "onboarding_required",
+      "onboarding_required": true,
+      "missing": ["kitchen_profile", "certificate"],
+      "next_required_step": "kitchen_profile"
+    }
+  }
+}

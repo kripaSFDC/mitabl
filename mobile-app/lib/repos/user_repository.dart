@@ -190,19 +190,27 @@ class UserRepository {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final data = payload['data'];
         if (data is Map<String, dynamic>) {
+          final roleName = data['role']?.toString() ??
+              (data['user'] is Map<String, dynamic>
+                  ? (data['user']['data']?['role'] ?? data['user']['role'])?.toString()
+                  : null);
+          final resolvedRoleId = data['role_id'] ??
+              (data['user'] is Map<String, dynamic>
+                  ? (data['user']['data']?['role_id'] ?? data['user']['role_id'])
+                  : null);
+
           try {
             await syncCurrentUserRole(
-              roleName: data['role']?.toString(),
-              roleId: data['role_id'],
+              roleName: roleName,
+              roleId: resolvedRoleId,
             );
           } catch (e) {
             AppLogger.error('Role switched but failed to sync local user role', e);
-            _user?.data?.user?.role = data['role']?.toString();
-            final roleId = data['role_id'];
-            if (roleId is int) {
-              _user?.data?.user?.roleId = roleId;
-            } else if (roleId is String) {
-              _user?.data?.user?.roleId = int.tryParse(roleId);
+            _user?.data?.user?.role = roleName;
+            if (resolvedRoleId is int) {
+              _user?.data?.user?.roleId = resolvedRoleId;
+            } else if (resolvedRoleId is String) {
+              _user?.data?.user?.roleId = int.tryParse(resolvedRoleId);
             }
           }
         }

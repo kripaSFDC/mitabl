@@ -6,6 +6,7 @@ use App\Models\NotifyDisable;
 use App\Models\StripeAccount;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Models\UserRoleOnboardingChecklist;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,10 @@ class AccountProfileService
             ]);
         }
 
+        if ($targetRoleId === 2) {
+            $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
+        }
+
         if ($membership->status === UserRole::STATUS_DISABLED) {
             return [
                 'error' => 'Requested role is disabled for this account.',
@@ -113,19 +118,23 @@ class AccountProfileService
 
         $membership = $user->roleMembershipFor(2);
         if (! $membership) {
-            $membership = UserRole::query()->create([
-                'user_id' => $user->id,
-                'role_id' => 2,
-                'status' => UserRole::STATUS_ONBOARDING,
-            ]);
+            $membership = $this->ensureRoleMembership($user->id, 2, UserRole::STATUS_ONBOARDING);
         }
+
+        $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
 
         if ((int) $user->role_id === 3) {
             $user->role_id = 2;
             $user->save();
         }
 
-        $transition = $this->buildRoleTransitionState($user, 2, $membership) ?? ['state' => 'ready', 'missing' => [], 'onboarding_required' => false];
+        $transition = $this->buildRoleTransitionState($user, 2, $membership) ?? [
+            'state' => 'ready',
+            'missing' => [],
+            'onboarding_required' => false,
+            'next_required_step' => null,
+            'checklist' => [],
+        ];
 
         return [
             'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
@@ -215,22 +224,67 @@ class AccountProfileService
 
     private function buildRoleTransitionState(User $user, int $targetRoleId, ?UserRole $membership = null): ?array
     {
+        if ($targetRoleId === 3) {
+            return [
+                'state' => 'ready',
+                'missing' => [],
+                'onboarding_required' => false,
+                'next_required_step' => null,
+                'checklist' => [
+                    'foodie_profile' => true,
+                ],
+            ];
+        }
+
         if ($targetRoleId !== 2) {
-            return null;
+            return [
+                'state' => 'ready',
+                'missing' => [],
+                'onboarding_required' => false,
+                'next_required_step' => null,
+                'checklist' => [],
+            ];
         }
 
         $user->load(['restaurant.certificate', 'vendor']);
 
-        $missing = [];
-        if (! $user->vendor || ! $user->vendor->account_id) {
-            $missing[] = 'vendor_account';
-        }
-        if (! $user->restaurant) {
-            $missing[] = 'kitchen_profile';
-            $missing[] = 'certificate';
-        } elseif (! $user->restaurant->certificate) {
-            $missing[] = 'certificate';
-        }
+        $inferredChecklist = [
+            'vendor_account' => (bool) ($user->vendor && $user->vendor->account_id),
+            'kitchen_profile' => (bool) $user->restaurant,
+            'certificate' => (bool) ($user->restaurant && $user->restaurant->certificate),
+            'payout_setup' => (bool) ($user->vendor && $user->vendor->account_id),
+        ];
+
+        $storedChecklist = UserRoleOnboardingChecklist::query()
+            ->firstOrCreate(
+                ['user_id' => $user->id, 'role_id' => 2],
+                [
+                    'vendor_account_completed' => false,
+                    'kitchen_profile_completed' => false,
+                    'certificate_completed' => false,
+                    'payout_setup_completed' => false,
+                ]
+            );
+
+        $effectiveChecklist = [
+            'vendor_account' => (bool) ($storedChecklist->vendor_account_completed || $inferredChecklist['vendor_account']),
+            'kitchen_profile' => (bool) ($storedChecklist->kitchen_profile_completed || $inferredChecklist['kitchen_profile']),
+            'certificate' => (bool) ($storedChecklist->certificate_completed || $inferredChecklist['certificate']),
+            'payout_setup' => (bool) ($storedChecklist->payout_setup_completed || $inferredChecklist['payout_setup']),
+        ];
+
+        $storedChecklist->fill([
+            'vendor_account_completed' => $effectiveChecklist['vendor_account'],
+            'kitchen_profile_completed' => $effectiveChecklist['kitchen_profile'],
+            'certificate_completed' => $effectiveChecklist['certificate'],
+            'payout_setup_completed' => $effectiveChecklist['payout_setup'],
+        ])->save();
+
+        $missing = collect($effectiveChecklist)
+            ->filter(fn (bool $completed): bool => ! $completed)
+            ->keys()
+            ->values()
+            ->all();
 
         $membership = $membership ?? $user->roleMembershipFor($targetRoleId);
         $onboardingRequired = count($missing) > 0 || ($membership && $membership->status === UserRole::STATUS_ONBOARDING);
@@ -239,7 +293,17 @@ class AccountProfileService
             'state' => $onboardingRequired ? 'onboarding_required' : 'ready',
             'missing' => $missing,
             'onboarding_required' => $onboardingRequired,
+            'next_required_step' => $missing[0] ?? null,
+            'checklist' => $effectiveChecklist,
         ];
+    }
+
+    private function ensureRoleMembership(int $userId, int $roleId, string $status): UserRole
+    {
+        return UserRole::query()->firstOrCreate(
+            ['user_id' => $userId, 'role_id' => $roleId],
+            ['status' => $status],
+        );
     }
 
     public function changePassword(User $user, Request $request): array

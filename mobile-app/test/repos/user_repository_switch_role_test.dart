@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:global_configuration/global_configuration.dart';
@@ -48,6 +49,10 @@ void main() {
   });
 
   group('UserRepository.switchRole', () {
+    String fixture(String relativePath) {
+      return File('test/fixtures/$relativePath').readAsStringSync();
+    }
+
     test('sends expected request and syncs role on 200', () async {
       late http.Request capturedRequest;
 
@@ -79,6 +84,43 @@ void main() {
       expect(repository.syncCalls, 1);
       expect(repository.syncedRole, 'Restaurant');
       expect(repository.syncedRoleId, 2);
+    });
+
+
+    test('syncs role from nested user payload contract fixture', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          fixture('switch_role/success_nested_onboarding.json'),
+          200,
+        );
+      });
+
+      final repository = _SpyUserRepository(httpClient: client);
+
+      final response = await repository.switchRole(roleId: 2);
+
+      expect(response.statusCode, 200);
+      expect(repository.syncCalls, 1);
+      expect(repository.syncedRole, 'Restaurant');
+      expect(repository.syncedRoleId, 2);
+    });
+
+    test('syncs role from flat success payload contract fixture', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          fixture('switch_role/success_flat_ready.json'),
+          200,
+        );
+      });
+
+      final repository = _SpyUserRepository(httpClient: client);
+
+      final response = await repository.switchRole(roleId: 3);
+
+      expect(response.statusCode, 200);
+      expect(repository.syncCalls, 1);
+      expect(repository.syncedRole, 'Foodie');
+      expect(repository.syncedRoleId, 3);
     });
 
     test('does not sync local role when API is not successful', () async {

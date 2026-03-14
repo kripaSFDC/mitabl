@@ -44,7 +44,7 @@ void main() {
       expect(records, isEmpty);
       expect(
         capturedRequest.url.toString(),
-        'https://api.example.com/api/v1/foodie/orders/history?page=1&limit=20',
+        'https://api.example.com/api/v2/account/orders?page=1&limit=20',
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
@@ -86,7 +86,7 @@ void main() {
       expect(records, isEmpty);
       expect(
         capturedRequest.url.toString(),
-        'https://api.example.com/api/v1/foodie/favourites?page=1&limit=20',
+        'https://api.example.com/api/v2/account/favorites?page=1&limit=20',
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
@@ -107,11 +107,11 @@ void main() {
 
       expect(
         capturedRequest.url.toString(),
-        'https://api.example.com/api/v1/foodie/favourites/toggle',
+        'https://api.example.com/api/v2/account/favorites/toggle',
       );
       expect(capturedRequest.method, 'POST');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
-      expect(capturedRequest.bodyFields['target_id'], 'kitchen-42');
+      expect(capturedRequest.bodyFields['restaurant_id'], 'kitchen-42');
     });
 
     test('fetchFavourites throws on non-200 response', () async {
@@ -139,7 +139,7 @@ void main() {
       expect(records, isEmpty);
       expect(
         capturedRequest.url.toString(),
-        'https://api.example.com/api/v1/foodie/payments/history?page=1&limit=20',
+        'https://api.example.com/api/v2/account/payments/history?page=1&limit=20',
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
@@ -158,7 +158,7 @@ void main() {
       expect(records, isEmpty);
       expect(
         capturedRequest.url.toString(),
-        'https://api.example.com/api/v1/foodie/payments/cards',
+        'https://api.example.com/api/v2/payments/cards',
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
