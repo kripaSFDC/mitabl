@@ -98,6 +98,29 @@ class RepairUserRoleStateCommandTest extends TestCase
         ]);
     }
 
+
+    public function test_command_preserves_existing_disabled_memberships(): void
+    {
+        $user = $this->createUser(3, 'repair-preserve-disabled@example.test');
+
+        DB::table('user_roles')->insert([
+            'user_id' => $user->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_DISABLED,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->artisan('roles:repair-state')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $user->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_DISABLED,
+        ]);
+    }
+
     private function createUser(int $roleId, string $email): User
     {
         DB::table('roles')->updateOrInsert(['id' => 2], ['role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()]);

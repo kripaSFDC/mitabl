@@ -126,6 +126,12 @@ class V2FoodieAccountRoutesTest extends TestCase
         $this->getJson('/api/v2/account/orders')->assertStatus(403);
         $this->getJson('/api/v2/account/favorites')->assertStatus(403);
         $this->getJson('/api/v2/account/payments/history')->assertStatus(403);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $foodie->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_DISABLED,
+        ]);
     }
 
 

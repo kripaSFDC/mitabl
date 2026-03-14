@@ -7,6 +7,7 @@ use App\Models\UserRole;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Restaurant
 {
@@ -22,12 +23,20 @@ class Restaurant
             }
 
             if (! $membership) {
-                UserRole::query()->create([
+                DB::table('user_roles')->insertOrIgnore([
                     'user_id' => $user->id,
                     'role_id' => 2,
                     'status' => UserRole::STATUS_ACTIVE,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
-            } elseif ($membership->status !== UserRole::STATUS_ACTIVE) {
+
+                $membership = $user->roleMemberships()
+                    ->where('role_id', 2)
+                    ->first();
+            }
+
+            if (! $membership || $membership->status !== UserRole::STATUS_ACTIVE) {
                 return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
             }
 
