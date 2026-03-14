@@ -57,13 +57,6 @@ class AccountProfileService
             return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
         }
 
-        if ($targetRoleId === 2 && ! $user->restaurant()->exists()) {
-            return [
-                'error' => 'micook profile is not available for this account.',
-                'status' => 422,
-            ];
-        }
-
         $user->role_id = $targetRoleId;
         $user->save();
 
