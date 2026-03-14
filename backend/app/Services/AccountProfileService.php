@@ -6,6 +6,7 @@ use App\Models\NotifyDisable;
 use App\Models\StripeAccount;
 use App\Models\User;
 use Illuminate\Database\QueryException;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -72,7 +73,47 @@ class AccountProfileService
             $provisionError = $this->ensureStripeAccountForRole($user, 2);
             if ($provisionError !== null) {
                 return ['error' => $provisionError, 'status' => 422];
+        $membership = $user->roleMembershipFor($targetRoleId);
+
+        if (! $membership && $targetRoleId === 2) {
+            $hasCookProfile = $user->restaurant()->exists();
+            $hasCookOnboardingFootprint = $user->vendor()->exists();
+            if (! $hasCookProfile && ! $hasCookOnboardingFootprint) {
+                return [
+                    'error' => 'micook profile is not available for this account.',
+                    'status' => 422,
+                ];
             }
+
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => $targetRoleId,
+                'status' => $hasCookProfile
+                    ? UserRole::STATUS_ACTIVE
+                    : UserRole::STATUS_ONBOARDING,
+            ]);
+        }
+
+        if (! $membership && $targetRoleId === 3) {
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => $targetRoleId,
+                'status' => UserRole::STATUS_ACTIVE,
+            ]);
+        }
+
+        if (! $membership) {
+            return [
+                'error' => 'Requested role is not available for this account.',
+                'status' => 422,
+            ];
+        }
+
+        if ($membership->status === UserRole::STATUS_DISABLED) {
+            return [
+                'error' => 'Requested role is disabled for this account.',
+                'status' => 422,
+            ];
         }
 
         $user->role_id = $targetRoleId;
@@ -202,6 +243,8 @@ class AccountProfileService
         return [
             'state' => count($missing) > 0 ? 'onboarding_required' : 'ready',
             'missing' => $missing,
+            'user' => $user->fresh(['role', 'roleMemberships.role', 'restaurant.certificate', 'notifyDisable']),
+            'onboarding_required' => $membership->status === UserRole::STATUS_ONBOARDING,
         ];
     }
 

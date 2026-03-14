@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PreRegistrationController;
 use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
 use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
+use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
 use App\Services\SystemHealthService;
 /*
 |--------------------------------------------------------------------------
@@ -128,6 +129,12 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 
 	Route::prefix('account')->group(function () {
 			Route::get('profile', [V2AccountController::class, 'show']);
+            Route::middleware('customer')->group(function () {
+                Route::get('orders', [V2AccountFoodieController::class, 'orders']);
+                Route::get('favorites', [V2AccountFoodieController::class, 'favorites']);
+                Route::post('favorites/toggle', [V2AccountFoodieController::class, 'toggleFavorite']);
+                Route::get('payments/history', [V2AccountFoodieController::class, 'paymentHistory']);
+            });
 			Route::put('profile', [V2AccountController::class, 'update']);
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
             Route::post('roles/cook/activate', [V2AccountController::class, 'startCookOnboarding']);

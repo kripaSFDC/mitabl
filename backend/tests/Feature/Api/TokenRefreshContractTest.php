@@ -135,6 +135,50 @@ class TokenRefreshContractTest extends TestCase
             ->assertJsonPath('data.user.is_kitchen_added', 0);
     }
 
+
+    public function test_token_refresh_rejects_disabled_active_role_membership(): void
+    {
+        DB::table('roles')->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $user = User::query()->create([
+            'first_name' => 'Disabled',
+            'last_name' => 'Role',
+            'email' => 'disabled-role-refresh@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 3,
+            'phone' => '5555555555',
+            'address' => 'Disabled Street',
+            'email_verified' => 1,
+        ]);
+
+        DB::table('user_roles')->insert([
+            'user_id' => $user->id,
+            'role_id' => 3,
+            'status' => 'disabled',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $token = auth()->login($user);
+
+        DB::table('user_auth_tokens')->updateOrInsert(
+            ['user_id' => $user->id],
+            [
+                'latest_token' => $token,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/token/refresh')
+            ->assertStatus(403)
+            ->assertJsonPath('isError', 'Your selected role is disabled. Please contact support.');
+    }
+
     public function test_token_refresh_requires_a_bearer_token(): void
     {
         $this->postJson('/api/token/refresh')

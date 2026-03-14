@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\User\Concerns;
 use App\Models\Mikitchn;
 use App\Models\User;
 use App\Models\UserAuthToken;
+use App\Models\UserRole;
 use App\Models\verifyOtp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,13 @@ trait HandlesUserAuthentication
             return $this->responser([], 'Unsupported account role for mobile authentication.', 422);
         }
 
+        $this->ensureActiveRoleMembership($user);
+
+        if (! $this->canUseActiveRole($user)) {
+            Auth::guard('api')->logout();
+            return $this->disabledRoleResponse();
+        }
+
         $roleName = $this->resolveMobileRoleName($user);
         if ($roleName === null) {
             Auth::guard('api')->logout();
@@ -97,16 +105,7 @@ trait HandlesUserAuthentication
             }
             $user->save();
 
-            $uData = [
-                'id' => $user->id,
-                'name' => $user->first_name,
-                'role' => $roleName,
-                'role_id' => $user->role_id,
-            ];
-
-            if ((int) $user->role_id === 2) {
-                $uData['is_kitchen_added'] = $this->resolveKitchenAddedFlag($user);
-            }
+            $uData = $this->buildVerifiedMobileUserPayload($user);
 
             return $this->responser([
                 'access_token' => $token,
@@ -120,17 +119,8 @@ trait HandlesUserAuthentication
             ? 'UnAuthorized Please Check Your Email To Verify Your Account.'
             : 'UnAuthorized.';
 
-        $uData = [
-            'id' => $user->id,
-            'name' => $user->first_name,
-            'role' => $roleName,
-            'role_id' => $user->role_id,
-            'is_email_verfied' => 0,
-        ];
-
-        if ((int) $user->role_id === 2) {
-            $uData['is_kitchen_added'] = $this->resolveKitchenAddedFlag($user);
-        }
+        $uData = $this->buildVerifiedMobileUserPayload($user);
+        $uData['is_email_verfied'] = 0;
 
         return $this->responser(['user' => $uData], $msg);
     }
@@ -173,6 +163,12 @@ trait HandlesUserAuthentication
             if ((bool) $user->suspended) {
                 $this->invalidateTokenQuietly($newToken);
                 return $this->suspendedAccountResponse();
+            }
+
+            $this->ensureActiveRoleMembership($user);
+            if (! $this->canUseActiveRole($user)) {
+                $this->invalidateTokenQuietly($newToken);
+                return $this->disabledRoleResponse();
             }
 
             UserAuthToken::query()->updateOrCreate(
@@ -224,6 +220,11 @@ trait HandlesUserAuthentication
 
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
+
+        UserRole::query()->firstOrCreate(
+            ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
+            ['status' => UserRole::STATUS_ACTIVE]
+        );
 
         if ($request->has('device_token')) {
             $user->device_token = $request->device_token;
@@ -427,6 +428,22 @@ trait HandlesUserAuthentication
         return $this->responser([], 'Your account is suspended. Please contact support.', 403);
     }
 
+    private function disabledRoleResponse(): JsonResponse
+    {
+        return $this->responser([], 'Your selected role is disabled. Please contact support.', 403);
+    }
+
+    private function canUseActiveRole(User $user): bool
+    {
+        $membership = $user->roleMembershipFor((int) $user->role_id);
+
+        if (! $membership) {
+            return true;
+        }
+
+        return $membership->status !== UserRole::STATUS_DISABLED;
+    }
+
     private function ensureStripeAccountForRole(User $user): ?string
     {
         return $this->accountProfileService->ensureStripeAccountForRole($user, (int) $user->role_id);
@@ -452,13 +469,26 @@ trait HandlesUserAuthentication
 
     private function buildVerifiedMobileUserPayload(User $user): array
     {
+        $this->ensureActiveRoleMembership($user);
         $roleName = $this->resolveMobileRoleName($user) ?? 'Unknown';
+
+        $memberships = $user->roleMemberships()->with('role')->get();
+        $availableRoles = $memberships->map(function (UserRole $membership): array {
+            return [
+                'role_id' => (int) $membership->role_id,
+                'role' => optional($membership->role)->role,
+                'status' => $membership->status,
+                'onboarding' => $membership->status === UserRole::STATUS_ONBOARDING,
+            ];
+        })->values();
 
         $data = [
             'id' => $user->id,
             'name' => $user->first_name,
             'role' => $roleName,
             'role_id' => $user->role_id,
+            'active_role_id' => (int) $user->role_id,
+            'available_roles' => $availableRoles,
         ];
 
         if ((int) $user->role_id === 2) {
@@ -466,6 +496,15 @@ trait HandlesUserAuthentication
         }
 
         return $data;
+    }
+
+
+    private function ensureActiveRoleMembership(User $user): void
+    {
+        UserRole::query()->firstOrCreate(
+            ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
+            ['status' => UserRole::STATUS_ACTIVE]
+        );
     }
 
     private function resolveMobileRoleName(User $user): ?string

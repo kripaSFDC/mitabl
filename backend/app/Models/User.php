@@ -104,6 +104,42 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Role::class);
     }
 
+    public function roleMemberships()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    public function getActiveRoleIdAttribute(): int
+    {
+        return (int) $this->role_id;
+    }
+
+    public function roleMembershipFor(int $roleId): ?UserRole
+    {
+        return $this->roleMemberships->firstWhere('role_id', $roleId)
+            ?? $this->roleMemberships()->where('role_id', $roleId)->first();
+    }
+
+    public function hasRoleMembership(int $roleId, bool $includeOnboarding = true): bool
+    {
+        $allowedStatuses = [UserRole::STATUS_ACTIVE];
+        if ($includeOnboarding) {
+            $allowedStatuses[] = UserRole::STATUS_ONBOARDING;
+        }
+
+        return $this->roleMemberships()
+            ->where('role_id', $roleId)
+            ->whereIn('status', $allowedStatuses)
+            ->exists();
+    }
+
     public function restaurant(){
         return $this->hasOne(Mikitchn::class);
     }

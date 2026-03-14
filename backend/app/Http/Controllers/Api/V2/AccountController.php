@@ -56,6 +56,8 @@ class AccountController extends Controller
             'user' => new UserResource($result['user']),
             'role_transition' => $result['role_transition'] ?? null,
         ], 'Cook onboarding started.');
+            'onboarding_required' => (bool) ($result['onboarding_required'] ?? false),
+        ], 'Profile switched successfully.');
     }
 
     public function changePassword(Request $request)

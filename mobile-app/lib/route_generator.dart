@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/edit_profile_foodie/view/edit_profile_foodie_page.dart';
 import 'package:mitabl_user/pages/forgot/view/forgot_page.dart';
+import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
+import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
+import 'package:mitabl_user/pages/payments/view/payments_page.dart';
 import 'package:mitabl_user/pages/home/view/home_page.dart';
 import 'package:mitabl_user/pages/landing_page/landing_page.dart';
 import 'package:mitabl_user/pages/login/view/login_page.dart';
@@ -78,6 +81,15 @@ class RouteGenerator {
 
       case '/ProfileFoodie':
         return ProfileFoodiePage.route();
+
+      case '/MiOrders':
+        return MiOrdersPage.route();
+
+      case '/Favourites':
+        return FavouritesPage.route();
+
+      case '/Payments':
+        return PaymentsPage.route();
 
       case '/DashboardCook':
         return DashBoardCookPage.route();
