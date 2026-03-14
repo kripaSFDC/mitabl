@@ -274,6 +274,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           ListTile(
+                            onTap: () {
+                              navigatorKey.currentState!.pushNamed('/MiOrders');
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
@@ -300,6 +303,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
+                            onTap: () {
+                              navigatorKey.currentState!.pushNamed('/Favourites');
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
@@ -326,6 +332,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
+                            onTap: () {
+                              navigatorKey.currentState!.pushNamed('/Payments');
+                            },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
                             leading: Row(
