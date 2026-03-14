@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -18,6 +19,15 @@ Future<void> _pumpFor(
 }
 
 void main() {
+  setUpAll(() {
+    FlutterSecureStorage.setMockInitialValues(const <String, String>{});
+    GlobalConfiguration().loadFromMap({
+      'api_base_url': 'https://api.example.com/api/',
+      'base_url': 'https://api.example.com/',
+      'image_base_url': 'https://cdn.example.com/',
+    });
+  });
+
   testWidgets('Cook profile route without args shows route error',
       (tester) async {
     await tester.pumpWidget(
@@ -89,6 +99,54 @@ void main() {
     expect(find.text('Missing route arguments for /OrderDetails'), findsNothing);
     expect(observedRoutes, isNot(contains('/OrderDetails')));
     expect(observedRoutes, isNotEmpty);
+  });
+
+  testWidgets('MiOrders named route resolves', (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>(
+        create: (_) => UserRepository(),
+        child: const MaterialApp(
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: '/MiOrders',
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('miorders'), findsOneWidget);
+  });
+
+  testWidgets('Favourites named route resolves', (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>(
+        create: (_) => UserRepository(),
+        child: const MaterialApp(
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: '/Favourites',
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('favourites'), findsOneWidget);
+  });
+
+  testWidgets('Payments named route resolves', (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>(
+        create: (_) => UserRepository(),
+        child: const MaterialApp(
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: '/Payments',
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('payments'), findsOneWidget);
   });
 }
 
