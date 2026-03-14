@@ -190,10 +190,21 @@ class UserRepository {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final data = payload['data'];
         if (data is Map<String, dynamic>) {
-          await syncCurrentUserRole(
-            roleName: data['role']?.toString(),
-            roleId: data['role_id'],
-          );
+          try {
+            await syncCurrentUserRole(
+              roleName: data['role']?.toString(),
+              roleId: data['role_id'],
+            );
+          } catch (e) {
+            AppLogger.error('Role switched but failed to sync local user role', e);
+            _user?.data?.user?.role = data['role']?.toString();
+            final roleId = data['role_id'];
+            if (roleId is int) {
+              _user?.data?.user?.roleId = roleId;
+            } else if (roleId is String) {
+              _user?.data?.user?.roleId = int.tryParse(roleId);
+            }
+          }
         }
       }
 
