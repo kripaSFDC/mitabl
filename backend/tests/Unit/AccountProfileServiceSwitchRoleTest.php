@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Certificate;
 use App\Models\Mikitchn;
 use App\Models\Role;
 use App\Models\StripeAccount;
@@ -246,6 +247,124 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
             'kitchen_profile_completed' => 0,
             'certificate_completed' => 0,
         ]);
+    }
+
+
+    public function test_start_cook_onboarding_sets_membership_status_to_onboarding(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(UserRole::STATUS_ONBOARDING, UserRole::query()
+            ->where('user_id', $user->id)
+            ->where('role_id', 2)
+            ->value('status'));
+    }
+
+    public function test_switch_role_promotes_cook_membership_to_active_when_checklist_is_complete(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
+        $stripeAccount = new StripeAccount();
+        $stripeAccount->user_id = $user->id;
+        $stripeAccount->account_type = 'vendor';
+        $stripeAccount->account_id = 'acct_vendor_existing';
+        $stripeAccount->save();
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Complete Kitchen',
+            'address' => '1 Completion Way',
+            'phone' => '0400000000',
+            'no_of_seats' => 4,
+            'status' => '0',
+        ]);
+        Certificate::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'abn' => '12345678901',
+            'first_name' => 'Cook',
+            'last_name' => 'User',
+            'certificate_no' => 'CERT-123',
+            'certificate_doc' => 'cert.pdf',
+            'abn_gst' => 'yes',
+            'status' => 1,
+        ]);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertFalse($result['onboarding_required']);
+        $this->assertSame('ready', $result['role_transition']['state']);
+        $this->assertSame([], $result['role_transition']['missing']);
+        $this->assertSame(UserRole::STATUS_ACTIVE, UserRole::query()
+            ->where('user_id', $user->id)
+            ->where('role_id', 2)
+            ->value('status'));
+        $this->assertSame(UserRole::STATUS_ACTIVE, collect($result['user']->roleMemberships)
+            ->firstWhere('role_id', 2)
+            ->status);
+    }
+
+    public function test_completed_cook_checklist_allows_restaurant_middleware_routes(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
+        $stripeAccount = new StripeAccount();
+        $stripeAccount->user_id = $user->id;
+        $stripeAccount->account_type = 'vendor';
+        $stripeAccount->account_id = 'acct_vendor_existing_2';
+        $stripeAccount->save();
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Route Access Kitchen',
+            'address' => '2 Completion Way',
+            'phone' => '0400000001',
+            'no_of_seats' => 4,
+            'status' => '0',
+        ]);
+        Certificate::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'abn' => '12345678902',
+            'first_name' => 'Cook',
+            'last_name' => 'User',
+            'certificate_no' => 'CERT-456',
+            'certificate_doc' => 'cert-2.pdf',
+            'abn_gst' => 'yes',
+            'status' => 1,
+        ]);
+
+        app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->actingAs($user->fresh(), 'api');
+
+        $this->getJson('/api/v2/account/dashboard')
+            ->assertStatus(200);
+    }
+
+
+    public function test_start_cook_onboarding_rejects_disabled_membership(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_DISABLED]);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Requested role is disabled for this account.', $result['error']);
+        $this->assertSame(UserRole::STATUS_DISABLED, UserRole::query()
+            ->where('user_id', $user->id)
+            ->where('role_id', 2)
+            ->value('status'));
     }
 
     public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void
