@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
@@ -20,6 +23,51 @@ class PersonalTabView extends StatefulWidget {
 }
 
 class _PersonalTabViewState extends State<PersonalTabView> {
+  bool _switchingRole = false;
+
+  Future<void> _switchToMifoodi() async {
+    if (_switchingRole) return;
+
+    setState(() => _switchingRole = true);
+    final userRepository = context.read<UserRepository>();
+    try {
+      final response = await userRepository.switchRole(roleId: AppConstants.FOODI);
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        navigatorKey.currentState!.pushNamedAndRemoveUntil(
+          '/HomePage',
+          (route) => false,
+        );
+        return;
+      }
+
+      String message = 'mifoodi profile is not available for this account.';
+      try {
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverMessage = payload['isError'] ?? payload['message'];
+        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+          message = serverMessage;
+        }
+      } catch (_) {}
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to switch profile right now. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _switchingRole = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCookCubit, ProfileCookState>(
@@ -127,6 +175,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     ListTile(
+                      onTap: _switchingRole ? null : _switchToMifoodi,
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
                       leading: Row(
@@ -140,7 +189,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                             width: config.AppConfig(context).appWidth(4),
                           ),
                           Text(
-                            'Became mifoodi',
+                            'switch to mifoodi',
                             style: GoogleFonts.gothicA1(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: config.AppConfig(context).appWidth(5),
@@ -149,14 +198,19 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           )
                         ],
                       ),
-                      trailing: SizedBox(
-                        width: config.AppConfig(context).appWidth(20),
-                        child: Switch(
-                          value: false,
-                          inactiveTrackColor: Theme.of(context).primaryColorDark,
-                          onChanged: (val) {},
-                        ),
-                      ),
+                      trailing: _switchingRole
+                          ? SizedBox(
+                              height: config.AppConfig(context).appWidth(5),
+                              width: config.AppConfig(context).appWidth(5),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            )
+                          : Icon(
+                              Icons.swap_horiz,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
                     ),
                     ListTile(
                       minVerticalPadding: 0,

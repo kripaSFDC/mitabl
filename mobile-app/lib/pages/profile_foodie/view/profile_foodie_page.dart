@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
@@ -26,6 +29,7 @@ class ProfileFoodiePage extends StatefulWidget {
 
 class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
+  bool _switchingRole = false;
 
   @override
   void initState() {
@@ -54,6 +58,49 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     await BiometricService.instance.setEnabled(enabled);
     if (!mounted) return;
     setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _switchToMicook() async {
+    if (_switchingRole) return;
+
+    setState(() => _switchingRole = true);
+    final userRepository = context.read<UserRepository>();
+    try {
+      final response = await userRepository.switchRole(roleId: AppConstants.COOK);
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        navigatorKey.currentState!.pushNamedAndRemoveUntil(
+          '/DashboardCook',
+          (route) => false,
+        );
+        return;
+      }
+
+      String message = 'micook profile is not available for this account.';
+      try {
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverMessage = payload['isError'] ?? payload['message'];
+        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+          message = serverMessage;
+        }
+      } catch (_) {}
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to switch profile right now. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _switchingRole = false);
+      }
+    }
   }
 
   @override
@@ -180,6 +227,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                     ),
                   ),
                   ListTile(
+                    onTap: _switchingRole ? null : _switchToMicook,
                     minVerticalPadding: 0,
                     contentPadding: EdgeInsets.zero,
                     leading: Row(
@@ -193,7 +241,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           width: config.AppConfig(context).appWidth(4),
                         ),
                         Text(
-                          'Became micook',
+                          'switch to micook',
                           style: GoogleFonts.gothicA1(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: config.AppConfig(context).appWidth(5),
@@ -202,14 +250,19 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         )
                       ],
                     ),
-                    trailing: SizedBox(
-                      width: config.AppConfig(context).appWidth(20),
-                      child: Switch(
-                        value: false,
-                        inactiveTrackColor: Theme.of(context).primaryColorDark,
-                        onChanged: (val) {},
-                      ),
-                    ),
+                    trailing: _switchingRole
+                        ? SizedBox(
+                            height: config.AppConfig(context).appWidth(5),
+                            width: config.AppConfig(context).appWidth(5),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          )
+                        : Icon(
+                            Icons.swap_horiz,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                   ),
                   const Divider(
                     color: Color(0xffAEAEAE),
@@ -457,6 +510,34 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                     Theme.of(context).primaryColorDark,
                                 onChanged: _onBiometricChanged,
                               ),
+                            ),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              context.read<ProfileFoodieCubit>().doLogout();
+                            },
+                            minVerticalPadding: 0,
+                            contentPadding: EdgeInsets.zero,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.exit_to_app,
+                                  size: config.AppConfig(context).appHeight(4),
+                                ),
+                                SizedBox(
+                                  width: config.AppConfig(context).appWidth(4),
+                                ),
+                                Text(
+                                  'logout',
+                                  style: GoogleFonts.gothicA1(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: config.AppConfig(context)
+                                          .appWidth(4.5),
+                                      fontWeight: FontWeight.w400),
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              ],
                             ),
                           ),
                         ],

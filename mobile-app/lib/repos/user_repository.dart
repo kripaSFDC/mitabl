@@ -176,6 +176,84 @@ class UserRepository {
     }
   }
 
+  Future<http.Response> switchRole({required int roleId}) async {
+    try {
+      final response = await _httpClient
+          .post(
+            ApiContract.uri('v2/account/switch-role'),
+            headers: await authorizedHeaders(includeJsonContentType: true),
+            body: json.encode({'role_id': roleId}),
+          )
+          .timeout(ApiContract.requestTimeout);
+
+      if (response.statusCode == 200) {
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = payload['data'];
+        if (data is Map<String, dynamic>) {
+          try {
+            await syncCurrentUserRole(
+              roleName: data['role']?.toString(),
+              roleId: data['role_id'],
+            );
+          } catch (e) {
+            AppLogger.error('Role switched but failed to sync local user role', e);
+            _user?.data?.user?.role = data['role']?.toString();
+            final roleId = data['role_id'];
+            if (roleId is int) {
+              _user?.data?.user?.roleId = roleId;
+            } else if (roleId is String) {
+              _user?.data?.user?.roleId = int.tryParse(roleId);
+            }
+          }
+        }
+      }
+
+      return response;
+    } catch (e) {
+      AppLogger.error('Failed to switch role', e);
+      rethrow;
+    }
+  }
+
+  Future<void> syncCurrentUserRole({String? roleName, dynamic roleId}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final secureJson = await _secureStorage.read(key: _secureCurrentUserKey);
+    final storedJson = secureJson ?? prefs.getString('current_user');
+    if (storedJson == null || storedJson.isEmpty) {
+      return;
+    }
+
+    final root = jsonDecode(storedJson) as Map<String, dynamic>;
+    final data = root['data'];
+    if (data is! Map<String, dynamic>) {
+      return;
+    }
+
+    final user = data['user'];
+    if (user is! Map<String, dynamic>) {
+      return;
+    }
+
+    if (roleName != null && roleName.trim().isNotEmpty) {
+      user['role'] = roleName;
+    }
+
+    int? parsedRoleId;
+    if (roleId is int) {
+      parsedRoleId = roleId;
+    } else if (roleId is String) {
+      parsedRoleId = int.tryParse(roleId);
+    }
+    if (parsedRoleId != null) {
+      user['role_id'] = parsedRoleId;
+    }
+
+    final normalized = json.encode(root);
+    await _secureStorage.write(key: _secureCurrentUserKey, value: normalized);
+    await prefs.remove('current_user');
+    await updateUserInstance();
+  }
+
   Future<http.Response> deleteAccount() async {
     try {
       final headers = await authorizedHeaders();
