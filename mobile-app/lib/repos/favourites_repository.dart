@@ -48,14 +48,24 @@ class FavouritesRepository {
   Future<http.Response> toggleFavourite({
     required UserModel? userModel,
     required String targetId,
-  }) {
-    return _httpClient
+  }) async {
+    final response = await _httpClient
         .post(
           ApiContract.uri('v2/account/favorites/toggle'),
           headers: authorizedHeadersForUser(userModel),
           body: {'restaurant_id': targetId},
         )
         .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to update favourites',
+      );
+    }
+
+    return response;
   }
 
   List<dynamic> _extractList(dynamic decoded, List<String> keys) {

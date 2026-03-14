@@ -210,6 +210,9 @@ Future<void> _pumpWithProviders(
   SessionRepository? sessionRepository,
 }) async {
   final resolvedSessionRepository = sessionRepository ?? SessionRepository();
+  if (sessionRepository == null) {
+    addTearDown(resolvedSessionRepository.dispose);
+  }
 
   await tester.pumpWidget(
     MultiRepositoryProvider(

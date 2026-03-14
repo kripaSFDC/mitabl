@@ -151,6 +151,40 @@ void main() {
 
 
 
+
+
+    test('toggleFavourite throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Not allowed to change favourite'}), 403);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Not allowed to change favourite'),
+        ),
+      );
+    });
+
+    test('toggleFavourite throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid favourite target'}), 422);
+      });
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid favourite target'),
+        ),
+      );
+    });
+
     test('fetchFavourites throws typed exception for 403', () async {
       final client = MockClient((_) async {
         return http.Response(jsonEncode({'isError': 'Forbidden from favourites'}), 403);
@@ -183,13 +217,19 @@ void main() {
       );
     });
 
-    test('fetchFavourites throws on non-200 response', () async {
-      final client = MockClient((_) async => http.Response('{}', 500));
+    test('fetchFavourites throws typed exception for non-200 response', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Temporary failure'}), 500);
+      });
       final repository = FavouritesRepository(httpClient: client);
 
       expect(
         repository.fetchFavourites(userModel: _buildUser()),
-        throwsException,
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 500)
+              .having((error) => error.message, 'message', 'Temporary failure'),
+        ),
       );
     });
   });
