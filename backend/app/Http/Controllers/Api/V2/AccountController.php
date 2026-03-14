@@ -38,7 +38,10 @@ class AccountController extends Controller
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
         }
 
-        return $this->responser(new UserResource($result['user']), 'Profile switched successfully.');
+        return $this->responser([
+            'user' => new UserResource($result['user']),
+            'onboarding_required' => (bool) ($result['onboarding_required'] ?? false),
+        ], 'Profile switched successfully.');
     }
 
     public function changePassword(Request $request)

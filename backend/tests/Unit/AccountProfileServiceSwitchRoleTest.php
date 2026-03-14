@@ -3,8 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\Mikitchn;
+use App\Models\Role;
 use App\Models\StripeAccount;
 use App\Models\User;
+use App\Models\UserRole;
 use App\Services\AccountProfileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -14,9 +16,20 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::query()->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+
     public function test_switch_role_rejects_invalid_target_role(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,
@@ -28,9 +41,10 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
-    public function test_switch_role_blocks_micook_when_no_profile_or_onboarding_footprint(): void
+    public function test_switch_role_blocks_micook_when_no_profile_or_membership(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,
@@ -42,9 +56,43 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
-    public function test_switch_role_allows_micook_when_vendor_onboarding_exists(): void
+    public function test_cook_to_foodi_switch_works_with_existing_memberships(): void
+    {
+        $user = User::factory()->create(['role_id' => 2]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 3])
+        );
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertFalse($result['onboarding_required']);
+        $this->assertSame(3, (int) $user->fresh()->role_id);
+    }
+
+    public function test_foodie_to_cook_switch_returns_onboarding_when_membership_is_onboarding(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertTrue($result['onboarding_required']);
+        $this->assertSame(2, (int) $user->fresh()->role_id);
+    }
+
+    public function test_switch_role_marks_first_time_vendor_activation_as_onboarding(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+
         $stripeAccount = new StripeAccount();
         $stripeAccount->user_id = $user->id;
         $stripeAccount->account_type = 'vendor';
@@ -57,12 +105,19 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         );
 
         $this->assertArrayHasKey('user', $result);
+        $this->assertTrue($result['onboarding_required']);
         $this->assertSame(2, (int) $user->fresh()->role_id);
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $user->id,
+            'role_id' => 2,
+            'status' => UserRole::STATUS_ONBOARDING,
+        ]);
     }
 
     public function test_switch_role_allows_micook_when_kitchen_profile_exists(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         Mikitchn::query()->create([
             'user_id' => $user->id,
             'name' => 'Kitchen Test',
@@ -81,16 +136,20 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
     }
 
-    public function test_switch_role_to_mifoodi_is_always_allowed_for_authenticated_user(): void
+    public function test_switch_role_rejects_disabled_membership(): void
     {
-        $user = User::factory()->create(['role_id' => 2]);
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_DISABLED]);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,
-            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 3])
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
         );
 
-        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Requested role is disabled for this account.', $result['error']);
         $this->assertSame(3, (int) $user->fresh()->role_id);
     }
+
 }
