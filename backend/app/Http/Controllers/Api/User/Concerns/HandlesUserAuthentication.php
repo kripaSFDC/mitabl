@@ -74,6 +74,11 @@ trait HandlesUserAuthentication
 
         $this->ensureActiveRoleMembership($user);
 
+        if (! $this->canUseActiveRole($user)) {
+            Auth::guard('api')->logout();
+            return $this->disabledRoleResponse();
+        }
+
         $roleName = $this->resolveMobileRoleName($user);
         if ($roleName === null) {
             Auth::guard('api')->logout();
@@ -161,6 +166,12 @@ trait HandlesUserAuthentication
             if ((bool) $user->suspended) {
                 $this->invalidateTokenQuietly($newToken);
                 return $this->suspendedAccountResponse();
+            }
+
+            $this->ensureActiveRoleMembership($user);
+            if (! $this->canUseActiveRole($user)) {
+                $this->invalidateTokenQuietly($newToken);
+                return $this->disabledRoleResponse();
             }
 
             UserAuthToken::query()->updateOrCreate(
@@ -418,6 +429,22 @@ trait HandlesUserAuthentication
     private function suspendedAccountResponse(): JsonResponse
     {
         return $this->responser([], 'Your account is suspended. Please contact support.', 403);
+    }
+
+    private function disabledRoleResponse(): JsonResponse
+    {
+        return $this->responser([], 'Your selected role is disabled. Please contact support.', 403);
+    }
+
+    private function canUseActiveRole(User $user): bool
+    {
+        $membership = $user->roleMembershipFor((int) $user->role_id);
+
+        if (! $membership) {
+            return true;
+        }
+
+        return $membership->status !== UserRole::STATUS_DISABLED;
     }
 
     private function ensureStripeAccountForRole(User $user): ?string
