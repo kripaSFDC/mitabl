@@ -55,9 +55,8 @@ class AccountController extends Controller
         return $this->responser([
             'user' => new UserResource($result['user']),
             'role_transition' => $result['role_transition'] ?? null,
-        ], 'Cook onboarding started.');
             'onboarding_required' => (bool) ($result['onboarding_required'] ?? false),
-        ], 'Profile switched successfully.');
+        ], 'Cook onboarding started.');
     }
 
     public function changePassword(Request $request)

@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\NotifyDisable;
 use App\Models\StripeAccount;
 use App\Models\User;
-use Illuminate\Database\QueryException;
 use App\Models\UserRole;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -62,66 +62,45 @@ class AccountProfileService
         }
 
         $targetRoleId = (int) $request->input('role_id');
-        if ((int) $user->role_id === $targetRoleId) {
-            return [
-                'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
-                'role_transition' => $this->buildRoleTransitionState($user, $targetRoleId),
-            ];
-        }
 
         if ($targetRoleId === 2) {
             $provisionError = $this->ensureStripeAccountForRole($user, 2);
             if ($provisionError !== null) {
                 return ['error' => $provisionError, 'status' => 422];
+            }
+        }
+
         $membership = $user->roleMembershipFor($targetRoleId);
 
-        if (! $membership && $targetRoleId === 2) {
-            $hasCookProfile = $user->restaurant()->exists();
-            $hasCookOnboardingFootprint = $user->vendor()->exists();
-            if (! $hasCookProfile && ! $hasCookOnboardingFootprint) {
-                return [
-                    'error' => 'micook profile is not available for this account.',
-                    'status' => 422,
-                ];
-            }
-
-            $membership = UserRole::query()->create([
-                'user_id' => $user->id,
-                'role_id' => $targetRoleId,
-                'status' => $hasCookProfile
-                    ? UserRole::STATUS_ACTIVE
-                    : UserRole::STATUS_ONBOARDING,
-            ]);
-        }
-
-        if (! $membership && $targetRoleId === 3) {
-            $membership = UserRole::query()->create([
-                'user_id' => $user->id,
-                'role_id' => $targetRoleId,
-                'status' => UserRole::STATUS_ACTIVE,
-            ]);
-        }
-
         if (! $membership) {
-            return [
-                'error' => 'Requested role is not available for this account.',
-                'status' => 422,
-            ];
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => $targetRoleId,
+                'status' => $targetRoleId === 2
+                    ? UserRole::STATUS_ONBOARDING
+                    : UserRole::STATUS_ACTIVE,
+            ]);
         }
 
         if ($membership->status === UserRole::STATUS_DISABLED) {
             return [
                 'error' => 'Requested role is disabled for this account.',
                 'status' => 422,
+                'role_transition' => null,
             ];
         }
 
-        $user->role_id = $targetRoleId;
-        $user->save();
+        if ((int) $user->role_id !== $targetRoleId) {
+            $user->role_id = $targetRoleId;
+            $user->save();
+        }
+
+        $roleTransition = $this->buildRoleTransitionState($user, $targetRoleId, $membership);
 
         return [
             'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
-            'role_transition' => $this->buildRoleTransitionState($user, $targetRoleId),
+            'role_transition' => $roleTransition,
+            'onboarding_required' => (bool) ($roleTransition['onboarding_required'] ?? false),
         ];
     }
 
@@ -132,12 +111,21 @@ class AccountProfileService
             return ['error' => $provisionError, 'status' => 422];
         }
 
+        $membership = $user->roleMembershipFor(2);
+        if (! $membership) {
+            $membership = UserRole::query()->create([
+                'user_id' => $user->id,
+                'role_id' => 2,
+                'status' => UserRole::STATUS_ONBOARDING,
+            ]);
+        }
+
         if ((int) $user->role_id === 3) {
             $user->role_id = 2;
             $user->save();
         }
 
-        $transition = $this->buildRoleTransitionState($user, 2) ?? ['state' => 'ready', 'missing' => []];
+        $transition = $this->buildRoleTransitionState($user, 2, $membership) ?? ['state' => 'ready', 'missing' => [], 'onboarding_required' => false];
 
         return [
             'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
@@ -145,6 +133,7 @@ class AccountProfileService
                 'onboarding_started' => true,
                 'next_required_step' => $transition['missing'][0] ?? null,
             ],
+            'onboarding_required' => (bool) ($transition['onboarding_required'] ?? false),
         ];
     }
 
@@ -180,6 +169,7 @@ class AccountProfileService
             report($throwable);
             return 'Unable to create Stripe account.';
         }
+
         if (! is_object($account) || ! isset($account->id)) {
             return 'Unable to create Stripe account.';
         }
@@ -191,6 +181,7 @@ class AccountProfileService
                     ->where('account_type', $accountType)
                     ->lockForUpdate()
                     ->first();
+
                 if ($locked && $locked->account_id) {
                     return;
                 }
@@ -213,6 +204,7 @@ class AccountProfileService
                 ->where('user_id', $user->id)
                 ->where('account_type', $accountType)
                 ->first();
+
             if (! $existing || ! $existing->account_id) {
                 return 'Unable to create Stripe account.';
             }
@@ -221,7 +213,7 @@ class AccountProfileService
         return null;
     }
 
-    private function buildRoleTransitionState(User $user, int $targetRoleId): ?array
+    private function buildRoleTransitionState(User $user, int $targetRoleId, ?UserRole $membership = null): ?array
     {
         if ($targetRoleId !== 2) {
             return null;
@@ -240,11 +232,13 @@ class AccountProfileService
             $missing[] = 'certificate';
         }
 
+        $membership = $membership ?? $user->roleMembershipFor($targetRoleId);
+        $onboardingRequired = count($missing) > 0 || ($membership && $membership->status === UserRole::STATUS_ONBOARDING);
+
         return [
-            'state' => count($missing) > 0 ? 'onboarding_required' : 'ready',
+            'state' => $onboardingRequired ? 'onboarding_required' : 'ready',
             'missing' => $missing,
-            'user' => $user->fresh(['role', 'roleMemberships.role', 'restaurant.certificate', 'notifyDisable']),
-            'onboarding_required' => $membership->status === UserRole::STATUS_ONBOARDING,
+            'onboarding_required' => $onboardingRequired,
         ];
     }
 
