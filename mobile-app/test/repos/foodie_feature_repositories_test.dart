@@ -267,6 +267,40 @@ void main() {
       );
     });
 
+
+
+    test('fetchSavedCards throws typed exception for 403', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'isError': 'Forbidden from cards'}), 403);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchSavedCards(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 403)
+              .having((error) => error.message, 'message', 'Forbidden from cards'),
+        ),
+      );
+    });
+
+    test('fetchSavedCards throws typed exception for 422', () async {
+      final client = MockClient((_) async {
+        return http.Response(jsonEncode({'message': 'Invalid cards request'}), 422);
+      });
+      final repository = PaymentsRepository(httpClient: client);
+
+      expect(
+        repository.fetchSavedCards(userModel: _buildUser()),
+        throwsA(
+          isA<RepositoryHttpException>()
+              .having((error) => error.statusCode, 'statusCode', 422)
+              .having((error) => error.message, 'message', 'Invalid cards request'),
+        ),
+      );
+    });
+
     test('fetchSavedCards parses cards list payload shape', () async {
       final client = MockClient((_) async {
         return http.Response(

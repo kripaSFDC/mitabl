@@ -89,6 +89,50 @@ void main() {
     expect(find.text('No data found'), findsOneWidget);
   });
 
+
+
+  testWidgets('miorders page triggers session unauthorized flow on 401', (tester) async {
+    final sessionRepository = SessionRepository();
+    final eventFuture = sessionRepository.events.first;
+
+    await _pumpWithProviders(
+      tester,
+      home: MiOrdersPage(repository: _UnauthorizedMiOrdersRepository()),
+      sessionRepository: sessionRepository,
+    );
+
+    await expectLater(eventFuture, completion(SessionEvent.unauthorized));
+    expect(find.textContaining('No internet connection'), findsNothing);
+  });
+
+  testWidgets('favourites page triggers session unauthorized flow on 401', (tester) async {
+    final sessionRepository = SessionRepository();
+    final eventFuture = sessionRepository.events.first;
+
+    await _pumpWithProviders(
+      tester,
+      home: FavouritesPage(repository: _UnauthorizedFavouritesRepository()),
+      sessionRepository: sessionRepository,
+    );
+
+    await expectLater(eventFuture, completion(SessionEvent.unauthorized));
+    expect(find.textContaining('No internet connection'), findsNothing);
+  });
+
+  testWidgets('payments page triggers session unauthorized flow on 401', (tester) async {
+    final sessionRepository = SessionRepository();
+    final eventFuture = sessionRepository.events.first;
+
+    await _pumpWithProviders(
+      tester,
+      home: PaymentsPage(repository: _UnauthorizedPaymentsRepository()),
+      sessionRepository: sessionRepository,
+    );
+
+    await expectLater(eventFuture, completion(SessionEvent.unauthorized));
+    expect(find.textContaining('No internet connection'), findsNothing);
+  });
+
   testWidgets('miorders page shows switch CTA for 403', (tester) async {
     await _pumpWithProviders(
       tester,
@@ -163,12 +207,15 @@ void main() {
 Future<void> _pumpWithProviders(
   WidgetTester tester, {
   required Widget home,
+  SessionRepository? sessionRepository,
 }) async {
+  final resolvedSessionRepository = sessionRepository ?? SessionRepository();
+
   await tester.pumpWidget(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<UserRepository>.value(value: _FakeUserRepository()),
-        RepositoryProvider<SessionRepository>(create: (_) => SessionRepository()),
+        RepositoryProvider<SessionRepository>.value(value: resolvedSessionRepository),
       ],
       child: MaterialApp(home: home),
     ),
@@ -288,6 +335,45 @@ class _UnprocessablePaymentsRepository extends PaymentsRepository {
     int limit = 20,
   }) async {
     throw RepositoryHttpException(statusCode: 422, message: 'Payment request is invalid');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchSavedCards({required UserModel? userModel}) async {
+    return const [];
+  }
+}
+
+
+class _UnauthorizedMiOrdersRepository extends MiOrdersRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchOrdersHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 401, message: 'Unauthorized');
+  }
+}
+
+class _UnauthorizedFavouritesRepository extends FavouritesRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchFavourites({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 401, message: 'Unauthorized');
+  }
+}
+
+class _UnauthorizedPaymentsRepository extends PaymentsRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchPaymentsHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw RepositoryHttpException(statusCode: 401, message: 'Unauthorized');
   }
 
   @override

@@ -1,12 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/no_data_widget.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
-import 'package:mitabl_user/repos/authentication_repository.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
+import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
@@ -64,14 +63,11 @@ class _FavouritesPageState extends State<FavouritesPage> {
         return;
       }
 
-      String message = 'mifoodi profile is not available for this account.';
-      try {
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final serverMessage = payload['isError'] ?? payload['message'];
-        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
-          message = serverMessage;
-        }
-      } catch (_) {}
+      final message = ApiErrorParser.parseMessage(
+        response.body,
+        keys: const ['isError', 'message', 'error'],
+        fallbackMessage: 'mifoodi profile is not available for this account.',
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
@@ -101,7 +97,6 @@ class _FavouritesPageState extends State<FavouritesPage> {
       if (!mounted) return;
       if (error.statusCode == 401) {
         context.read<SessionRepository>().notifyUnauthorized();
-        setState(() => _status = _ViewStatus.error);
         return;
       }
 
