@@ -50,7 +50,12 @@ class AccountFoodieController extends Controller
             ->where('user_id', (int) Auth::id());
 
         if ($request->filled('status')) {
-            $query->whereIn('status', $this->parseIntegerStatusFilter((string) $request->query('status')));
+            $statuses = $this->parseIntegerStatusFilter((string) $request->query('status'));
+            if (! $this->containsOnlyAllowedOrderStatuses($statuses)) {
+                return $this->responser([], 'status filter contains unsupported order status values.', 422);
+            }
+
+            $query->whereIn('status', $statuses);
         }
 
         if ($request->filled('from_date')) {
@@ -105,7 +110,7 @@ class AccountFoodieController extends Controller
     public function toggleFavorite(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'restaurant_id' => ['required', 'integer'],
+            'restaurant_id' => ['required', 'integer', 'min:1'],
         ]);
 
         if ($validator->fails()) {
@@ -200,6 +205,26 @@ class AccountFoodieController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+
+    private function containsOnlyAllowedOrderStatuses(array $statuses): bool
+    {
+        $allowedStatuses = [
+            Order::STATUS_LEGACY_CANCELLED,
+            Order::STATUS_COMPLETED,
+            Order::STATUS_REQUESTED,
+            Order::STATUS_CONFIRMED,
+            Order::STATUS_CANCELLED,
+        ];
+
+        foreach ($statuses as $status) {
+            if (! in_array($status, $allowedStatuses, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function paginationMeta(LengthAwarePaginator $paginator): array

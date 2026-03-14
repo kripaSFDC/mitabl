@@ -136,6 +136,18 @@ class V2FoodieAccountRoutesTest extends TestCase
     }
 
 
+    public function test_orders_reject_unsupported_numeric_status_values(): void
+    {
+        $foodie = $this->createUser(3, 'foodie-unsupported-status@example.test');
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/account/orders?status=9')
+            ->assertStatus(422)
+            ->assertJsonPath('isSuccess', false)
+            ->assertJsonPath('isError', 'status filter contains unsupported order status values.');
+    }
+
     public function test_orders_and_payments_reject_invalid_status_filter_shape(): void
     {
         $foodie = $this->createUser(3, 'foodie-invalid-filters@example.test');
