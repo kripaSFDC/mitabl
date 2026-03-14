@@ -105,24 +105,47 @@ class _HomePage extends State<HomePage> {
                     ),
                     SliverToBoxAdapter(
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Expanded(child: _LocationInput()),
-                          IconButton(
-                            onPressed: () => showDialog(
-                                context: context,
-                                builder: (contexts) {
-                                  return BlocProvider.value(
-                                    value: context.read<HomeCubit>(),
-                                    child: const FilterDialog(),
-                                  );
-                                }),
-                            icon: SvgPicture.asset(
-                              'assets/img/filter.svg',
-                              height: config.AppConfig(context).appHeight(2.0),
-                            ),
-                          )
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Open profile',
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamed('/ProfileFoodie'),
+                                icon: Icon(
+                                  Icons.person_outline,
+                                  color: Theme.of(context).primaryColorDark,
+                                  size: config.AppConfig(context).appWidth(6),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Open filters',
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (contexts) {
+                                    return BlocProvider.value(
+                                      value: context.read<HomeCubit>(),
+                                      child: const FilterDialog(),
+                                    );
+                                  },
+                                ),
+                                icon: SvgPicture.asset(
+                                  'assets/img/filter.svg',
+                                  height:
+                                      config.AppConfig(context).appHeight(2.0),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _AccountActionsBanner(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/ProfileFoodie'),
                       ),
                     ),
                     const _SectionTitle(title: 'mitabl recommended'),
@@ -233,6 +256,77 @@ class _HomePage extends State<HomePage> {
             );
           },
           listener: (context, state) async {}),
+    );
+  }
+}
+
+class _AccountActionsBanner extends StatelessWidget {
+  const _AccountActionsBanner({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: config.AppConfig(context).appHeight(1),
+        right: config.AppConfig(context).appHeight(1),
+        bottom: config.AppConfig(context).appHeight(0.8),
+      ),
+      child: Material(
+        color: const Color(0xfff7f7f7),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: config.AppConfig(context).appWidth(3),
+              vertical: config.AppConfig(context).appHeight(1.1),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.manage_accounts_outlined,
+                  color: Theme.of(context).primaryColorDark,
+                  size: config.AppConfig(context).appWidth(6),
+                ),
+                SizedBox(width: config.AppConfig(context).appWidth(2.5)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Profile & account actions',
+                        style: GoogleFonts.gothicA1(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: config.AppConfig(context).appWidth(4.1),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(
+                        height: config.AppConfig(context).appHeight(0.2),
+                      ),
+                      Text(
+                        'Switch profile and logout from here',
+                        style: GoogleFonts.gothicA1(
+                          color: Theme.of(context).hintColor,
+                          fontSize: config.AppConfig(context).appWidth(3.2),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
