@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
@@ -18,6 +19,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
+    FlutterSecureStorage.setMockInitialValues(const <String, String>{});
     GlobalConfiguration().loadFromMap({
       'api_base_url': 'https://api.example.com/api/',
       'base_url': 'https://api.example.com/',

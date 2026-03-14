@@ -7,13 +7,12 @@ import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class FavouritesPage extends StatefulWidget {
-  FavouritesPage({super.key, FavouritesRepository? repository})
-      : repository = repository ?? FavouritesRepository();
+  const FavouritesPage({super.key, this.repository});
 
-  final FavouritesRepository repository;
+  final FavouritesRepository? repository;
 
   static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => FavouritesPage());
+    return MaterialPageRoute<void>(builder: (_) => const FavouritesPage());
   }
 
   @override
@@ -21,13 +20,26 @@ class FavouritesPage extends StatefulWidget {
 }
 
 class _FavouritesPageState extends State<FavouritesPage> {
+  late final FavouritesRepository _repository;
+  late final bool _ownsRepository;
+
   _ViewStatus _status = _ViewStatus.loading;
   List<Map<String, dynamic>> _favourites = const [];
 
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? FavouritesRepository();
+    _ownsRepository = widget.repository == null;
     _load();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsRepository) {
+      _repository.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -35,7 +47,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
     try {
       final userRepository = context.read<UserRepository>();
       final userModel = userRepository.currentUser ?? await userRepository.getUser();
-      final records = await widget.repository.fetchFavourites(userModel: userModel);
+      final records = await _repository.fetchFavourites(userModel: userModel);
       if (!mounted) return;
       setState(() {
         _favourites = records;

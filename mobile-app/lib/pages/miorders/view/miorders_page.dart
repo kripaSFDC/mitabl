@@ -7,13 +7,12 @@ import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class MiOrdersPage extends StatefulWidget {
-  MiOrdersPage({super.key, MiOrdersRepository? repository})
-      : repository = repository ?? MiOrdersRepository();
+  const MiOrdersPage({super.key, this.repository});
 
-  final MiOrdersRepository repository;
+  final MiOrdersRepository? repository;
 
   static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => MiOrdersPage());
+    return MaterialPageRoute<void>(builder: (_) => const MiOrdersPage());
   }
 
   @override
@@ -21,13 +20,26 @@ class MiOrdersPage extends StatefulWidget {
 }
 
 class _MiOrdersPageState extends State<MiOrdersPage> {
+  late final MiOrdersRepository _repository;
+  late final bool _ownsRepository;
+
   _ViewStatus _status = _ViewStatus.loading;
   List<Map<String, dynamic>> _orders = const [];
 
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? MiOrdersRepository();
+    _ownsRepository = widget.repository == null;
     _load();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsRepository) {
+      _repository.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -35,7 +47,7 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
     try {
       final userRepository = context.read<UserRepository>();
       final userModel = userRepository.currentUser ?? await userRepository.getUser();
-      final records = await widget.repository.fetchOrdersHistory(userModel: userModel);
+      final records = await _repository.fetchOrdersHistory(userModel: userModel);
       if (!mounted) return;
       setState(() {
         _orders = records;

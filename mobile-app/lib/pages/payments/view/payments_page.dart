@@ -7,13 +7,12 @@ import 'package:mitabl_user/repos/payments_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 
 class PaymentsPage extends StatefulWidget {
-  PaymentsPage({super.key, PaymentsRepository? repository})
-      : repository = repository ?? PaymentsRepository();
+  const PaymentsPage({super.key, this.repository});
 
-  final PaymentsRepository repository;
+  final PaymentsRepository? repository;
 
   static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => PaymentsPage());
+    return MaterialPageRoute<void>(builder: (_) => const PaymentsPage());
   }
 
   @override
@@ -21,6 +20,9 @@ class PaymentsPage extends StatefulWidget {
 }
 
 class _PaymentsPageState extends State<PaymentsPage> {
+  late final PaymentsRepository _repository;
+  late final bool _ownsRepository;
+
   _ViewStatus _status = _ViewStatus.loading;
   List<Map<String, dynamic>> _history = const [];
   List<Map<String, dynamic>> _cards = const [];
@@ -28,7 +30,17 @@ class _PaymentsPageState extends State<PaymentsPage> {
   @override
   void initState() {
     super.initState();
+    _repository = widget.repository ?? PaymentsRepository();
+    _ownsRepository = widget.repository == null;
     _load();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsRepository) {
+      _repository.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -37,8 +49,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
       final userRepository = context.read<UserRepository>();
       final userModel = userRepository.currentUser ?? await userRepository.getUser();
       final results = await Future.wait([
-        widget.repository.fetchPaymentsHistory(userModel: userModel),
-        widget.repository.fetchSavedCards(userModel: userModel),
+        _repository.fetchPaymentsHistory(userModel: userModel),
+        _repository.fetchSavedCards(userModel: userModel),
       ]);
 
       if (!mounted) return;
