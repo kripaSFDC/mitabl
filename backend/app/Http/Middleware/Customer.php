@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserRole;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,23 @@ class Customer
     {
         $user = Auth::guard('api')->user();
 
-        if ($user && (int) $user->active_role_id === 3 && $user->hasRoleMembership(3, false)) {
+        if ($user && (int) $user->active_role_id === 3) {
+            $membership = $user->roleMembershipFor(3);
+
+            if ($membership && $membership->status === UserRole::STATUS_DISABLED) {
+                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Foodie account.', 403);
+            }
+
+            if (! $membership) {
+                UserRole::query()->create([
+                    'user_id' => $user->id,
+                    'role_id' => 3,
+                    'status' => UserRole::STATUS_ACTIVE,
+                ]);
+            } elseif ($membership->status !== UserRole::STATUS_ACTIVE) {
+                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Foodie account.', 403);
+            }
+
             return $next($request);
         }
 
