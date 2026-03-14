@@ -120,6 +120,14 @@ class AccountProfileService
             $membership = $this->ensureRoleMembership($user->id, 2, UserRole::STATUS_ONBOARDING);
         }
 
+        if ($membership->status === UserRole::STATUS_DISABLED) {
+            return [
+                'error' => 'Requested role is disabled for this account.',
+                'status' => 422,
+                'role_transition' => null,
+            ];
+        }
+
         $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
 
         if ((int) $user->role_id === 3) {
@@ -286,7 +294,7 @@ class AccountProfileService
 
         $membership = $membership ?? $user->roleMembershipFor($targetRoleId);
 
-        if ($membership && $targetRoleId === 2) {
+        if ($membership && $targetRoleId === 2 && $membership->status !== UserRole::STATUS_DISABLED) {
             $desiredStatus = count($missing) === 0
                 ? UserRole::STATUS_ACTIVE
                 : UserRole::STATUS_ONBOARDING;

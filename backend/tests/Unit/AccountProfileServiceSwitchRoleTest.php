@@ -268,11 +268,11 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
-        StripeAccount::query()->create([
-            'user_id' => $user->id,
-            'account_type' => 'vendor',
-            'account_id' => 'acct_vendor_existing',
-        ]);
+        $stripeAccount = new StripeAccount();
+        $stripeAccount->user_id = $user->id;
+        $stripeAccount->account_type = 'vendor';
+        $stripeAccount->account_id = 'acct_vendor_existing';
+        $stripeAccount->save();
 
         $kitchen = Mikitchn::query()->create([
             'user_id' => $user->id,
@@ -315,11 +315,11 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
-        StripeAccount::query()->create([
-            'user_id' => $user->id,
-            'account_type' => 'vendor',
-            'account_id' => 'acct_vendor_existing_2',
-        ]);
+        $stripeAccount = new StripeAccount();
+        $stripeAccount->user_id = $user->id;
+        $stripeAccount->account_type = 'vendor';
+        $stripeAccount->account_id = 'acct_vendor_existing_2';
+        $stripeAccount->save();
 
         $kitchen = Mikitchn::query()->create([
             'user_id' => $user->id,
@@ -349,6 +349,22 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
         $this->getJson('/api/v2/account/dashboard')
             ->assertStatus(200);
+    }
+
+
+    public function test_start_cook_onboarding_rejects_disabled_membership(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_DISABLED]);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Requested role is disabled for this account.', $result['error']);
+        $this->assertSame(UserRole::STATUS_DISABLED, UserRole::query()
+            ->where('user_id', $user->id)
+            ->where('role_id', 2)
+            ->value('status'));
     }
 
     public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void
