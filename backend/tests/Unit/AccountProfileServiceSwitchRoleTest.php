@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Mikitchn;
+use App\Models\Role;
 use App\Models\StripeAccount;
 use App\Models\User;
 use App\Models\UserRole;
@@ -14,6 +15,16 @@ use Tests\TestCase;
 class AccountProfileServiceSwitchRoleTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::query()->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
 
     public function test_switch_role_rejects_invalid_target_role(): void
     {
@@ -77,7 +88,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
     }
 
-    public function test_switch_role_allows_micook_when_vendor_onboarding_exists_and_backfills_membership(): void
+    public function test_switch_role_marks_first_time_vendor_activation_as_onboarding(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
         UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
@@ -94,11 +105,12 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         );
 
         $this->assertArrayHasKey('user', $result);
+        $this->assertTrue($result['onboarding_required']);
         $this->assertSame(2, (int) $user->fresh()->role_id);
         $this->assertDatabaseHas('user_roles', [
             'user_id' => $user->id,
             'role_id' => 2,
-            'status' => UserRole::STATUS_ACTIVE,
+            'status' => UserRole::STATUS_ONBOARDING,
         ]);
     }
 
@@ -123,4 +135,21 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertArrayHasKey('user', $result);
         $this->assertSame(2, (int) $user->fresh()->role_id);
     }
+
+    public function test_switch_role_rejects_disabled_membership(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_DISABLED]);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Requested role is disabled for this account.', $result['error']);
+        $this->assertSame(3, (int) $user->fresh()->role_id);
+    }
+
 }

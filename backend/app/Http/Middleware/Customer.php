@@ -13,7 +13,7 @@ class Customer
     {
         $user = Auth::guard('api')->user();
 
-        if ($user && (int) $user->active_role_id === 3 && $user->hasRoleMembership(3)) {
+        if ($user && (int) $user->active_role_id === 3 && $user->hasRoleMembership(3, false)) {
             return $next($request);
         }
 

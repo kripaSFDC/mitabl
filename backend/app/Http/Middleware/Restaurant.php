@@ -13,7 +13,7 @@ class Restaurant
     {
         $user = Auth::guard('api')->user();
 
-        if ($user && (int) $user->active_role_id === 2 && $user->hasRoleMembership(2)) {
+        if ($user && (int) $user->active_role_id === 2 && $user->hasRoleMembership(2, false)) {
             return $next($request);
         }
 

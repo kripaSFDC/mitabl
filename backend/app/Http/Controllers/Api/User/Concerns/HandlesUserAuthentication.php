@@ -213,7 +213,7 @@ trait HandlesUserAuthentication
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
 
-        UserRole::query()->updateOrCreate(
+        UserRole::query()->firstOrCreate(
             ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
             ['status' => UserRole::STATUS_ACTIVE]
         );
@@ -537,7 +537,7 @@ trait HandlesUserAuthentication
 
     private function ensureActiveRoleMembership(User $user): void
     {
-        UserRole::query()->updateOrCreate(
+        UserRole::query()->firstOrCreate(
             ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
             ['status' => UserRole::STATUS_ACTIVE]
         );

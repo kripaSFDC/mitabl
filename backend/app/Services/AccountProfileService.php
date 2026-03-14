@@ -69,7 +69,9 @@ class AccountProfileService
             $membership = UserRole::query()->create([
                 'user_id' => $user->id,
                 'role_id' => $targetRoleId,
-                'status' => UserRole::STATUS_ACTIVE,
+                'status' => $hasCookProfile
+                    ? UserRole::STATUS_ACTIVE
+                    : UserRole::STATUS_ONBOARDING,
             ]);
         }
 
