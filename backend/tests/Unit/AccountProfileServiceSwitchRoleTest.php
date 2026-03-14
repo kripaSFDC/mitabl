@@ -144,6 +144,28 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(2, (int) $user->fresh()->role_id);
     }
 
+
+    public function test_switch_role_to_foodie_reactivates_onboarding_membership(): void
+    {
+        $user = User::factory()->create(['role_id' => 2]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ACTIVE]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ONBOARDING]);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 3])
+        );
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertFalse($result['onboarding_required']);
+        $this->assertSame(3, (int) $user->fresh()->role_id);
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $user->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_ACTIVE,
+        ]);
+    }
+
     public function test_switch_role_marks_first_time_vendor_activation_as_onboarding(): void
     {
         $user = User::factory()->create(['role_id' => 3]);

@@ -88,6 +88,12 @@ class AccountProfileService
             ];
         }
 
+        if ($targetRoleId === 3 && $membership->status !== UserRole::STATUS_ACTIVE) {
+            $membership->status = UserRole::STATUS_ACTIVE;
+            $membership->save();
+            $membership->refresh();
+        }
+
         if ((int) $user->role_id !== $targetRoleId) {
             $user->role_id = $targetRoleId;
             $user->save();
