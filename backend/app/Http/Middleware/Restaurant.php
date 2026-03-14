@@ -3,9 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserRole;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Restaurant
 {
@@ -13,7 +15,31 @@ class Restaurant
     {
         $user = Auth::guard('api')->user();
 
-        if ($user && (int) $user->active_role_id === 2 && $user->hasRoleMembership(2, false)) {
+        if ($user && (int) $user->active_role_id === 2) {
+            $membership = $user->roleMembershipFor(2);
+
+            if ($membership && $membership->status === UserRole::STATUS_DISABLED) {
+                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+            }
+
+            if (! $membership) {
+                DB::table('user_roles')->insertOrIgnore([
+                    'user_id' => $user->id,
+                    'role_id' => 2,
+                    'status' => UserRole::STATUS_ACTIVE,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $membership = $user->roleMemberships()
+                    ->where('role_id', 2)
+                    ->first();
+            }
+
+            if (! $membership || $membership->status !== UserRole::STATUS_ACTIVE) {
+                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+            }
+
             return $next($request);
         }
 

@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\PlatformSyntheticHealthCheckCommand',
         'App\Console\Commands\ReconcileIntakeDataCommand',
         'App\Console\Commands\ActivateDuePoliciesCommand',
+        'App\Console\Commands\RepairUserRoleStateCommand',
     ];
 
     /**
@@ -36,6 +37,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('support:sla:scan')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('platform:health:synthetic')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('platform:policies:activate-due')->everyMinute()->withoutOverlapping();
+        $schedule->command('roles:repair-state')->hourly()->withoutOverlapping();
     }
 
     /**
