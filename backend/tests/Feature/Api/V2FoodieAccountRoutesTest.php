@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Mikitchn;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -59,6 +60,78 @@ class V2FoodieAccountRoutesTest extends TestCase
             ->assertJsonPath('data.items', [])
             ->assertJsonPath('data.pagination.page', 1)
             ->assertJsonPath('data.pagination.total_pages', 1);
+    }
+
+    public function test_legacy_foodie_without_membership_can_access_foodie_endpoints_after_login(): void
+    {
+        $legacyFoodie = $this->createUser(3, 'legacy-foodie-login@example.test');
+
+        $this->assertDatabaseMissing('user_roles', [
+            'user_id' => $legacyFoodie->id,
+            'role_id' => 3,
+        ]);
+
+        $this->actingAs($legacyFoodie, 'api');
+
+        $this->getJson('/api/v2/account/orders')->assertOk();
+        $this->getJson('/api/v2/account/favorites')->assertOk();
+        $this->getJson('/api/v2/account/payments/history')->assertOk();
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $legacyFoodie->id,
+            'role_id' => 3,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_legacy_user_can_access_foodie_endpoints_after_role_switch_to_foodie(): void
+    {
+        $legacyRestaurant = $this->createUser(2, 'legacy-role-switch@example.test');
+
+        $this->assertDatabaseMissing('user_roles', [
+            'user_id' => $legacyRestaurant->id,
+            'role_id' => 2,
+        ]);
+
+        $this->actingAs($legacyRestaurant, 'api');
+
+        $this->postJson('/api/v2/account/switch-role', ['role_id' => 3])
+            ->assertOk();
+
+        $this->getJson('/api/v2/account/orders')->assertOk();
+        $this->getJson('/api/v2/account/favorites')->assertOk();
+        $this->getJson('/api/v2/account/payments/history')->assertOk();
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $legacyRestaurant->id,
+            'role_id' => 3,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_foodie_routes_reject_disabled_membership_even_if_active_role_matches(): void
+    {
+        $foodie = $this->createUser(3, 'foodie-disabled-membership@example.test');
+
+        DB::table('user_roles')->insert([
+            'user_id' => $foodie->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_DISABLED,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/account/orders')->assertStatus(403);
+        $this->getJson('/api/v2/account/favorites')->assertStatus(403);
+        $this->getJson('/api/v2/account/payments/history')->assertStatus(403);
+
+        $this->assertDatabaseHas('user_roles', [
+            'user_id' => $foodie->id,
+            'role_id' => 3,
+            'status' => UserRole::STATUS_DISABLED,
+        ]);
     }
 
 

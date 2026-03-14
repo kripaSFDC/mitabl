@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Certificate;
 use App\Models\Mikitchn;
 use App\Models\Role;
 use App\Models\StripeAccount;
