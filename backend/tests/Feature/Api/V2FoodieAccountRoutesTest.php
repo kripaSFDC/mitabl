@@ -107,6 +107,10 @@ class V2FoodieAccountRoutesTest extends TestCase
             'role_id' => 3,
             'status' => 'active',
         ]);
+        $this->assertDatabaseHas('stripe_accounts', [
+            'user_id' => $legacyRestaurant->id,
+            'account_type' => 'customer',
+        ]);
     }
 
     public function test_foodie_routes_reject_disabled_membership_even_if_active_role_matches(): void

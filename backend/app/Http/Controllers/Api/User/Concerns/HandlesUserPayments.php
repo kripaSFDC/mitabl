@@ -13,6 +13,27 @@ use Throwable;
 
 trait HandlesUserPayments
 {
+    private function ensureCustomerAccountOrError($user): ?array
+    {
+        if ($user->customer && $user->customer->account_id) {
+            return null;
+        }
+
+        $provisionError = $this->accountProfileService->ensureStripeAccountForRole($user, 3);
+        if ($provisionError !== null) {
+            return ['message' => $provisionError, 'status' => 422];
+        }
+
+        $user->unsetRelation('customer');
+        $user->load('customer');
+
+        if (! $user->customer || ! $user->customer->account_id) {
+            return ['message' => 'Unable to create Stripe account.', 'status' => 422];
+        }
+
+        return null;
+    }
+
     public function addCardToCustomer(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -24,8 +45,9 @@ trait HandlesUserPayments
         }
 
         $user = Auth::user();
-        if (! $user->customer) {
-            return $this->responser([], "you don't have stripe customer account.", 403);
+        $provisionError = $this->ensureCustomerAccountOrError($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError['message'], $provisionError['status']);
         }
 
         try {
@@ -109,8 +131,14 @@ trait HandlesUserPayments
 
     public function getAllCards()
     {
+        $user = Auth::user();
+        $provisionError = $this->ensureCustomerAccountOrError($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError['message'], $provisionError['status']);
+        }
+
         try {
-            $response = $this->paymentService->getAllCards(Auth::user());
+            $response = $this->paymentService->getAllCards($user);
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to fetch cards.', 422);
@@ -121,12 +149,14 @@ trait HandlesUserPayments
 
     public function createCheckoutsession()
     {
-        if (! Auth::user()->customer) {
-            return $this->responser([], 'This user has not stripe customer account.', 403);
+        $user = Auth::user();
+        $provisionError = $this->ensureCustomerAccountOrError($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError['message'], $provisionError['status']);
         }
 
         try {
-            $session = $this->paymentService->createCheckoutSession(Auth::user());
+            $session = $this->paymentService->createCheckoutSession($user);
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to create checkout session.', 422);
@@ -137,8 +167,14 @@ trait HandlesUserPayments
 
     public function createPaymentIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
+        $user = Auth::user();
+        if ((int) $user->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can create payment intents.', 403);
+        }
+
+        $provisionError = $this->ensureCustomerAccountOrError($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError['message'], $provisionError['status']);
         }
 
         $validator = Validator::make($request->all(), [

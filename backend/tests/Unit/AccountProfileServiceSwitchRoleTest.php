@@ -181,6 +181,11 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
             'role_id' => 3,
             'status' => UserRole::STATUS_ACTIVE,
         ]);
+        $this->assertDatabaseHas('stripe_accounts', [
+            'user_id' => $user->id,
+            'account_type' => 'customer',
+            'account_id' => 'cus_test_123',
+        ]);
     }
 
     public function test_switch_role_marks_first_time_vendor_activation_as_onboarding(): void
@@ -266,6 +271,11 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
             'user_id' => $user->id,
             'role_id' => 3,
             'status' => UserRole::STATUS_ACTIVE,
+        ]);
+        $this->assertDatabaseHas('stripe_accounts', [
+            'user_id' => $user->id,
+            'account_type' => 'customer',
+            'account_id' => 'cus_test_123',
         ]);
     }
 

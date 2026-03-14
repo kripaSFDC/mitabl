@@ -90,12 +90,20 @@ class AccountProfileService
                 $foodieMembership->status = UserRole::STATUS_ACTIVE;
                 $foodieMembership->save();
             }
+
+            // Every cook-capable account should also have a foodie persona ready.
+            $this->ensureStripeAccountForRole($user, 3);
         }
 
         if ($targetRoleId === 3 && $membership->status !== UserRole::STATUS_ACTIVE) {
             $membership->status = UserRole::STATUS_ACTIVE;
             $membership->save();
             $membership->refresh();
+        }
+
+        if ($targetRoleId === 3) {
+            // Foodie flows such as saved cards depend on a customer account.
+            $this->ensureStripeAccountForRole($user, 3);
         }
 
         if ((int) $user->role_id !== $targetRoleId) {
@@ -127,6 +135,7 @@ class AccountProfileService
         }
 
         $this->ensureRoleMembership($user->id, 3, UserRole::STATUS_ACTIVE);
+        $this->ensureStripeAccountForRole($user, 3);
 
         if ((int) $user->role_id === 3) {
             $user->role_id = 2;

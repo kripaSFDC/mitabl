@@ -5,7 +5,6 @@ import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/no_data_widget.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
-import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
@@ -32,6 +31,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   String _errorMessage = 'Unable to fetch favourites';
   List<Map<String, dynamic>> _favourites = const [];
   bool _switchingRole = false;
+  bool _attemptedFoodieRecovery = false;
 
   @override
   void initState() {
@@ -49,44 +49,54 @@ class _FavouritesPageState extends State<FavouritesPage> {
     super.dispose();
   }
 
-  Future<void> _switchToMifoodi() async {
-    if (_switchingRole) return;
+  Future<bool> _switchToMifoodi({bool silent = false}) async {
+    if (_switchingRole) return false;
 
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response = await userRepository.switchRole(roleId: AppConstants.FOODI);
-      if (!mounted) return;
+      final response =
+          await userRepository.switchRole(roleId: AppConstants.FOODI);
+      if (!mounted) return false;
 
       if (response.statusCode == 200) {
-        navigatorKey.currentState!.pushNamedAndRemoveUntil('/HomePage', (route) => false);
-        return;
+        _attemptedFoodieRecovery = true;
+        await _load(forceFoodieRecovery: false);
+        return true;
       }
 
-      final message = ApiErrorParser.parseMessage(
-        response.body,
-        keys: const ['isError', 'message', 'error'],
-        fallbackMessage: 'mifoodi profile is not available for this account.',
-      );
+      if (!silent) {
+        final message = ApiErrorParser.parseMessage(
+          response.body,
+          keys: const ['isError', 'message', 'error'],
+          fallbackMessage: 'mifoodi profile is not available for this account.',
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || silent) return false;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to switch profile right now. Please try again.')),
+        const SnackBar(
+            content:
+                Text('Unable to switch profile right now. Please try again.')),
       );
     } finally {
       if (mounted) {
         setState(() => _switchingRole = false);
       }
     }
+
+    return false;
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceFoodieRecovery = true}) async {
     setState(() => _status = _ViewStatus.loading);
     try {
       final userRepository = context.read<UserRepository>();
-      final userModel = userRepository.currentUser ?? await userRepository.getUser();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
       final records = await _repository.fetchFavourites(userModel: userModel);
       if (!mounted) return;
       setState(() {
@@ -101,6 +111,13 @@ class _FavouritesPageState extends State<FavouritesPage> {
       }
 
       if (error.statusCode == 403) {
+        if (forceFoodieRecovery && !_attemptedFoodieRecovery) {
+          final recovered = await _switchToMifoodi(silent: true);
+          if (recovered || !mounted) {
+            return;
+          }
+        }
+
         setState(() => _status = _ViewStatus.forbidden);
         return;
       }
@@ -137,10 +154,14 @@ class _FavouritesPageState extends State<FavouritesPage> {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final favourite = _favourites[index];
-                  final title =
-                      (favourite['name'] ?? favourite['title'] ?? 'Favourite ${index + 1}').toString();
-                  final subtitle =
-                      (favourite['subtitle'] ?? favourite['description'] ?? 'Saved item').toString();
+                  final title = (favourite['name'] ??
+                          favourite['title'] ??
+                          'Favourite ${index + 1}')
+                      .toString();
+                  final subtitle = (favourite['subtitle'] ??
+                          favourite['description'] ??
+                          'Saved item')
+                      .toString();
                   return ListTile(title: Text(title), subtitle: Text(subtitle));
                 },
               ),
@@ -165,7 +186,8 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Switch to mifoodi to access this page', textAlign: TextAlign.center),
+            const Text('Switch to mifoodi to access this page',
+                textAlign: TextAlign.center),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: isLoading ? null : onPressed,

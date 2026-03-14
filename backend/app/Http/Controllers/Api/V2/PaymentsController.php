@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\User;
+use App\Services\AccountProfileService;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -14,14 +16,44 @@ use Throwable;
 
 class PaymentsController extends Controller
 {
-    public function __construct(private PaymentService $paymentService)
+    public function __construct(
+        private PaymentService $paymentService,
+        private AccountProfileService $accountProfileService
+    )
     {
+    }
+
+    private function ensureCustomerAccount(User $user): ?string
+    {
+        if ($user->customer && $user->customer->account_id) {
+            return null;
+        }
+
+        $provisionError = $this->accountProfileService->ensureStripeAccountForRole($user, 3);
+        if ($provisionError !== null) {
+            return $provisionError;
+        }
+
+        $user->unsetRelation('customer');
+        $user->load('customer');
+
+        if (! $user->customer || ! $user->customer->account_id) {
+            return 'Unable to create Stripe account.';
+        }
+
+        return null;
     }
 
     public function cards(Request $request)
     {
+        $user = Auth::user();
+        $provisionError = $this->ensureCustomerAccount($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError, 422);
+        }
+
         try {
-            $response = $this->paymentService->getAllCards(Auth::user());
+            $response = $this->paymentService->getAllCards($user);
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to fetch cards.', 422);
@@ -41,8 +73,9 @@ class PaymentsController extends Controller
         }
 
         $user = Auth::user();
-        if (! $user->customer) {
-            return $this->responser([],"you don't have stripe customer account.", 403);
+        $provisionError = $this->ensureCustomerAccount($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError, 422);
         }
 
         try {
@@ -62,12 +95,14 @@ class PaymentsController extends Controller
 
     public function checkoutSession(Request $request)
     {
-        if (!Auth::user()->customer) {
-            return $this->responser([], 'This user has not stripe customer account.', 403);
+        $user = Auth::user();
+        $provisionError = $this->ensureCustomerAccount($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError, 422);
         }
 
         try {
-            $session = $this->paymentService->createCheckoutSession(Auth::user());
+            $session = $this->paymentService->createCheckoutSession($user);
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to create checkout session.', 422);
@@ -78,8 +113,14 @@ class PaymentsController extends Controller
 
     public function createIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
+        $user = Auth::user();
+        if ((int) $user->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can create payment intents.', 403);
+        }
+
+        $provisionError = $this->ensureCustomerAccount($user);
+        if ($provisionError !== null) {
+            return $this->responser([], $provisionError, 422);
         }
 
         $validator = Validator::make($request->all(), [

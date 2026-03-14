@@ -45,22 +45,26 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     }
   }
 
-  void _showOnboardingCta(Map<String, dynamic> transition) {
+  Future<void> _continueCookOnboarding(Map<String, dynamic> transition) async {
+    final userRepository = context.read<UserRepository>();
+    final currentUser =
+        userRepository.currentUser ?? await userRepository.getUser();
+
+    if (!mounted) return;
+
+    final routeData = currentUser?.data;
+    if (routeData != null) {
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        '/CookProfile',
+        (route) => false,
+        arguments: RouteArguments(data: routeData),
+      );
+      return;
+    }
+
     final step = transition['next_required_step']?.toString();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_onboardingStepDescription(step)),
-        action: SnackBarAction(
-          label: 'Continue',
-          onPressed: () {
-            navigatorKey.currentState!.pushNamedAndRemoveUntil(
-              '/CookProfile',
-              (route) => false,
-              arguments: RouteArguments(data: transition),
-            );
-          },
-        ),
-      ),
+      SnackBar(content: Text(_onboardingStepDescription(step))),
     );
   }
 
@@ -82,7 +86,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Biometric authentication is not available on this device.'),
+          content:
+              Text('Biometric authentication is not available on this device.'),
         ),
       );
       return;
@@ -99,22 +104,22 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response = await userRepository.switchRole(roleId: AppConstants.COOK);
+      final response =
+          await userRepository.switchRole(roleId: AppConstants.COOK);
       if (!mounted) return;
 
       if (response.statusCode == 200) {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final data = payload['data'];
-        final transition = data is Map<String, dynamic> ? data['role_transition'] : null;
-        final onboardingRequired = transition is Map<String, dynamic> &&
-            transition['onboarding_required'] == true;
+        final transition =
+            data is Map<String, dynamic> ? data['role_transition'] : null;
+        final transitionMap = transition is Map<String, dynamic>
+            ? transition
+            : <String, dynamic>{};
+        final onboardingRequired = transitionMap['onboarding_required'] == true;
 
         if (onboardingRequired) {
-          _showOnboardingCta(
-            transition is Map<String, dynamic>
-                ? transition
-                : <String, dynamic>{},
-          );
+          await _continueCookOnboarding(transitionMap);
         } else {
           navigatorKey.currentState!.pushNamedAndRemoveUntil(
             '/DashboardCook',
@@ -140,7 +145,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Unable to switch profile right now. Please try again.'),
+          content:
+              Text('Unable to switch profile right now. Please try again.'),
         ),
       );
     } finally {
@@ -409,7 +415,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           ),
                           ListTile(
                             onTap: () {
-                              Navigator.of(context).push(FaqWebviewPage.route());
+                              Navigator.of(context)
+                                  .push(FaqWebviewPage.route());
                             },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
@@ -438,18 +445,24 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           ),
                           ListTile(
                             onTap: () async {
-                              final userRepository = context.read<UserRepository>();
+                              final userRepository =
+                                  context.read<UserRepository>();
                               try {
                                 final user = await userRepository.getUser();
                                 final payload = await MobileContactRepository(
                                   httpClient: userRepository.httpClient,
                                 ).fetch(user);
-                                final message = payload['message']?.toString() ?? 'Contact information loaded.';
+                                final message =
+                                    payload['message']?.toString() ??
+                                        'Contact information loaded.';
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(message)));
                               } catch (error) {
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(
+                                        'Unable to load contact info: $error')));
                               }
                             },
                             minVerticalPadding: 0,

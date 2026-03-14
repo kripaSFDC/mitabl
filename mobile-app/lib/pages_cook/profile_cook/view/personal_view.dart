@@ -31,7 +31,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response = await userRepository.switchRole(roleId: AppConstants.FOODI);
+      final response =
+          await userRepository.switchRole(roleId: AppConstants.FOODI);
       if (!mounted) return;
 
       if (response.statusCode == 200) {
@@ -58,7 +59,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Unable to switch profile right now. Please try again.'),
+          content:
+              Text('Unable to switch profile right now. Please try again.'),
         ),
       );
     } finally {
@@ -213,6 +215,9 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                             ),
                     ),
                     ListTile(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/Payments');
+                      },
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
                       leading: Row(
@@ -245,12 +250,16 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           final payload = await MobileContactRepository(
                             httpClient: userRepository.httpClient,
                           ).fetch(user);
-                          final message = payload['message']?.toString() ?? 'Contact information loaded.';
+                          final message = payload['message']?.toString() ??
+                              'Contact information loaded.';
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(message)));
                         } catch (error) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to load contact info: $error')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content:
+                                  Text('Unable to load contact info: $error')));
                         }
                       },
                       minVerticalPadding: 0,
