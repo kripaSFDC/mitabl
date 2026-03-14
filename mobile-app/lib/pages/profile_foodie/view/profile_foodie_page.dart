@@ -180,6 +180,38 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                     ),
                   ),
                   ListTile(
+                    onTap: () async {
+                      final userRepository = context.read<UserRepository>();
+                      try {
+                        final response = await userRepository.getDashboardData();
+                        if (!context.mounted) return;
+
+                        if (response.statusCode == 200) {
+                          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+                            '/DashboardCook',
+                            (route) => false,
+                          );
+                          return;
+                        }
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'micook profile is not available for this account.',
+                            ),
+                          ),
+                        );
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Unable to switch profile right now. Please try again.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     minVerticalPadding: 0,
                     contentPadding: EdgeInsets.zero,
                     leading: Row(
@@ -193,7 +225,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           width: config.AppConfig(context).appWidth(4),
                         ),
                         Text(
-                          'Became micook',
+                          'switch to micook',
                           style: GoogleFonts.gothicA1(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: config.AppConfig(context).appWidth(5),
@@ -202,13 +234,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         )
                       ],
                     ),
-                    trailing: SizedBox(
-                      width: config.AppConfig(context).appWidth(20),
-                      child: Switch(
-                        value: false,
-                        inactiveTrackColor: Theme.of(context).primaryColorDark,
-                        onChanged: (val) {},
-                      ),
+                    trailing: Icon(
+                      Icons.swap_horiz,
+                      color: Theme.of(context).primaryColorDark,
                     ),
                   ),
                   const Divider(
@@ -457,6 +485,34 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                     Theme.of(context).primaryColorDark,
                                 onChanged: _onBiometricChanged,
                               ),
+                            ),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              context.read<ProfileFoodieCubit>().doLogout();
+                            },
+                            minVerticalPadding: 0,
+                            contentPadding: EdgeInsets.zero,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.exit_to_app,
+                                  size: config.AppConfig(context).appHeight(4),
+                                ),
+                                SizedBox(
+                                  width: config.AppConfig(context).appWidth(4),
+                                ),
+                                Text(
+                                  'logout',
+                                  style: GoogleFonts.gothicA1(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: config.AppConfig(context)
+                                          .appWidth(4.5),
+                                      fontWeight: FontWeight.w400),
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              ],
                             ),
                           ),
                         ],

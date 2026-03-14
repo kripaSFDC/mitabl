@@ -127,6 +127,12 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     ListTile(
+                      onTap: () {
+                        navigatorKey.currentState!.pushNamedAndRemoveUntil(
+                          '/HomePage',
+                          (route) => false,
+                        );
+                      },
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
                       leading: Row(
@@ -140,7 +146,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                             width: config.AppConfig(context).appWidth(4),
                           ),
                           Text(
-                            'Became mifoodi',
+                            'switch to mifoodi',
                             style: GoogleFonts.gothicA1(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: config.AppConfig(context).appWidth(5),
@@ -149,13 +155,9 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           )
                         ],
                       ),
-                      trailing: SizedBox(
-                        width: config.AppConfig(context).appWidth(20),
-                        child: Switch(
-                          value: false,
-                          inactiveTrackColor: Theme.of(context).primaryColorDark,
-                          onChanged: (val) {},
-                        ),
+                      trailing: Icon(
+                        Icons.swap_horiz,
+                        color: Theme.of(context).primaryColorDark,
                       ),
                     ),
                     ListTile(
