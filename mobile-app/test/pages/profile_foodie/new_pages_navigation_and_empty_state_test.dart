@@ -123,6 +123,57 @@ void main() {
 
     expect(find.text('No data found'), findsOneWidget);
   });
+
+  testWidgets('miorders page renders retry error state when repository throws',
+      (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>.value(
+        value: _FakeUserRepository(),
+        child: MaterialApp(
+          home: MiOrdersPage(repository: _ThrowingMiOrdersRepository()),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('No internet connection'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('favourites page renders retry error state when repository throws',
+      (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>.value(
+        value: _FakeUserRepository(),
+        child: MaterialApp(
+          home: FavouritesPage(repository: _ThrowingFavouritesRepository()),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('No internet connection'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('payments page renders retry error state when repository throws',
+      (tester) async {
+    await tester.pumpWidget(
+      RepositoryProvider<UserRepository>.value(
+        value: _FakeUserRepository(),
+        child: MaterialApp(
+          home: PaymentsPage(repository: _ThrowingPaymentsRepository()),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('No internet connection'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
 }
 
 class _FakeUserRepository extends UserRepository {
@@ -165,5 +216,43 @@ class _FakePaymentsRepository extends PaymentsRepository {
   @override
   Future<List<Map<String, dynamic>>> fetchSavedCards({required UserModel? userModel}) async {
     return const [];
+  }
+}
+
+class _ThrowingMiOrdersRepository extends MiOrdersRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchOrdersHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw Exception('network issue');
+  }
+}
+
+class _ThrowingFavouritesRepository extends FavouritesRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchFavourites({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw Exception('network issue');
+  }
+}
+
+class _ThrowingPaymentsRepository extends PaymentsRepository {
+  @override
+  Future<List<Map<String, dynamic>>> fetchPaymentsHistory({
+    required UserModel? userModel,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    throw Exception('network issue');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchSavedCards({required UserModel? userModel}) async {
+    throw Exception('network issue');
   }
 }

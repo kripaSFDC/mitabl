@@ -49,6 +49,27 @@ void main() {
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
     });
+
+    test('fetchOrdersHistory parses nested orders list payload shape', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'data': {
+              'orders': [
+                {'id': 'ord-1', 'status': 'completed'}
+              ]
+            }
+          }),
+          200,
+        );
+      });
+
+      final repository = MiOrdersRepository(httpClient: client);
+      final records = await repository.fetchOrdersHistory(userModel: _buildUser());
+
+      expect(records, hasLength(1));
+      expect(records.first['id'], 'ord-1');
+    });
   });
 
   group('FavouritesRepository', () {
@@ -92,6 +113,16 @@ void main() {
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
       expect(capturedRequest.bodyFields['target_id'], 'kitchen-42');
     });
+
+    test('fetchFavourites throws on non-200 response', () async {
+      final client = MockClient((_) async => http.Response('{}', 500));
+      final repository = FavouritesRepository(httpClient: client);
+
+      expect(
+        repository.fetchFavourites(userModel: _buildUser()),
+        throwsException,
+      );
+    });
   });
 
   group('PaymentsRepository', () {
@@ -131,6 +162,25 @@ void main() {
       );
       expect(capturedRequest.method, 'GET');
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
+    });
+
+    test('fetchSavedCards parses cards list payload shape', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'cards': [
+              {'brand': 'visa', 'last4': '4242'}
+            ]
+          }),
+          200,
+        );
+      });
+
+      final repository = PaymentsRepository(httpClient: client);
+      final cards = await repository.fetchSavedCards(userModel: _buildUser());
+
+      expect(cards, hasLength(1));
+      expect(cards.first['last4'], '4242');
     });
   });
 }
