@@ -101,9 +101,8 @@ class AccountProfileService
         }
 
         $roleTransition = $this->buildRoleTransitionState($user, $targetRoleId, $membership);
-
         return [
-            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable', 'roleMemberships.role']),
             'role_transition' => $roleTransition,
             'onboarding_required' => (bool) ($roleTransition['onboarding_required'] ?? false),
         ];
@@ -135,9 +134,8 @@ class AccountProfileService
             'next_required_step' => null,
             'checklist' => [],
         ];
-
         return [
-            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+            'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable', 'roleMemberships.role']),
             'role_transition' => $transition + [
                 'onboarding_started' => true,
                 'next_required_step' => $transition['missing'][0] ?? null,
@@ -287,6 +285,20 @@ class AccountProfileService
             ->all();
 
         $membership = $membership ?? $user->roleMembershipFor($targetRoleId);
+
+        if ($membership && $targetRoleId === 2) {
+            $desiredStatus = count($missing) === 0
+                ? UserRole::STATUS_ACTIVE
+                : UserRole::STATUS_ONBOARDING;
+
+            if ($membership->status !== $desiredStatus) {
+                $membership->status = $desiredStatus;
+                $membership->save();
+            }
+
+            $membership->refresh();
+        }
+
         $onboardingRequired = count($missing) > 0 || ($membership && $membership->status === UserRole::STATUS_ONBOARDING);
 
         return [
