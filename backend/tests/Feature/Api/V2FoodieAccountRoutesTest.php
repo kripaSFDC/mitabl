@@ -61,6 +61,33 @@ class V2FoodieAccountRoutesTest extends TestCase
             ->assertJsonPath('data.pagination.total_pages', 1);
     }
 
+
+    public function test_toggle_favorite_updates_state_for_customer(): void
+    {
+        $foodie = $this->createUser(3, 'foodie-favorite@example.test');
+        $restaurantOwner = $this->createUser(2, 'kitchen-favorite@example.test');
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $restaurantOwner->id,
+            'name' => 'Kitchen Favorite',
+            'address' => 'Kitchen Street',
+            'phone' => '1234567890',
+            'no_of_seats' => 12,
+            'timings' => '{}',
+            'status' => 1,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->postJson('/api/v2/account/favorites/toggle', ['restaurant_id' => $kitchen->id])
+            ->assertOk()
+            ->assertJsonPath('data.favorite', 1);
+
+        $this->postJson('/api/v2/account/favorites/toggle', ['restaurant_id' => $kitchen->id])
+            ->assertOk()
+            ->assertJsonPath('data.favorite', 0);
+    }
+
     public function test_order_history_pagination_metadata_is_consistent(): void
     {
         $foodie = $this->createUser(3, 'foodie-pagination@example.test');
@@ -106,6 +133,22 @@ class V2FoodieAccountRoutesTest extends TestCase
             ->assertJsonPath('data.pagination.has_more', false);
 
         $this->assertCount(1, $response->json('data.items'));
+    }
+
+
+    public function test_orders_and_payments_reject_invalid_status_filter_shape(): void
+    {
+        $foodie = $this->createUser(3, 'foodie-invalid-filters@example.test');
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/account/orders?status=abc,2')
+            ->assertStatus(422)
+            ->assertJsonPath('isSuccess', false);
+
+        $this->getJson('/api/v2/account/payments/history?status=succeeded,*')
+            ->assertStatus(422)
+            ->assertJsonPath('isSuccess', false);
     }
 
     public function test_payment_history_supports_filters_and_pagination_metadata(): void

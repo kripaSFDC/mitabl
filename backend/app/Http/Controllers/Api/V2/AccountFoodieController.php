@@ -20,7 +20,7 @@ class AccountFoodieController extends Controller
         $validator = Validator::make($request->query(), [
             'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'status' => ['nullable', 'string'],
+            'status' => ['nullable', 'regex:/^\d+(,\d+)*$/'],
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from_date'],
         ]);
@@ -30,6 +30,8 @@ class AccountFoodieController extends Controller
         }
 
         $limit = (int) ($request->query('limit', 10));
+        $page = (int) ($request->query('page', 1));
+
         $query = Order::query()
             ->withCasts([
                 'delivery_date' => 'date',
@@ -48,15 +50,7 @@ class AccountFoodieController extends Controller
             ->where('user_id', (int) Auth::id());
 
         if ($request->filled('status')) {
-            $statusFilters = collect(explode(',', (string) $request->query('status')))
-                ->map(fn ($status) => trim((string) $status))
-                ->filter(fn ($status) => $status !== '' && is_numeric($status))
-                ->map(fn ($status) => (int) $status)
-                ->values();
-
-            if ($statusFilters->isNotEmpty()) {
-                $query->whereIn('status', $statusFilters->all());
-            }
+            $query->whereIn('status', $this->parseIntegerStatusFilter((string) $request->query('status')));
         }
 
         if ($request->filled('from_date')) {
@@ -67,7 +61,7 @@ class AccountFoodieController extends Controller
             $query->whereDate('delivery_date', '<=', (string) $request->query('to_date'));
         }
 
-        $paginator = $query->orderByDesc('id')->paginate($limit);
+        $paginator = $query->orderByDesc('id')->paginate($limit, ['*'], 'page', $page);
 
         return $this->responser([
             'total_count' => $paginator->total(),
@@ -88,13 +82,14 @@ class AccountFoodieController extends Controller
         }
 
         $limit = (int) ($request->query('limit', 10));
+        $page = (int) ($request->query('page', 1));
         $user = Auth::user();
 
         $paginator = $user->getFavoriteItems(Mikitchn::class)
             ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status'])
             ->withAvg('reviews', 'rating')
             ->orderByDesc('id')
-            ->paginate($limit);
+            ->paginate($limit, ['*'], 'page', $page);
 
         $paginator->getCollection()->each(function (Mikitchn $kitchen): void {
             $kitchen->setAttribute('is_favourited', true);
@@ -110,7 +105,7 @@ class AccountFoodieController extends Controller
     public function toggleFavorite(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'restaurant_id' => ['required', 'integer', 'exists:mikitchns,id'],
+            'restaurant_id' => ['required', 'integer'],
         ]);
 
         if ($validator->fails()) {
@@ -136,7 +131,7 @@ class AccountFoodieController extends Controller
         $validator = Validator::make($request->query(), [
             'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'status' => ['nullable', 'string'],
+            'status' => ['nullable', 'regex:/^[A-Za-z0-9_\-]+(,[A-Za-z0-9_\-]+)*$/'],
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from_date'],
         ]);
@@ -146,15 +141,15 @@ class AccountFoodieController extends Controller
         }
 
         $limit = (int) ($request->query('limit', 10));
+        $page = (int) ($request->query('page', 1));
 
         $query = Payment::query()
-            ->with('order')
             ->whereHas('order', function ($orderQuery): void {
                 $orderQuery->where('user_id', (int) Auth::id());
             });
 
         if ($request->filled('status')) {
-            $query->where('status', (string) $request->query('status'));
+            $query->whereIn('status', $this->parseStringStatusFilter((string) $request->query('status')));
         }
 
         if ($request->filled('from_date')) {
@@ -165,7 +160,7 @@ class AccountFoodieController extends Controller
             $query->whereDate('created_at', '<=', (string) $request->query('to_date'));
         }
 
-        $paginator = $query->orderByDesc('id')->paginate($limit);
+        $paginator = $query->orderByDesc('id')->paginate($limit, ['*'], 'page', $page);
 
         $items = $paginator->getCollection()->map(function (Payment $payment): array {
             return [
@@ -186,6 +181,25 @@ class AccountFoodieController extends Controller
             'items' => $items,
             'pagination' => $this->paginationMeta($paginator),
         ], 'customer payment history.');
+    }
+
+    private function parseIntegerStatusFilter(string $statusFilter): array
+    {
+        return collect(explode(',', $statusFilter))
+            ->map(fn (string $status) => (int) trim($status))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function parseStringStatusFilter(string $statusFilter): array
+    {
+        return collect(explode(',', $statusFilter))
+            ->map(fn (string $status) => trim($status))
+            ->filter(fn (string $status) => $status !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function paginationMeta(LengthAwarePaginator $paginator): array
