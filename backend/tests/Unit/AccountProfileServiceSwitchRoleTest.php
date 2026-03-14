@@ -10,6 +10,7 @@ use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Mockery;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AccountProfileServiceSwitchRoleTest extends TestCase
@@ -32,9 +33,24 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->app->instance(PaymentService::class, $paymentService);
     }
 
+
+    private function createUser(int $roleId): User
+    {
+        return User::query()->create([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'user' . uniqid('', true) . '@example.test',
+            'password' => Hash::make('password123'),
+            'phone' => '0400000000',
+            'role_id' => $roleId,
+            'email_verified' => true,
+            'address' => 'test',
+        ]);
+    }
+
     public function test_switch_role_rejects_invalid_target_role(): void
     {
-        $user = User::factory()->create(['role_id' => 3]);
+        $user = $this->createUser(3);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,
@@ -48,7 +64,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
     public function test_switch_role_to_micook_returns_transition_state_for_first_time_conversion(): void
     {
-        $user = User::factory()->create(['role_id' => 3]);
+        $user = $this->createUser(3);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,
@@ -66,9 +82,23 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         ]);
     }
 
+    public function test_switch_role_to_existing_micook_still_returns_transition_payload(): void
+    {
+        $user = $this->createUser(2);
+
+        $result = app(AccountProfileService::class)->switchRole(
+            $user,
+            Request::create('/api/v2/account/switch-role', 'POST', ['role_id' => 2])
+        );
+
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame('onboarding_required', $result['role_transition']['state']);
+        $this->assertSame(['vendor_account', 'kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+    }
+
     public function test_switch_role_allows_micook_when_vendor_onboarding_exists(): void
     {
-        $user = User::factory()->create(['role_id' => 3]);
+        $user = $this->createUser(3);
         $stripeAccount = new StripeAccount();
         $stripeAccount->user_id = $user->id;
         $stripeAccount->account_type = 'vendor';
@@ -88,7 +118,7 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
 
     public function test_switch_role_allows_micook_when_kitchen_profile_exists(): void
     {
-        $user = User::factory()->create(['role_id' => 3]);
+        $user = $this->createUser(3);
         Mikitchn::query()->create([
             'user_id' => $user->id,
             'name' => 'Kitchen Test',
@@ -109,10 +139,9 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertSame(['certificate'], $result['role_transition']['missing']);
     }
 
-
     public function test_start_cook_onboarding_promotes_role_and_returns_next_step(): void
     {
-        $user = User::factory()->create(['role_id' => 3]);
+        $user = $this->createUser(3);
 
         $result = app(AccountProfileService::class)->startCookOnboarding($user);
 
@@ -121,11 +150,28 @@ class AccountProfileServiceSwitchRoleTest extends TestCase
         $this->assertTrue($result['role_transition']['onboarding_started']);
         $this->assertSame('onboarding_required', $result['role_transition']['state']);
         $this->assertSame(['kitchen_profile', 'certificate'], $result['role_transition']['missing']);
+        $this->assertSame('kitchen_profile', $result['role_transition']['next_required_step']);
+    }
+
+    public function test_start_cook_onboarding_does_not_promote_role_when_vendor_provisioning_fails(): void
+    {
+        $user = $this->createUser(3);
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('createVendor')->andThrow(new \RuntimeException('stripe unavailable'));
+        $paymentService->shouldReceive('createCustomer')->andReturn((object) ['id' => 'cus_test_123']);
+        $this->app->instance(PaymentService::class, $paymentService);
+
+        $result = app(AccountProfileService::class)->startCookOnboarding($user);
+
+        $this->assertSame(422, $result['status']);
+        $this->assertSame('Unable to create Stripe account.', $result['error']);
+        $this->assertSame(3, (int) $user->fresh()->role_id);
     }
 
     public function test_switch_role_to_mifoodi_is_always_allowed_for_authenticated_user(): void
     {
-        $user = User::factory()->create(['role_id' => 2]);
+        $user = $this->createUser(2);
 
         $result = app(AccountProfileService::class)->switchRole(
             $user,

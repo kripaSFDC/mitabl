@@ -62,7 +62,10 @@ class AccountProfileService
 
         $targetRoleId = (int) $request->input('role_id');
         if ((int) $user->role_id === $targetRoleId) {
-            return ['user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable'])];
+            return [
+                'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
+                'role_transition' => $this->buildRoleTransitionState($user, $targetRoleId),
+            ];
         }
 
         if ($targetRoleId === 2) {
@@ -83,19 +86,24 @@ class AccountProfileService
 
     public function startCookOnboarding(User $user): array
     {
-        if ((int) $user->role_id === 3) {
-            $user->role_id = 2;
-            $user->save();
-        }
-
         $provisionError = $this->ensureStripeAccountForRole($user, 2);
         if ($provisionError !== null) {
             return ['error' => $provisionError, 'status' => 422];
         }
 
+        if ((int) $user->role_id === 3) {
+            $user->role_id = 2;
+            $user->save();
+        }
+
+        $transition = $this->buildRoleTransitionState($user, 2) ?? ['state' => 'ready', 'missing' => []];
+
         return [
             'user' => $user->fresh(['role', 'restaurant.certificate', 'notifyDisable']),
-            'role_transition' => $this->buildRoleTransitionState($user, 2) + ['onboarding_started' => true],
+            'role_transition' => $transition + [
+                'onboarding_started' => true,
+                'next_required_step' => $transition['missing'][0] ?? null,
+            ],
         ];
     }
 
@@ -146,10 +154,17 @@ class AccountProfileService
                     return;
                 }
 
-                StripeAccount::query()->updateOrCreate(
-                    ['user_id' => $user->id, 'account_type' => $accountType],
-                    ['account_id' => (string) $account->id]
-                );
+                if ($locked) {
+                    $locked->account_id = (string) $account->id;
+                    $locked->save();
+                    return;
+                }
+
+                $stripeAccount = new StripeAccount();
+                $stripeAccount->user_id = $user->id;
+                $stripeAccount->account_type = $accountType;
+                $stripeAccount->account_id = (string) $account->id;
+                $stripeAccount->save();
             });
         } catch (QueryException $exception) {
             report($exception);
@@ -287,11 +302,17 @@ class AccountProfileService
 
     public function mobileContact(User $user): array
     {
+        $user->loadMissing(['role', 'notifyDisable']);
+
         return [
-            'role' => $user->role_id,
-            'id' => $user->id,
-            'email' => $user->email,
-            'phone' => $user->phone,
+            'id' => (int) $user->id,
+            'name' => trim((string) ($user->first_name . ' ' . $user->last_name)),
+            'email' => (string) $user->email,
+            'phone' => (string) ($user->phone ?? ''),
+            'role_id' => (int) $user->role_id,
+            'role' => (string) optional($user->role)->name,
+            'notifications_enabled' => ! (bool) $user->notifyDisable,
+            'has_device_token' => ! empty($user->device_token),
         ];
     }
 }
