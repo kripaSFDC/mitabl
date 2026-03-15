@@ -78,10 +78,10 @@ class PaymentsRepository {
     final response = await _httpClient
         .post(
           ApiContract.uri('v2/payments/cards'),
-          headers: {
-            ...authorizedHeadersForUser(userModel),
-            'Content-Type': 'application/json',
-          },
+          headers: authorizedHeadersForUser(
+            userModel,
+            includeJsonContentType: true,
+          ),
           body: jsonEncode({'payment_method_id': paymentMethodId}),
         )
         .timeout(ApiContract.requestTimeout);
@@ -107,7 +107,7 @@ class PaymentsRepository {
     return decoded;
   }
 
-  Future<String?> createCardCheckoutSession({
+  Future<String> createCardCheckoutSession({
     required UserModel? userModel,
   }) async {
     final response = await _httpClient
@@ -127,7 +127,7 @@ class PaymentsRepository {
 
     final dynamic decoded = jsonDecode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      return null;
+      throw const FormatException('Invalid checkout session response format.');
     }
 
     final dynamic topLevelUrl = decoded['url'];
@@ -143,7 +143,7 @@ class PaymentsRepository {
       }
     }
 
-    return null;
+    throw const FormatException('Checkout session URL missing from response.');
   }
 
   List<dynamic> _extractList(dynamic decoded, List<String> keys) {

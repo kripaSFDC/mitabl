@@ -321,6 +321,13 @@ trait HandlesUserPayments
         return $result;
     }
 
+    public function accountCompletionStatus()
+    {
+        return $this->responser([
+            'completed' => (bool) $this->checkaccountComplted(),
+        ], 'vendor account completion status.');
+    }
+
     public function createAccLoginLink()
     {
         if (! Auth::user()->vendor) {
