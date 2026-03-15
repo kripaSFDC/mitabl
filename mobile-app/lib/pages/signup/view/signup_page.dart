@@ -8,6 +8,7 @@ import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../cubit/sign_up_cubit.dart';
+import 'package:mitabl_user/model/international_phone.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({
@@ -1007,88 +1008,109 @@ class _PhoneNo extends StatefulWidget {
 }
 
 class _PhoneNoState extends State<_PhoneNo> {
+  late final TextEditingController _countryCodeController;
+  late final TextEditingController _phoneController;
+
+  @override
+  void initState() {
+    super.initState();
+    _countryCodeController = TextEditingController(text: '+61');
+    _phoneController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _countryCodeController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          // controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.phone,
-          maxLength: 14,
-          onChanged: (text) {
-            context.read<SignUpCubit>().onPhoneChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.phone.invalid ? 'Please enter a valid phone no' : null,
-            prefixIcon: Padding(
-              padding: EdgeInsets.only(
-                  left: config.AppConfig(context).appWidth(4.0),
-                  right: config.AppConfig(context).appWidth(3.0)),
-              child: Text(
-                '+61',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: config.FontFamily().book,
-                    color: Theme.of(context).hintColor),
-              ),
-            ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-            hintStyle: TextStyle(
-                color: Theme.of(context).hintColor,
-                fontSize: 16,
-                fontWeight: config.FontFamily().book),
-            // labelText: 'Mobile Number',
-            hintText: 'Phone',
-            contentPadding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(3)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
-              ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
-              ),
+      return Row(
+        children: [
+          SizedBox(
+            width: config.AppConfig(context).appWidth(22),
+            child: TextFormField(
+              controller: _countryCodeController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+              ],
+              maxLength: 5,
+              onChanged: (value) {
+                context.read<SignUpCubit>().onCountryCodeChanged(
+                      value: value,
+                      localNumber: _phoneController.text,
+                    );
+              },
+              decoration: _phoneInputDecoration(context,
+                  hintText: '+61', showError: state.phone.invalid),
             ),
           ),
-        ),
+          SizedBox(width: config.AppConfig(context).appWidth(3)),
+          Expanded(
+            child: TextFormField(
+              controller: _phoneController,
+              style: const TextStyle(color: Colors.black, fontSize: 16),
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 14,
+              onChanged: (text) {
+                context.read<SignUpCubit>().onPhoneChanged(
+                    value: InternationalPhone.compose(
+                        countryCode: _countryCodeController.text,
+                        number: text));
+              },
+              decoration: _phoneInputDecoration(context,
+                  hintText: 'Phone', showError: state.phone.invalid),
+            ),
+          ),
+        ],
       );
     });
+  }
+
+  InputDecoration _phoneInputDecoration(BuildContext context,
+      {required String hintText, required bool showError}) {
+    return InputDecoration(
+      counterText: '',
+      errorText: showError ? 'Enter valid country code and phone no' : null,
+      hintStyle: TextStyle(
+          color: Theme.of(context).hintColor,
+          fontSize: 16,
+          fontWeight: config.FontFamily().book),
+      hintText: hintText,
+      contentPadding: EdgeInsets.symmetric(
+          horizontal: config.AppConfig(context).appWidth(5),
+          vertical: config.AppConfig(context).appWidth(3)),
+      fillColor: config.AppColors().textFieldBackgroundColor(1),
+      filled: true,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+      border: InputBorder.none,
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.white),
+      ),
+    );
   }
 }
 

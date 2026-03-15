@@ -2,7 +2,8 @@ part of 'sign_up_cubit.dart';
 
 class SignUpState extends Equatable {
   const SignUpState(
-      {this.phone = const Phone.pure(),
+      {this.phone = const InternationalPhone.pure(),
+      this.countryCode = '+61',
       this.email = const Email.pure(),
       this.nameFirst = const Name.pure(),
       this.nameLast = const Name.pure(),
@@ -20,7 +21,8 @@ class SignUpState extends Equatable {
   final Name? address;
   final Name? nameLast;
   final Email? email;
-  final Phone phone;
+  final InternationalPhone phone;
+  final String countryCode;
   final FormzStatus? status;
   final FormzStatus? statusApi;
   final int selectedRole;
@@ -43,7 +45,8 @@ class SignUpState extends Equatable {
       Name? nameLast,
       Email? email,
       String? serverMessage,
-      Phone? phone}) {
+      InternationalPhone? phone,
+      String? countryCode}) {
     return SignUpState(
         statusApi: statusApi ?? this.statusApi,
         showConfirmPassword: showConfirmPassword ?? this.showConfirmPassword,
@@ -57,7 +60,8 @@ class SignUpState extends Equatable {
         email: email ?? this.email,
         nameFirst: nameFirst ?? this.nameFirst,
         nameLast: nameLast ?? this.nameLast,
-        phone: phone ?? this.phone);
+        phone: phone ?? this.phone,
+        countryCode: countryCode ?? this.countryCode);
   }
 
   @override
@@ -74,6 +78,7 @@ class SignUpState extends Equatable {
         nameFirst,
         phone,
         email,
+        countryCode,
         serverMessage
       ];
 }

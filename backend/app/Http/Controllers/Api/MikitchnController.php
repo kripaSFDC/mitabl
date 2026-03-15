@@ -135,7 +135,7 @@ class MikitchnController extends Controller
             'address' => 'required',
             'no_of_seats' => 'required|integer|min:1',
             'timings' => 'required|string',
-            'phone' => 'required|string',
+            'phone' => ['required', 'string', 'max:20', 'regex:/^\+[1-9]\d{6,14}$/'],
             'abn' => 'nullable|string',
             'certificate_no' => 'nullable|string',
             'lat' => 'nullable|numeric|between:-90,90|required_with:lng',
