@@ -429,6 +429,6 @@ Register/login/OTP -> remain/switch to foodie role -> discover kitchens (nearest
 
 1. Route gap: `OrderController::store` is implemented but unreachable due to missing route registration.
 2. Client/backend mismatch: mobile calls `v2/account/delete` but backend does not expose it.
-3. Maintainability cleanup candidates: typos and naming inconsistencies (`myUpcomingOrderss`, text typos like `Kitchecn`) can be normalized.
+3. Maintainability cleanup candidates: typos and naming inconsistencies (`myUpcomingOrders`, text typos like `Kitchecn`) can be normalized.
 4. Optional product clarity: if keyword search or live tracking is expected, dedicated route contracts need to be added (currently absent).
 

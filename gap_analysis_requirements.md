@@ -139,9 +139,7 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 
 `kitchenupcomingorders`, `kitchenorderrequest`, `allorders` all return `delivery_date`, `delivery_time_from`, `delivery_time_to` via the `Order` resource. Filter by `take_away` / `dine_in` sort exists.
 
-> **Caveat:** There is a **typo in the method name** - `myUpcomingOrderss` (double `s`). The route maps to it correctly but it is a maintenance risk. 
-
--> Fix the method name to myUpcomingOrders and also all references to this method should be updated. there MUST not be any method name or reference or method call or instanciation etc. for myUpcomingOrderss.
+> **Caveat:** A previous typo existed in this method name in older revisions. Ensure only `myUpcomingOrders` is used everywhere and no legacy typo references remain.
 
 ---
 
