@@ -30,6 +30,10 @@ class Food extends JsonResource
             'status' => $this->status,
             'dine_in' => (int) ($this->dine_in ?? 1),
             'take_away' => (int) ($this->take_away ?? 1),
+            'available_date' => $this->available_date?->toDateString(),
+            'available_days' => collect($this->available_days ?? [])->map(fn ($value): int => (int) $value)->values()->all(),
+            'available_from_time' => $this->available_from_time ? substr((string) $this->available_from_time, 0, 5) : null,
+            'available_to_time' => $this->available_to_time ? substr((string) $this->available_to_time, 0, 5) : null,
             'description' => $this->description,
         ];
     }

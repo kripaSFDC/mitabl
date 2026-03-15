@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\WatchSubscription;
 use App\Models\Tag;
+use App\Models\DineInSlot;
 use App\Models\InternalNote;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -197,9 +198,15 @@ class Mikitchn extends Model
         return $this->hasMany(Timing::class);
     }
 
+    public function dineInSlots()
+    {
+        return $this->hasMany(DineInSlot::class, 'mikitchn_id');
+    }
+
     public function delete() {
         return DB::transaction(function () {
             $this->weektimings()->delete();
+            $this->dineInSlots()->delete();
             $this->reviews()->delete();
             $this->certificate()->delete();
             $this->addedimage()->delete();

@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
+use App\Http\Resources\Restaurant\DineInSlot as DineInSlotResource;
 use App\Models\Mikitchn;
+use App\Services\DineInSlotService;
 use App\Services\DiscoveryService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -13,7 +16,10 @@ use Illuminate\Support\Facades\Validator;
 
 class DiscoveryController extends Controller
 {
-    public function __construct(private DiscoveryService $discoveryService)
+    public function __construct(
+        private DiscoveryService $discoveryService,
+        private DineInSlotService $dineInSlotService
+    )
     {
     }
 
@@ -64,6 +70,7 @@ class DiscoveryController extends Controller
                 'addedimage:id,ref_id,model_name,path',
                 'certificate:id,mikitchn_id,abn,abn_gst,status',
                 'weektimings',
+                'dineInSlots',
                 'user:id,first_name,last_name,avatar,role_id,description',
                 'foods' => function ($foodQuery) use ($request): void {
                     $foodQuery->active()
@@ -102,6 +109,19 @@ class DiscoveryController extends Controller
             'is_favourited',
             Auth::guard('api')->check() ? Auth::guard('api')->user()->hasFavorited($restaurant) : false
         );
+        if ($restaurant->relationLoaded('foods')) {
+            $restaurant->setRelation('foods', collect($restaurant->foods)->filter(function ($food) use ($request) {
+                if (! $request->filled('delivery_date')) {
+                    return true;
+                }
+
+                return $food->isScheduledFor(
+                    Carbon::parse((string) $request->query('delivery_date'))->startOfDay(),
+                    $request->query('delivery_time_from'),
+                    $request->query('delivery_time_to')
+                );
+            })->values());
+        }
 
         return $this->responser(new RestaurantResource($restaurant), 'restaurant data.');
     }
@@ -119,6 +139,36 @@ class DiscoveryController extends Controller
         $data = $this->discoveryService->menu($request, $id)['data'];
 
         return $this->responser($data, 'restaurant menu.');
+    }
+
+    public function dineInSlots(Request $request, int $id)
+    {
+        $validator = Validator::make($request->query(), [
+            'date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'persons' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
+        }
+
+        $restaurant = Mikitchn::query()
+            ->whereKey($id)
+            ->where('status', 1)
+            ->where('dine_in', 1)
+            ->first();
+
+        if (! $restaurant) {
+            return $this->responser([], 'restaurant not found.', 404);
+        }
+
+        $slots = $this->dineInSlotService->getAvailabilityForDate(
+            $restaurant,
+            Carbon::parse((string) $request->query('date')),
+            $request->filled('persons') ? (int) $request->query('persons') : null
+        );
+
+        return $this->responser(DineInSlotResource::collection($slots), 'restaurant dine-in slots.');
     }
 
     public function search(Request $request)
@@ -141,6 +191,9 @@ class DiscoveryController extends Controller
             'lon' => ['nullable', 'numeric', 'between:-180,180', 'required_with:lat'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
             'page' => ['nullable', 'integer', 'min:1'],
+            'delivery_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'delivery_time_from' => ['nullable', 'date_format:H:i'],
+            'delivery_time_to' => ['nullable', 'date_format:H:i', 'after:delivery_time_from'],
         ];
 
         if ($includeSearchTerm) {

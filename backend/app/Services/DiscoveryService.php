@@ -6,6 +6,7 @@ use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 use App\Models\Foods;
 use App\Models\Mikitchn;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DiscoveryService
 {
@@ -152,10 +154,11 @@ class DiscoveryService
 
         $this->applyFoodAvailabilityFilters($request, $foods);
 
+        $foodCollection = $foods->orderBy('food_name')->get();
+        $foodCollection = $this->filterScheduledFoods($foodCollection, $request);
+
         return [
-            'data' => FoodResource::collection(
-                $foods->orderBy('food_name')->get()
-            )->resolve(),
+            'data' => FoodResource::collection($foodCollection)->resolve(),
         ];
     }
 
@@ -199,7 +202,46 @@ class DiscoveryService
         }
 
         $start = microtime(true);
-        $result = $this->remember('search', $request, function () use ($query, $limit, $page, $term, $dineIn, $takeAway) {
+        $result = $this->remember('search', $request, function () use ($query, $limit, $page, $term, $dineIn, $takeAway, $request) {
+            if ($request->filled('delivery_date')) {
+                $allMatchingKitchens = $query->get();
+                $allMatchingKitchens->load([
+                    'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
+                        $foodQuery->active()
+                            ->searchTerm($term)
+                            ->availableForOrderType($dineIn, $takeAway)
+                            ->with('addedimage:id,ref_id,model_name,path')
+                            ->orderBy('food_name');
+                    },
+                ]);
+
+                $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
+                $kitchens = $allMatchingKitchens
+                    ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
+                    ->values();
+
+                $totalCount = $kitchens->count();
+                $pagedKitchens = $kitchens->slice(($page - 1) * $limit, $limit)->values();
+                $paginator = new LengthAwarePaginator(
+                    $pagedKitchens,
+                    $totalCount,
+                    $limit,
+                    $page,
+                    ['path' => LengthAwarePaginator::resolveCurrentPath()]
+                );
+
+                $pagedKitchens = collect($paginator->items());
+                $pagedKitchens->each(function ($kitchen): void {
+                    $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
+                });
+                $this->annotateFavorites($pagedKitchens);
+
+                return [
+                    'total_count' => $totalCount,
+                    'kitchens' => RestaurantResource::collection($pagedKitchens)->resolve(),
+                ];
+            }
+
             [$kitchens, $totalCount] = $this->executePagedQuery($query, $limit, $page);
 
             $kitchens->load([
@@ -211,6 +253,9 @@ class DiscoveryService
                         ->orderBy('food_name');
                 },
             ]);
+
+            $this->applyScheduledFoodFilteringToKitchens($kitchens, $request);
+            $kitchens = $kitchens->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())->values();
 
             $kitchens = $kitchens->makeHidden(['reviews', 'addedimage', 'certificate']);
             $this->annotateFavorites($kitchens);
@@ -270,6 +315,32 @@ class DiscoveryService
         $takeAway = $request->has('take_away') ? (int) $request->query('take_away') : null;
 
         $query->availableForOrderType($dineIn, $takeAway);
+    }
+
+    private function applyScheduledFoodFilteringToKitchens(Collection $kitchens, Request $request): void
+    {
+        foreach ($kitchens as $kitchen) {
+            if (! $kitchen->relationLoaded('foods')) {
+                continue;
+            }
+
+            $kitchen->setRelation('foods', $this->filterScheduledFoods($kitchen->foods, $request));
+        }
+    }
+
+    private function filterScheduledFoods(Collection $foods, Request $request): Collection
+    {
+        if (! $request->filled('delivery_date')) {
+            return $foods->values();
+        }
+
+        $deliveryDate = Carbon::parse((string) $request->query('delivery_date'))->startOfDay();
+        $deliveryTimeFrom = $request->query('delivery_time_from');
+        $deliveryTimeTo = $request->query('delivery_time_to');
+
+        return $foods
+            ->filter(fn (Foods $food): bool => $food->isScheduledFor($deliveryDate, $deliveryTimeFrom, $deliveryTimeTo))
+            ->values();
     }
 
     private function remember(string $segment, Request $request, callable $callback): array

@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Restaurant;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Restaurant\DineInSlot as DineInSlotResource;
 
 class Restaurant extends JsonResource
 {
@@ -45,6 +46,7 @@ class Restaurant extends JsonResource
             'images' => $images,
             'foods' => Food::collection($this->whenLoaded('foods')),
             'weektimings' => $this->whenLoaded('weektimings'),
+            'dine_in_slots' => DineInSlotResource::collection($this->whenLoaded('dineInSlots')),
             'certificate' => $this->whenLoaded('certificate', function () {
                 return [
                     'id' => $this->certificate?->id,

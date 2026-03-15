@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\DineInSlot;
 use App\Models\Foods;
 use App\Models\Mikitchn;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +101,95 @@ class DiscoveryMenuAccessTest extends TestCase
             ->assertJsonPath('data.0.take_away', 1);
     }
 
+    public function test_menu_endpoint_filters_foods_by_schedule_for_requested_date(): void
+    {
+        [$foodie, $kitchen] = $this->createFoodieAndKitchen('schedule-filter-foodie@example.test', 'Schedule Kitchen');
+        $deliveryDate = now()->addDays(2);
+
+        Foods::query()->insert([
+            [
+                'restaurant_id' => $kitchen->id,
+                'food_name' => 'Scheduled Dish',
+                'pictures' => '[]',
+                'price' => 19.00,
+                'cookingstyle' => 1,
+                'specialDiet' => '[]',
+                'description' => 'Only on selected day',
+                'status' => 1,
+                'dine_in' => 1,
+                'take_away' => 1,
+                'available_days' => json_encode([$deliveryDate->dayOfWeek]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'restaurant_id' => $kitchen->id,
+                'food_name' => 'Other Day Dish',
+                'pictures' => '[]',
+                'price' => 17.00,
+                'cookingstyle' => 1,
+                'specialDiet' => '[]',
+                'description' => 'Not today',
+                'status' => 1,
+                'dine_in' => 1,
+                'take_away' => 1,
+                'available_days' => json_encode([$deliveryDate->copy()->addDay()->dayOfWeek]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/discovery/restaurants/' . $kitchen->id . '/menu?delivery_date=' . $deliveryDate->format('Y-m-d'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.food_name', 'Scheduled Dish');
+    }
+
+    public function test_dine_in_slot_endpoint_returns_remaining_capacity_for_selected_date(): void
+    {
+        [$foodie, $kitchen] = $this->createFoodieAndKitchen('slot-foodie@example.test', 'Slot Kitchen');
+        $deliveryDate = now()->addDay();
+
+        $slot = DineInSlot::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => $deliveryDate->dayOfWeek,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'seat_capacity' => 4,
+            'status' => 1,
+        ]);
+
+        Order::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'user_id' => $foodie->id,
+            'dine_in' => 1,
+            'take_away' => 0,
+            'persons' => 2,
+            'dine_in_slot_id' => $slot->id,
+            'delivery_date' => $deliveryDate->format('Y-m-d'),
+            'delivery_time_from' => '18:00:00',
+            'delivery_time_to' => '19:00:00',
+            'message' => null,
+            'item_total_price' => 20,
+            'promo_code' => null,
+            'taxes' => 0,
+            'total_price' => 20,
+            'status' => Order::STATUS_REQUESTED,
+            'paid' => 0,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/discovery/restaurants/' . $kitchen->id . '/dine-in-slots?date=' . $deliveryDate->format('Y-m-d') . '&persons=2')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $slot->id)
+            ->assertJsonPath('data.0.remaining_seats', 2)
+            ->assertJsonPath('data.0.is_available', true);
+    }
+
     public function test_search_returns_kitchens_with_matching_dishes(): void
     {
         [$foodie, $matchingKitchen] = $this->createFoodieAndKitchen('search-foodie@example.test', 'Kitchen Search');
@@ -182,6 +273,50 @@ class DiscoveryMenuAccessTest extends TestCase
             ->assertJsonCount(1, 'data.kitchens.0.foods')
             ->assertJsonPath('data.kitchens.0.foods.0.food_name', 'Take Away Pasta')
             ->assertJsonPath('data.kitchens.0.foods.0.take_away', 1);
+    }
+
+    public function test_search_with_delivery_date_filters_before_pagination(): void
+    {
+        $deliveryDate = now()->addDays(2);
+        [$foodie, $firstKitchen] = $this->createFoodieAndKitchen('search-schedule-foodie@example.test', 'Alpha Kitchen');
+        [, $secondKitchen] = $this->createFoodieAndKitchen('search-schedule-foodie-2@example.test', 'Beta Kitchen');
+
+        Foods::query()->create([
+            'restaurant_id' => $firstKitchen->id,
+            'food_name' => 'Pasta Alpha',
+            'pictures' => '[]',
+            'price' => 16.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Unavailable on requested day',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+            'available_days' => [$deliveryDate->copy()->addDay()->dayOfWeek],
+        ]);
+
+        Foods::query()->create([
+            'restaurant_id' => $secondKitchen->id,
+            'food_name' => 'Pasta Beta',
+            'pictures' => '[]',
+            'price' => 17.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Available on requested day',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+            'available_days' => [$deliveryDate->dayOfWeek],
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/discovery/search?q=pasta&delivery_date=' . $deliveryDate->format('Y-m-d') . '&limit=1&page=1')
+            ->assertOk()
+            ->assertJsonPath('data.total_count', 1)
+            ->assertJsonCount(1, 'data.kitchens')
+            ->assertJsonPath('data.kitchens.0.id', $secondKitchen->id)
+            ->assertJsonPath('data.kitchens.0.foods.0.food_name', 'Pasta Beta');
     }
 
     public function test_menu_rejects_invalid_service_type_filters(): void

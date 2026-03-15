@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Validator;
 use Storage,File;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 
 class FoodsController extends Controller
@@ -90,6 +91,11 @@ class FoodsController extends Controller
             'price' => 'required|numeric|gt:0',
             'dine_in' => 'nullable|integer|in:0,1',
             'take_away' => 'nullable|integer|in:0,1',
+            'available_date' => 'nullable|date_format:Y-m-d',
+            'available_days' => 'nullable|array',
+            'available_days.*' => 'integer|between:0,6',
+            'available_from_time' => 'nullable|date_format:H:i',
+            'available_to_time' => 'nullable|date_format:H:i|after:available_from_time',
         ]);
         // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
@@ -145,6 +151,19 @@ class FoodsController extends Controller
             return $this->responser([], 'Food item cannot enable take_away when the kitchen does not support take-away.', 422);
         }
 
+        $availableDate = $request->filled('available_date')
+            ? Carbon::parse((string) $request->input('available_date'))->toDateString()
+            : ($request->has('available_date') ? null : $existFood?->available_date?->toDateString());
+        $availableDays = $request->has('available_days')
+            ? array_values(array_unique(array_map('intval', (array) $request->input('available_days', []))))
+            : ($isUpdate ? $existFood?->available_days : null);
+        $availableFromTime = $request->filled('available_from_time')
+            ? Carbon::parse((string) $request->input('available_from_time'))->format('H:i:s')
+            : ($request->has('available_from_time') ? null : $existFood?->available_from_time);
+        $availableToTime = $request->filled('available_to_time')
+            ? Carbon::parse((string) $request->input('available_to_time'))->format('H:i:s')
+            : ($request->has('available_to_time') ? null : $existFood?->available_to_time);
+
         if ($isUpdate) {
             Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->update([
                 'food_name' => $request->food_name,
@@ -155,6 +174,10 @@ class FoodsController extends Controller
                 'pictures' => json_encode($ImgaesKitch),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
+                'available_date' => $availableDate,
+                'available_days' => $availableDays !== null ? json_encode($availableDays) : null,
+                'available_from_time' => $availableFromTime,
+                'available_to_time' => $availableToTime,
             ]);
             $msg = 'Food item Updated succesfully.';
             $foodId = $request->food_id;
@@ -180,6 +203,10 @@ class FoodsController extends Controller
                 'pictures' => json_encode($ImgaesKitch),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
+                'available_date' => $availableDate,
+                'available_days' => $availableDays !== null ? json_encode($availableDays) : null,
+                'available_from_time' => $availableFromTime,
+                'available_to_time' => $availableToTime,
             ])->id;
             $msg = 'Food item created succesfully.';
         }

@@ -3,12 +3,15 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Mikitchn;
+use App\Models\DineInSlot;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Mockery;
 use Tests\TestCase;
 
 class V2FoodieAccountRoutesTest extends TestCase
@@ -87,6 +90,10 @@ class V2FoodieAccountRoutesTest extends TestCase
     public function test_legacy_user_can_access_foodie_endpoints_after_role_switch_to_foodie(): void
     {
         $legacyRestaurant = $this->createUser(2, 'legacy-role-switch@example.test');
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('createCustomer')->once()->andReturn((object) ['id' => 'cus_feature_test_123']);
+        $this->app->instance(PaymentService::class, $paymentService);
 
         $this->assertDatabaseMissing('user_roles', [
             'user_id' => $legacyRestaurant->id,
@@ -210,6 +217,60 @@ class V2FoodieAccountRoutesTest extends TestCase
             ->assertJsonPath('data.pagination.has_more', false);
 
         $this->assertCount(1, $response->json('data.items'));
+    }
+
+    public function test_order_history_includes_selected_dine_in_slot_details(): void
+    {
+        $foodie = $this->createUser(3, 'foodie-dine-in-history@example.test');
+        $restaurantOwner = $this->createUser(2, 'kitchen-dine-in-history@example.test');
+
+        $deliveryDate = now()->addDay();
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $restaurantOwner->id,
+            'name' => 'Kitchen Dine In History',
+            'address' => 'Kitchen Street',
+            'phone' => '1234567890',
+            'no_of_seats' => 8,
+            'timings' => '{}',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+        ]);
+
+        $slot = DineInSlot::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => $deliveryDate->dayOfWeek,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'seat_capacity' => 4,
+            'status' => 1,
+        ]);
+
+        Order::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'user_id' => $foodie->id,
+            'dine_in' => 1,
+            'take_away' => 0,
+            'persons' => 2,
+            'dine_in_slot_id' => $slot->id,
+            'delivery_date' => $deliveryDate->format('Y-m-d'),
+            'delivery_time_from' => '18:00:00',
+            'delivery_time_to' => '19:00:00',
+            'item_total_price' => 20,
+            'taxes' => 2,
+            'total_price' => 22,
+            'status' => Order::STATUS_CONFIRMED,
+            'paid' => 1,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/account/orders')
+            ->assertOk()
+            ->assertJsonPath('data.items.0.dine_in_slot.id', $slot->id)
+            ->assertJsonPath('data.items.0.dine_in_slot.day_of_week', $slot->day_of_week)
+            ->assertJsonPath('data.items.0.dine_in_slot.start_time', '18:00')
+            ->assertJsonPath('data.items.0.dine_in_slot.end_time', '19:00');
     }
 
 

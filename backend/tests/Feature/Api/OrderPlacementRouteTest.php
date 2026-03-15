@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\DineInSlot;
 use App\Models\Foods;
 use App\Models\Mikitchn;
 use App\Models\User;
@@ -83,6 +84,51 @@ class OrderPlacementRouteTest extends TestCase
             ->assertJsonPath('isSuccess', true)
             ->assertJsonPath('data.take_away', 1)
             ->assertJsonPath('data.item_total_price', '25.00');
+    }
+
+    public function test_foodie_can_place_dine_in_order_with_selected_slot(): void
+    {
+        [$kitchen, $foodie, $food] = $this->seedOrderableKitchen();
+        $deliveryDate = now()->addDay();
+        $slot = DineInSlot::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => $deliveryDate->dayOfWeek,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'seat_capacity' => 6,
+            'status' => 1,
+        ]);
+
+        $response = $this
+            ->actingAs($foodie, 'api')
+            ->postJson('/api/v2/orders', [
+                'kitchen_id' => $kitchen->id,
+                'delivery_date' => $deliveryDate->format('Y-m-d'),
+                'taxes' => '0.00',
+                'dine_in' => 1,
+                'take_away' => 0,
+                'persons' => 3,
+                'dine_in_slot_id' => $slot->id,
+                'item_data' => json_encode([
+                    ['id' => $food->id, 'quantity' => 1],
+                ]),
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('isSuccess', true)
+            ->assertJsonPath('data.dine_in', 1)
+            ->assertJsonPath('data.dine_in_slot.id', $slot->id)
+            ->assertJsonPath('data.time_from', '18:00 pm')
+            ->assertJsonPath('data.time_to', '19:00 pm');
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $foodie->id,
+            'mikitchn_id' => $kitchen->id,
+            'dine_in' => 1,
+            'dine_in_slot_id' => $slot->id,
+            'persons' => 3,
+        ]);
     }
 
     public function test_restaurant_account_cannot_place_order_via_customer_route(): void

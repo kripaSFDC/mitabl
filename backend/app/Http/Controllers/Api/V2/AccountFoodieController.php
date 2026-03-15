@@ -46,6 +46,7 @@ class AccountFoodieController extends Controller
                 'cancelreason.actor.restaurant',
                 'review',
                 'payment',
+                'dineInSlot',
             ])
             ->where('user_id', (int) Auth::id());
 

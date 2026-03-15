@@ -112,6 +112,7 @@ class OrderController extends Controller
             'delivery_date' => ['nullable', 'date_format:Y-m-d'],
             'delivery_time_from' => ['nullable', 'date_format:H:i'],
             'delivery_time_to' => ['nullable', 'date_format:H:i'],
+            'dine_in_slot_id' => ['nullable', 'integer'],
         ]);
 
         if ($validator->fails()) {
@@ -163,6 +164,10 @@ class OrderController extends Controller
 
         if ($hasAcceptanceWindowOverride && $requestedStatus !== Order::STATUS_CONFIRMED) {
             return $this->responser([], 'Delivery date/time can only be updated when miCook accepts the order.', 422);
+        }
+
+        if ($hasAcceptanceWindowOverride && (int) $order->dine_in === 1) {
+            return $this->responser([], 'Dine-in orders must keep the originally selected slot and time window.', 422);
         }
 
         if ($hasAcceptanceWindowOverride) {
@@ -330,14 +335,15 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'kitchen_id' => ['required', 'integer', 'exists:mikitchns,id'],
             'delivery_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
-            'delivery_time_from' => ['required', 'date_format:H:i'],
-            'delivery_time_to' => ['required', 'date_format:H:i', 'after:delivery_time_from'],
+            'delivery_time_from' => ['nullable', 'date_format:H:i'],
+            'delivery_time_to' => ['nullable', 'date_format:H:i', 'after:delivery_time_from'],
             'item_total_price' => ['nullable', 'numeric', 'min:0'],
             'taxes' => ['nullable', 'numeric', 'min:0'],
             'total_price' => ['nullable', 'numeric', 'min:0'],
             'dine_in' => ['required', 'integer', Rule::in([0, 1])],
             'take_away' => ['required', 'integer', Rule::in([0, 1])],
             'persons' => ['nullable', 'integer', 'min:1'],
+            'dine_in_slot_id' => ['nullable', 'integer', 'exists:dine_in_slots,id'],
             'item_data' => ['required', 'string'],
             'promo_code' => ['nullable', 'integer', 'exists:promo_codes,id'],
             'card_id' => ['nullable'],
@@ -354,6 +360,18 @@ class OrderController extends Controller
 
         if ((int) $request->input('dine_in') === 1 && ! $request->filled('persons')) {
             return $this->responser([], 'persons is required for dine-in orders.', 422);
+        }
+
+        if ((int) $request->input('dine_in') === 1 && ! $request->filled('dine_in_slot_id')) {
+            return $this->responser([], 'dine_in_slot_id is required for dine-in orders.', 422);
+        }
+
+        if ((int) $request->input('dine_in') === 0 && $request->filled('dine_in_slot_id')) {
+            return $this->responser([], 'dine_in_slot_id can only be used for dine-in orders.', 422);
+        }
+
+        if ((int) $request->input('take_away') === 1 && (! $request->filled('delivery_time_from') || ! $request->filled('delivery_time_to'))) {
+            return $this->responser([], 'delivery_time_from and delivery_time_to are required for take-away orders.', 422);
         }
 
         if ($request->filled('promo_code')) {
@@ -430,6 +448,7 @@ class OrderController extends Controller
             'cancelreason.actor.restaurant',
             'review',
             'payment',
+            'dineInSlot',
         ];
     }
 
@@ -444,6 +463,7 @@ class OrderController extends Controller
             'cancelreason.actor.restaurant',
             'review',
             'payment',
+            'dineInSlot',
         ];
     }
 

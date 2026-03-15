@@ -98,6 +98,7 @@ $registerLegacyMobileRoutes = function (): void {
         Route::post('mikitchn/editkitchen', [MikitchnController::class, 'updateKitchen']);
         Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
         Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
+        Route::get('mikitchn/dine-in-slots', [MikitchnController::class, 'getMyDineInSlots']);
         Route::post('food/add', [FoodsController::class, 'createFood']);
         Route::post('food/editfood', [FoodsController::class, 'updateFood']);
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
@@ -159,6 +160,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::get('search', [V2DiscoveryController::class, 'search']);
 		Route::get('restaurants/{id}', [V2DiscoveryController::class, 'show']);
 		Route::get('restaurants/{id}/menu', [V2DiscoveryController::class, 'menu']);
+		Route::get('restaurants/{id}/dine-in-slots', [V2DiscoveryController::class, 'dineInSlots']);
 	});
 
 	Route::prefix('payments')->group(function () {

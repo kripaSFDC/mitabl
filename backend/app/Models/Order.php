@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\WatchSubscription;
 use App\Models\Tag;
+use App\Models\DineInSlot;
 use App\Models\InternalNote;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,7 @@ class Order extends Model
         'dine_in',
         'take_away',
         'persons',
+        'dine_in_slot_id',
         'delivery_date',
         'delivery_time_from',
         'delivery_time_to',
@@ -44,6 +46,7 @@ class Order extends Model
         'total_price' => 'decimal:2',
         'discounted_amount' => 'decimal:2',
         'refund_percentage' => 'integer',
+        'dine_in_slot_id' => 'integer',
     ];
 
     /**
@@ -83,6 +86,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function dineInSlot()
+    {
+        return $this->belongsTo(DineInSlot::class, 'dine_in_slot_id');
     }
 
     public function promocode()
