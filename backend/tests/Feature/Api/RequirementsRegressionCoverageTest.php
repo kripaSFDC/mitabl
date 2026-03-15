@@ -20,9 +20,10 @@ class RequirementsRegressionCoverageTest extends TestCase
     public function test_order_controller_uses_correct_upcoming_orders_method_name_without_typo(): void
     {
         $controller = (string) file_get_contents(base_path('app/Http/Controllers/Api/OrderController.php'));
+        $legacyTypoName = 'myUpcomingOrders' . 's';
 
         $this->assertStringContainsString('public function myUpcomingOrders(Request $request)', $controller);
-        $this->assertStringNotContainsString('myUpcomingOrderss', $controller);
+        $this->assertStringNotContainsString($legacyTypoName, $controller);
     }
 
     public function test_discovery_show_loads_food_menu_for_kitchen_detail(): void
