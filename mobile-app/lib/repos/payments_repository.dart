@@ -71,6 +71,81 @@ class PaymentsRepository {
         .toList(growable: false);
   }
 
+  Future<Map<String, dynamic>> addCard({
+    required UserModel? userModel,
+    required String paymentMethodId,
+  }) async {
+    final response = await _httpClient
+        .post(
+          ApiContract.uri('v2/payments/cards'),
+          headers: authorizedHeadersForUser(
+            userModel,
+            includeJsonContentType: true,
+          ),
+          body: jsonEncode({'payment_method_id': paymentMethodId}),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to add card',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      return const {};
+    }
+
+    final dynamic data = decoded['data'];
+    if (data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(data);
+    }
+
+    return decoded;
+  }
+
+  Future<String> createCardCheckoutSession({
+    required UserModel? userModel,
+  }) async {
+    final response = await _httpClient
+        .post(
+          ApiContract.uri('v2/payments/checkout-session'),
+          headers: authorizedHeadersForUser(userModel),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to create checkout session',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Invalid checkout session response format.');
+    }
+
+    final dynamic topLevelUrl = decoded['url'];
+    if (topLevelUrl is String && topLevelUrl.isNotEmpty) {
+      return topLevelUrl;
+    }
+
+    final dynamic data = decoded['data'];
+    if (data is Map<String, dynamic>) {
+      final dynamic nestedUrl = data['url'];
+      if (nestedUrl is String && nestedUrl.isNotEmpty) {
+        return nestedUrl;
+      }
+    }
+
+    throw const FormatException('Checkout session URL missing from response.');
+  }
+
   List<dynamic> _extractList(dynamic decoded, List<String> keys) {
     if (decoded is List) return decoded;
     if (decoded is! Map<String, dynamic>) return const [];

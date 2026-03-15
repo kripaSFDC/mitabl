@@ -162,6 +162,16 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('checkout-session', [V2PaymentsController::class, 'checkoutSession']);
 		Route::post('intent', [V2PaymentsController::class, 'createIntent']);
 		Route::post('intent/confirm', [V2PaymentsController::class, 'confirmIntent']);
+		Route::group(function (): void {
+			Route::post('vendor/bank-account', [UserController::class, 'addBankAccToVendor']);
+			Route::get('vendor/bank-account', [UserController::class, 'getVendorBankAcc']);
+			Route::get('vendor/bank-account/id', [UserController::class, 'getBankAccFromConect']);
+			Route::get('vendor/account', [UserController::class, 'retrieveAccount']);
+			Route::get('vendor/onboarding-link', [UserController::class, 'onboardingLink']);
+			Route::get('vendor/login-link', [UserController::class, 'createAccLoginLink']);
+			Route::get('vendor/account/completed', [UserController::class, 'accountCompletionStatus']);
+			Route::post('vendor/account/refresh', [UserController::class, 'updateConnectedAccount']);
+		});
 		Route::post('vendor-transfer', [V2PaymentsController::class, 'vendorTransfer']);
 	});
 
