@@ -199,7 +199,7 @@ trait HandlesUserAuthentication
             'password' => 'required|string|min:6',
             'password_confirmation' => 'nullable|string|same:password',
             'role_id' => 'nullable|integer|in:2,3',
-            'phone' => ['required', 'string', 'max:20', 'regex:/^\+[1-9]\d{6,14}$/'],
+            'phone' => ['required', 'string', 'max:30'],
         ]);
 
         if ($validator->fails()) {
@@ -300,9 +300,6 @@ trait HandlesUserAuthentication
         }
 
         $normalized = preg_replace('/[^\d+]/', '', $trimmed) ?? '';
-        if (! str_starts_with($normalized, '+')) {
-            return null;
-        }
 
         $digits = preg_replace('/\D+/', '', $normalized) ?? '';
         if ($digits === '' || preg_match('/^[1-9]\d{6,14}$/', $digits) !== 1) {
