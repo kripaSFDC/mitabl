@@ -135,7 +135,7 @@ class MikitchnController extends Controller
             'address' => 'required',
             'no_of_seats' => 'required|integer|min:1',
             'timings' => 'required|string',
-            'phone' => 'required|string',
+            'phone' => ['required', 'string', 'max:30'],
             'abn' => 'nullable|string',
             'certificate_no' => 'nullable|string',
             'lat' => 'nullable|numeric|between:-90,90|required_with:lng',
@@ -250,14 +250,19 @@ class MikitchnController extends Controller
             return $this->responser([],'Images required.', 422);
         }
 
-        $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots) {
+        $normalizedPhone = $this->normalizeInternationalPhone((string) $request->input('phone'));
+        if ($normalizedPhone === null) {
+            return $this->responser([], 'Please provide a valid international phone number.', 422);
+        }
+
+        $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots, $normalizedPhone) {
             $kitchen = $existKitchen ?: new Mikitchn();
             $kitchen->user_id = $user->id;
             $kitchen->name = $request->name;
             $kitchen->address = $request->address;
             $kitchen->no_of_seats = $request->no_of_seats;
             $kitchen->timings = $request->timings;
-            $kitchen->phone = $request->phone;
+            $kitchen->phone = $normalizedPhone;
             $kitchen->dine_in = $request->dine_in;
             $kitchen->take_away = $request->take_away;
             $kitchen->description = $request->description;
@@ -329,6 +334,21 @@ class MikitchnController extends Controller
         }
         $miKitchen->load('dineInSlots');
         return $this->responser($miKitchen, $msg);
+    }
+
+    private function normalizeInternationalPhone(string $value): ?string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $trimmed) ?? '';
+        if ($digits === '' || preg_match('/^[1-9]\d{6,14}$/', $digits) !== 1) {
+            return null;
+        }
+
+        return '+' . $digits;
     }
 
     private function normalizeTimingDay(string $shortDay): ?string

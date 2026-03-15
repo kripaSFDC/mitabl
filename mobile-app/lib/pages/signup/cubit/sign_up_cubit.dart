@@ -10,7 +10,7 @@ import 'package:mitabl_user/model/confirmpassword.dart';
 import 'package:mitabl_user/model/email.dart';
 import 'package:mitabl_user/model/name.dart';
 import 'package:mitabl_user/model/password.dart';
-import 'package:mitabl_user/model/phone.dart';
+import 'package:mitabl_user/model/international_phone.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../../helper/helper.dart';
@@ -111,7 +111,7 @@ class SignUpCubit extends Cubit<SignUpState> {
   }
 
   onPhoneChanged({String? value}) {
-    var phone = Phone.dirty(value!);
+    var phone = InternationalPhone.dirty(value!);
     emit(state.copyWith(
         phone: phone,
         status: Formz.validate([
@@ -125,6 +125,12 @@ class SignUpCubit extends Cubit<SignUpState> {
         ])));
   }
 
+
+  void onCountryCodeChanged({required String value, required String localNumber}) {
+    final normalizedCountryCode = value.trim().isEmpty ? '+61' : value.trim();
+    emit(state.copyWith(countryCode: normalizedCountryCode));
+    onPhoneChanged(value: InternationalPhone.compose(countryCode: normalizedCountryCode, number: localNumber));
+  }
   onAddressChanged({String? value}) {
     var name = Name.dirty(value!);
     emit(state.copyWith(

@@ -199,7 +199,7 @@ trait HandlesUserAuthentication
             'password' => 'required|string|min:6',
             'password_confirmation' => 'nullable|string|same:password',
             'role_id' => 'nullable|integer|in:2,3',
-            'phone' => 'required|numeric',
+            'phone' => ['required', 'string', 'max:30'],
         ]);
 
         if ($validator->fails()) {
@@ -208,12 +208,17 @@ trait HandlesUserAuthentication
 
         $roleId = $request->filled('role_id') ? (int) $request->input('role_id') : 3;
 
+        $normalizedPhone = $this->normalizeInternationalPhone((string) $request->input('phone'));
+        if ($normalizedPhone === null) {
+            return $this->responser([], 'Please provide a valid international phone number.', 422);
+        }
+
         $input = [
             'first_name' => (string) $request->input('first_name'),
             'last_name' => (string) $request->input('last_name'),
             'email' => (string) $request->input('email'),
             'password' => (string) $request->input('password'),
-            'phone' => (string) $request->input('phone'),
+            'phone' => $normalizedPhone,
             'address' => (string) $request->input('address', ''),
             'role_id' => $roleId,
         ];
@@ -285,6 +290,23 @@ trait HandlesUserAuthentication
     public function sendOtp($id, $userEmail)
     {
         return $this->authService->sendOtp((int) $id, (string) $userEmail);
+    }
+
+    private function normalizeInternationalPhone(string $value): ?string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $normalized = preg_replace('/[^\d+]/', '', $trimmed) ?? '';
+
+        $digits = preg_replace('/\D+/', '', $normalized) ?? '';
+        if ($digits === '' || preg_match('/^[1-9]\d{6,14}$/', $digits) !== 1) {
+            return null;
+        }
+
+        return '+' . $digits;
     }
 
     public function verifyOtp(Request $request)

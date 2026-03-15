@@ -2,7 +2,8 @@ part of 'cook_profile_cubit.dart';
 
 class CookProfileState extends Equatable {
   const CookProfileState(
-      {this.phone = const Phone.pure(),
+      {this.phone = const InternationalPhone.pure(),
+      this.countryCode = '+61',
       this.nameKitchn = const Name.pure(),
       this.address = const Name.pure(),
       this.status = FormzStatus.pure,
@@ -20,7 +21,8 @@ class CookProfileState extends Equatable {
 
   final Name? nameKitchn;
   final Name? address;
-  final Phone phone;
+  final InternationalPhone phone;
+  final String countryCode;
   final Phone noOfSeats;
   final FormzStatus? status;
   final FormzStatus? statusApi;
@@ -50,7 +52,8 @@ class CookProfileState extends Equatable {
       Name? address,
       Phone? noOfSeats,
       String? serverMessage,
-      Phone? phone}) {
+      InternationalPhone? phone,
+      String? countryCode}) {
     return CookProfileState(
         daysTimingOriginal: daysTimingOriginal ?? this.daysTimingOriginal,
         selectedPage: selectedPage ?? this.selectedPage,
@@ -65,7 +68,8 @@ class CookProfileState extends Equatable {
         nameKitchn: nameKitchn ?? this.nameKitchn,
         noOfSeats: noOfSeats ?? this.noOfSeats,
         serverMessage: serverMessage ?? this.serverMessage,
-        phone: phone ?? this.phone);
+        phone: phone ?? this.phone,
+        countryCode: countryCode ?? this.countryCode);
   }
 
   @override
@@ -83,6 +87,7 @@ class CookProfileState extends Equatable {
         status,
         nameKitchn,
         phone,
+        countryCode,
         serverMessage
       ];
 }

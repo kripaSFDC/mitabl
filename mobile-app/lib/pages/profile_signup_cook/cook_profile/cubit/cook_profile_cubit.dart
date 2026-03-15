@@ -8,6 +8,7 @@ import 'package:mitabl_user/helper/appconstants.dart';
 
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/name.dart';
+import 'package:mitabl_user/model/international_phone.dart';
 import 'package:mitabl_user/model/phone.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -165,11 +166,18 @@ class CookProfileCubit extends Cubit<CookProfileState> {
   }
 
   onPhoneChanged({String? value}) {
-    var phone = Phone.dirty(value!);
+    var phone = InternationalPhone.dirty(value!);
     emit(state.copyWith(
         phone: phone,
         status: Formz.validate(
             [state.nameKitchn!, state.noOfSeats, phone, state.address!])));
+  }
+
+
+  void onCountryCodeChanged({required String value, required String localNumber}) {
+    final normalizedCountryCode = value.trim().isEmpty ? '+61' : value.trim();
+    emit(state.copyWith(countryCode: normalizedCountryCode));
+    onPhoneChanged(value: InternationalPhone.compose(countryCode: normalizedCountryCode, number: localNumber));
   }
 
   onSeatChanged({String? value}) {
