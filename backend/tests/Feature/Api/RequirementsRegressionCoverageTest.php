@@ -48,6 +48,6 @@ class RequirementsRegressionCoverageTest extends TestCase
 
         $this->assertStringContainsString("'card_id' => 'nullable'", $controller);
         $this->assertStringContainsString("'payment_method_id' => 'nullable|string|starts_with:pm_'", $controller);
-        $this->assertStringContainsString('resolvePaymentMethodSelection(', $controller);
+        $this->assertStringContainsString('resolvePaymentMethodForIntent(', $controller);
     }
 }
