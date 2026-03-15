@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\CancelOrderRefund;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Order\Order as OrderResource;
+use App\Models\CancelReason;
 use App\Models\CompletedOrder;
 use App\Models\Order;
 use App\Models\PromoCode;
+use App\Services\AccountProfileService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use Carbon\Carbon;
@@ -19,11 +22,17 @@ class OrderController extends Controller
 {
     private PaymentService $paymentService;
     private OrderService $orderService;
+    private AccountProfileService $accountProfileService;
 
-    public function __construct(PaymentService $paymentService, OrderService $orderService)
+    public function __construct(
+        PaymentService $paymentService,
+        OrderService $orderService,
+        AccountProfileService $accountProfileService
+    )
     {
         $this->paymentService = $paymentService;
         $this->orderService = $orderService;
+        $this->accountProfileService = $accountProfileService;
     }
 
     public function myUpcomingOrderss(Request $request)
@@ -96,6 +105,9 @@ class OrderController extends Controller
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_CANCELLED,
             ])],
+            'cancel_subject' => ['nullable', 'string', 'max:255'],
+            'cancel_comment' => ['nullable', 'string', 'max:255'],
+            'cancel_reason' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($validator->fails()) {
@@ -113,6 +125,83 @@ class OrderController extends Controller
         $requestedStatus = (int) $request->status;
         if ($requestedStatus === Order::STATUS_LEGACY_CANCELLED) {
             $requestedStatus = Order::STATUS_CANCELLED;
+        }
+        $actor = Auth::guard('api')->user();
+        $actorIsFoodie = (int) $actor->id === (int) $order->user_id;
+        $actorIsCook = (int) $actor->role_id === 2
+            && $actor->restaurant
+            && (int) $actor->restaurant->id === (int) $order->mikitchn_id;
+
+        if ((int) $order->status === Order::STATUS_COMPLETED && $requestedStatus !== Order::STATUS_COMPLETED) {
+            return $this->responser([], 'Completed orders cannot be changed.', 422);
+        }
+
+        if (in_array((int) $order->status, Order::cancelledStatuses(), true) && $requestedStatus !== Order::STATUS_CANCELLED) {
+            return $this->responser([], 'Cancelled orders cannot be changed.', 422);
+        }
+
+        if ($requestedStatus === Order::STATUS_REQUESTED && (int) $order->status !== Order::STATUS_REQUESTED) {
+            return $this->responser([], 'Order status cannot be moved back to requested.', 422);
+        }
+
+        if ($requestedStatus === Order::STATUS_CONFIRMED) {
+            if (! $actorIsCook) {
+                return $this->responser([], 'Only the owning miCook can accept this order.', 403);
+            }
+            if ((int) $order->status !== Order::STATUS_REQUESTED) {
+                return $this->responser([], 'Only requested orders can be accepted.', 422);
+            }
+        }
+
+        if ($requestedStatus === Order::STATUS_COMPLETED) {
+            if (! $actorIsCook) {
+                return $this->responser([], 'Only the owning miCook can complete this order.', 403);
+            }
+            if ((int) $order->status !== Order::STATUS_CONFIRMED) {
+                return $this->responser([], 'Only confirmed orders can be completed.', 422);
+            }
+        }
+
+        if ($requestedStatus === Order::STATUS_CANCELLED) {
+            $cancelComment = trim((string) $request->input('cancel_comment', $request->input('cancel_reason', '')));
+            $cancelSubject = trim((string) $request->input('cancel_subject', ''));
+
+            if ($cancelComment === '') {
+                return $this->responser([], 'cancel_comment is required when cancelling an order.', 422);
+            }
+
+            if ($actorIsFoodie && (int) $order->status !== Order::STATUS_REQUESTED) {
+                return $this->responser([], 'miFoodi can only cancel an order before it is accepted by miCook.', 422);
+            }
+
+            if ($cancelSubject === '') {
+                $cancelSubject = $actorIsFoodie ? 'Cancelled by mifoodi' : 'Cancelled by micook';
+            }
+
+            DB::transaction(function () use ($order, $requestedStatus, $actor, $actorIsFoodie, $cancelSubject, $cancelComment): void {
+                CancelReason::query()->updateOrCreate(
+                    ['order_id' => $order->id],
+                    [
+                        'ref_id' => $actor->id,
+                        'subject' => $cancelSubject,
+                        'comment' => $cancelComment,
+                        'by_user' => $actorIsFoodie ? 'customer' : 'mikitchen',
+                    ]
+                );
+
+                $order->status = $requestedStatus;
+                $order->save();
+            });
+
+            CancelOrderRefund::dispatch(
+                $order->fresh($this->orderDetailResourceRelations()),
+                $actorIsFoodie ? 'customer' : 'kitchen'
+            );
+
+            return $this->responser(
+                new OrderResource($order->fresh($this->orderDetailResourceRelations())),
+                'Order Updated successfully.'
+            );
         }
 
         if ($requestedStatus === Order::STATUS_CONFIRMED) {
@@ -207,6 +296,8 @@ class OrderController extends Controller
             'persons' => ['nullable', 'integer', 'min:1'],
             'item_data' => ['required', 'string'],
             'promo_code' => ['nullable', 'integer', 'exists:promo_codes,id'],
+            'card_id' => ['nullable'],
+            'payment_method_id' => ['nullable', 'string', 'starts_with:pm_'],
         ]);
 
         if ($validator->fails()) {
@@ -238,9 +329,43 @@ class OrderController extends Controller
 
         $user = Auth::guard('api')->user();
         try {
-            $order = $this->orderService->createOrder($user, $validator->validated());
+            $validated = $validator->validated();
+            $cardReference = $validated['card_id'] ?? null;
+            $paymentMethodId = $validated['payment_method_id'] ?? null;
+            $shouldInitializePayment = trim((string) $cardReference) !== ''
+                || trim((string) $paymentMethodId) !== '';
+
+            if ($shouldInitializePayment) {
+                $provisionError = $this->accountProfileService->ensureStripeAccountForRole($user, 3);
+                if ($provisionError !== null) {
+                    return $this->responser([], $provisionError, 422);
+                }
+
+                $user->unsetRelation('customer');
+                $user->load('customer');
+            }
+
+            $order = DB::transaction(function () use ($user, $validated, $shouldInitializePayment, $cardReference, $paymentMethodId): Order {
+                $order = $this->orderService->createOrder($user, $validated);
+
+                if ($shouldInitializePayment) {
+                    $this->paymentService->initializeOrderPaymentIntent(
+                        $order,
+                        $user,
+                        $cardReference,
+                        $paymentMethodId
+                    );
+                }
+
+                return $order;
+            });
         } catch (\InvalidArgumentException $exception) {
             return $this->responser([], $exception->getMessage(), 422);
+        } catch (\RuntimeException $exception) {
+            return $this->responser([], $exception->getMessage(), 422);
+        } catch (Throwable $throwable) {
+            report($throwable);
+            return $this->responser([], 'Unable to create order.', 422);
         }
         $createdOrder = new OrderResource(Order::with($this->orderDetailResourceRelations())->find($order->id));
         return $this->responser($createdOrder, 'Food Ordered Created.');

@@ -393,6 +393,53 @@ void main() {
       expect(cards, hasLength(1));
       expect(cards.first['last4'], '4242');
     });
+
+    test('addCard posts payment method id to expected endpoint', () async {
+      late http.Request capturedRequest;
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'data': {'id': 5, 'stripe_card_id': 'pm_saved_123'}
+          }),
+          200,
+        );
+      });
+
+      final repository = PaymentsRepository(httpClient: client);
+      final card = await repository.addCard(
+        userModel: _buildUser(),
+        paymentMethodId: 'pm_saved_123',
+      );
+
+      expect(capturedRequest.method, 'POST');
+      expect(
+        capturedRequest.url.toString(),
+        'https://api.example.com/api/v2/payments/cards',
+      );
+      expect(
+        jsonDecode(capturedRequest.body),
+        {'payment_method_id': 'pm_saved_123'},
+      );
+      expect(card['stripe_card_id'], 'pm_saved_123');
+    });
+
+    test('createCardCheckoutSession extracts hosted url from nested payload', () async {
+      final client = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'data': {'url': 'https://checkout.stripe.test/session/abc'}
+          }),
+          200,
+        );
+      });
+
+      final repository = PaymentsRepository(httpClient: client);
+      final url =
+          await repository.createCardCheckoutSession(userModel: _buildUser());
+
+      expect(url, 'https://checkout.stripe.test/session/abc');
+    });
   });
 
   group('OrderingRepository', () {
@@ -543,6 +590,128 @@ void main() {
                 'Selected kitchen is currently unavailable.',
               ),
         ),
+      );
+    });
+
+    test('placeOrder can include a saved card reference for atomic checkout', () async {
+      late http.Request capturedRequest;
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'message': 'Food Ordered Created.',
+            'data': {'order_id': 56, 'total_price': '18.00'}
+          }),
+          200,
+        );
+      });
+
+      final repository = OrderingRepository(
+        _FakeUserRepository(_buildUser(), httpClient: client),
+        httpClient: client,
+      );
+
+      await repository.placeOrder(
+        kitchenId: 9,
+        deliveryDate: '2026-03-20',
+        deliveryTimeFrom: '12:00',
+        deliveryTimeTo: '13:00',
+        serviceType: OrderServiceType.takeAway,
+        taxes: 1.80,
+        items: [
+          CartLineItem(
+            item: OrderMenuItem(
+              id: 4,
+              restaurantId: 9,
+              name: 'Mandi',
+              price: 18,
+              dineInAvailable: true,
+              takeAwayAvailable: true,
+            ),
+            quantity: 2,
+          ),
+        ],
+        persons: null,
+        paymentSelection: const OrderPaymentSelection.savedCard('14'),
+      );
+
+      final payload = jsonDecode(capturedRequest.body) as Map<String, dynamic>;
+      expect(payload['card_id'], '14');
+      expect(payload.containsKey('payment_method_id'), isFalse);
+    });
+
+    test('attachPaymentMethodToOrder posts saved card reference', () async {
+      late http.Request capturedRequest;
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'message': 'payment intent created.',
+            'data': {
+              'payment_id': 88,
+              'payment_intent_id': 'pi_saved_123',
+              'payment_method_id': 'pm_saved_123',
+            }
+          }),
+          200,
+        );
+      });
+
+      final repository = OrderingRepository(
+        _FakeUserRepository(_buildUser(), httpClient: client),
+        httpClient: client,
+      );
+
+      final result = await repository.attachPaymentMethodToOrder(
+        orderId: 55,
+        selection: const OrderPaymentSelection.savedCard('14'),
+      );
+
+      expect(result.orderId, 55);
+      expect(result.paymentId, 88);
+      expect(result.paymentIntentId, 'pi_saved_123');
+      expect(
+        capturedRequest.url.toString(),
+        'https://api.example.com/api/v2/payments/intent',
+      );
+      expect(
+        jsonDecode(capturedRequest.body),
+        {'order_id': 55, 'card_id': '14'},
+      );
+    });
+
+    test('attachPaymentMethodToOrder posts one-time payment method id', () async {
+      late http.Request capturedRequest;
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'message': 'payment intent created.',
+            'data': {
+              'payment_id': 91,
+              'payment_intent_id': 'pi_one_time_123',
+              'payment_method_id': 'pm_one_time_123',
+            }
+          }),
+          200,
+        );
+      });
+
+      final repository = OrderingRepository(
+        _FakeUserRepository(_buildUser(), httpClient: client),
+        httpClient: client,
+      );
+
+      final result = await repository.attachPaymentMethodToOrder(
+        orderId: 77,
+        selection: const OrderPaymentSelection.oneTime('pm_one_time_123'),
+      );
+
+      expect(result.orderId, 77);
+      expect(result.paymentMethodId, 'pm_one_time_123');
+      expect(
+        jsonDecode(capturedRequest.body),
+        {'order_id': 77, 'payment_method_id': 'pm_one_time_123'},
       );
     });
   });

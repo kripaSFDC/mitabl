@@ -49,7 +49,7 @@ class OrderingRepository {
         ? rawFoods
             .whereType<Map>()
             .map((item) => OrderMenuItem.fromJson(
-                Map<String, dynamic>.from(item as Map)))
+                Map<String, dynamic>.from(item)))
             .toList(growable: false)
         : const <OrderMenuItem>[];
 
@@ -65,6 +65,7 @@ class OrderingRepository {
     required List<CartLineItem> items,
     required int? persons,
     required double taxes,
+    OrderPaymentSelection? paymentSelection,
   }) async {
     final payload = <String, dynamic>{
       'kitchen_id': kitchenId,
@@ -75,6 +76,12 @@ class OrderingRepository {
       'dine_in': serviceType == OrderServiceType.dineIn ? 1 : 0,
       'take_away': serviceType == OrderServiceType.takeAway ? 1 : 0,
       'item_data': encodeOrderItems(items),
+      if (paymentSelection != null &&
+          paymentSelection.mode == CheckoutPaymentMode.savedCard)
+        'card_id': paymentSelection.reference.trim(),
+      if (paymentSelection != null &&
+          paymentSelection.mode == CheckoutPaymentMode.oneTimePaymentMethod)
+        'payment_method_id': paymentSelection.reference.trim(),
     };
 
     if (serviceType == OrderServiceType.dineIn && persons != null) {
@@ -105,6 +112,55 @@ class OrderingRepository {
     }
 
     return OrderSubmissionResult.fromJson(decoded);
+  }
+
+  Future<OrderSubmissionResult> attachPaymentMethodToOrder({
+    required int orderId,
+    required OrderPaymentSelection selection,
+  }) async {
+    final payload = <String, dynamic>{
+      'order_id': orderId,
+      if (selection.mode == CheckoutPaymentMode.savedCard)
+        'card_id': selection.reference.trim(),
+      if (selection.mode == CheckoutPaymentMode.oneTimePaymentMethod)
+        'payment_method_id': selection.reference.trim(),
+    };
+
+    final response = await _httpClient
+        .post(
+          ApiContract.uri('v2/payments/intent'),
+          headers: await userRepository.authorizedHeaders(
+            includeJsonContentType: true,
+          ),
+          body: jsonEncode(payload),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to save payment method for this order',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Invalid payment intent response format.');
+    }
+
+    final Map<String, dynamic> merged = <String, dynamic>{
+      'message': decoded['message']?.toString() ?? 'Payment method attached.',
+      'data': {
+        'order_id': orderId,
+        'payment_id': decoded['data']?['payment_id'],
+        'payment_intent_id': decoded['data']?['payment_intent_id'],
+        'payment_method_id': decoded['data']?['payment_method_id'],
+        'total_price': '0.00',
+      },
+    };
+
+    return OrderSubmissionResult.fromJson(merged);
   }
 
   void dispose() {

@@ -12,6 +12,8 @@ use App\Services\PaymentService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 use Throwable;
 
 class PaymentsController extends Controller
@@ -21,6 +23,23 @@ class PaymentsController extends Controller
         private AccountProfileService $accountProfileService
     )
     {
+    }
+
+    public function paymentMethodForm(Request $request): View
+    {
+        $validator = Validator::make($request->query(), [
+            'mode' => 'required|string|in:one_time',
+            'return_url' => 'required|url',
+        ]);
+
+        abort_if($validator->fails(), 422, $validator->errors()->first());
+        abort_unless($this->isAllowedPaymentMethodReturnUrl((string) $request->query('return_url')), 422, 'return_url is not allowed.');
+
+        return view('stripe-payment-method', [
+            'mode' => (string) $request->query('mode'),
+            'returnUrl' => (string) $request->query('return_url'),
+            'publishableKey' => (string) config('stripe.api_keys.publishable_key', ''),
+        ]);
     }
 
     private function ensureCustomerAccount(User $user): ?string
@@ -125,6 +144,8 @@ class PaymentsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'order_id' => 'required|integer',
+            'card_id' => 'nullable',
+            'payment_method_id' => 'nullable|string|starts_with:pm_',
         ]);
         if ($validator->fails()) {
             return $this->responser([], $validator->errors()->first(), 422);
@@ -137,15 +158,35 @@ class PaymentsController extends Controller
         if ((int) $order->user_id !== (int) Auth::id()) {
             return $this->responser([], 'You are not authorized for this order.', 403);
         }
-
-        try {
-            $intent = $this->paymentService->createPaymentIntent($order);
-        } catch (Throwable $throwable) {
-            report($throwable);
-            return $this->responser([], 'Unable to create payment intent.', 422);
+        if ((int) $order->paid === 1 || in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_COMPLETED], true)) {
+            return $this->responser([], 'This order already has a finalized payment.', 422);
         }
 
-        return $this->responser($intent, 'payment intent created.');
+        try {
+            $result = $this->paymentService->initializeOrderPaymentIntent(
+                $order,
+                $user,
+                $request->input('card_id'),
+                $request->input('payment_method_id')
+            );
+            $payment = $result['payment'];
+            $selection = $result['selection'];
+        } catch (Throwable $throwable) {
+            report($throwable);
+            $message = $throwable instanceof \RuntimeException
+                ? $throwable->getMessage()
+                : 'Unable to create payment intent.';
+            return $this->responser([], $message, 422);
+        }
+
+        return $this->responser([
+            'payment_id' => $payment->id,
+            'order_id' => $order->id,
+            'payment_intent_id' => $payment->payment_id,
+            'payment_method_id' => $payment->card_id,
+            'selection_mode' => $selection['mode'],
+            'status' => $payment->status,
+        ], 'payment intent created.');
     }
 
     public function confirmIntent(Request $request)
@@ -156,6 +197,8 @@ class PaymentsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'payment_id' => 'required|integer',
+            'card_id' => 'nullable',
+            'payment_method_id' => 'nullable|string|starts_with:pm_',
         ]);
         if ($validator->fails()) {
             return $this->responser([], $validator->errors()->first(), 422);
@@ -171,13 +214,56 @@ class PaymentsController extends Controller
         }
 
         try {
+            $selection = $this->paymentService->resolvePaymentMethodForIntent(
+                Auth::user(),
+                $request->input('card_id'),
+                $request->input('payment_method_id')
+            );
+            if ($selection['payment_method_id'] !== null) {
+                $payment->card_id = (string) $selection['payment_method_id'];
+                $payment->save();
+            }
+
             $intent = $this->paymentService->confirmPaymentIntent($payment);
         } catch (Throwable $throwable) {
             report($throwable);
-            return $this->responser([], 'Unable to confirm payment intent.', 422);
+            $message = $throwable instanceof \RuntimeException
+                ? $throwable->getMessage()
+                : 'Unable to confirm payment intent.';
+            return $this->responser([], $message, 422);
         }
 
         return $this->responser($intent, 'payment intent confirmed.');
+    }
+
+    private function isAllowedPaymentMethodReturnUrl(string $returnUrl): bool
+    {
+        $parsedReturnUrl = parse_url($returnUrl);
+        if (! is_array($parsedReturnUrl)) {
+            return false;
+        }
+
+        $scheme = Str::lower((string) ($parsedReturnUrl['scheme'] ?? ''));
+        $host = Str::lower((string) ($parsedReturnUrl['host'] ?? ''));
+        $path = (string) ($parsedReturnUrl['path'] ?? '');
+
+        if ($scheme === 'mitabl' && $host === 'payment-method-complete') {
+            return true;
+        }
+
+        $appUrl = (string) config('app.url', '');
+        if ($appUrl === '') {
+            return false;
+        }
+
+        $parsedAppUrl = parse_url($appUrl);
+        if (! is_array($parsedAppUrl)) {
+            return false;
+        }
+
+        return $scheme === Str::lower((string) ($parsedAppUrl['scheme'] ?? ''))
+            && $host === Str::lower((string) ($parsedAppUrl['host'] ?? ''))
+            && $path !== '';
     }
 
     public function vendorTransfer(Request $request)

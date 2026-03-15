@@ -9,6 +9,7 @@ import 'package:mitabl_user/repos/payments_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key, this.repository});
@@ -33,6 +34,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
   List<Map<String, dynamic>> _cards = const [];
   bool _switchingRole = false;
   bool _attemptedFoodieRecovery = false;
+  bool _startingAddCardFlow = false;
 
   @override
   void initState() {
@@ -138,10 +140,69 @@ class _PaymentsPageState extends State<PaymentsPage> {
     }
   }
 
+  Future<void> _startAddCardFlow() async {
+    if (_startingAddCardFlow) return;
+
+    setState(() => _startingAddCardFlow = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      final url =
+          await _repository.createCardCheckoutSession(userModel: userModel);
+      final launched = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            launched
+                ? 'Complete the secure Stripe card setup, then return here and tap refresh.'
+                : 'Unable to open the secure card setup link.',
+          ),
+        ),
+      );
+    } on RepositoryHttpException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to start secure card setup right now.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _startingAddCardFlow = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('payments')),
+      appBar: AppBar(
+        title: const Text('payments'),
+        actions: [
+          IconButton(
+            onPressed: _status == _ViewStatus.loaded ? _load : null,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      floatingActionButton: _status == _ViewStatus.loaded || _status == _ViewStatus.serverError
+          ? FloatingActionButton.extended(
+              onPressed: _startingAddCardFlow ? null : _startAddCardFlow,
+              label: Text(_startingAddCardFlow ? 'Opening...' : 'Add card'),
+              icon: const Icon(Icons.add_card_outlined),
+            )
+          : null,
       body: switch (_status) {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
@@ -154,15 +215,42 @@ class _PaymentsPageState extends State<PaymentsPage> {
             onRetry: _load,
           ),
         _ViewStatus.loaded => (_history.isEmpty && _cards.isEmpty)
-            ? const NoDataWidget()
-            : ListView(
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const NoDataWidget(),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _startingAddCardFlow ? null : _startAddCardFlow,
+                      icon: const Icon(Icons.add_card_outlined),
+                      label: Text(
+                        _startingAddCardFlow
+                            ? 'Opening secure setup...'
+                            : 'Add your first card',
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _load,
+                child: ListView(
                 children: [
                   if (_cards.isNotEmpty) ...[
                     const ListTile(title: Text('Saved cards')),
                     ..._cards.map(
                       (card) => ListTile(
                         title: Text((card['brand'] ?? 'Card').toString()),
-                        subtitle: Text((card['last4'] ?? '').toString()),
+                        subtitle: Text(
+                          [
+                            if ((card['last4'] ?? '').toString().isNotEmpty)
+                              '•••• ${(card['last4'] ?? '').toString()}',
+                            if ((card['exp_month'] ?? '').toString().isNotEmpty &&
+                                (card['exp_year'] ?? '').toString().isNotEmpty)
+                              'Expires ${(card['exp_month'] ?? '').toString()}/${(card['exp_year'] ?? '').toString()}',
+                          ].join('  •  '),
+                        ),
                       ),
                     ),
                     const Divider(),
@@ -179,6 +267,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   ],
                 ],
               ),
+            ),
       },
     );
   }

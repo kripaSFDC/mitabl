@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 enum OrderServiceType { dineIn, takeAway }
+enum CheckoutPaymentMode { savedCard, oneTimePaymentMethod }
 
 class OrderKitchenSummary {
   OrderKitchenSummary({
@@ -35,18 +36,18 @@ class OrderKitchenSummary {
         .toList(growable: false);
 
     return OrderKitchenSummary(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: _asInt(json['id']),
       name: json['name']?.toString() ?? 'Kitchen',
       address: json['address']?.toString() ?? '',
-      dineInAvailable: (json['dine_in'] as num?)?.toInt() == 1,
-      takeAwayAvailable: (json['take_away'] as num?)?.toInt() == 1,
+      dineInAvailable: _asInt(json['dine_in']) == 1,
+      takeAwayAvailable: _asInt(json['take_away']) == 1,
       description: json['description']?.toString(),
       images: images,
-      rating: (json['rating_count'] as num?)?.toDouble(),
+      rating: _asDoubleOrNull(json['rating_count']),
       gstEnabled: gst is Map<String, dynamic> &&
-          (gst['gst_enable'] as num?)?.toInt() == 1,
+          _asInt(gst['gst_enable']) == 1,
       gstAmount: gst is Map<String, dynamic>
-          ? (gst['gst_amount'] as num?)?.toInt() ?? 0
+          ? _asInt(gst['gst_amount'])
           : 0,
     );
   }
@@ -83,14 +84,12 @@ class OrderMenuItem {
         : const <String>[];
 
     return OrderMenuItem(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      restaurantId: (json['restaurant_id'] as num?)?.toInt() ?? 0,
+      id: _asInt(json['id']),
+      restaurantId: _asInt(json['restaurant_id']),
       name: json['food_name']?.toString() ?? 'Menu item',
-      price: (json['price'] as num?)?.toDouble() ??
-          double.tryParse(json['price']?.toString() ?? '') ??
-          0,
-      dineInAvailable: (json['dine_in'] as num?)?.toInt() != 0,
-      takeAwayAvailable: (json['take_away'] as num?)?.toInt() != 0,
+      price: _asDouble(json['price']),
+      dineInAvailable: _asInt(json['dine_in']) != 0,
+      takeAwayAvailable: _asInt(json['take_away']) != 0,
       description: json['description']?.toString(),
       images: images,
     );
@@ -124,11 +123,17 @@ class OrderSubmissionResult {
     required this.orderId,
     required this.totalPrice,
     required this.message,
+    this.paymentId,
+    this.paymentIntentId,
+    this.paymentMethodId,
   });
 
   final int orderId;
   final String totalPrice;
   final String message;
+  final int? paymentId;
+  final String? paymentIntentId;
+  final String? paymentMethodId;
 
   factory OrderSubmissionResult.fromJson(Map<String, dynamic> json) {
     final dynamic data = json['data'];
@@ -138,8 +143,24 @@ class OrderSubmissionResult {
       orderId: (payload['order_id'] as num?)?.toInt() ?? 0,
       totalPrice: payload['total_price']?.toString() ?? '0.00',
       message: json['message']?.toString() ?? 'Order placed.',
+      paymentId: (payload['payment_id'] as num?)?.toInt(),
+      paymentIntentId: payload['payment_intent_id']?.toString(),
+      paymentMethodId: payload['payment_method_id']?.toString(),
     );
   }
+}
+
+class OrderPaymentSelection {
+  const OrderPaymentSelection.savedCard(this.reference)
+      : mode = CheckoutPaymentMode.savedCard;
+
+  const OrderPaymentSelection.oneTime(this.reference)
+      : mode = CheckoutPaymentMode.oneTimePaymentMethod;
+
+  final CheckoutPaymentMode mode;
+  final String reference;
+
+  bool get isBlank => reference.trim().isEmpty;
 }
 
 String encodeOrderItems(List<CartLineItem> lines) {
@@ -151,3 +172,39 @@ String encodeOrderItems(List<CartLineItem> lines) {
       .toList(growable: false));
 }
 
+int _asInt(dynamic value) {
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+double _asDouble(dynamic value) {
+  if (value is double) {
+    return value;
+  }
+  if (value is num) {
+    return value.toDouble();
+  }
+
+  return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+double? _asDoubleOrNull(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value is double) {
+    return value;
+  }
+  if (value is num) {
+    return value.toDouble();
+  }
+
+  return double.tryParse(value.toString());
+}

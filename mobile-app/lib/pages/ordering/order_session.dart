@@ -42,6 +42,7 @@ class OrderSessionController extends ChangeNotifier {
   );
   int persons = 2;
   OrderSubmissionResult? submissionResult;
+  OrderPaymentSelection? paymentSelection;
 
   List<CartLineItem> get cartItems => _cartItems.values.toList(growable: false);
 
@@ -171,9 +172,22 @@ class OrderSessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectPayment(OrderPaymentSelection selection) {
+    paymentSelection = selection.isBlank ? null : selection;
+    notifyListeners();
+  }
+
+  void clearPaymentSelection() {
+    paymentSelection = null;
+    notifyListeners();
+  }
+
   Future<OrderSubmissionResult> submit() async {
     if (kitchen == null || serviceType == null || _cartItems.isEmpty) {
       throw StateError('Order is incomplete.');
+    }
+    if (paymentSelection == null || paymentSelection!.isBlank) {
+      throw StateError('Payment method is incomplete.');
     }
 
     isSubmitting = true;
@@ -181,7 +195,7 @@ class OrderSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await repository.placeOrder(
+      final orderResult = await repository.placeOrder(
         kitchenId: kitchen!.id,
         deliveryDate: DateFormat('yyyy-MM-dd').format(scheduledDate),
         deliveryTimeFrom: scheduledTime.startApiValue,
@@ -190,11 +204,13 @@ class OrderSessionController extends ChangeNotifier {
         items: cartItems,
         persons: serviceType == OrderServiceType.dineIn ? persons : null,
         taxes: taxTotal,
+        paymentSelection: paymentSelection,
       );
-      submissionResult = result;
+
+      submissionResult = orderResult;
       _cartItems.clear();
       notifyListeners();
-      return result;
+      return orderResult;
     } catch (error) {
       errorMessage = error.toString();
       rethrow;

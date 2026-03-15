@@ -68,6 +68,7 @@ Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('thro
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
+Route::get('v2/payments/payment-method-entry', [V2PaymentsController::class, 'paymentMethodForm']);
 
 
 Route::post('preregister', [PreRegistrationController::class, 'store'])->middleware('throttle:pre-register-intake');
@@ -105,7 +106,6 @@ $registerLegacyMobileRoutes = function (): void {
         Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
         Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
         Route::get('allorders', [OrderController::class, 'allOrders']);
-        Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
         Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);
     });
 
@@ -124,6 +124,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 	Route::get('mob-contact', [UserController::class, 'mobileContact']);
     Route::post('logout', [UserController::class, 'logout']);
     Route::middleware('customer')->post('orders', [OrderController::class, 'store']);
+    Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
 
     // Legacy-mobile compatibility aliases retained under /v2 during migration.
     $registerLegacyMobileRoutes();
