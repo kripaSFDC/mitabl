@@ -176,21 +176,21 @@ const footer = ({ showStoreBadges }) => `
             <style>
                .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
             </style>
-            ${showStoreBadges ? \`
+            ${showStoreBadges ? `
               <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for Google Play">
                 <img src="/frontend/images/google.png" alt="Get it on Google Play" class="badge-img">
               </button>
               <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for App Store">
                 <img src="/frontend/images/app.png" alt="Download on the App Store" class="badge-img">
               </button>
-            \` : \`
+            ` : `
               <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold hover:text-brand-700 transition-colors flex items-center gap-2" aria-label="Visit mitabl Instagram">
                 <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
                   <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
                 </svg>
                 Instagram
               </a>
-            \`}
+            `}
         </div>
       </div>
       

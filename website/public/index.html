@@ -1,235 +1,415 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mitabl</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
-    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/frontend/css/style.css">
-  </head>
-  <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-    <header role="banner">
-      <div class="container">
-        <nav class="navbar navbar-expand-md navbar-dark" aria-label="Primary">
-          <a class="navbar-brand" href="/" aria-label="mitabl home">
-            <img src="/frontend/images/logo.png" alt="mitabl logo">
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false" aria-label="Toggle navigation menu">
-            <span class="navbar-toggler-icon" aria-hidden="true"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="collapsibleNavbar">
-            <ul id="lu-ID" class="navbar-nav ml-auto">
-              <li class="nav-item" id="home"><a class="nav-link" href="/">HOME</a></li>
-              <li class="nav-item"><a class="nav-link" href="/about">ABOUT</a></li>
-              <li class="nav-item"><a class="nav-link" href="/faq">FAQ</a></li>
-              <li class="nav-item contact-btn"><a class="nav-link" href="/contact">CONTACT</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        accent: '#10b981',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .video-container {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body {
+            background-color: #fffaf5;
+            overflow-x: hidden;
+        }
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ea580c;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link.active {
+            color: #ea580c;
+            font-weight: 600;
+        }
+        
+        /* Modal transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-900 leading-tight relative min-h-screen flex flex-col">
+
+    <!-- Decorative Background Elements -->
+    <div class="blob top-[-100px] left-[-100px] animate-pulse-slow"></div>
+    <div class="blob bottom-[-100px] right-[-100px] animate-float"></div>
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 glass px-4 py-2 rounded-lg text-brand-600 font-bold shadow-lg">Skip to main content</a>
+    
+    <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" aria-label="mitabl home" class="flex items-center gap-2 group">
+                <h2 class="text-brand-600 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                    <span class="bg-brand-600 text-white px-2 py-0.5 rounded-lg shadow-md shadow-brand-500/20">mi</span>tabl
+                </h2>
+            </a>
+            
+            <button id="mobile-menu-btn" class="md:hidden text-brand-900 focus:outline-none bg-white p-2 rounded-lg shadow-sm" aria-label="Toggle navigation menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            
+            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-6 py-6 md:py-0 shadow-lg md:shadow-none transition-all duration-300">
+                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/">Home</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/about">About</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/faq">FAQ</a></li>
+                    <li><a class="nav-link px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-md shadow-brand-500/20 active:scale-95 border-none after:hidden" href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main id="main-content" tabindex="-1">
-<section class="slider-sec">
-   <div id="demo" class="carousel slide" data-ride="carousel" data-interval="10000">
-     <ul class="carousel-indicators">
-       <li data-target="#demo" data-slide-to="0" class="active"></li>
-       <li data-target="#demo" data-slide-to="1"></li>
-       <li data-target="#demo" data-slide-to="2"></li>
-     </ul>
-     <div class="carousel-inner">
-       <div class="carousel-item active">
-         <img src="/frontend/images/banner.png" class="banner-img" alt="mitabl app preview showing local meal discovery" width="1100" height="500">
-         <div class="container">
-            <div class="carousel-caption">
-              <h3>mitabl, food-first local discovery</h3>
-              <p>Find trusted local meals and dining experiences in the mitabl mobile app, powered by reliable backend operations that keep ordering, payments, and fulfilment running smoothly.</p>
-              <div class="logo-slider">
-               <a data-toggle="modal" data-target="#myModal" href="#" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a>
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+<!-- Hero Section from sample_theme.html -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center w-full mb-24">
+            
+            <!-- Left Column: Content -->
+            <div class="lg:col-span-6 space-y-8 text-center lg:text-left order-2 lg:order-1">
+                <h1 class="text-5xl md:text-7xl font-extrabold text-brand-900 tracking-tight leading-[1.1]">
+                    Discover <span class="font-serif italic font-normal text-brand-600">authentic</span> local meals.
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-600 max-w-xl mx-auto lg:mx-0 font-light leading-relaxed">
+                    Or share your culinary creations with the world. 
+                    <span class="font-semibold text-brand-700">Your neighborhood's mobile food marketplace.</span>
+                </p>
 
-              <a data-toggle="modal" data-target="#myModal" href="#" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>
-              </div>
-            </div>   
-         </div>    
-       </div>
-       <div class="carousel-item">
-         <img src="/frontend/images/slider-2.jpg" class="banner-img" alt="Micook and foodie connected through the mitabl app" width="1100" height="500">
-         <div class="container">
-            <div class="carousel-caption">
-              <h3>mitabl, built for cooks and food lovers</h3>
-              <p>From discovery to checkout, mitabl connects neighbourhood cooks with nearby diners through a modern mobile app and operational workflows that teams can trust.</p>
-              <div class="logo-slider">
-               <a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a>
-               <a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>
-              </div>
-            </div>   
-         </div>
-       </div>
-       <div class="carousel-item">
-         <img src="/frontend/images/slider-3.jpg" class="banner-img" alt="Community dining and sharing food with mitabl" width="1100" height="500">
-         <div class="container">
-            <div class="carousel-caption">
-              <h3>break bread with mitabl</h3>
-              <p>Cook | discover | order | share | connect.</p>
-              <div class="logo-slider">
-               <a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a>
-               <a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>
-              </div>
-            </div>   
-         </div>
-       </div>
-     </div>
-   </div>
-</section>
+                <div class="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
+                    <button class="modal-trigger px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold text-lg transition-all transform hover:scale-105 shadow-xl shadow-brand-500/20 active:scale-95">
+                        Start Exploring
+                    </button>
+                    <button class="modal-trigger px-8 py-4 bg-white border-2 border-brand-100 hover:border-brand-500 text-brand-900 rounded-2xl font-bold text-lg transition-all glass shadow-sm">
+                        Become a Host
+                    </button>
+                </div>
 
-<section class="about-sec sec-padd">
-   <div class="container">
-      <div class="row align-items-center">
-         <div class="col-md-6">
-            <div class="left-about">
-               <img src="/frontend/images/logo1.png" alt="Foodie features icon">
-               <p>mitabl helps you discover local meals in minutes. Open the mobile app, browse nearby micooks, place your order securely, and enjoy food made by your community.</p>
-               <ul>
-                  <li><b>Discover:</b> Explore local menus and dining options in your neighbourhood through the mitabl app.</li>
-                  <li><b>Order:</b> Choose your meal, pay securely, and track updates supported by mitabl's backend operations.</li>
-                  <li><b>Enjoy:</b> Share great food, support local cooks, and make everyday dining more meaningful.</li>
-                  <li><b>Share:</b> Post your experience with #mitabl so others can discover nearby food experiences too.</li>
-               </ul>
+                <div class="pt-8 flex items-center justify-center lg:justify-start gap-4">
+                    <div class="flex -space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-brand-200 border-2 border-white flex items-center justify-center text-xs font-bold text-brand-700">JS</div>
+                        <div class="w-10 h-10 rounded-full bg-accent text-white border-2 border-white flex items-center justify-center text-xs font-bold">MK</div>
+                        <div class="w-10 h-10 rounded-full bg-orange-400 text-white border-2 border-white flex items-center justify-center text-xs font-bold">AL</div>
+                    </div>
+                    <p class="text-sm text-gray-500 font-medium">Join 2,000+ local foodies today</p>
+                </div>
             </div>
-         </div>
-         <div class="col-md-6">
-            <div class="img-about">
-               <img src="/frontend/images/home1.jpg" alt="Foodie using mitabl to discover local meals">
-            </div>
-         </div>
-      </div>
-   </div>
-</section>
 
-<section class="about-sec sec-padd">
-   <div class="container">
-      <div class="row align-items-center">
-         <div class="col-md-6 micook-col-1">
-            <div class="img-about">
-               <img src="/frontend/images/home2.jpg" alt="Micook preparing a meal in a local kitchen">
-            </div>
-         </div>
-         <div class="col-md-6 micook-col-2">
-            <div class="left-about">
-               <img src="/frontend/images/logo2.png" alt="Micook features icon">
-               <p>mitabl gives micooks a dependable platform to publish menus, manage orders, and serve their local audience. Our mobile-first experience is backed by operational tooling for quality, safety documentation, and day-to-day fulfilment visibility.</p>
-               <ul>
-                  <li><b>Launch:</b> Build your presence with menu visibility and clear service settings in the mitabl app.</li>
-                  <li><b>Operate:</b> Receive orders, manage fulfilment updates, and stay aligned with customer expectations.</li>
-                  <li><b>Deliver:</b> Provide quality takeaway or dine-in experiences that keep customers returning.</li>
-                  <li><b>Grow:</b> Share your story with #mitabl and reach more local diners.</li>
-               </ul>
+            <!-- Right Column: Video/Visual -->
+            <div class="lg:col-span-6 order-1 lg:order-2">
+                <div class="relative group">
+                    <!-- Decorative Ring -->
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-brand-500 to-accent opacity-20 blur-2xl group-hover:opacity-40 transition-opacity duration-700 rounded-[3rem]"></div>
+                    
+                    <!-- Main Video Container -->
+                    <div class="video-container relative z-10 bg-black aspect-[9/16] max-w-[360px] mx-auto border-8 border-gray-900 shadow-2xl">
+                        <video 
+                            src="https://opal.google/board/blobs/8e6383d0-b970-414a-82dc-9257072ff57b" 
+                            class="w-full h-full object-cover"
+                            autoplay 
+                            muted 
+                            loop 
+                            playsinline
+                        ></video>
+                        
+                        <!-- Video Overlay UI Elements -->
+                        <div class="absolute top-6 left-6 right-6 flex justify-between items-center pointer-events-none">
+                            <div class="glass px-3 py-1.5 rounded-full flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                                <span class="text-[10px] font-bold tracking-widest uppercase text-gray-800">Live Now</span>
+                            </div>
+                        </div>
 
-            </div>
-         </div>
-         
-      </div>
-   </div>
-</section>
+                        <div class="absolute bottom-8 left-6 right-6 pointer-events-none">
+                            <div class="glass p-4 rounded-2xl space-y-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                                <div class="h-1.5 w-12 bg-brand-500 rounded-full"></div>
+                                <p class="text-xs font-bold text-brand-900">Featured Neighborhood Special</p>
+                                <p class="text-[10px] text-gray-600">Fresh, local, and made with love.</p>
+                            </div>
+                        </div>
+                    </div>
 
-<section class="about-sec sec-padd">
-   <div class="container">
-      <div class="row align-items-center">
-         <div class="col-md-6">
-            <div class="left-about">
-               <img src="/frontend/images/log03.png" alt="Partner network icon">
-               <p>Join a growing network of partners helping mitabl deliver trusted local food experiences through strong community connections and reliable platform operations.</p>
+                    <!-- Floating Badge -->
+                    <div class="absolute -bottom-6 -right-4 lg:-right-8 z-20 glass p-6 rounded-3xl shadow-xl border-brand-100 hidden sm:block animate-float">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-accent/10 p-3 rounded-2xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Available Near</p>
+                                <p class="text-lg font-bold text-brand-900">Your Street</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-         </div>
-         <div class="col-md-6">
-            <div class="img-about">
-               <img src="/frontend/images/home3.jpg" alt="Partners collaborating with the mitabl platform">
-            </div>
-         </div>
-      </div>
-   </div>
-</section>
 
-  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="comingSoonTitle">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close coming soon dialog">&times;</button>
         </div>
-        <div class="modal-body">
-          <img src="/frontend/images/rocket.png" alt="Rocket icon for coming soon message">
-          <h3 id="comingSoonTitle">Coming Soon...</h3>
-          <p>We are preparing something amazing and exciting for you.</p>
+
+        <!-- Bento Grid / Features adapted from the old homepage -->
+        <h2 class="text-3xl md:text-5xl font-extrabold text-center text-brand-900 mb-12 w-full mt-12">
+            Why choose mitabl?
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-12">
+            <!-- Feature 1: Food-first local discovery -->
+            <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col justify-between hover:shadow-lg transition-shadow relative overflow-hidden group">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-brand-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70 group-hover:bg-brand-200 transition-colors"></div>
+                <div class="text-brand-500 mb-6 relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-bold mb-3 text-brand-900">Food-first local discovery</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">Find trusted local meals and dining experiences in the mitabl mobile app, powered by reliable backend operations that keep ordering, payments, and fulfilment running smoothly.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 2: For cooks -->
+            <div class="glass p-8 rounded-[2.5rem] bg-brand-600 text-white flex flex-col justify-between hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
+                <div class="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold mb-3">Built for cooks</h3>
+                    <p class="text-brand-50 opacity-90 text-lg">Publish menus, manage orders, and serve your local audience with a platform backed by operational tooling for quality and safety.</p>
+                </div>
+            </div>
+
+            <!-- Feature 3: Community -->
+            <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-between hover:shadow-lg transition-shadow border-t-4 border-t-accent">
+                <div class="text-accent mb-6 w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold mb-3 text-brand-900">Partner network</h3>
+                    <p class="text-gray-600 text-lg">Join a growing network of partners helping mitabl deliver trusted local food experiences through strong community connections.</p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col sm:flex-row gap-8 items-center justify-between hover:shadow-lg transition-shadow bg-gradient-to-br from-white to-brand-50">
+                <div class="flex-1">
+                    <div class="inline-block px-4 py-1.5 bg-brand-100 text-brand-700 font-bold text-sm tracking-wide rounded-full mb-4 uppercase">Community</div>
+                    <h3 class="text-3xl font-bold mb-3 text-brand-900">Break bread with mitabl</h3>
+                    <p class="text-gray-600 text-lg">Cook • discover • order • share • connect. Every meal is a story. Connect with chefs in your community for a truly unique dining experience.</p>
+                </div>
+                <div class="w-32 h-32 rounded-full bg-brand-200 border-4 border-white shadow-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                    <img src="/frontend/images/logo2.png" alt="" class="w-16 h-16 object-contain z-10 filter invert brightness-0 opacity-40">
+                </div>
+            </div>
         </div>
+        
+        <script>
+            // Simple animation trigger for the video on scroll
+            document.addEventListener('DOMContentLoaded', () => {
+                const video = document.querySelector('video');
+                if (video) {
+                    video.play().catch(error => {
+                        console.log("Autoplay was prevented. User interaction required.");
+                    });
+                }
+            });
+        </script>
+
+  <div id="myModal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm opacity-0 invisible" role="dialog" aria-modal="true" aria-labelledby="comingSoonTitle">
+    <div class="modal-content glass p-8 rounded-[2.5rem] max-w-sm w-full mx-4 shadow-2xl relative text-center flex flex-col items-center">
+      <button type="button" class="modal-close absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full flex items-center justify-center transition-colors shadow-sm" aria-label="Close coming soon dialog">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <div class="mb-4 mx-auto w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center">
+          <span class="text-3xl">🚀</span>
       </div>
+      <h3 id="comingSoonTitle" class="text-xl font-bold text-brand-900 mb-2">Coming Soon...</h3>
+      <p class="text-sm text-gray-600">We are preparing something amazing and exciting for you.</p>
     </div>
   </div>
 
     </main>
-    <footer role="contentinfo">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <div class="footer-menu">
-              <ul class="d-flex" aria-label="Footer links">
-                <li><a href="/terms">Terms</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/contact">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-md-2">
-            <div class="footer-logo">
-              <a href="/" aria-label="mitabl home"><img src="/frontend/images/logo.png" alt="mitabl logo"></a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="footer-app">
-              <a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for Google Play"><img src="/frontend/images/google.png" alt="Get it on Google Play (coming soon)"></a><a href="#" data-toggle="modal" data-target="#myModal" role="button" aria-label="Open coming soon message for App Store"><img src="/frontend/images/app.png" alt="Download on the App Store (coming soon)"></a>
-            </div>
-          </div>
+    <footer role="contentinfo" class="w-full relative z-10 glass border-t border-brand-100 mt-20">
+      <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        
+        <div class="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 font-medium text-gray-600">
+            <a href="/terms" class="hover:text-brand-600 transition-colors">Terms</a>
+            <a href="/privacy-policy" class="hover:text-brand-600 transition-colors">Privacy Policy</a>
+            <a href="/contact" class="hover:text-brand-600 transition-colors">Contact</a>
+        </div>
+        
+        <div class="flex items-center justify-center">
+            <h2 class="text-gray-400 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 grayscale opacity-70">
+                <span class="bg-gray-400 text-white px-2 py-0.5 rounded-lg shadow-sm">mi</span>tabl
+            </h2>
+        </div>
+        
+        <div class="flex justify-center md:justify-end gap-4 h-11">
+            <style>
+               .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
+            </style>
+            
+              <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for Google Play">
+                <img src="/frontend/images/google.png" alt="Get it on Google Play" class="badge-img">
+              </button>
+              <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for App Store">
+                <img src="/frontend/images/app.png" alt="Download on the App Store" class="badge-img">
+              </button>
+            
         </div>
       </div>
-      <div class="copyright-area">
-        <div class="container d-flex justify-content-between align-items-center">
-          <p>&copy; 2026 mitabl All rights reserved.</p>
-          <p class="d-flex align-items-center mb-0">
-            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
-              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
-              </svg>
+      
+      <div class="px-6 py-6 border-t border-gray-200/50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>&copy; 2026 mitabl All rights reserved.</p>
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition-colors" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
             </a>
-          </p>
         </div>
       </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      $(document).ready(function() {
-        var CurrentUrl= document.URL;
-        var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
-        if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
-          $('#home').addClass('active')
-        } else {
-          $("#lu-ID li a").each(function() {
-            var ThisUrl = $(this).attr('href');
-            var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
-            if(ThisUrlEnd == CurrentUrlEnd){
-              $(this).closest('li').addClass('active')
-            }
-          });
-        }
+        // Custom active link logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+            const currentPathEnd = currentPath.split('/').filter(Boolean).pop() || "";
+            
+            const navLinks = document.querySelectorAll('#nav-list .nav-link:not(.bg-brand-600)');
+            
+            navLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                const linkPathEnd = linkHref.split('/').filter(Boolean).pop() || "";
+                
+                if ((currentPath === "/" || currentPath.endsWith("/index.html")) && (linkHref === "/" || linkHref.endsWith("/index.html"))) {
+                    link.classList.add('active');
+                } else if (currentPath !== "/" && !currentPath.endsWith("/index.html") && linkPathEnd === currentPathEnd) {
+                    link.classList.add('active');
+                }
+            });
 
-        $('[data-target="#myModal"]').on('click', function(event) {
-          if ($(this).attr('href') === '#') {
-            event.preventDefault();
-          }
+            // Mobile menu toggle
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navMenu = document.getElementById('navbar-menu');
+            
+            if (mobileBtn && navMenu) {
+                mobileBtn.addEventListener('click', () => {
+                    navMenu.classList.toggle('hidden');
+                    navMenu.classList.toggle('flex');
+                });
+            }
+
+            // Modal logic
+            const modal = document.getElementById('myModal');
+            const modalTriggers = document.querySelectorAll('.modal-trigger');
+            const modalCloseBtns = document.querySelectorAll('.modal-close, .modal');
+            const modalContent = document.querySelector('.modal-content');
+
+            if (modal) {
+                modalTriggers.forEach(trigger => {
+                    trigger.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        modal.classList.remove('invisible', 'opacity-0');
+                        modal.classList.add('open');
+                        setTimeout(() => modal.classList.add('opacity-100'), 10);
+                    });
+                });
+                
+                modalCloseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (e.target === modal || btn.classList.contains('modal-close')) {
+                            e.preventDefault();
+                            modal.classList.remove('opacity-100', 'open');
+                            setTimeout(() => modal.classList.add('invisible', 'opacity-0'), 300);
+                        }
+                    });
+                });
+                
+                // Prevent click inside modal content from closing
+                if (modalContent) {
+                    modalContent.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+            }
         });
-      });
     </script>
   </body>
 </html>

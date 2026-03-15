@@ -1,180 +1,390 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms | mitabl</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
-    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/frontend/css/style.css">
-  </head>
-  <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-    <header role="banner">
-      <div class="container">
-        <nav class="navbar navbar-expand-md navbar-dark" aria-label="Primary">
-          <a class="navbar-brand" href="/" aria-label="mitabl home">
-            <img src="/frontend/images/logo.png" alt="mitabl logo">
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false" aria-label="Toggle navigation menu">
-            <span class="navbar-toggler-icon" aria-hidden="true"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="collapsibleNavbar">
-            <ul id="lu-ID" class="navbar-nav ml-auto">
-              <li class="nav-item" id="home"><a class="nav-link" href="/">HOME</a></li>
-              <li class="nav-item"><a class="nav-link" href="/about">ABOUT</a></li>
-              <li class="nav-item"><a class="nav-link" href="/faq">FAQ</a></li>
-              <li class="nav-item contact-btn"><a class="nav-link" href="/contact">CONTACT</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        accent: '#10b981',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .video-container {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body {
+            background-color: #fffaf5;
+            overflow-x: hidden;
+        }
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ea580c;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link.active {
+            color: #ea580c;
+            font-weight: 600;
+        }
+        
+        /* Modal transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-900 leading-tight relative min-h-screen flex flex-col">
+
+    <!-- Decorative Background Elements -->
+    <div class="blob top-[-100px] left-[-100px] animate-pulse-slow"></div>
+    <div class="blob bottom-[-100px] right-[-100px] animate-float"></div>
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 glass px-4 py-2 rounded-lg text-brand-600 font-bold shadow-lg">Skip to main content</a>
+    
+    <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" aria-label="mitabl home" class="flex items-center gap-2 group">
+                <h2 class="text-brand-600 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                    <span class="bg-brand-600 text-white px-2 py-0.5 rounded-lg shadow-md shadow-brand-500/20">mi</span>tabl
+                </h2>
+            </a>
+            
+            <button id="mobile-menu-btn" class="md:hidden text-brand-900 focus:outline-none bg-white p-2 rounded-lg shadow-sm" aria-label="Toggle navigation menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            
+            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-6 py-6 md:py-0 shadow-lg md:shadow-none transition-all duration-300">
+                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/">Home</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/about">About</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/faq">FAQ</a></li>
+                    <li><a class="nav-link px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-md shadow-brand-500/20 active:scale-95 border-none after:hidden" href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main id="main-content" tabindex="-1">
-<section class="privacy-sec terms-page">
-   <div class="container">
-      <h3>MITABL TERMS AND CONDITIONS</h3>
-      <p>In these terms and conditions, “we” “us” and “our” refers to mitabl pvt ltd (ABN 40 658 981 607).  Your access to and use of all information on this Software Application (“App”) including mifoodi and miCook or website, including but not limiting to placing an order through our App or website, or using any of our service/s, is subject to the following terms and conditions.</p>
-      <p>We reserve the right to amend this Notice at any time and your use of the App or website following any amendments will represent your agreement to be bound by these terms and conditions as amended.  We therefore recommend that each time you access our App or website you read these terms and conditions.</p>
-      <div class="outer-privacy">
-         
-         <ul>
-            <h4>Registered Users</h4>
-            <li>In order to access services on our App or website, you must be a registered user. Registration is completed through the applicable in-app account setup flow. Please refer to our Privacy Policy on our home page for information about collection, storage, and use of registration details.</li>
-            <li>  You agree to ensure that your registration details are true and accurate at all times and you undertake to update your registration details from time to time when they change.</li>
-            <li> On registration, we provide you with account credentials. By registering, you agree to pay for services as set out on our App or website.</li>
-            <li>  We reserve the right to terminate your registration at any timeif you breach these terms and conditions.</li>
-            <li>  Our services are intended to be used by registered users only.</li>
-            <h4>Our App or website Services</h4>
-            <li>  Our services are provided to adults over the age of eighteen (18) years.  By proceeding to use our service through our App or website, you acknowledge that you are over 18 years of age.</li>
-            <li> All prices are in Australian Dollars (AUD) and are exclusiveof GST unless otherwise noted at the time of purchase.  We endeavour to ensure that our price list is current.  Our price list can be accessed from our home page and we reserve the right to amend our prices at any time.  If you have placed an order, we will use our best endeavour to fulfil your order at the price listed at the time you ordered. </li>
-            <h4>Website Access and App Usage</h4>
-            <li> When you visit our App or website, we give you a limited licence to access and use our information for personal use. </li>
-            <li> You are permitted to download a copy of the information on this App or website to your computer for your personal use only provided that you do not delete or change any copyright symbol, trade mark or other proprietary notice.  Your use of our content in any other way infringes our intellectual property rights..</li>
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+<div class="w-full mb-16 text-center" data-aos="fade-down">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-brand-900 tracking-tight leading-[1.1] mb-6">
+        Terms and <span class="font-serif italic font-normal text-brand-600">Conditions</span>
+    </h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+        MITABL TERMS AND CONDITIONS
+    </p>
+</div>
 
-            <li> Except as permitted under the Copyright Act 1968 (Cth), you are not permitted to copy, reproduce, republish, distribute or display any of the information on this App or website without our prior written permission.</li>
-            <li> The licence to access and use the information on our App or website does not include the right to use any data mining robots or other extraction tools.  The licence also does not permit you to metatag or mirror our App or website without our prior written permission. We reserve the right to serve you with notice if we become aware of your metatag or mirroring of our App or website.</li>
-            <li> You agree to pay for credit card transaction fees in addition to our quoted costs for using the App or website, we specifically note that our preferred payment gateway Stripe may charge additional fees for the transaction</li>
-
-            <li> You agree that you are personally responsible for any and all content posted by yourself including ratings and comments about other users.</li>
-            <li> If we believe that any content posted by you is reasonably likely to be regarded as being abusive or harassing in nature or breaches other law, we may delete said content or delete your account.</li>
-            <h4>Hyperlinks</h4>
-            <li> This App or website may from time to time contain hyperlinks to other App or websites.  Such links are provided for convenience only and we take no responsibility for the content and maintenance of or privacy compliance by any linked App or website.  Any hyperlink on our App or website to another App or website does not imply our endorsement, support, or sponsorship of the operator of that App or website nor of the information and/or products which they provide.</li>
-
-            <li> Linking our App or website is not permitted.  We reserve the right to serve you with notice if we become aware of such linking.</li>
-            <h4>Intellectual Property Rights</h4>
-            <li> The copyright to all content on this App or website including applets, graphics, images, layouts and text belongs to us or we have a licence to use those materials.</li>
-            <li> All trade marks, brands and logos generally identified either with the symbols TM or ® which are used on this App or website are either owned by us or we have a licence to use them. Your access to our App or website does not license you to use those marks in any commercial way without our prior written permission.</li>
-            <li> Any comment, feedback, idea or suggestion (called “comments” or “reviews”) which you provide to us through this App or website becomes our property.  If in future we use your Comments in promoting our App or website or in any other way, we will not be liable for any similarities which may appear from such use.  Furthermore, you agree that we are entitled to use your Comments for any commercial or non-commercial purpose without compensation to you or to any other person who has transmitted your Comments. </li>
-            <li> If you provide us with Comments, you acknowledge that you are responsible for the content of such material including its legality, originality and copyright.</li>
-            <li> By providing us with Comments, you acknowledge and agree that we can dispose of those Comments in any way, including deleting or blocking the assess thereof. </li>
-            <li> We bear no responsibility for home cooks or chefs supplying their services through the App or website, we strongly encourage said suppliers to obtain their own insurance including occupational and safety insurance. All suppliers providing services through the App or Website operate as independent contractors and not as employees of us.</li>
-            <h4>Disclaimers</h4>
-            <li> Whilst we take all due care in providing our services, we do not provide any warranty either express or implied including without limitation warranties of merchantability or fitness for a particular purpose. </li>
-            <li> We do not provide any warranty for any goods or services of a third party ordered through our App or website. We are not liable for any claim relating to actual food ordered via the app software.</li>
-            <li> To the extent permitted by law, any condition or warranty which would otherwise be implied into these terms and conditions is excluded.</li>
-            <li> We also take all due care in ensuring that our App or website is free of any virus, worm, Trojan horse and/or malware, however we are not responsible for any damage to your computer system which arises in connection with your use of our App or website or any linked App or website.</li>
-            <li> From time to time we may host third party content on our App or website such as advertisements and endorsements belonging to other traders.  Responsibility for the content of such material rests with the owners of that material and we are not responsible for any errors or omissions in such material. </li>
-            <li> Services or Goods posted or offered for sale on the App or website are not endorsed or tested by us. We do not provide any warranties that goods and services supplied by third parties are fit for purpose nor do we make any representations about the quality of products and services sold through the website.</li>
-            <li> If you have a complaint about goods and services offered by third parties through our website or App, we will endeavour to supply your comments or complaints to the supplier.</li>
-            <li> We bear no liability for comments or ratings or content posted by third party users and suppliers to the App or website.</li>
-            <li> Users supplying food or food preparation services pursuant to this App or Website agree to supply certificates demonstrating compliance with Food Safety Rules in their jurisdiction.</li>
-            <li> Wherein a user provides a premises for delivery of food related services, we bear no responsibility for safety or suitability of the premises. We note that we have not independently reviewed these premises for safety or suitability.</li>
-            <h4>Statutory Guarantees and Warranties to Consumers </h4>
-            <li> Schedule 2 of the Competition and Consumer Act 2010 (“C&C Act”) defines a consumer.  Under the C&C Act we are a supplier of either goods or services or both to you, and as a consumer the C&C Act gives you statutory guarantees.  Attached to the Standard Terms and Conditions are:-<br>
-            a.  Schedule 2 of the C&C Act; and <br>
-            b.  those statutory guarantees, all of which are given by us to you if you are a consumer.
-             </li>
-            <li> If you are a consumer within the meaning of Schedule 2 of the C&C Act of our goods or services then we give you a warranty that at the time of supply of any of our goods or services to you, if they are defective then:- <br>
-            a.  Provide again or rectify any goods or services or part of them that are defective; or <br>
-            b.  Wholly or partly recompense you if they are defective.
-            </li>
-            <li> We do not provide any warranty for any goods or services of a third party ordered through our App or website.  By ordering goods or services of a third party through our App or website, you agree that we will not be responsible for any issue of the goods or services of a third party.  You also agree to waive all legal responsibilities, to the extent permitted by law, against us in relation to any goods or services provided by a third party.</li>
-            <h4>Limitation of Liability</h4>
-            <li> These Terms and Conditions are between you and us, and not Apple, Inc. or Google Inc (jointly and separately referred to as “Marketplaces”). Notwithstanding the foregoing, you acknowledge that Apple and its subsidiaries are third party beneficiaries of this Agreement and Marketplaces has the right to enforce this Agreement against you. Apple, Inc. or Google Inc are not responsible for the App and its content.</li>
-            <li> If you are not a consumer within the meaning of Schedule 2 of the C&C Act then this clause applies to you.  If you are a consumer within the meaning of the C&C Act then this clause has no effect whatsoever to in any way limit our liability or your rights.  If you are not a consumer:-<br>
-                a.  To the full extent permitted by law, our liability for breach of an implied warranty or condition is limited to the supply of the services again or payment of the costs of having those services supplied again. <br>
-                b.  We accept no liability for any loss whatsoever including consequential loss suffered by you arising from services we have supplied. <br>
-                c.  We do not accept liability for anything contained in the post of a user or in any form of communication which originates with a user and not with Us. <br>
-                d.  We do not participate in any way in the transactions between our users.
-            </li>
-            <h4>Indemnity</h4>
-            <li> By accessing our App or website, you agree to indemnify and hold us harmless from all claims, actions, damages, costs and expenses including legal fees arising from or in connection with your use of our App or website and/or adverse claims about the quality of goods and services supplied by third parties.</li>
-            <h4>Jurisdiction</h4>
-            <li> These terms and conditionsare to be governed by and construed in accordance with the laws of New South Wales, Australia and any claim made by either party against the other which in any way arises out of these terms and conditionswill be heard in New South Wales, Australia and you agree to submit to the jurisdiction of those Courts.</li>
-            <li> If any provision inthese terms and conditions is invalid under any law the provision will be limited, narrowed, construed or altered as necessary to render it valid but only to the extent necessary to achieve such validity.  If necessary, the invalid provision will be deleted from these terms and conditions and the remaining provisions will remain in full force and effect.</li>
-            <h4>Privacy</h4>
-            <li> We undertake to take all due care with any information which you may provide to us when accessing our App or website. However, we do not warrant and cannot ensure the security of any information which you may provide to us.  Information you transmit to us is entirely at your own risk although we undertake to take reasonable steps to preserve such information in a secure manner.</li>
-            <li> Our compliance with privacy legislation is set out in our separate Privacy Policy which may be accessed from our home page. </li>
-         </ul>
-      </div>
-   </div>
-</section>
+<div class="w-full max-w-4xl mx-auto">
+    <div class="glass p-8 md:p-12 rounded-[2.5rem] shadow-sm relative overflow-hidden">
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+        <div class="relative z-10 text-gray-600 space-y-6 leading-relaxed">
+            <p>In these terms and conditions, “we” “us” and “our” refers to mitabl pvt ltd (ABN 40 658 981 607). Your access to and use of all information on this Software Application (“App”) including mifoodi and miCook or website, including but not limiting to placing an order through our App or website, or using any of our service/s, is subject to the following terms and conditions.</p>
+            <p>We reserve the right to amend this Notice at any time and your use of the App or website following any amendments will represent your agreement to be bound by these terms and conditions as amended. We therefore recommend that each time you access our App or website you read these terms and conditions.</p>
+            
+            <div class="space-y-8 mt-12">
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Registered Users</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>In order to access services on our App or website, you must be a registered user. Registration is completed through the applicable in-app account setup flow. Please refer to our Privacy Policy on our home page for information about collection, storage, and use of registration details.</li>
+                        <li>You agree to ensure that your registration details are true and accurate at all times and you undertake to update your registration details from time to time when they change.</li>
+                        <li>On registration, we provide you with account credentials. By registering, you agree to pay for services as set out on our App or website.</li>
+                        <li>We reserve the right to terminate your registration at any time if you breach these terms and conditions.</li>
+                        <li>Our services are intended to be used by registered users only.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Our App or website Services</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>Our services are provided to adults over the age of eighteen (18) years. By proceeding to use our service through our App or website, you acknowledge that you are over 18 years of age.</li>
+                        <li>All prices are in Australian Dollars (AUD) and are exclusive of GST unless otherwise noted at the time of purchase. We endeavour to ensure that our price list is current. Our price list can be accessed from our home page and we reserve the right to amend our prices at any time. If you have placed an order, we will use our best endeavour to fulfil your order at the price listed at the time you ordered.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Website Access and App Usage</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>When you visit our App or website, we give you a limited licence to access and use our information for personal use.</li>
+                        <li>You are permitted to download a copy of the information on this App or website to your computer for your personal use only provided that you do not delete or change any copyright symbol, trade mark or other proprietary notice. Your use of our content in any other way infringes our intellectual property rights..</li>
+                        <li>Except as permitted under the Copyright Act 1968 (Cth), you are not permitted to copy, reproduce, republish, distribute or display any of the information on this App or website without our prior written permission.</li>
+                        <li>The licence to access and use the information on our App or website does not include the right to use any data mining robots or other extraction tools. The licence also does not permit you to metatag or mirror our App or website without our prior written permission. We reserve the right to serve you with notice if we become aware of your metatag or mirroring of our App or website.</li>
+                        <li>You agree to pay for credit card transaction fees in addition to our quoted costs for using the App or website, we specifically note that our preferred payment gateway Stripe may charge additional fees for the transaction</li>
+                        <li>You agree that you are personally responsible for any and all content posted by yourself including ratings and comments about other users.</li>
+                        <li>If we believe that any content posted by you is reasonably likely to be regarded as being abusive or harassing in nature or breaches other law, we may delete said content or delete your account.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Hyperlinks</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>This App or website may from time to time contain hyperlinks to other App or websites. Such links are provided for convenience only and we take no responsibility for the content and maintenance of or privacy compliance by any linked App or website. Any hyperlink on our App or website to another App or website does not imply our endorsement, support, or sponsorship of the operator of that App or website nor of the information and/or products which they provide.</li>
+                        <li>Linking our App or website is not permitted. We reserve the right to serve you with notice if we become aware of such linking.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Intellectual Property Rights</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>The copyright to all content on this App or website including applets, graphics, images, layouts and text belongs to us or we have a licence to use those materials.</li>
+                        <li>All trade marks, brands and logos generally identified either with the symbols TM or ® which are used on this App or website are either owned by us or we have a licence to use them. Your access to our App or website does not license you to use those marks in any commercial way without our prior written permission.</li>
+                        <li>Any comment, feedback, idea or suggestion (called “comments” or “reviews”) which you provide to us through this App or website becomes our property. If in future we use your Comments in promoting our App or website or in any other way, we will not be liable for any similarities which may appear from such use. Furthermore, you agree that we are entitled to use your Comments for any commercial or non-commercial purpose without compensation to you or to any other person who has transmitted your Comments.</li>
+                        <li>If you provide us with Comments, you acknowledge that you are responsible for the content of such material including its legality, originality and copyright.</li>
+                        <li>By providing us with Comments, you acknowledge and agree that we can dispose of those Comments in any way, including deleting or blocking the assess thereof.</li>
+                        <li>We bear no responsibility for home cooks or chefs supplying their services through the App or website, we strongly encourage said suppliers to obtain their own insurance including occupational and safety insurance. All suppliers providing services through the App or Website operate as independent contractors and not as employees of us.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Disclaimers</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>Whilst we take all due care in providing our services, we do not provide any warranty either express or implied including without limitation warranties of merchantability or fitness for a particular purpose.</li>
+                        <li>We do not provide any warranty for any goods or services of a third party ordered through our App or website. We are not liable for any claim relating to actual food ordered via the app software.</li>
+                        <li>To the extent permitted by law, any condition or warranty which would otherwise be implied into these terms and conditions is excluded.</li>
+                        <li>We also take all due care in ensuring that our App or website is free of any virus, worm, Trojan horse and/or malware, however we are not responsible for any damage to your computer system which arises in connection with your use of our App or website or any linked App or website.</li>
+                        <li>From time to time we may host third party content on our App or website such as advertisements and endorsements belonging to other traders. Responsibility for the content of such material rests with the owners of that material and we are not responsible for any errors or omissions in such material.</li>
+                        <li>Services or Goods posted or offered for sale on the App or website are not endorsed or tested by us. We do not provide any warranties that goods and services supplied by third parties are fit for purpose nor do we make any representations about the quality of products and services sold through the website.</li>
+                        <li>If you have a complaint about goods and services offered by third parties through our website or App, we will endeavour to supply your comments or complaints to the supplier.</li>
+                        <li>We bear no liability for comments or ratings or content posted by third party users and suppliers to the App or website.</li>
+                        <li>Users supplying food or food preparation services pursuant to this App or Website agree to supply certificates demonstrating compliance with Food Safety Rules in their jurisdiction.</li>
+                        <li>Wherein a user provides a premises for delivery of food related services, we bear no responsibility for safety or suitability of the premises. We note that we have not independently reviewed these premises for safety or suitability.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Statutory Guarantees and Warranties to Consumers</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>Schedule 2 of the Competition and Consumer Act 2010 (“C&C Act”) defines a consumer. Under the C&C Act we are a supplier of either goods or services or both to you, and as a consumer the C&C Act gives you statutory guarantees. Attached to the Standard Terms and Conditions are:-<br>
+                        a. Schedule 2 of the C&C Act; and <br>
+                        b. those statutory guarantees, all of which are given by us to you if you are a consumer.
+                        </li>
+                        <li>If you are a consumer within the meaning of Schedule 2 of the C&C Act of our goods or services then we give you a warranty that at the time of supply of any of our goods or services to you, if they are defective then:- <br>
+                        a. Provide again or rectify any goods or services or part of them that are defective; or <br>
+                        b. Wholly or partly recompense you if they are defective.
+                        </li>
+                        <li>We do not provide any warranty for any goods or services of a third party ordered through our App or website. By ordering goods or services of a third party through our App or website, you agree that we will not be responsible for any issue of the goods or services of a third party. You also agree to waive all legal responsibilities, to the extent permitted by law, against us in relation to any goods or services provided by a third party.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Limitation of Liability</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>These Terms and Conditions are between you and us, and not Apple, Inc. or Google Inc (jointly and separately referred to as “Marketplaces”). Notwithstanding the foregoing, you acknowledge that Apple and its subsidiaries are third party beneficiaries of this Agreement and Marketplaces has the right to enforce this Agreement against you. Apple, Inc. or Google Inc are not responsible for the App and its content.</li>
+                        <li>If you are not a consumer within the meaning of Schedule 2 of the C&C Act then this clause applies to you. If you are a consumer within the meaning of the C&C Act then this clause has no effect whatsoever to in any way limit our liability or your rights. If you are not a consumer:-<br>
+                            a. To the full extent permitted by law, our liability for breach of an implied warranty or condition is limited to the supply of the services again or payment of the costs of having those services supplied again. <br>
+                            b. We accept no liability for any loss whatsoever including consequential loss suffered by you arising from services we have supplied. <br>
+                            c. We do not accept liability for anything contained in the post of a user or in any form of communication which originates with a user and not with Us. <br>
+                            d. We do not participate in any way in the transactions between our users.
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Indemnity</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>By accessing our App or website, you agree to indemnify and hold us harmless from all claims, actions, damages, costs and expenses including legal fees arising from or in connection with your use of our App or website and/or adverse claims about the quality of goods and services supplied by third parties.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Jurisdiction</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>These terms and conditions are to be governed by and construed in accordance with the laws of New South Wales, Australia and any claim made by either party against the other which in any way arises out of these terms and conditions will be heard in New South Wales, Australia and you agree to submit to the jurisdiction of those Courts.</li>
+                        <li>If any provision in these terms and conditions is invalid under any law the provision will be limited, narrowed, construed or altered as necessary to render it valid but only to the extent necessary to achieve such validity. If necessary, the invalid provision will be deleted from these terms and conditions and the remaining provisions will remain in full force and effect.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Privacy</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>We undertake to take all due care with any information which you may provide to us when accessing our App or website. However, we do not warrant and cannot ensure the security of any information which you may provide to us. Information you transmit to us is entirely at your own risk although we undertake to take reasonable steps to preserve such information in a secure manner.</li>
+                        <li>Our compliance with privacy legislation is set out in our separate Privacy Policy which may be accessed from our home page.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     </main>
-    <footer role="contentinfo">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <div class="footer-menu">
-              <ul class="d-flex" aria-label="Footer links">
-                <li><a href="/terms">Terms</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/contact">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-md-2">
-            <div class="footer-logo">
-              <a href="/" aria-label="mitabl home"><img src="/frontend/images/logo.png" alt="mitabl logo"></a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="footer-app">
-              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a>
-            </div>
-          </div>
+    <footer role="contentinfo" class="w-full relative z-10 glass border-t border-brand-100 mt-20">
+      <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        
+        <div class="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 font-medium text-gray-600">
+            <a href="/terms" class="hover:text-brand-600 transition-colors">Terms</a>
+            <a href="/privacy-policy" class="hover:text-brand-600 transition-colors">Privacy Policy</a>
+            <a href="/contact" class="hover:text-brand-600 transition-colors">Contact</a>
+        </div>
+        
+        <div class="flex items-center justify-center">
+            <h2 class="text-gray-400 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 grayscale opacity-70">
+                <span class="bg-gray-400 text-white px-2 py-0.5 rounded-lg shadow-sm">mi</span>tabl
+            </h2>
+        </div>
+        
+        <div class="flex justify-center md:justify-end gap-4 h-11">
+            <style>
+               .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
+            </style>
+            
+              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold hover:text-brand-700 transition-colors flex items-center gap-2" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
+                Instagram
+              </a>
+            
         </div>
       </div>
-      <div class="copyright-area">
-        <div class="container d-flex justify-content-between align-items-center">
-          <p>&copy; 2026 mitabl All rights reserved.</p>
-          <p class="d-flex align-items-center mb-0">
-            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
-              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
-              </svg>
+      
+      <div class="px-6 py-6 border-t border-gray-200/50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>&copy; 2026 mitabl All rights reserved.</p>
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition-colors" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
             </a>
-          </p>
         </div>
       </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      $(document).ready(function() {
-        var CurrentUrl= document.URL;
-        var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
-        if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
-          $('#home').addClass('active')
-        } else {
-          $("#lu-ID li a").each(function() {
-            var ThisUrl = $(this).attr('href');
-            var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
-            if(ThisUrlEnd == CurrentUrlEnd){
-              $(this).closest('li').addClass('active')
-            }
-          });
-        }
+        // Custom active link logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+            const currentPathEnd = currentPath.split('/').filter(Boolean).pop() || "";
+            
+            const navLinks = document.querySelectorAll('#nav-list .nav-link:not(.bg-brand-600)');
+            
+            navLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                const linkPathEnd = linkHref.split('/').filter(Boolean).pop() || "";
+                
+                if ((currentPath === "/" || currentPath.endsWith("/index.html")) && (linkHref === "/" || linkHref.endsWith("/index.html"))) {
+                    link.classList.add('active');
+                } else if (currentPath !== "/" && !currentPath.endsWith("/index.html") && linkPathEnd === currentPathEnd) {
+                    link.classList.add('active');
+                }
+            });
 
-        $('[data-target="#myModal"]').on('click', function(event) {
-          if ($(this).attr('href') === '#') {
-            event.preventDefault();
-          }
+            // Mobile menu toggle
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navMenu = document.getElementById('navbar-menu');
+            
+            if (mobileBtn && navMenu) {
+                mobileBtn.addEventListener('click', () => {
+                    navMenu.classList.toggle('hidden');
+                    navMenu.classList.toggle('flex');
+                });
+            }
+
+            // Modal logic
+            const modal = document.getElementById('myModal');
+            const modalTriggers = document.querySelectorAll('.modal-trigger');
+            const modalCloseBtns = document.querySelectorAll('.modal-close, .modal');
+            const modalContent = document.querySelector('.modal-content');
+
+            if (modal) {
+                modalTriggers.forEach(trigger => {
+                    trigger.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        modal.classList.remove('invisible', 'opacity-0');
+                        modal.classList.add('open');
+                        setTimeout(() => modal.classList.add('opacity-100'), 10);
+                    });
+                });
+                
+                modalCloseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (e.target === modal || btn.classList.contains('modal-close')) {
+                            e.preventDefault();
+                            modal.classList.remove('opacity-100', 'open');
+                            setTimeout(() => modal.classList.add('invisible', 'opacity-0'), 300);
+                        }
+                    });
+                });
+                
+                // Prevent click inside modal content from closing
+                if (modalContent) {
+                    modalContent.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+            }
         });
-      });
     </script>
   </body>
 </html>

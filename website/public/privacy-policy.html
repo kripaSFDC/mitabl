@@ -1,142 +1,343 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy | mitabl</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
-    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/frontend/css/style.css">
-  </head>
-  <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-    <header role="banner">
-      <div class="container">
-        <nav class="navbar navbar-expand-md navbar-dark" aria-label="Primary">
-          <a class="navbar-brand" href="/" aria-label="mitabl home">
-            <img src="/frontend/images/logo.png" alt="mitabl logo">
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false" aria-label="Toggle navigation menu">
-            <span class="navbar-toggler-icon" aria-hidden="true"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="collapsibleNavbar">
-            <ul id="lu-ID" class="navbar-nav ml-auto">
-              <li class="nav-item" id="home"><a class="nav-link" href="/">HOME</a></li>
-              <li class="nav-item"><a class="nav-link" href="/about">ABOUT</a></li>
-              <li class="nav-item"><a class="nav-link" href="/faq">FAQ</a></li>
-              <li class="nav-item contact-btn"><a class="nav-link" href="/contact">CONTACT</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        accent: '#10b981',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .video-container {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body {
+            background-color: #fffaf5;
+            overflow-x: hidden;
+        }
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ea580c;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link.active {
+            color: #ea580c;
+            font-weight: 600;
+        }
+        
+        /* Modal transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-900 leading-tight relative min-h-screen flex flex-col">
+
+    <!-- Decorative Background Elements -->
+    <div class="blob top-[-100px] left-[-100px] animate-pulse-slow"></div>
+    <div class="blob bottom-[-100px] right-[-100px] animate-float"></div>
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 glass px-4 py-2 rounded-lg text-brand-600 font-bold shadow-lg">Skip to main content</a>
+    
+    <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" aria-label="mitabl home" class="flex items-center gap-2 group">
+                <h2 class="text-brand-600 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                    <span class="bg-brand-600 text-white px-2 py-0.5 rounded-lg shadow-md shadow-brand-500/20">mi</span>tabl
+                </h2>
+            </a>
+            
+            <button id="mobile-menu-btn" class="md:hidden text-brand-900 focus:outline-none bg-white p-2 rounded-lg shadow-sm" aria-label="Toggle navigation menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            
+            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-6 py-6 md:py-0 shadow-lg md:shadow-none transition-all duration-300">
+                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/">Home</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/about">About</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/faq">FAQ</a></li>
+                    <li><a class="nav-link px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-md shadow-brand-500/20 active:scale-95 border-none after:hidden" href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main id="main-content" tabindex="-1">
-<section class="privacy-sec privacy-policy-page">
-   <div class="container">
-      <h3>MITABL PRIVACY POLICY</h3>
-      <p>This website is owned and operated by mitabl pvt ltd and will be referred to as "We", "our" and "us" in this Internet Privacy Policy. By using this site, you agree to the Internet Privacy Policy of our software application or our web site ("the web site"), which is set out on our app or web site page. The Internet Privacy Policy relates to the collection and use of personal information you may supply to us through your conduct on the app or the web site.</p>
-      <p>We reserve the right, at our discretion, to modify or remove portions of this Internet Privacy Policy at any time. This Internet Privacy Policy is in addition to any other terms and conditions applicable to the app or the web site. We do not make any representations about third party web sites that may be linked to the app or the web site.</p>
-      <p>We recognise the importance of protecting the privacy of information collected about visitors to our web site, in particular information that is capable of identifying an individual ("personal information"). This Internet Privacy Policy governs the manner in which your personal information, obtained through the app or the web site, will be dealt with. This Internet Privacy Policy should be reviewed periodically so that you are updated on any changes. We welcome your comments and feedback. </p>
-      <div class="outer-privacy">
-         
-         <ul>
-            <h4>Personal Information</h4>
-            <li> Personal information about visitors to our site is collected only when knowingly and voluntarily submitted. For example, we may need to collect such information to provide you with further services or to answer or forward any requests or enquiries. It is our intention that this policy will protect your personal information from being dealt with in any way that is inconsistent with applicable privacy laws in Australia. </li>
-            <h4>Use of Information</h4>
-            <li> Personal information that visitors submit to our site is used only for the purpose for which it is submitted or for such other secondary purposes that are related to the primary purpose, unless we disclose other uses in this Internet Privacy Policy or at the time of collection. Copies of correspondence sent from the app or the web site, that may contain personal information, are stored as archives for record-keeping and back-up purposes only.</li>
-            <h4>Collecting Information for Registered Members</h4>
-            <li> As part of registering with us, we collect personal information about you in order for you to take full advantage of our services. To do this it may be necessary for you to provide additional information to us as detailed below.</li>
-            <h4>Registration</h4>
-            <li> Account registration is optional and may include your name, email address, address, phone number, communication preferences, and other profile details. You may access and update this information at any time from your account settings.</li>
-            <h4>Credit Card Details</h4>
-            <li>Credit Card details are only stored for the processing of payment </li>
-            <h4>Disclosure</h4>
-            <li> Apart from where you have consented or disclosure is necessary to achieve the purpose for which it was submitted, personal information may be disclosed in special situations where we have reason to believe that doing so is necessary to identify, contact or bring legal action against anyone damaging, injuring, or interfering (intentionally or unintentionally) with our rights or property, users, or anyone else who could be harmed by such activities. Also, we may disclose personal information when we believe in good faith that the law requires disclosure.</li>
-            <li> We may engage third parties to provide you with goods or services on our behalf. In that circumstance, we may disclose your personal information to those third parties in order to meet your request for goods or services. </li>
-            <h4>Security</h4>
-            <li> We strive to ensure the security, integrity and privacy of personal information submitted to our sites, and we review and update our security measures in light of current technologies. Unfortunately, no data transmission over the Internet can be guaranteed to be totally secure. </li>
-            <li> However, we will endeavour to take all reasonable steps to protect the personal information you may transmit to us or from our online products and services. Once we do receive your transmission, we will also make our best efforts to ensure its security on our systems</li>
-            <li> In addition, our employees and the contractors who provide services related to our information systems are obliged to respect the confidentiality of any personal information held by us. However, we will not be held responsible for events arising from unauthorised access to your personal information.</li>
-            <h4>Collecting Information from Users</h4>
-            <li>IP Addresses <br>Our web servers gather your IP address to assist with the diagnosis of problems or support issues with our services. Again, information is gathered in aggregate only and cannot be traced to an individual user.</li>
-            <li>Cookies and Applets <br> We use cookies to provide you with a better experience. These cookies allow us to increase your security by storing your session ID and area way of monitoring single user access.<br> This aggregate, non-personal information is collated and provided to us to assist in analysing the usage of the site.   </li>
-            <h4>Access to Information</h4>
-            <li> We will endeavour to take all reasonable steps to keep secure any information which we hold about you, and to keep this information accurate and up to date. If, at any time, you discover that information held about you is incorrect, you may contact us to have the information corrected. </li>
-            <li> In addition, our employees and the contractors who provide services related to our information systems are obliged to respect the confidentiality of any personal information held by us. </li>
-            <h4>Links to other sites</h4>
-            <li> We provide links to Web sites outside of our web sites, as well as to third party Web sites. These linked sites are not under our control, and we cannot accept responsibility for the conduct of companies linked to our website. Before disclosing your personal information on any other website, we advise you to examine the terms and conditions of using that Web site and its privacy statement. </li>
-            <h4>Problems or questions</h4>
-            <li>If we become aware of any ongoing concerns or problems with our web sites, we will take these issues seriously and work to address these concerns. If you have any further queries relating to our Privacy Policy, or you have a problem or complaint, please contact us.</li>
-            <li>For more information about privacy issues in Australia and protecting your privacy, visit the Australian Federal Privacy Commissioner's web site; <a href="http://www.privacy.gov.au">http://www.privacy.gov.au/.</a></li>
-         </ul>
-      </div>
-   </div>
-</section>
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+<div class="w-full mb-16 text-center" data-aos="fade-down">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-brand-900 tracking-tight leading-[1.1] mb-6">
+        Privacy <span class="font-serif italic font-normal text-brand-600">Policy</span>
+    </h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+        MITABL PRIVACY POLICY
+    </p>
+</div>
+
+<div class="w-full max-w-4xl mx-auto">
+    <div class="glass p-8 md:p-12 rounded-[2.5rem] shadow-sm relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+        <div class="relative z-10 text-gray-600 space-y-6 leading-relaxed">
+            <p>This website is owned and operated by mitabl pvt ltd and will be referred to as "We", "our" and "us" in this Internet Privacy Policy. By using this site, you agree to the Internet Privacy Policy of our software application or our web site ("the web site"), which is set out on our app or web site page. The Internet Privacy Policy relates to the collection and use of personal information you may supply to us through your conduct on the app or the web site.</p>
+            <p>We reserve the right, at our discretion, to modify or remove portions of this Internet Privacy Policy at any time. This Internet Privacy Policy is in addition to any other terms and conditions applicable to the app or the web site. We do not make any representations about third party web sites that may be linked to the app or the web site.</p>
+            <p>We recognise the importance of protecting the privacy of information collected about visitors to our web site, in particular information that is capable of identifying an individual ("personal information"). This Internet Privacy Policy governs the manner in which your personal information, obtained through the app or the web site, will be dealt with. This Internet Privacy Policy should be reviewed periodically so that you are updated on any changes. We welcome your comments and feedback.</p>
+            
+            <div class="space-y-8 mt-12">
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Personal Information</h4>
+                    <p>Personal information about visitors to our site is collected only when knowingly and voluntarily submitted. For example, we may need to collect such information to provide you with further services or to answer or forward any requests or enquiries. It is our intention that this policy will protect your personal information from being dealt with in any way that is inconsistent with applicable privacy laws in Australia.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Use of Information</h4>
+                    <p>Personal information that visitors submit to our site is used only for the purpose for which it is submitted or for such other secondary purposes that are related to the primary purpose, unless we disclose other uses in this Internet Privacy Policy or at the time of collection. Copies of correspondence sent from the app or the web site, that may contain personal information, are stored as archives for record-keeping and back-up purposes only.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Collecting Information for Registered Members</h4>
+                    <p>As part of registering with us, we collect personal information about you in order for you to take full advantage of our services. To do this it may be necessary for you to provide additional information to us as detailed below.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Registration</h4>
+                    <p>Account registration is optional and may include your name, email address, address, phone number, communication preferences, and other profile details. You may access and update this information at any time from your account settings.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Credit Card Details</h4>
+                    <p>Credit Card details are only stored for the processing of payment.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Disclosure</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>Apart from where you have consented or disclosure is necessary to achieve the purpose for which it was submitted, personal information may be disclosed in special situations where we have reason to believe that doing so is necessary to identify, contact or bring legal action against anyone damaging, injuring, or interfering (intentionally or unintentionally) with our rights or property, users, or anyone else who could be harmed by such activities. Also, we may disclose personal information when we believe in good faith that the law requires disclosure.</li>
+                        <li>We may engage third parties to provide you with goods or services on our behalf. In that circumstance, we may disclose your personal information to those third parties in order to meet your request for goods or services.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Security</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>We strive to ensure the security, integrity and privacy of personal information submitted to our sites, and we review and update our security measures in light of current technologies. Unfortunately, no data transmission over the Internet can be guaranteed to be totally secure.</li>
+                        <li>However, we will endeavour to take all reasonable steps to protect the personal information you may transmit to us or from our online products and services. Once we do receive your transmission, we will also make our best efforts to ensure its security on our systems.</li>
+                        <li>In addition, our employees and the contractors who provide services related to our information systems are obliged to respect the confidentiality of any personal information held by us. However, we will not be held responsible for events arising from unauthorised access to your personal information.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Collecting Information from Users</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li><strong>IP Addresses:</strong> Our web servers gather your IP address to assist with the diagnosis of problems or support issues with our services. Again, information is gathered in aggregate only and cannot be traced to an individual user.</li>
+                        <li><strong>Cookies and Applets:</strong> We use cookies to provide you with a better experience. These cookies allow us to increase your security by storing your session ID and area way of monitoring single user access. This aggregate, non-personal information is collated and provided to us to assist in analysing the usage of the site.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Access to Information</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>We will endeavour to take all reasonable steps to keep secure any information which we hold about you, and to keep this information accurate and up to date. If, at any time, you discover that information held about you is incorrect, you may contact us to have the information corrected.</li>
+                        <li>In addition, our employees and the contractors who provide services related to our information systems are obliged to respect the confidentiality of any personal information held by us.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Links to other sites</h4>
+                    <p>We provide links to Web sites outside of our web sites, as well as to third party Web sites. These linked sites are not under our control, and we cannot accept responsibility for the conduct of companies linked to our website. Before disclosing your personal information on any other website, we advise you to examine the terms and conditions of using that Web site and its privacy statement.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-xl font-bold text-brand-900 mb-3">Problems or questions</h4>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li>If we become aware of any ongoing concerns or problems with our web sites, we will take these issues seriously and work to address these concerns. If you have any further queries relating to our Privacy Policy, or you have a problem or complaint, please contact us.</li>
+                        <li>For more information about privacy issues in Australia and protecting your privacy, visit the Australian Federal Privacy Commissioner's web site; <a href="http://www.privacy.gov.au" class="text-brand-600 hover:text-brand-700 underline">http://www.privacy.gov.au/</a>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     </main>
-    <footer role="contentinfo">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <div class="footer-menu">
-              <ul class="d-flex" aria-label="Footer links">
-                <li><a href="/terms">Terms</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/contact">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-md-2">
-            <div class="footer-logo">
-              <a href="/" aria-label="mitabl home"><img src="/frontend/images/logo.png" alt="mitabl logo"></a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="footer-app">
-              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a>
-            </div>
-          </div>
+    <footer role="contentinfo" class="w-full relative z-10 glass border-t border-brand-100 mt-20">
+      <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        
+        <div class="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 font-medium text-gray-600">
+            <a href="/terms" class="hover:text-brand-600 transition-colors">Terms</a>
+            <a href="/privacy-policy" class="hover:text-brand-600 transition-colors">Privacy Policy</a>
+            <a href="/contact" class="hover:text-brand-600 transition-colors">Contact</a>
+        </div>
+        
+        <div class="flex items-center justify-center">
+            <h2 class="text-gray-400 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 grayscale opacity-70">
+                <span class="bg-gray-400 text-white px-2 py-0.5 rounded-lg shadow-sm">mi</span>tabl
+            </h2>
+        </div>
+        
+        <div class="flex justify-center md:justify-end gap-4 h-11">
+            <style>
+               .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
+            </style>
+            
+              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold hover:text-brand-700 transition-colors flex items-center gap-2" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
+                Instagram
+              </a>
+            
         </div>
       </div>
-      <div class="copyright-area">
-        <div class="container d-flex justify-content-between align-items-center">
-          <p>&copy; 2026 mitabl All rights reserved.</p>
-          <p class="d-flex align-items-center mb-0">
-            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
-              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
-              </svg>
+      
+      <div class="px-6 py-6 border-t border-gray-200/50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>&copy; 2026 mitabl All rights reserved.</p>
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition-colors" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
             </a>
-          </p>
         </div>
       </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      $(document).ready(function() {
-        var CurrentUrl= document.URL;
-        var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
-        if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
-          $('#home').addClass('active')
-        } else {
-          $("#lu-ID li a").each(function() {
-            var ThisUrl = $(this).attr('href');
-            var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
-            if(ThisUrlEnd == CurrentUrlEnd){
-              $(this).closest('li').addClass('active')
-            }
-          });
-        }
+        // Custom active link logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+            const currentPathEnd = currentPath.split('/').filter(Boolean).pop() || "";
+            
+            const navLinks = document.querySelectorAll('#nav-list .nav-link:not(.bg-brand-600)');
+            
+            navLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                const linkPathEnd = linkHref.split('/').filter(Boolean).pop() || "";
+                
+                if ((currentPath === "/" || currentPath.endsWith("/index.html")) && (linkHref === "/" || linkHref.endsWith("/index.html"))) {
+                    link.classList.add('active');
+                } else if (currentPath !== "/" && !currentPath.endsWith("/index.html") && linkPathEnd === currentPathEnd) {
+                    link.classList.add('active');
+                }
+            });
 
-        $('[data-target="#myModal"]').on('click', function(event) {
-          if ($(this).attr('href') === '#') {
-            event.preventDefault();
-          }
+            // Mobile menu toggle
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navMenu = document.getElementById('navbar-menu');
+            
+            if (mobileBtn && navMenu) {
+                mobileBtn.addEventListener('click', () => {
+                    navMenu.classList.toggle('hidden');
+                    navMenu.classList.toggle('flex');
+                });
+            }
+
+            // Modal logic
+            const modal = document.getElementById('myModal');
+            const modalTriggers = document.querySelectorAll('.modal-trigger');
+            const modalCloseBtns = document.querySelectorAll('.modal-close, .modal');
+            const modalContent = document.querySelector('.modal-content');
+
+            if (modal) {
+                modalTriggers.forEach(trigger => {
+                    trigger.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        modal.classList.remove('invisible', 'opacity-0');
+                        modal.classList.add('open');
+                        setTimeout(() => modal.classList.add('opacity-100'), 10);
+                    });
+                });
+                
+                modalCloseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (e.target === modal || btn.classList.contains('modal-close')) {
+                            e.preventDefault();
+                            modal.classList.remove('opacity-100', 'open');
+                            setTimeout(() => modal.classList.add('invisible', 'opacity-0'), 300);
+                        }
+                    });
+                });
+                
+                // Prevent click inside modal content from closing
+                if (modalContent) {
+                    modalContent.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+            }
         });
-      });
     </script>
   </body>
 </html>
