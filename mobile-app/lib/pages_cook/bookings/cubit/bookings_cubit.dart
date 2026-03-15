@@ -21,8 +21,11 @@ class BookingsCubit extends Cubit<BookingsState> {
     String? cancelComment,
   }) async {
     try {
-      emit(state.copyWith(
-          orderCompleteCancelStatus: FormzStatus.submissionInProgress));
+      emit(
+        state.copyWith(
+          orderCompleteCancelStatus: FormzStatus.submissionInProgress,
+        ),
+      );
 
       final map = <String, dynamic>{
         'order_id': orderId.toString(),
@@ -35,16 +38,25 @@ class BookingsCubit extends Cubit<BookingsState> {
       final response = await bookingRepository!.updateOrderStatus(data: map);
       if (response.statusCode == 200) {
         navigatorKey.currentState!.pop();
-        emit(state.copyWith(
-            orderCompleteCancelStatus: FormzStatus.submissionSuccess));
+        emit(
+          state.copyWith(
+            orderCompleteCancelStatus: FormzStatus.submissionSuccess,
+          ),
+        );
         getUpcomingBookings();
       } else {
-        emit(state.copyWith(
-            orderCompleteCancelStatus: FormzStatus.submissionFailure));
+        emit(
+          state.copyWith(
+            orderCompleteCancelStatus: FormzStatus.submissionFailure,
+          ),
+        );
       }
     } on Exception {
-      emit(state.copyWith(
-          orderCompleteCancelStatus: FormzStatus.submissionFailure));
+      emit(
+        state.copyWith(
+          orderCompleteCancelStatus: FormzStatus.submissionFailure,
+        ),
+      );
     }
   }
 
@@ -60,17 +72,21 @@ class BookingsCubit extends Cubit<BookingsState> {
     try {
       emit(state.copyWith(bookingStatus: FormzStatus.submissionInProgress));
       var response = await bookingRepository!.getBookings(
-          limit: 20,
-          page: state.page! + 1,
-          isUpcoming: false,
-          sortBy: state.sortby,
-          status: state.status);
+        limit: 20,
+        page: state.page! + 1,
+        isUpcoming: false,
+        sortBy: state.sortby,
+        status: state.status,
+      );
       if (response.statusCode == 200) {
         Booking booking = Booking.fromJson(jsonDecode(response.body));
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             bookingModel: booking,
             bookingStatus: FormzStatus.submissionSuccess,
-            totalCount: booking.data!.totalCount));
+            totalCount: booking.data!.totalCount,
+          ),
+        );
       } else {
         emit(state.copyWith(bookingStatus: FormzStatus.submissionFailure));
       }
@@ -81,8 +97,9 @@ class BookingsCubit extends Cubit<BookingsState> {
 
   getUpcomingBookings() async {
     try {
-      emit(state.copyWith(
-          upcomingBookingStatus: FormzStatus.submissionInProgress));
+      emit(
+        state.copyWith(upcomingBookingStatus: FormzStatus.submissionInProgress),
+      );
       var response = await bookingRepository!.getBookings(
         limit: 20,
         page: state.page! + 1,
@@ -91,17 +108,22 @@ class BookingsCubit extends Cubit<BookingsState> {
       );
       if (response.statusCode == 200) {
         Booking booking = Booking.fromJson(jsonDecode(response.body));
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             upcomingBookingModel: booking,
             upcomingBookingStatus: FormzStatus.submissionSuccess,
-            totalCount: booking.data!.totalCount));
+            totalCount: booking.data!.totalCount,
+          ),
+        );
       } else {
-        emit(state.copyWith(
-            upcomingBookingStatus: FormzStatus.submissionFailure));
+        emit(
+          state.copyWith(upcomingBookingStatus: FormzStatus.submissionFailure),
+        );
       }
     } on Exception {
       emit(
-          state.copyWith(upcomingBookingStatus: FormzStatus.submissionFailure));
+        state.copyWith(upcomingBookingStatus: FormzStatus.submissionFailure),
+      );
     }
   }
 

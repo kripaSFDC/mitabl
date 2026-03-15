@@ -14,7 +14,9 @@ class HomeCookHeaderWidget extends StatelessWidget {
       builder: (context, state) {
         return Padding(
           padding: EdgeInsets.symmetric(
-              vertical: 0, horizontal: config.AppConfig(context).appWidth(1.5)),
+            vertical: 0,
+            horizontal: config.AppConfig(context).appWidth(1.5),
+          ),
           child: Row(
             children: [
               ClipOval(
@@ -24,13 +26,13 @@ class HomeCookHeaderWidget extends StatelessWidget {
                       : '',
                   progressIndicatorBuilder: (context, url, downloadProgress) =>
                       Container(
-                    height: config.AppConfig(context).appWidth(10),
-                    width: config.AppConfig(context).appWidth(10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
+                        height: config.AppConfig(context).appWidth(10),
+                        width: config.AppConfig(context).appWidth(10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      ),
                   errorWidget: (context, url, error) => Container(
                     height: config.AppConfig(context).appWidth(10),
                     width: config.AppConfig(context).appWidth(10),
@@ -43,23 +45,22 @@ class HomeCookHeaderWidget extends StatelessWidget {
                     height: config.AppConfig(context).appWidth(10),
                     width: config.AppConfig(context).appWidth(10),
                     decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: imageProvider,
-                          fit: BoxFit.cover,
-                        ),
-                        borderRadius: BorderRadius.circular(100)),
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(
-                width: config.AppConfig(context).appWidth(3),
-              ),
+              SizedBox(width: config.AppConfig(context).appWidth(3)),
               Expanded(
                 child: Text(
                   'Hello, ${state.cookProfile != null ? state.cookProfile!.data!.firstName : ''} ${state.cookProfile != null ? state.cookProfile!.data!.lastName : ''}',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontSize: config.AppConfig(context).appWidth(5.0),
-                      ),
+                  ),
                 ),
               ),
               Icon(

@@ -37,14 +37,14 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   void initState() {
     super.initState();
     firstName!.addListener(() {
-      context
-          .read<ProfileFoodieCubit>()
-          .onFirstNameChanged(value: firstName!.text);
+      context.read<ProfileFoodieCubit>().onFirstNameChanged(
+        value: firstName!.text,
+      );
     });
     lastName!.addListener(() {
-      context
-          .read<ProfileFoodieCubit>()
-          .onLastNameChanged(value: lastName!.text);
+      context.read<ProfileFoodieCubit>().onLastNameChanged(
+        value: lastName!.text,
+      );
     });
     email!.addListener(() {
       context.read<ProfileFoodieCubit>().onEmailChanged(value: email!.text);
@@ -53,15 +53,18 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
       context.read<ProfileFoodieCubit>().onPhoneChanged(value: phone!.text);
     });
     description!.addListener(() {
-      context
-          .read<ProfileFoodieCubit>()
-          .onDescriptionChanged(value: description!.text);
+      context.read<ProfileFoodieCubit>().onDescriptionChanged(
+        value: description!.text,
+      );
     });
 
     firstName!.text = context.read<ProfileFoodieCubit>().state.firstName!.value;
     lastName!.text = context.read<ProfileFoodieCubit>().state.lastName!.value;
-    description!.text =
-        context.read<ProfileFoodieCubit>().state.description!.value;
+    description!.text = context
+        .read<ProfileFoodieCubit>()
+        .state
+        .description!
+        .value;
     email!.text = context.read<ProfileFoodieCubit>().state.email!.value;
     phone!.text = context.read<ProfileFoodieCubit>().state.phoneNo!.value;
   }
@@ -78,8 +81,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
 
   void _openGallery(BuildContext context) async {
     final cubit = context.read<ProfileFoodieCubit>();
-    final picture =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
       if (!context.mounted || picture == null) {
@@ -95,8 +97,10 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
 
   Future<void> _openCamera(BuildContext context) async {
     final cubit = context.read<ProfileFoodieCubit>();
-    final picture = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 50);
+    final picture = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
 
     try {
       if (!context.mounted || picture == null) {
@@ -114,7 +118,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFBF7),
         body: Padding(
           padding: EdgeInsets.only(
             left: config.AppConfig(context).appWidth(3),
@@ -122,9 +126,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
           ),
           child: Column(
             children: [
-              SizedBox(
-                height: config.AppConfig(context).appHeight(5),
-              ),
+              SizedBox(height: config.AppConfig(context).appHeight(5)),
               Row(
                 children: [
                   InkWell(
@@ -140,21 +142,18 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: config.AppConfig(context).appWidth(2),
-                  ),
+                  SizedBox(width: config.AppConfig(context).appWidth(2)),
                   Text(
                     'Profile',
                     style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(6),
-                        fontWeight: FontWeight.w500),
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: config.AppConfig(context).appWidth(6),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
-              SizedBox(
-                height: config.AppConfig(context).appHeight(4),
-              ),
+              SizedBox(height: config.AppConfig(context).appHeight(4)),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -167,10 +166,12 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   child: Image.file(
                                     File(state.avatarPath!),
                                     fit: BoxFit.cover,
-                                    height:
-                                        config.AppConfig(context).appWidth(18),
-                                    width:
-                                        config.AppConfig(context).appWidth(18),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appWidth(18),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(18),
                                   ),
                                 )
                               : CachedNetworkImage(
@@ -179,96 +180,104 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   progressIndicatorBuilder:
                                       (context, url, downloadProgress) =>
                                           CircularProgressIndicator(
-                                              value: downloadProgress.progress),
+                                            value: downloadProgress.progress,
+                                          ),
                                   errorWidget: (context, url, error) =>
                                       Container(
-                                          height: config.AppConfig(context)
-                                              .appWidth(18),
-                                          width: config.AppConfig(context)
-                                              .appWidth(18),
-                                          padding: EdgeInsets.all(
-                                              config.AppConfig(context)
-                                                  .appWidth(3)),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                          ),
-                                          child: Icon(
-                                            Icons.person,
-                                            color: Colors.white,
-                                            size: config.AppConfig(context)
-                                                .appWidth(8),
-                                          )),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appWidth(18),
+                                        width: config.AppConfig(
+                                          context,
+                                        ).appWidth(18),
+                                        padding: EdgeInsets.all(
+                                          config.AppConfig(context).appWidth(3),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
+                                        ),
+                                        child: Icon(
+                                          Icons.person,
+                                          color: const Color(0xFFFFFBF7),
+                                          size: config.AppConfig(
+                                            context,
+                                          ).appWidth(8),
+                                        ),
+                                      ),
                                   imageBuilder: (context, imageProvider) =>
                                       Container(
-                                    height:
-                                        config.AppConfig(context).appWidth(18),
-                                    width:
-                                        config.AppConfig(context).appWidth(18),
-                                    decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: imageProvider,
-                                          fit: BoxFit.cover,
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appWidth(18),
+                                        width: config.AppConfig(
+                                          context,
+                                        ).appWidth(18),
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: imageProvider,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            100,
+                                          ),
                                         ),
-                                        borderRadius:
-                                            BorderRadius.circular(100)),
-                                  ),
+                                      ),
                                 );
                         },
                       ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(1),
-                      ),
+                      SizedBox(height: config.AppConfig(context).appHeight(1)),
                       InkWell(
                         onTap: () {
                           showDialog<bool>(
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: Text(
-                                        'Add image',
-                                        style: GoogleFonts.gothicA1(
-                                            color: Colors.black,
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(5)),
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Add image',
+                                  style: GoogleFonts.gothicA1(
+                                    color: Colors.black,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(5),
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    MaterialButton(
+                                      color: Theme.of(context).primaryColor,
+                                      child: const Text(
+                                        "Gallery",
+                                        style: TextStyle(
+                                          color: const Color(0xB3FFFBF7),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          MaterialButton(
-                                            color:
-                                                Theme.of(context).primaryColor,
-                                            child: const Text(
-                                              "Gallery",
-                                              style: TextStyle(
-                                                  color: Colors.white70,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            onPressed: () {
-                                              navigatorKey.currentState!
-                                                  .pop(false);
-                                            },
-                                          ),
-                                          MaterialButton(
-                                            color:
-                                                Theme.of(context).primaryColor,
-                                            child: const Text(
-                                              "Camera",
-                                              style: TextStyle(
-                                                  color: Colors.white70,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            onPressed: () {
-                                              navigatorKey.currentState!
-                                                  .pop(true);
-                                            },
-                                          )
-                                        ],
+                                      onPressed: () {
+                                        navigatorKey.currentState!.pop(false);
+                                      },
+                                    ),
+                                    MaterialButton(
+                                      color: Theme.of(context).primaryColor,
+                                      child: const Text(
+                                        "Camera",
+                                        style: TextStyle(
+                                          color: const Color(0xB3FFFBF7),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    );
-                                  },
-                          context: context)
-                              .then((value) {
+                                      onPressed: () {
+                                        navigatorKey.currentState!.pop(true);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            context: context,
+                          ).then((value) {
                             if (!context.mounted) return;
                             if (value != null) {
                               if (value) {
@@ -284,49 +293,27 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                         child: Text(
                           'Upload image',
                           style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColor,
-                              fontSize:
-                                  config.AppConfig(context).appHeight(2.2)),
+                            color: Theme.of(context).primaryColor,
+                            fontSize: config.AppConfig(context).appHeight(2.2),
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
                       _FirstName(editProfile: this),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
-                      _LastName(
-                        editProfile: this,
-                      ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
-                      _Email(
-                        editProfile: this,
-                      ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
-                      _PhoneNo(
-                        editProfile: this,
-                      ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
-                      _Description(
-                        editProfile: this,
-                      ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(2),
-                      ),
-                      _UpdateButton(
-                        editProfile: this,
-                      )
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      _LastName(editProfile: this),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      _Email(editProfile: this),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      _PhoneNo(editProfile: this),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      _Description(editProfile: this),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      _UpdateButton(editProfile: this),
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -348,73 +335,67 @@ class _EmailState extends State<_Email> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.editProfile!.email,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 55,
-          onChanged: (text) {
-            // context.read<ProfileFoodieCubit>().onEmailChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.email!.invalid ? 'Please enter a valid email id' : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.editProfile!.email,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 55,
+            onChanged: (text) {
+              // context.read<ProfileFoodieCubit>().onEmailChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.email!.invalid
+                  ? 'Please enter a valid email id'
+                  : null,
 
-            // suffixIcon: state.email!.valid
-            //     ? Icon(
-            //         Icons.check_circle_outline,
-            //         color: Theme.of(context).primaryColor,
-            //       )
-            //     : SizedBox(),
-            hintStyle: GoogleFonts.gothicA1(
+              // suffixIcon: state.email!.valid
+              //     ? Icon(
+              //         Icons.check_circle_outline,
+              //         color: Theme.of(context).primaryColor,
+              //       )
+              //     : SizedBox(),
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            hintText: 'Email Address',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              hintText: 'Email Address',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -431,69 +412,62 @@ class _FirstNameState extends State<_FirstName> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.editProfile!.firstName,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 15,
-          onChanged: (text) {
-            // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText: state.firstName!.invalid
-                ? 'Please enter a valid first name'
-                : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.editProfile!.firstName,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 15,
+            onChanged: (text) {
+              // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.firstName!.invalid
+                  ? 'Please enter a valid first name'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'First Name',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'First Name',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -510,69 +484,62 @@ class _LastNameState extends State<_LastName> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.editProfile!.lastName,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 15,
-          onChanged: (text) {
-            // context.read<ProfileFoodieCubit>().onLastNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText: state.lastName!.invalid
-                ? 'Please enter a valid last name'
-                : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.editProfile!.lastName,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 15,
+            onChanged: (text) {
+              // context.read<ProfileFoodieCubit>().onLastNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.lastName!.invalid
+                  ? 'Please enter a valid last name'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'Last Name',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'Last Name',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -589,70 +556,63 @@ class _DescriptionState extends State<_Description> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.editProfile!.description,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 300,
-          maxLines: 5,
-          onChanged: (text) {
-            // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText: state.description!.invalid
-                ? 'Please enter a valid description'
-                : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.editProfile!.description,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 300,
+            maxLines: 5,
+            onChanged: (text) {
+              // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.description!.invalid
+                  ? 'Please enter a valid description'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'Description',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'Description',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -669,68 +629,62 @@ class _PhoneNoState extends State<_PhoneNo> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.editProfile!.phone,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.phone,
-          maxLength: 15,
-          onChanged: (text) {
-            // context.read<ProfileFoodieCubit>().onPhoneChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.phoneNo!.invalid ? 'Please enter a valid phone no' : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.editProfile!.phone,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.phone,
+            maxLength: 15,
+            onChanged: (text) {
+              // context.read<ProfileFoodieCubit>().onPhoneChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.phoneNo!.invalid
+                  ? 'Please enter a valid phone no'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'Phone',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'Phone',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -747,43 +701,45 @@ class _UpdateButton extends StatelessWidget {
         return Container(
           height: 45,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.topRight,
-                colors: state.status!.isValidated
-                    ? [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor,
-                      ]
-                    : [
-                        Theme.of(context).primaryColorLight,
-                        Theme.of(context).primaryColorLight,
-                      ],
-              )),
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.topRight,
+              colors: state.status!.isValidated
+                  ? [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor,
+                    ]
+                  : [
+                      Theme.of(context).primaryColorLight,
+                      Theme.of(context).primaryColorLight,
+                    ],
+            ),
+          ),
           child: MaterialButton(
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                if (state.status!.isValidated) {
-                  context.read<ProfileFoodieCubit>().updateFoodieProfile();
-                }
-              },
-              child: state.statusUpload!.isSubmissionInProgress
-                  ? const Center(
-                      child: CupertinoActivityIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      'SAVE CHANGES',
-                      style: GoogleFonts.gothicA1(
-                          fontSize: config.AppConfig(context).appWidth(3.5),
-                          color: Colors.white),
-                    )),
+            minWidth: config.AppConfig(context).appWidth(100),
+            height: 50.0,
+            onPressed: () {
+              if (state.status!.isValidated) {
+                context.read<ProfileFoodieCubit>().updateFoodieProfile();
+              }
+            },
+            child: state.statusUpload!.isSubmissionInProgress
+                ? const Center(
+                    child: CupertinoActivityIndicator(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  )
+                : Text(
+                    'SAVE CHANGES',
+                    style: GoogleFonts.gothicA1(
+                      fontSize: config.AppConfig(context).appWidth(3.5),
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+          ),
         );
       },
     );
   }
 }
-

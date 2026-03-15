@@ -31,8 +31,9 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response =
-          await userRepository.switchRole(roleId: AppConstants.FOODI);
+      final response = await userRepository.switchRole(
+        roleId: AppConstants.FOODI,
+      );
       if (!mounted) return;
 
       if (response.statusCode == 200) {
@@ -52,15 +53,16 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         }
       } catch (_) {}
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Unable to switch profile right now. Please try again.'),
+          content: Text(
+            'Unable to switch profile right now. Please try again.',
+          ),
         ),
       );
     } finally {
@@ -79,42 +81,39 @@ class _PersonalTabViewState extends State<PersonalTabView> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              height: config.AppConfig(context).appHeight(3),
-            ),
+            SizedBox(height: config.AppConfig(context).appHeight(3)),
             CachedNetworkImage(
               imageUrl:
                   "${GlobalConfiguration().getValue<String>('base_url')}/${state.cookProfile != null ? state.cookProfile!.data!.avatar : ''}",
               progressIndicatorBuilder: (context, url, downloadProgress) =>
                   CircularProgressIndicator(value: downloadProgress.progress),
               errorWidget: (context, url, error) => Container(
-                  height: config.AppConfig(context).appWidth(18),
-                  width: config.AppConfig(context).appWidth(18),
-                  padding:
-                      EdgeInsets.all(config.AppConfig(context).appWidth(3)),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: config.AppConfig(context).appWidth(8),
-                  )),
+                height: config.AppConfig(context).appWidth(18),
+                width: config.AppConfig(context).appWidth(18),
+                padding: EdgeInsets.all(config.AppConfig(context).appWidth(3)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                child: Icon(
+                  Icons.person,
+                  color: const Color(0xFFFFFBF7),
+                  size: config.AppConfig(context).appWidth(8),
+                ),
+              ),
               imageBuilder: (context, imageProvider) => Container(
                 height: config.AppConfig(context).appWidth(18),
                 width: config.AppConfig(context).appWidth(18),
                 decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.circular(100)),
+                  image: DecorationImage(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.circular(100),
+                ),
               ),
             ),
-            SizedBox(
-              height: config.AppConfig(context).appHeight(1),
-            ),
+            SizedBox(height: config.AppConfig(context).appHeight(1)),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,44 +121,42 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                 Text(
                   '${state.cookProfile != null ? state.cookProfile!.data!.firstName : ''} ${state.cookProfile != null ? state.cookProfile!.data!.lastName : ''}',
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(5),
-                      fontWeight: FontWeight.w400),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(5),
+                    fontWeight: FontWeight.w400,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(1),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(1)),
                 Text(
                   '${state.cookProfile != null ? state.cookProfile!.data!.email : ''}',
                   style: GoogleFonts.gothicA1(
-                      color: const Color(0xffAEAEAE),
-                      fontSize: config.AppConfig(context).appWidth(3.5),
-                      fontWeight: FontWeight.normal),
+                    color: const Color(0xffAEAEAE),
+                    fontSize: config.AppConfig(context).appWidth(3.5),
+                    fontWeight: FontWeight.normal,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(0.5),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(0.5)),
                 Text(
                   '${state.cookProfile != null ? state.cookProfile!.data!.phone : ''}',
                   style: GoogleFonts.gothicA1(
-                      color: const Color(0xffAEAEAE),
-                      fontSize: config.AppConfig(context).appWidth(3.5),
-                      fontWeight: FontWeight.normal),
+                    color: const Color(0xffAEAEAE),
+                    fontSize: config.AppConfig(context).appWidth(3.5),
+                    fontWeight: FontWeight.normal,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 Text(
                   state.cookProfile != null
                       ? state.cookProfile!.data!.description ?? ''
                       : '',
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4),
-                      fontWeight: FontWeight.normal),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                    fontWeight: FontWeight.normal,
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
@@ -193,11 +190,12 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           Text(
                             'switch to mifoodi',
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: config.AppConfig(context).appWidth(5),
-                                fontWeight: FontWeight.w600),
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: config.AppConfig(context).appWidth(5),
+                              fontWeight: FontWeight.w600,
+                            ),
                             overflow: TextOverflow.ellipsis,
-                          )
+                          ),
                         ],
                       ),
                       trailing: _switchingRole
@@ -233,12 +231,12 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           Text(
                             'payments',
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(4.5),
-                                fontWeight: FontWeight.w400),
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: config.AppConfig(context).appWidth(4.5),
+                              fontWeight: FontWeight.w400,
+                            ),
                             overflow: TextOverflow.ellipsis,
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -250,16 +248,22 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           final payload = await MobileContactRepository(
                             httpClient: userRepository.httpClient,
                           ).fetch(user);
-                          final message = payload['message']?.toString() ??
+                          final message =
+                              payload['message']?.toString() ??
                               'Contact information loaded.';
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(SnackBar(content: Text(message)));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(message)));
                         } catch (error) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content:
-                                  Text('Unable to load contact info: $error')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Unable to load contact info: $error',
+                              ),
+                            ),
+                          );
                         }
                       },
                       minVerticalPadding: 0,
@@ -277,19 +281,21 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           Text(
                             'contact us',
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(4.5),
-                                fontWeight: FontWeight.w400),
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: config.AppConfig(context).appWidth(4.5),
+                              fontWeight: FontWeight.w400,
+                            ),
                             overflow: TextOverflow.ellipsis,
-                          )
+                          ),
                         ],
                       ),
                     ),
                     ListTile(
                       onTap: () {
-                        navigatorKey.currentState!.pushNamed('/SettingsCook',
-                            arguments: RouteArguments(id: 'cook'));
+                        navigatorKey.currentState!.pushNamed(
+                          '/SettingsCook',
+                          arguments: RouteArguments(id: 'cook'),
+                        );
                       },
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
@@ -306,12 +312,12 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           Text(
                             'settings',
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(4.5),
-                                fontWeight: FontWeight.w400),
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: config.AppConfig(context).appWidth(4.5),
+                              fontWeight: FontWeight.w400,
+                            ),
                             overflow: TextOverflow.ellipsis,
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -330,14 +336,16 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                                 alignment: Alignment.center,
                                 child: SvgPicture.asset(
                                   'assets/img/background.svg',
-                                  height:
-                                      config.AppConfig(context).appHeight(4.5),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4.5),
                                 ),
                               ),
                               Align(
                                 alignment: Alignment.center,
-                                widthFactor:
-                                    config.AppConfig(context).appWidth(0.38),
+                                widthFactor: config.AppConfig(
+                                  context,
+                                ).appWidth(0.38),
                                 child: Icon(
                                   Icons.exit_to_app,
                                   size: config.AppConfig(context).appWidth(5.5),
@@ -351,19 +359,19 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           Text(
                             'logout',
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(4.5),
-                                fontWeight: FontWeight.w400),
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: config.AppConfig(context).appWidth(4.5),
+                              fontWeight: FontWeight.w400,
+                            ),
                             overflow: TextOverflow.ellipsis,
-                          )
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-            )
+            ),
           ],
         );
       },

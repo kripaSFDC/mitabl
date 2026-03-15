@@ -19,18 +19,25 @@ class RequestsCubit extends Cubit<RequestsState> {
 
   getRequests() async {
     try {
-      emit(state.copyWith(
-          requestBookingStatus: FormzStatus.submissionInProgress));
-      var response = await bookingRepository!
-          .getRequests(page: state.page! + 1, limit: 100);
+      emit(
+        state.copyWith(requestBookingStatus: FormzStatus.submissionInProgress),
+      );
+      var response = await bookingRepository!.getRequests(
+        page: state.page! + 1,
+        limit: 100,
+      );
       if (response.statusCode == 200) {
         Booking booking = Booking.fromJson(jsonDecode(response.body));
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             requestBookingModel: booking,
-            requestBookingStatus: FormzStatus.submissionSuccess));
+            requestBookingStatus: FormzStatus.submissionSuccess,
+          ),
+        );
       } else {
-        emit(state.copyWith(
-            requestBookingStatus: FormzStatus.submissionSuccess));
+        emit(
+          state.copyWith(requestBookingStatus: FormzStatus.submissionSuccess),
+        );
       }
     } on Exception {
       emit(state.copyWith(requestBookingStatus: FormzStatus.submissionFailure));

@@ -17,8 +17,9 @@ class CookingStyleDialog extends StatelessWidget {
           height: config.AppConfig(context).appHeight(40),
           width: config.AppConfig(context).appWidth(50),
           child: Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -31,7 +32,7 @@ class CookingStyleDialog extends StatelessWidget {
                         'assets/img/filter_cross.svg',
                         height: config.AppConfig(context).appHeight(2.0),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 Text(
@@ -44,41 +45,41 @@ class CookingStyleDialog extends StatelessWidget {
                     fontSize: config.AppConfig(context).appWidth(6),
                   ),
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 SizedBox(
                   height: config.AppConfig(context).appHeight(60),
                   child: ListView.separated(
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return SizedBox(
-                          height: config.AppConfig(context).appHeight(0.1),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        return CheckboxListTile(
-                          value: state.cookingStyleList[index].isSelected!,
-                          onChanged: (a) {
-                            context
-                                .read<AddMenuCubit>()
-                                .onCookingStyleChange(value: a, index: index);
-                          },
-                          title: Text(
-                            state.cookingStyleList[index].name!,
-                            style: TextStyle(
-                              fontFamily: config.FontFamily()
-                                  .itcAvantGardeGothicStdFontFamily,
-                              fontWeight: config.FontFamily().book,
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4.5),
-                            ),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return SizedBox(
+                        height: config.AppConfig(context).appHeight(0.1),
+                      );
+                    },
+                    separatorBuilder: (context, index) {
+                      return CheckboxListTile(
+                        value: state.cookingStyleList[index].isSelected!,
+                        onChanged: (a) {
+                          context.read<AddMenuCubit>().onCookingStyleChange(
+                            value: a,
+                            index: index,
+                          );
+                        },
+                        title: Text(
+                          state.cookingStyleList[index].name!,
+                          style: TextStyle(
+                            fontFamily: config.FontFamily()
+                                .itcAvantGardeGothicStdFontFamily,
+                            fontWeight: config.FontFamily().book,
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: config.AppConfig(context).appWidth(4.5),
                           ),
-                        );
-                      },
-                      itemCount: state.cookingStyleList.length),
+                        ),
+                      );
+                    },
+                    itemCount: state.cookingStyleList.length,
+                  ),
                 ),
-               /* SizedBox(
+                /* SizedBox(
                   height: config.AppConfig(context).appHeight(1),
                 ),*/
                 /*Container(
@@ -100,7 +101,7 @@ class CookingStyleDialog extends StatelessWidget {
                                 .itcAvantGardeGothicStdFontFamily,
                             fontWeight: config.FontFamily().book,
                             fontSize: config.AppConfig(context).appWidth(3.5),
-                            color: Colors.white),
+                            color: const Color(0xFFFFFBF7)),
                       ),
                       minWidth: config.AppConfig(context).appWidth(30),
                       height: 50.0,
@@ -108,9 +109,7 @@ class CookingStyleDialog extends StatelessWidget {
                         navigatorKey.currentState!.pop();
                       }),
                 ),*/
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
               ],
             ),
           ),

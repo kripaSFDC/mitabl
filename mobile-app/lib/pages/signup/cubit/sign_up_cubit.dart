@@ -39,21 +39,30 @@ class SignUpCubit extends Cubit<SignUpState> {
 
       var response = await authenticationRepository!.signUp(data: map);
       if (response.statusCode == 200) {
-        SignUpResponse signUpResponse =
-            SignUpResponse.fromJson(jsonDecode(response.body));
+        SignUpResponse signUpResponse = SignUpResponse.fromJson(
+          jsonDecode(response.body),
+        );
 
         emit(state.copyWith(statusApi: FormzStatus.submissionSuccess));
 
-        navigatorKey.currentState!.popAndPushNamed('/OTPPage',
-            arguments: RouteArguments(
-                id: signUpResponse.data!.id.toString(),
-                role: state.selectedRole));
+        navigatorKey.currentState!.popAndPushNamed(
+          '/OTPPage',
+          arguments: RouteArguments(
+            id: signUpResponse.data!.id.toString(),
+            role: state.selectedRole,
+          ),
+        );
       } else {
         String message = ApiErrorParser.parseMessage(response.body);
-        emit(state.copyWith(
-            statusApi: FormzStatus.submissionFailure, serverMessage: message));
-        emit(state.copyWith(
-            statusApi: FormzStatus.pure, serverMessage: message));
+        emit(
+          state.copyWith(
+            statusApi: FormzStatus.submissionFailure,
+            serverMessage: message,
+          ),
+        );
+        emit(
+          state.copyWith(statusApi: FormzStatus.pure, serverMessage: message),
+        );
       }
     } on Exception {
       emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
@@ -63,7 +72,8 @@ class SignUpCubit extends Cubit<SignUpState> {
 
   onFirstNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         nameFirst: name,
         status: Formz.validate([
           name,
@@ -72,8 +82,10 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameLast!,
           state.password,
           state.confirmPassword,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onRoleChanged({int? role}) {
@@ -82,7 +94,8 @@ class SignUpCubit extends Cubit<SignUpState> {
 
   onLastNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         nameLast: name,
         status: Formz.validate([
           name,
@@ -91,13 +104,16 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameFirst!,
           state.password,
           state.confirmPassword,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onEmailChanged({String? value}) {
     var email = Email.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         email: email,
         status: Formz.validate([
           state.nameFirst!,
@@ -106,13 +122,16 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameLast!,
           state.password,
           state.confirmPassword,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onPhoneChanged({String? value}) {
     var phone = InternationalPhone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         phone: phone,
         status: Formz.validate([
           state.nameFirst!,
@@ -121,19 +140,30 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameLast!,
           state.password,
           state.confirmPassword,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
-
-  void onCountryCodeChanged({required String value, required String localNumber}) {
+  void onCountryCodeChanged({
+    required String value,
+    required String localNumber,
+  }) {
     final normalizedCountryCode = value.trim().isEmpty ? '+61' : value.trim();
     emit(state.copyWith(countryCode: normalizedCountryCode));
-    onPhoneChanged(value: InternationalPhone.compose(countryCode: normalizedCountryCode, number: localNumber));
+    onPhoneChanged(
+      value: InternationalPhone.compose(
+        countryCode: normalizedCountryCode,
+        number: localNumber,
+      ),
+    );
   }
+
   onAddressChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         address: name,
         status: Formz.validate([
           name,
@@ -142,13 +172,16 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.email!,
           state.nameLast!,
           state.password,
-          state.confirmPassword
-        ])));
+          state.confirmPassword,
+        ]),
+      ),
+    );
   }
 
   onPasswordChanged({String? value}) {
     var name = Password.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         password: name,
         status: Formz.validate([
           name,
@@ -157,8 +190,10 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameFirst!,
           state.phone,
           state.email!,
-          state.nameLast!
-        ])));
+          state.nameLast!,
+        ]),
+      ),
+    );
   }
 
   onConfirmPasswordChanged(String? confirmPasswordValue) {
@@ -167,7 +202,8 @@ class SignUpCubit extends Cubit<SignUpState> {
     map['confirmPassword'] = confirmPasswordValue ?? '';
 
     final confirmPassword = ConfirmPassword.dirty(map);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         status: Formz.validate([
           confirmPassword,
           state.password,
@@ -175,9 +211,11 @@ class SignUpCubit extends Cubit<SignUpState> {
           state.nameFirst!,
           state.phone,
           state.email!,
-          state.nameLast!
+          state.nameLast!,
         ]),
-        confirmPassword: confirmPassword));
+        confirmPassword: confirmPassword,
+      ),
+    );
   }
 
   void showPassword() {

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
 import 'package:mitabl_user/pages/common/view/stripe_payment_method_page.dart';
@@ -13,10 +14,7 @@ import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderCheckoutPage extends StatefulWidget {
-  const OrderCheckoutPage({
-    super.key,
-    required this.session,
-  });
+  const OrderCheckoutPage({super.key, required this.session});
 
   final OrderSessionController session;
 
@@ -25,8 +23,9 @@ class OrderCheckoutPage extends StatefulWidget {
     if (routeData is! OrderRouteData || routeData.session == null) {
       return MaterialPageRoute<void>(
         builder: (_) => const Scaffold(
-          body:
-              SafeArea(child: Text('Missing route arguments for /OrderCheckout')),
+          body: SafeArea(
+            child: Text('Missing route arguments for /OrderCheckout'),
+          ),
         ),
       );
     }
@@ -76,8 +75,9 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
     try {
       final userModel =
           userRepository.currentUser ?? await userRepository.getUser();
-      final cards =
-          await _paymentsRepository.fetchSavedCards(userModel: userModel);
+      final cards = await _paymentsRepository.fetchSavedCards(
+        userModel: userModel,
+      );
       if (!mounted) {
         return;
       }
@@ -90,7 +90,9 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
       if (cards.isNotEmpty && session.paymentSelection == null) {
         final defaultReference = _cardReference(cards.first);
         if (defaultReference.isNotEmpty) {
-          session.selectPayment(OrderPaymentSelection.savedCard(defaultReference));
+          session.selectPayment(
+            OrderPaymentSelection.savedCard(defaultReference),
+          );
         }
       }
     } on RepositoryHttpException catch (error) {
@@ -119,8 +121,9 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
     try {
       final userModel =
           userRepository.currentUser ?? await userRepository.getUser();
-      final url =
-          await _paymentsRepository.createCardCheckoutSession(userModel: userModel);
+      final url = await _paymentsRepository.createCardCheckoutSession(
+        userModel: userModel,
+      );
       final launched = await launchUrl(
         Uri.parse(url),
         mode: LaunchMode.externalApplication,
@@ -143,8 +146,9 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) {
         return;
@@ -162,14 +166,15 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
   }
 
   Future<void> _collectOneTimePaymentMethod() async {
-    final url = Uri.parse(
-      ApiContract.webUrl('api/v2/payments/payment-method-entry'),
-    ).replace(
-      queryParameters: const <String, String>{
-        'mode': 'one_time',
-        'return_url': 'mitabl://payment-method-complete',
-      },
-    ).toString();
+    final url =
+        Uri.parse(ApiContract.webUrl('api/v2/payments/payment-method-entry'))
+            .replace(
+              queryParameters: const <String, String>{
+                'mode': 'one_time',
+                'return_url': 'mitabl://payment-method-complete',
+              },
+            )
+            .toString();
 
     final paymentMethodId = await StripePaymentMethodPage.present(
       context,
@@ -197,9 +202,7 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
             : 'Take away';
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Review order'),
-          ),
+          appBar: AppBar(title: const Text('Review order')),
           body: kitchen == null
               ? const SizedBox.shrink()
               : RefreshIndicator(
@@ -231,7 +234,8 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
                             Text(
                               'Time: ${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}',
                             ),
-                            if (session.serviceType == OrderServiceType.dineIn) ...[
+                            if (session.serviceType ==
+                                OrderServiceType.dineIn) ...[
                               const SizedBox(height: 6),
                               Text('Guests: ${session.persons}'),
                             ],
@@ -294,7 +298,8 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
                             );
                           },
                           onAddCardPressed: _startAddCardFlow,
-                          onCollectOneTimeCardPressed: _collectOneTimePaymentMethod,
+                          onCollectOneTimeCardPressed:
+                              _collectOneTimePaymentMethod,
                           onRefreshPressed: _loadSavedCards,
                         ),
                       ),
@@ -306,7 +311,8 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
                           children: [
                             _SummaryRow(
                               label: 'Items',
-                              value: '\$${session.itemTotal.toStringAsFixed(2)}',
+                              value:
+                                  '\$${session.itemTotal.toStringAsFixed(2)}',
                             ),
                             const SizedBox(height: 8),
                             _SummaryRow(
@@ -325,7 +331,8 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
                               'Your payment method is attached to the order now and charged when the miCook accepts it.',
                               style: GoogleFonts.gothicA1(
                                 fontSize: 12,
-                                color: Colors.grey.shade700,
+                                color: config.AppColors()
+                                    .hintTextBackgroundColor(1),
                               ),
                             ),
                           ],
@@ -343,12 +350,16 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
                       ],
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: session.isSubmitting ? null : () => _placeOrder(context),
+                        onPressed: session.isSubmitting
+                            ? null
+                            : () => _placeOrder(context),
                         child: session.isSubmitting
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text('Place order'),
                       ),
@@ -365,7 +376,9 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
     if (selection == null || selection.isBlank) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Select a saved card or enter a one-time payment method ID.'),
+          content: Text(
+            'Select a saved card or enter a one-time payment method ID.',
+          ),
         ),
       );
       return;
@@ -419,7 +432,8 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
       return localId.toString();
     }
 
-    final dynamic stripeId = card['stripe_card_id'] ?? card['payment_method_id'];
+    final dynamic stripeId =
+        card['stripe_card_id'] ?? card['payment_method_id'];
     return stripeId?.toString() ?? '';
   }
 }
@@ -455,8 +469,8 @@ class _PaymentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedSavedCardReference =
         selectedPayment?.mode == CheckoutPaymentMode.savedCard
-            ? selectedPayment?.reference
-            : null;
+        ? selectedPayment?.reference
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,7 +543,9 @@ class _PaymentSection extends StatelessWidget {
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
                 ),
-                title: Text('$brand ${last4.isEmpty ? '' : '•••• $last4'}'.trim()),
+                title: Text(
+                  '$brand ${last4.isEmpty ? '' : '•••• $last4'}'.trim(),
+                ),
                 subtitle: expiry == null ? null : Text(expiry),
               ),
             );
@@ -556,7 +572,7 @@ class _PaymentSection extends StatelessWidget {
           'This field is optional and mainly useful for existing Stripe testing flows.',
           style: GoogleFonts.gothicA1(
             fontSize: 12,
-            color: Colors.grey.shade700,
+            color: config.AppColors().hintTextBackgroundColor(1),
           ),
         ),
       ],
@@ -569,7 +585,8 @@ class _PaymentSection extends StatelessWidget {
       return localId.toString();
     }
 
-    final dynamic stripeId = card['stripe_card_id'] ?? card['payment_method_id'];
+    final dynamic stripeId =
+        card['stripe_card_id'] ?? card['payment_method_id'];
     return stripeId?.toString() ?? '';
   }
 
@@ -585,10 +602,7 @@ class _PaymentSection extends StatelessWidget {
 }
 
 class _CheckoutSection extends StatelessWidget {
-  const _CheckoutSection({
-    required this.title,
-    required this.child,
-  });
+  const _CheckoutSection({required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -599,9 +613,9 @@ class _CheckoutSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: config.AppColors().textFieldBackgroundColor(1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: config.AppColors().colorDivider(1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

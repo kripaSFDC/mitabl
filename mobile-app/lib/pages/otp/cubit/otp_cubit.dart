@@ -16,8 +16,10 @@ part 'otp_state.dart';
 
 class OtpCubit extends Cubit<OtpState> {
   OtpCubit(
-      this.authenticationRepository, this.userRepository, this.routeArguments)
-      : super(const OtpState());
+    this.authenticationRepository,
+    this.userRepository,
+    this.routeArguments,
+  ) : super(const OtpState());
 
   final AuthenticationRepository? authenticationRepository;
   final UserRepository? userRepository;
@@ -37,30 +39,38 @@ class OtpCubit extends Cubit<OtpState> {
 
       var response = await authenticationRepository!.otpVerify(data: map);
       if (response.statusCode == 200) {
-        OTPResponse otpResponse =
-            OTPResponse.fromJson(jsonDecode(response.body));
+        OTPResponse otpResponse = OTPResponse.fromJson(
+          jsonDecode(response.body),
+        );
         await userRepository!.setCurrentUser(response.body).then((value) async {
           emit(state.copyWith(statusAPI: FormzStatus.submissionSuccess));
           if (routeArguments!.role == AppConstants.FOODI) {
             authenticationRepository!.notifyAuthenticated();
           } else {
-            navigatorKey.currentState!.popAndPushNamed('/CookProfile',
-                arguments: RouteArguments(data: otpResponse.data));
+            navigatorKey.currentState!.popAndPushNamed(
+              '/CookProfile',
+              arguments: RouteArguments(data: otpResponse.data),
+            );
           }
         });
       } else {
         String message = ApiErrorParser.parseMessage(response.body);
-        emit(state.copyWith(
-            statusAPI: FormzStatus.submissionFailure, serverMessage: message));
+        emit(
+          state.copyWith(
+            statusAPI: FormzStatus.submissionFailure,
+            serverMessage: message,
+          ),
+        );
         emit(state.copyWith(statusAPI: FormzStatus.pure, serverMessage: ''));
       }
     } on Exception {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           statusAPI: FormzStatus.submissionFailure,
-          serverMessage: 'Something went wrong...'));
-      emit(state.copyWith(
-        statusAPI: FormzStatus.pure,
-      ));
+          serverMessage: 'Something went wrong...',
+        ),
+      );
+      emit(state.copyWith(statusAPI: FormzStatus.pure));
     }
   }
 }

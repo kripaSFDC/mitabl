@@ -29,17 +29,14 @@ class HomeCubit extends Cubit<HomeState> {
     required UserRepository repo,
     HomeRepository? homeRepository,
     CookRepository? cookRepository,
-  })  : userRepository = repo,
-        _homeRepository =
-            homeRepository ?? HomeRepository(httpClient: repo.httpClient),
-        _cookRepository = cookRepository ??
-            CookRepository(
-              repo,
-              httpClient: repo.httpClient,
-            ),
-        _ownsHomeRepository = homeRepository == null,
-        _ownsCookRepository = cookRepository == null,
-        super(const HomeState()) {
+  }) : userRepository = repo,
+       _homeRepository =
+           homeRepository ?? HomeRepository(httpClient: repo.httpClient),
+       _cookRepository =
+           cookRepository ?? CookRepository(repo, httpClient: repo.httpClient),
+       _ownsHomeRepository = homeRepository == null,
+       _ownsCookRepository = cookRepository == null,
+       super(const HomeState()) {
     _fetchHomeFeeds();
   }
 
@@ -70,11 +67,13 @@ class HomeCubit extends Cubit<HomeState> {
     final longitude = coordinates?.longitude;
     final locationQuery = _formatLocationQuery(latitude, longitude);
 
-    emit(state.copyWith(
-      latitude: latitude,
-      longitude: longitude,
-      locationQuery: locationQuery,
-    ));
+    emit(
+      state.copyWith(
+        latitude: latitude,
+        longitude: longitude,
+        locationQuery: locationQuery,
+      ),
+    );
 
     if (latitude != null && longitude != null) {
       _hydrateLocationLabel(latitude, longitude);
@@ -93,10 +92,7 @@ class HomeCubit extends Cubit<HomeState> {
   }) {
     final existingList = existing.data?.topReatedRestList ?? const [];
     final incomingList = incoming.data?.topReatedRestList ?? const [];
-    final mergedList = <TopReatedRestList>[
-      ...existingList,
-      ...incomingList,
-    ];
+    final mergedList = <TopReatedRestList>[...existingList, ...incomingList];
 
     return TopReatedRestResponse(
       status: incoming.status ?? existing.status,
@@ -153,8 +149,9 @@ class HomeCubit extends Cubit<HomeState> {
     final recommendedJson = _readFreshCache(prefs, recommendedKey);
     if (recommendedJson != null && recommendedJson.isNotEmpty) {
       try {
-        final recommended =
-            RecommendedRestResponse.fromJson(jsonDecode(recommendedJson));
+        final recommended = RecommendedRestResponse.fromJson(
+          jsonDecode(recommendedJson),
+        );
         nextState = nextState.copyWith(
           statusRecommRes: FormzStatus.submissionSuccess,
           recommendedRestResponse: recommended,
@@ -169,8 +166,9 @@ class HomeCubit extends Cubit<HomeState> {
     final topRatedJson = _readFreshCache(prefs, topRatedKey);
     if (topRatedJson != null && topRatedJson.isNotEmpty) {
       try {
-        final topRated =
-            TopReatedRestResponse.fromJson(jsonDecode(topRatedJson));
+        final topRated = TopReatedRestResponse.fromJson(
+          jsonDecode(topRatedJson),
+        );
         nextState = nextState.copyWith(
           statusTopRes: FormzStatus.submissionSuccess,
           topReatedRestResponse: topRated,
@@ -185,8 +183,9 @@ class HomeCubit extends Cubit<HomeState> {
     final nearByJson = _readFreshCache(prefs, nearByKey);
     if (nearByJson != null && nearByJson.isNotEmpty) {
       try {
-        final nearBy =
-            NearByRestaurantsResponse.fromJson(jsonDecode(nearByJson));
+        final nearBy = NearByRestaurantsResponse.fromJson(
+          jsonDecode(nearByJson),
+        );
         nextState = nextState.copyWith(
           statusApi: FormzStatus.submissionSuccess,
           nearByRestaurants: nearBy,
@@ -211,7 +210,9 @@ class HomeCubit extends Cubit<HomeState> {
     final key = _cacheKey(prefix, userId);
     await prefs.setString(key, value);
     await prefs.setInt(
-        '$key$_cacheTimestampSuffix', DateTime.now().millisecondsSinceEpoch);
+      '$key$_cacheTimestampSuffix',
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
   String? _readFreshCache(SharedPreferences prefs, String key) {
@@ -232,7 +233,8 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<Response> _performRequestWithRetry(
-      Future<Response> Function() operation) async {
+    Future<Response> Function() operation,
+  ) async {
     try {
       final first = await operation();
       if (first.statusCode >= 500) {
@@ -318,17 +320,17 @@ class HomeCubit extends Cubit<HomeState> {
 
   void _showApiError({int? statusCode, required String feedName}) {
     if (statusCode == 401) {
-      AppLogger.error(
-        'Home feed request failed',
-        {'feed': feedName, 'statusCode': statusCode},
-      );
+      AppLogger.error('Home feed request failed', {
+        'feed': feedName,
+        'statusCode': statusCode,
+      });
       return;
     }
 
-    AppLogger.error(
-      'Home feed request failed',
-      {'feed': feedName, 'statusCode': statusCode},
-    );
+    AppLogger.error('Home feed request failed', {
+      'feed': feedName,
+      'statusCode': statusCode,
+    });
     Helper.showToast(_messageForStatusCode(statusCode));
   }
 
@@ -383,7 +385,9 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<String> _resolveLocationLabel(
-      double latitude, double longitude) async {
+    double latitude,
+    double longitude,
+  ) async {
     try {
       final marks = await placemarkFromCoordinates(latitude, longitude);
       if (marks.isEmpty) {
@@ -471,11 +475,13 @@ class HomeCubit extends Cubit<HomeState> {
       return;
     }
 
-    emit(state.copyWith(
-      latitude: latitude,
-      longitude: longitude,
-      locationQuery: _formatLocationQuery(latitude, longitude),
-    ));
+    emit(
+      state.copyWith(
+        latitude: latitude,
+        longitude: longitude,
+        locationQuery: _formatLocationQuery(latitude, longitude),
+      ),
+    );
     _hydrateLocationLabel(latitude, longitude);
     onApplyFilter();
   }
@@ -491,7 +497,8 @@ class HomeCubit extends Cubit<HomeState> {
 
       if (coordinates == null) {
         Helper.showToast(
-            'Unable to access current location. Check permissions.');
+          'Unable to access current location. Check permissions.',
+        );
         return;
       }
 
@@ -506,12 +513,14 @@ class HomeCubit extends Cubit<HomeState> {
         return;
       }
 
-      emit(state.copyWith(
-        latitude: latitude,
-        longitude: longitude,
-        locationQuery: _formatLocationQuery(latitude, longitude),
-        locationLabel: label,
-      ));
+      emit(
+        state.copyWith(
+          latitude: latitude,
+          longitude: longitude,
+          locationQuery: _formatLocationQuery(latitude, longitude),
+          locationLabel: label,
+        ),
+      );
 
       onApplyFilter();
     } finally {
@@ -524,9 +533,12 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> onCookingStyle() async {
     try {
       if (state.cookingStyleList!.isNotEmpty) {
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             statusCooking: FormzStatus.submissionSuccess,
-            cookingStyleList: state.cookingStyleList));
+            cookingStyleList: state.cookingStyleList,
+          ),
+        );
       } else {
         emit(state.copyWith(statusCooking: FormzStatus.submissionInProgress));
 
@@ -534,9 +546,12 @@ class HomeCubit extends Cubit<HomeState> {
 
         if (response.statusCode == 200) {
           final cookingStyle = CookingStyle.fromJson(jsonDecode(response.body));
-          emit(state.copyWith(
+          emit(
+            state.copyWith(
               statusCooking: FormzStatus.submissionSuccess,
-              cookingStyleList: cookingStyle.data));
+              cookingStyleList: cookingStyle.data,
+            ),
+          );
         } else {
           _showApiError(
             statusCode: response.statusCode,

@@ -14,9 +14,8 @@ class CustomerReviewPage extends StatefulWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-        builder: (_) => CustomerReviewPage(
-              routeArguments: routeArguments,
-            ));
+      builder: (_) => CustomerReviewPage(routeArguments: routeArguments),
+    );
   }
 
   @override
@@ -28,7 +27,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFBF7),
         elevation: 0,
         leadingWidth: config.AppConfig(context).appWidth(50),
         leading: Padding(
@@ -44,15 +43,14 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                   color: Theme.of(context).primaryColorDark,
                   size: config.AppConfig(context).appWidth(5),
                 ),
-                SizedBox(
-                  width: config.AppConfig(context).appWidth(2),
-                ),
+                SizedBox(width: config.AppConfig(context).appWidth(2)),
                 Text(
                   'Reviews',
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(5),
-                      fontWeight: FontWeight.w600),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(5),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -84,32 +82,39 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                               progressIndicatorBuilder:
                                   (context, url, downloadProgress) =>
                                       CircularProgressIndicator(
-                                          value: downloadProgress.progress),
+                                        value: downloadProgress.progress,
+                                      ),
                               errorWidget: (context, url, error) => Container(
-                                  height:
-                                      config.AppConfig(context).appWidth(16),
-                                  width: config.AppConfig(context).appWidth(16),
-                                  padding: EdgeInsets.all(
-                                      config.AppConfig(context).appWidth(3)),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                  )),
-                              imageBuilder: (context, imageProvider) =>
-                                  Container(
                                 height: config.AppConfig(context).appWidth(16),
                                 width: config.AppConfig(context).appWidth(16),
+                                padding: EdgeInsets.all(
+                                  config.AppConfig(context).appWidth(3),
+                                ),
                                 decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: imageProvider,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    borderRadius: BorderRadius.circular(100)),
+                                  shape: BoxShape.circle,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: const Color(0xFFFFFBF7),
+                                ),
                               ),
+                              imageBuilder: (context, imageProvider) =>
+                                  Container(
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appWidth(16),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(16),
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: imageProvider,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                  ),
                             ),
                             SizedBox(
                               width: config.AppConfig(context).appWidth(3),
@@ -119,36 +124,51 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.routeArguments!.kitchen!.reviewsData![index].user!.name!,
+                                  widget
+                                      .routeArguments!
+                                      .kitchen!
+                                      .reviewsData![index]
+                                      .user!
+                                      .name!,
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 StarRating(
-                                  rating: widget.routeArguments!.kitchen!
-                                      .reviewsData![index].rating!,
+                                  rating: widget
+                                      .routeArguments!
+                                      .kitchen!
+                                      .reviewsData![index]
+                                      .rating!,
                                   size: config.AppConfig(context).appWidth(5),
                                   color: Colors.amber,
-                                )
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                         SizedBox(
                           height: config.AppConfig(context).appHeight(1),
                         ),
                         Text(
-                          widget.routeArguments!.kitchen!.reviewsData![index].review!,
+                          widget
+                              .routeArguments!
+                              .kitchen!
+                              .reviewsData![index]
+                              .review!,
                           style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4),
-                              fontWeight: FontWeight.w400),
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: config.AppConfig(context).appWidth(4),
+                            fontWeight: FontWeight.w400,
+                          ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                        )
+                        ),
                       ],
                     ),
                   );
@@ -159,14 +179,16 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                     color: Theme.of(context).primaryColorDark,
                   );
                 },
-                itemCount: widget.routeArguments!.kitchen!.reviewsData!.length)
+                itemCount: widget.routeArguments!.kitchen!.reviewsData!.length,
+              )
             : Center(
                 child: Text(
                   'No review found.',
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4.5),
-                      fontWeight: FontWeight.w400),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4.5),
+                    fontWeight: FontWeight.w400,
+                  ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),

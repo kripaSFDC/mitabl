@@ -14,12 +14,16 @@ import '../../../model/user_model.dart';
 part 'dashboard_cook_state.dart';
 
 class DashboardCookCubit extends Cubit<DashboardCookState> {
-  DashboardCookCubit(
-      {this.userRepository, required this.authenticationRepository})
-      : super(DashboardCookState(
-            dashboardData: dd.DashboardData(
-                data: dd.Data(
-                    nBookings: 0, nUpcomingBookings: 0, totalEarning: 0))));
+  DashboardCookCubit({
+    this.userRepository,
+    required this.authenticationRepository,
+  }) : super(
+         DashboardCookState(
+           dashboardData: dd.DashboardData(
+             data: dd.Data(nBookings: 0, nUpcomingBookings: 0, totalEarning: 0),
+           ),
+         ),
+       );
 
   final AuthenticationRepository? authenticationRepository;
   final UserRepository? userRepository;
@@ -32,8 +36,9 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
     try {
       final response = await userRepository!.getDashboardData();
       if (response.statusCode == 200) {
-        dd.DashboardData dashboardData =
-            dd.DashboardData.fromJson(jsonDecode(response.body));
+        dd.DashboardData dashboardData = dd.DashboardData.fromJson(
+          jsonDecode(response.body),
+        );
         emit(state.copyWith(dashboardData: dashboardData));
       } else {
         AppLogger.warn(
@@ -53,8 +58,9 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
     try {
       // emit(state.copyWith(status: FormzStatus.submissionInProgress));
       UserModel? userModel = await userRepository!.getUser();
-      var response =
-          await authenticationRepository!.logOutApi(userModel: userModel);
+      var response = await authenticationRepository!.logOutApi(
+        userModel: userModel,
+      );
 
       if (response.statusCode == 200) {
         // emit(state.copyWith(
@@ -64,9 +70,12 @@ class DashboardCookCubit extends Cubit<DashboardCookState> {
         emit(state.copyWith(selectedIndex: 0));
       } else {
         await authenticationRepository!.logOut();
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             // status: FormzStatus.pure,
-            selectedIndex: 0));
+            selectedIndex: 0,
+          ),
+        );
       }
     } catch (e) {
       AppLogger.error('Cook logout failed', e);

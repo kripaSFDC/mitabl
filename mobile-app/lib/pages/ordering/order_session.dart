@@ -4,23 +4,20 @@ import 'package:mitabl_user/model/ordering_models.dart';
 import 'package:mitabl_user/repos/ordering_repository.dart';
 
 class OrderRouteData {
-  OrderRouteData({
-    this.kitchenId,
-    this.session,
-  });
+  OrderRouteData({this.kitchenId, this.session});
 
   final int? kitchenId;
   final OrderSessionController? session;
 }
 
 class OrderSessionController extends ChangeNotifier {
-  OrderSessionController({
-    required this.repository,
-    required this.kitchenId,
-  }) {
+  OrderSessionController({required this.repository, required this.kitchenId}) {
     final now = DateTime.now();
-    scheduledDate =
-        DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    scheduledDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
   }
 
   final OrderingRepository repository;
@@ -108,8 +105,8 @@ class OrderSessionController extends ChangeNotifier {
       serviceType ??= loadedKitchen.takeAwayAvailable
           ? OrderServiceType.takeAway
           : loadedKitchen.dineInAvailable
-              ? OrderServiceType.dineIn
-              : null;
+          ? OrderServiceType.dineIn
+          : null;
       if (serviceType == null) {
         errorMessage = 'This kitchen is not currently accepting orders.';
       }
@@ -345,14 +342,16 @@ class OrderSessionController extends ChangeNotifier {
       if (!_shouldApplyDineInSlotResponse(requestVersion, currentKitchen.id)) {
         return;
       }
-      dineInSlots =
-          slots.where((slot) => slot.isAvailable).toList(growable: false);
+      dineInSlots = slots
+          .where((slot) => slot.isAvailable)
+          .toList(growable: false);
 
       final selectedId = selectedDineInSlotId;
       if (selectedId == null ||
           !dineInSlots.any((slot) => slot.id == selectedId)) {
-        selectedDineInSlotId =
-            dineInSlots.isEmpty ? null : dineInSlots.first.id;
+        selectedDineInSlotId = dineInSlots.isEmpty
+            ? null
+            : dineInSlots.first.id;
       }
 
       if (dineInSlots.isEmpty) {
@@ -372,8 +371,9 @@ class OrderSessionController extends ChangeNotifier {
       final selectedId = selectedDineInSlotId;
       if (selectedId == null ||
           !dineInSlots.any((slot) => slot.id == selectedId)) {
-        selectedDineInSlotId =
-            dineInSlots.isEmpty ? null : dineInSlots.first.id;
+        selectedDineInSlotId = dineInSlots.isEmpty
+            ? null
+            : dineInSlots.first.id;
       }
       dineInSlotError = dineInSlots.isEmpty
           ? error.toString()

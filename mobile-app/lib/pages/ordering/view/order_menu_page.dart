@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
@@ -45,10 +46,7 @@ class OrderMenuPage extends StatelessWidget {
 }
 
 class _OrderMenuFlow extends StatefulWidget {
-  const _OrderMenuFlow({
-    required this.kitchenId,
-    required this.repository,
-  });
+  const _OrderMenuFlow({required this.kitchenId, required this.repository});
 
   final int kitchenId;
   final OrderingRepository repository;
@@ -83,9 +81,7 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
         final kitchen = _session.kitchen;
         final title = kitchen?.name ?? 'Kitchen menu';
         return Scaffold(
-          appBar: AppBar(
-            title: Text(title),
-          ),
+          appBar: AppBar(title: Text(title)),
           floatingActionButton: _session.totalItems > 0
               ? FloatingActionButton.extended(
                   onPressed: () {
@@ -179,12 +175,13 @@ class _KitchenHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imagePath = kitchen.images.isNotEmpty ? kitchen.images.first : null;
-    final imageBaseUrl =
-        GlobalConfiguration().getValue<String>('image_base_url');
+    final imageBaseUrl = GlobalConfiguration().getValue<String>(
+      'image_base_url',
+    );
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: config.AppColors().textFieldBackgroundColor(1),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -202,7 +199,7 @@ class _KitchenHero extends StatelessWidget {
             child: imagePath == null
                 ? Container(
                     height: 180,
-                    color: Colors.grey.shade200,
+                    color: config.AppColors().colorDivider(1),
                     alignment: Alignment.center,
                     child: const Icon(Icons.restaurant_menu, size: 48),
                   )
@@ -230,7 +227,7 @@ class _KitchenHero extends StatelessWidget {
                   kitchen.address,
                   style: GoogleFonts.gothicA1(
                     fontSize: 14,
-                    color: Colors.grey.shade700,
+                    color: config.AppColors().hintTextBackgroundColor(1),
                   ),
                 ),
                 if ((kitchen.description ?? '').trim().isNotEmpty) ...[
@@ -336,16 +333,19 @@ class _MenuItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imagePath = item.images.isNotEmpty ? item.images.first : null;
-    final imageBaseUrl =
-        GlobalConfiguration().getValue<String>('image_base_url');
+    final imageBaseUrl = GlobalConfiguration().getValue<String>(
+      'image_base_url',
+    );
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: config.AppColors().textFieldBackgroundColor(1),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: available ? Colors.grey.shade200 : Colors.red.shade100,
+          color: available
+              ? config.AppColors().colorDivider(1)
+              : Colors.red.shade100,
         ),
       ),
       child: Row(
@@ -357,7 +357,7 @@ class _MenuItemCard extends StatelessWidget {
                 ? Container(
                     width: 84,
                     height: 84,
-                    color: Colors.grey.shade200,
+                    color: config.AppColors().colorDivider(1),
                     alignment: Alignment.center,
                     child: const Icon(Icons.fastfood_outlined),
                   )
@@ -397,7 +397,7 @@ class _MenuItemCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.gothicA1(
                       fontSize: 13,
-                      color: Colors.grey.shade700,
+                      color: config.AppColors().hintTextBackgroundColor(1),
                       height: 1.35,
                     ),
                   ),
@@ -430,10 +430,7 @@ class _MenuItemCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _QuantityButton(
-                        icon: Icons.add,
-                        onPressed: onAdd,
-                      ),
+                      _QuantityButton(icon: Icons.add, onPressed: onAdd),
                     ],
                   ),
               ],
@@ -446,10 +443,7 @@ class _MenuItemCard extends StatelessWidget {
 }
 
 class _QuantityButton extends StatelessWidget {
-  const _QuantityButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _QuantityButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback? onPressed;
@@ -464,14 +458,16 @@ class _QuantityButton extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           color: onPressed == null
-              ? Colors.grey.shade200
+              ? config.AppColors().colorDivider(1)
               : Theme.of(context).primaryColorDark,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
           size: 18,
-          color: onPressed == null ? Colors.grey : Colors.white,
+          color: onPressed == null
+              ? config.AppColors().hintTextBackgroundColor(1)
+              : Theme.of(context).colorScheme.onPrimary,
         ),
       ),
     );
@@ -479,10 +475,7 @@ class _QuantityButton extends StatelessWidget {
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-  });
+  const _InfoChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -492,7 +485,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: config.AppColors().colorDivider(0.6),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -500,10 +493,7 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.gothicA1(fontWeight: FontWeight.w600),
-          ),
+          Text(label, style: GoogleFonts.gothicA1(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -511,10 +501,7 @@ class _InfoChip extends StatelessWidget {
 }
 
 class _LoadError extends StatelessWidget {
-  const _LoadError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _LoadError({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;

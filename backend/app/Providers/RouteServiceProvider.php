@@ -59,6 +59,43 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($this->resolveRateLimitActorKey($request, 'api'));
         });
 
+        RateLimiter::for('public-api', function (Request $request) {
+            return Limit::perMinute(60)->by('public-api:ip:' . (string) $request->ip());
+        });
+
+        RateLimiter::for('mobile-login', function (Request $request) {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $ip = (string) $request->ip();
+            $key = $email !== '' ? "mobile-login:email:{$email}" : "mobile-login:ip:{$ip}";
+
+            return Limit::perMinute(10)->by($key);
+        });
+
+        RateLimiter::for('mobile-token-refresh', function (Request $request) {
+            $ip = (string) $request->ip();
+            $authHeader = (string) $request->header('Authorization', '');
+            $tokenHash = $authHeader !== '' ? sha1($authHeader) : '';
+            $key = $tokenHash !== '' ? "mobile-token-refresh:token:{$tokenHash}" : "mobile-token-refresh:ip:{$ip}";
+
+            return Limit::perMinute(30)->by($key);
+        });
+
+        RateLimiter::for('mobile-verify-otp', function (Request $request) {
+            $userId = (string) $request->input('id', '');
+            $ip = (string) $request->ip();
+            $key = $userId !== '' ? "mobile-verify-otp:user:{$userId}" : "mobile-verify-otp:ip:{$ip}";
+
+            return Limit::perMinute(10)->by($key);
+        });
+
+        RateLimiter::for('mobile-resend-otp', function (Request $request) {
+            $userId = (string) $request->input('user_id', '');
+            $ip = (string) $request->ip();
+            $key = $userId !== '' ? "mobile-resend-otp:user:{$userId}" : "mobile-resend-otp:ip:{$ip}";
+
+            return Limit::perMinute(5)->by($key);
+        });
+
         RateLimiter::for('support-intake', function (Request $request) {
             $email = strtolower(trim((string) (
                 $request->input('requester_email')

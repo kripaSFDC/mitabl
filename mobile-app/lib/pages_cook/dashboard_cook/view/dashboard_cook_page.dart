@@ -49,84 +49,85 @@ class _DashBoardCookPageState extends State<DashBoardCookPage> {
       builder: (context, state) {
         return SafeArea(
           child: Scaffold(
-              body: Center(
-                child: pagesBottom!.elementAt(state.selectedIndex!),
+            body: Center(child: pagesBottom!.elementAt(state.selectedIndex!)),
+            bottomNavigationBar: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/img/bottom_dash.svg',
+                    height: config.AppConfig(context).appHeight(2.5),
+                    width: config.AppConfig(context).appHeight(2.5),
+                    colorFilter: ColorFilter.mode(
+                      state.selectedIndex == 0
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).primaryColorDark,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'Dashboard',
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/img/menu.svg',
+                    height: config.AppConfig(context).appHeight(2.5),
+                    width: config.AppConfig(context).appHeight(2.5),
+                    colorFilter: ColorFilter.mode(
+                      state.selectedIndex == 1
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).primaryColorDark,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'Menu',
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/img/bottom_request.svg',
+                    height: config.AppConfig(context).appHeight(2.5),
+                    width: config.AppConfig(context).appHeight(2.5),
+                    colorFilter: ColorFilter.mode(
+                      state.selectedIndex == 2
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).primaryColorDark,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'Requests',
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/img/bottom_profile.svg',
+                    height: config.AppConfig(context).appHeight(2.5),
+                    width: config.AppConfig(context).appHeight(2.5),
+                    colorFilter: ColorFilter.mode(
+                      state.selectedIndex == 3
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).primaryColorDark,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: 'Profile',
+                ),
+              ],
+              currentIndex: state.selectedIndex!,
+              selectedItemColor: Theme.of(context).primaryColor,
+              unselectedItemColor: Theme.of(context).primaryColorDark,
+              unselectedLabelStyle: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontSize: 14,
+                fontWeight: config.FontFamily().book,
               ),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                items: <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/img/bottom_dash.svg',
-                      height: config.AppConfig(context).appHeight(2.5),
-                      width: config.AppConfig(context).appHeight(2.5),
-                      colorFilter: ColorFilter.mode(
-                        state.selectedIndex == 0
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).primaryColorDark,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    label: 'Dashboard',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/img/menu.svg',
-                      height: config.AppConfig(context).appHeight(2.5),
-                      width: config.AppConfig(context).appHeight(2.5),
-                      colorFilter: ColorFilter.mode(
-                        state.selectedIndex == 1
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).primaryColorDark,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    label: 'Menu',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/img/bottom_request.svg',
-                      height: config.AppConfig(context).appHeight(2.5),
-                      width: config.AppConfig(context).appHeight(2.5),
-                      colorFilter: ColorFilter.mode(
-                        state.selectedIndex == 2
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).primaryColorDark,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    label: 'Requests',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/img/bottom_profile.svg',
-                      height: config.AppConfig(context).appHeight(2.5),
-                      width: config.AppConfig(context).appHeight(2.5),
-                      colorFilter: ColorFilter.mode(
-                        state.selectedIndex == 3
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).primaryColorDark,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    label: 'Profile',
-                  ),
-                ],
-                currentIndex: state.selectedIndex!,
-                selectedItemColor: Theme.of(context).primaryColor,
-                unselectedItemColor: Theme.of(context).primaryColorDark,
-                unselectedLabelStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: config.FontFamily().book),
-                selectedLabelStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: config.FontFamily().book),
-                onTap: (i) {
-                  context.read<DashboardCookCubit>().onTabChange(index: i);
-                },
-              )),
+              selectedLabelStyle: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontSize: 14,
+                fontWeight: config.FontFamily().book,
+              ),
+              onTap: (i) {
+                context.read<DashboardCookCubit>().onTabChange(index: i);
+              },
+            ),
+          ),
         );
       },
     );

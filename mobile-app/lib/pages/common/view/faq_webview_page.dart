@@ -14,10 +14,7 @@ class FaqWebviewPage extends StatefulWidget {
 
 class _FaqWebviewPageState extends State<FaqWebviewPage> {
   static final Uri _faqUri = Uri.parse('https://mitabl.com/faq');
-  static const Set<String> _allowedHosts = {
-    'mitabl.com',
-    'www.mitabl.com',
-  };
+  static const Set<String> _allowedHosts = {'mitabl.com', 'www.mitabl.com'};
 
   late final WebViewController _controller;
 
@@ -48,9 +45,7 @@ class _FaqWebviewPageState extends State<FaqWebviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('FAQ'),
-      ),
+      appBar: AppBar(title: const Text('FAQ')),
       body: WebViewWidget(controller: _controller),
     );
   }

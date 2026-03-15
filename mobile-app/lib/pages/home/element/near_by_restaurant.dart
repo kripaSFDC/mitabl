@@ -26,14 +26,16 @@ class _NearByRestaurantsState extends State<NearByRestaurants> {
           padding: const EdgeInsets.only(left: 4, right: 4, bottom: 4, top: 4),
           crossAxisCount:
               MediaQuery.of(context).orientation == Orientation.portrait
-                  ? 2
-                  : 4,
+              ? 2
+              : 4,
           // Generate 100 widgets that display their index in the List.
-          children:
-              List.generate(widget.nearByRestaurantsList?.length ?? 0, (index) {
+          children: List.generate(widget.nearByRestaurantsList?.length ?? 0, (
+            index,
+          ) {
             return NearByRestWidget(
-              nearByRestaurantsList:
-                  widget.nearByRestaurantsList!.elementAt(index),
+              nearByRestaurantsList: widget.nearByRestaurantsList!.elementAt(
+                index,
+              ),
             );
           }),
         ),

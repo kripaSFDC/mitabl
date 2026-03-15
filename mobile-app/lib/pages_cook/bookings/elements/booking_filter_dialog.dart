@@ -17,8 +17,9 @@ class BookingFilterDialog extends StatelessWidget {
     return BlocBuilder<BookingsCubit, BookingsState>(
       builder: (context, state) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: SizedBox(
             height: !isUpComing!
                 ? config.AppConfig(context).appHeight(42)
@@ -36,7 +37,7 @@ class BookingFilterDialog extends StatelessWidget {
                         'assets/img/filter_cross.svg',
                         height: config.AppConfig(context).appHeight(2.0),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 Text(
@@ -49,24 +50,25 @@ class BookingFilterDialog extends StatelessWidget {
                     fontSize: config.AppConfig(context).appWidth(5.5),
                   ),
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: config.AppConfig(context).appWidth(5)),
+                    horizontal: config.AppConfig(context).appWidth(5),
+                  ),
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text('Sort by:',
-                        style: Theme.of(context).textTheme.bodyLarge),
+                    child: Text(
+                      'Sort by:',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
                   ),
                 ),
                 RadioGroup<String>(
                   groupValue: state.sortby,
                   onChanged: (String? value) {
-                    context
-                        .read<BookingsCubit>()
-                        .onSortByChanged(data: value.toString());
+                    context.read<BookingsCubit>().onSortByChanged(
+                      data: value.toString(),
+                    );
                   },
                   child: Row(
                     children: [
@@ -75,10 +77,9 @@ class BookingFilterDialog extends StatelessWidget {
                         child: RadioListTile<String>(
                           title: Text(
                             "Take-away",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontSize: 16),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall?.copyWith(fontSize: 16),
                           ),
                           value: 'take_away',
                         ),
@@ -88,10 +89,9 @@ class BookingFilterDialog extends StatelessWidget {
                         child: RadioListTile<String>(
                           title: Text(
                             "Dine-in",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontSize: 16),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall?.copyWith(fontSize: 16),
                           ),
                           value: "dine-in",
                         ),
@@ -117,18 +117,19 @@ class BookingFilterDialog extends StatelessWidget {
                   ),
                 ),
                 !isUpComing!
-                    ? SizedBox(
-                        height: config.AppConfig(context).appHeight(1),
-                      )
+                    ? SizedBox(height: config.AppConfig(context).appHeight(1))
                     : Container(),
                 !isUpComing!
                     ? Padding(
                         padding: EdgeInsets.symmetric(
-                            horizontal: config.AppConfig(context).appWidth(5)),
+                          horizontal: config.AppConfig(context).appWidth(5),
+                        ),
                         child: Container(
                           alignment: Alignment.centerLeft,
-                          child: Text('Status:',
-                              style: Theme.of(context).textTheme.bodyLarge),
+                          child: Text(
+                            'Status:',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                         ),
                       )
                     : Container(),
@@ -136,9 +137,9 @@ class BookingFilterDialog extends StatelessWidget {
                     ? RadioGroup<String>(
                         groupValue: state.status,
                         onChanged: (String? value) {
-                          context
-                              .read<BookingsCubit>()
-                              .onStatusChanged(data: value.toString());
+                          context.read<BookingsCubit>().onStatusChanged(
+                            data: value.toString(),
+                          );
                         },
                         child: Row(
                           children: [
@@ -147,9 +148,7 @@ class BookingFilterDialog extends StatelessWidget {
                               child: RadioListTile<String>(
                                 title: Text(
                                   'Completed',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
+                                  style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontSize: 16),
                                 ),
                                 value: '1',
@@ -160,24 +159,21 @@ class BookingFilterDialog extends StatelessWidget {
                               child: RadioListTile<String>(
                                 title: Text(
                                   'Declined',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
+                                  style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontSize: 16),
                                 ),
                                 value: '0',
                               ),
-                            )
+                            ),
                           ],
                         ),
                       )
                     : Container(),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: config.AppConfig(context).appWidth(5)),
+                    horizontal: config.AppConfig(context).appWidth(5),
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -185,77 +181,76 @@ class BookingFilterDialog extends StatelessWidget {
                         child: Container(
                           height: config.AppConfig(context).appHeight(4.5),
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20.0),
-                              color: const Color(0xffE9E9E9)),
+                            borderRadius: BorderRadius.circular(20.0),
+                            color: const Color(0xffE9E9E9),
+                          ),
                           child: MaterialButton(
-                              height: config.AppConfig(context).appHeight(6),
-                              minWidth: config.AppConfig(context).appWidth(100),
-                              onPressed: () {
+                            height: config.AppConfig(context).appHeight(6),
+                            minWidth: config.AppConfig(context).appWidth(100),
+                            onPressed: () {
+                              context.read<BookingsCubit>().onStatusChanged(
+                                data: '',
+                              );
+                              context.read<BookingsCubit>().onSortByChanged(
+                                data: '',
+                              );
+
+                              if (isUpComing!) {
                                 context
                                     .read<BookingsCubit>()
-                                    .onStatusChanged(data: '');
-                                context
-                                    .read<BookingsCubit>()
-                                    .onSortByChanged(data: '');
+                                    .getUpcomingBookings();
+                              } else {
+                                context.read<BookingsCubit>().getBookings();
+                              }
 
-                                if (isUpComing!) {
-                                  context
-                                      .read<BookingsCubit>()
-                                      .getUpcomingBookings();
-                                } else {
-                                  context.read<BookingsCubit>().getBookings();
-                                }
-
-                                navigatorKey.currentState!.pop();
-                              },
-                              child: Text(
-                                'CLEAR',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontSize: 13),
-                              )),
+                              navigatorKey.currentState!.pop();
+                            },
+                            child: Text(
+                              'CLEAR',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall?.copyWith(fontSize: 13),
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        width: config.AppConfig(context).appWidth(3),
-                      ),
+                      SizedBox(width: config.AppConfig(context).appWidth(3)),
                       Expanded(
                         flex: 2,
                         child: Container(
                           height: config.AppConfig(context).appHeight(4.5),
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20.0),
-                              color: Theme.of(context).primaryColor),
+                            borderRadius: BorderRadius.circular(20.0),
+                            color: Theme.of(context).primaryColor,
+                          ),
                           child: MaterialButton(
-                              height: config.AppConfig(context).appHeight(6),
-                              minWidth: config.AppConfig(context).appWidth(100),
-                              onPressed: () {
-                                if (isUpComing!) {
-                                  context
-                                      .read<BookingsCubit>()
-                                      .getUpcomingBookings();
-                                } else {
-                                  context.read<BookingsCubit>().getBookings();
-                                }
-                                navigatorKey.currentState!.pop();
-                              },
-                              child: Text(
-                                'APPLY',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                        fontSize: 13, color: Colors.white),
-                              )),
+                            height: config.AppConfig(context).appHeight(6),
+                            minWidth: config.AppConfig(context).appWidth(100),
+                            onPressed: () {
+                              if (isUpComing!) {
+                                context
+                                    .read<BookingsCubit>()
+                                    .getUpcomingBookings();
+                              } else {
+                                context.read<BookingsCubit>().getBookings();
+                              }
+                              navigatorKey.currentState!.pop();
+                            },
+                            child: Text(
+                              'APPLY',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize: 13,
+                                    color: const Color(0xFFFFFBF7),
+                                  ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(4),
-                )
+                SizedBox(height: config.AppConfig(context).appHeight(4)),
               ],
             ),
           ),

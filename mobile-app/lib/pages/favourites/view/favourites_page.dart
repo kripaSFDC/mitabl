@@ -55,8 +55,9 @@ class _FavouritesPageState extends State<FavouritesPage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response =
-          await userRepository.switchRole(roleId: AppConstants.FOODI);
+      final response = await userRepository.switchRole(
+        roleId: AppConstants.FOODI,
+      );
       if (!mounted) return false;
 
       if (response.statusCode == 200) {
@@ -72,15 +73,18 @@ class _FavouritesPageState extends State<FavouritesPage> {
           fallbackMessage: 'mifoodi profile is not available for this account.',
         );
 
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (_) {
       if (!mounted || silent) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Unable to switch profile right now. Please try again.')),
+          content: Text(
+            'Unable to switch profile right now. Please try again.',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -140,31 +144,37 @@ class _FavouritesPageState extends State<FavouritesPage> {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
         _ViewStatus.forbidden => _SwitchToMifoodiCta(
-            onPressed: _switchToMifoodi,
-            isLoading: _switchingRole,
-          ),
+          onPressed: _switchToMifoodi,
+          isLoading: _switchingRole,
+        ),
         _ViewStatus.serverError => _ServerErrorWidget(
-            message: _errorMessage,
-            onRetry: _load,
-          ),
-        _ViewStatus.loaded => _favourites.isEmpty
-            ? const NoDataWidget()
-            : ListView.separated(
-                itemCount: _favourites.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final favourite = _favourites[index];
-                  final title = (favourite['name'] ??
-                          favourite['title'] ??
-                          'Favourite ${index + 1}')
-                      .toString();
-                  final subtitle = (favourite['subtitle'] ??
-                          favourite['description'] ??
-                          'Saved item')
-                      .toString();
-                  return ListTile(title: Text(title), subtitle: Text(subtitle));
-                },
-              ),
+          message: _errorMessage,
+          onRetry: _load,
+        ),
+        _ViewStatus.loaded =>
+          _favourites.isEmpty
+              ? const NoDataWidget()
+              : ListView.separated(
+                  itemCount: _favourites.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final favourite = _favourites[index];
+                    final title =
+                        (favourite['name'] ??
+                                favourite['title'] ??
+                                'Favourite ${index + 1}')
+                            .toString();
+                    final subtitle =
+                        (favourite['subtitle'] ??
+                                favourite['description'] ??
+                                'Saved item')
+                            .toString();
+                    return ListTile(
+                      title: Text(title),
+                      subtitle: Text(subtitle),
+                    );
+                  },
+                ),
       },
     );
   }
@@ -186,8 +196,10 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Switch to mifoodi to access this page',
-                textAlign: TextAlign.center),
+            const Text(
+              'Switch to mifoodi to access this page',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: isLoading ? null : onPressed,

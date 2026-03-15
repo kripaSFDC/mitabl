@@ -9,9 +9,11 @@ class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
 
   Route route() {
-    return MaterialPageRoute(builder: (context) {
-      return const LandingPage();
-    });
+    return MaterialPageRoute(
+      builder: (context) {
+        return const LandingPage();
+      },
+    );
   }
 
   @override
@@ -68,108 +70,109 @@ class _LandingPageState extends State<LandingPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: config.AppConfig(context).appHeight(12),
-          ),
-          Center(
-            child: Image.asset(
-              'assets/img/logo.png',
-              height: config.AppConfig(context).appHeight(20),
-              width: config.AppConfig(context).appWidth(80),
-              fit: BoxFit.contain,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(height: config.AppConfig(context).appHeight(12)),
+            Center(
+              child: Image.asset(
+                'assets/img/logo.png',
+                height: config.AppConfig(context).appHeight(20),
+                width: config.AppConfig(context).appWidth(80),
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
-          SizedBox(
-            height: config.AppConfig(context).appHeight(12),
-          ),
-          Column(
-            children: [
-              MaterialButton(
-                height: config.AppConfig(context).appHeight(6),
-                minWidth: config.AppConfig(context).appWidth(80),
-                onPressed: () {
-                  navigatorKey.currentState!.pushNamed('/LoginPage');
-                },
-                color: Theme.of(context).primaryColor,
-                shape: RoundedRectangleBorder(
+            SizedBox(height: config.AppConfig(context).appHeight(12)),
+            Column(
+              children: [
+                MaterialButton(
+                  height: config.AppConfig(context).appHeight(6),
+                  minWidth: config.AppConfig(context).appWidth(80),
+                  onPressed: () {
+                    navigatorKey.currentState!.pushNamed('/LoginPage');
+                  },
+                  color: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        config.AppConfig(context).appWidth(10))),
-                child: Text(
-                  'LOGIN',
-                  /*style: GoogleFonts.gothicA1(
+                      config.AppConfig(context).appWidth(10),
+                    ),
+                  ),
+                  child: Text(
+                    'LOGIN',
+                    /*style: GoogleFonts.gothicA1(
                       fontSize: config.AppConfig(context).appWidth(3.5),
-                      color: Colors.white),*/
-                  style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFFFFFBF7)),*/
+                    style: TextStyle(
+                      color: const Color(0xFFFFFBF7),
                       fontSize: 18,
-                      fontWeight: config.FontFamily().book),
+                      fontWeight: config.FontFamily().book,
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: config.AppConfig(context).appHeight(2),
-              ),
-              MaterialButton(
-                height: config.AppConfig(context).appHeight(6),
-                minWidth: config.AppConfig(context).appWidth(80),
-                onPressed: () {
-                  navigatorKey.currentState!.pushNamed('/SignUpPage');
-                },
-                color: Theme.of(context).primaryColorDark,
-                shape: RoundedRectangleBorder(
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
+                MaterialButton(
+                  height: config.AppConfig(context).appHeight(6),
+                  minWidth: config.AppConfig(context).appWidth(80),
+                  onPressed: () {
+                    navigatorKey.currentState!.pushNamed('/SignUpPage');
+                  },
+                  color: Theme.of(context).primaryColorDark,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        config.AppConfig(context).appWidth(10))),
-                child: Text(
-                  'CREATE NEW ACCOUNT',
-                  style: TextStyle(
-                      color: Colors.white,
+                      config.AppConfig(context).appWidth(10),
+                    ),
+                  ),
+                  child: Text(
+                    'CREATE NEW ACCOUNT',
+                    style: TextStyle(
+                      color: const Color(0xFFFFFBF7),
                       fontSize: 18,
-                      fontWeight: config.FontFamily().book),
+                      fontWeight: config.FontFamily().book,
+                    ),
+                  ),
                 ),
-              )
-            ],
-          ),
-          const Spacer(),
-          RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              text: 'By login in, you agree to our\n',
-              style: TextStyle(
+              ],
+            ),
+            const Spacer(),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                text: 'By login in, you agree to our\n',
+                style: TextStyle(
                   color: Theme.of(context).primaryColorDark,
                   fontSize: 14,
-                  fontWeight: config.FontFamily().book),
-              children: <TextSpan>[
-                TextSpan(
-                  text: 'terms of services',
-                  recognizer: _termsRecognizer,
-                  style: TextStyle(
+                  fontWeight: config.FontFamily().book,
+                ),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'terms of services',
+                    recognizer: _termsRecognizer,
+                    style: TextStyle(
                       color: Theme.of(context).primaryColorDark,
                       fontSize: 14,
                       fontWeight: config.FontFamily().book,
-                      decoration: TextDecoration.underline),
-                ),
-                const TextSpan(
-                  text: ' and',
-                ),
-                TextSpan(
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                  const TextSpan(text: ' and'),
+                  TextSpan(
                     text: ' privacy policy',
                     recognizer: _privacyRecognizer,
                     style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 14,
-                        fontWeight: config.FontFamily().book,
-                        decoration: TextDecoration.underline)),
-              ],
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: 14,
+                      fontWeight: config.FontFamily().book,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            height: config.AppConfig(context).appHeight(2),
-          ),
-        ],
-      )),
+            SizedBox(height: config.AppConfig(context).appHeight(2)),
+          ],
+        ),
+      ),
     );
   }
 }

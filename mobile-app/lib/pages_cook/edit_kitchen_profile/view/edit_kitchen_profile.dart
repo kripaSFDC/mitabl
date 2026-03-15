@@ -26,12 +26,14 @@ class EditKitchenProfilePage extends StatefulWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-              create: (context) => EditKitchenProfileCubit(
-                  routeArguments: routeArguments,
-                  userRepository: context.read<UserRepository>()),
-              child: EditKitchenProfilePage(routeArguments: routeArguments),
-            ));
+      builder: (_) => BlocProvider(
+        create: (context) => EditKitchenProfileCubit(
+          routeArguments: routeArguments,
+          userRepository: context.read<UserRepository>(),
+        ),
+        child: EditKitchenProfilePage(routeArguments: routeArguments),
+      ),
+    );
   }
 
   @override
@@ -53,50 +55,50 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
   void initState() {
     super.initState();
     nameTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onKitchnNameChanged(value: nameTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
+        value: nameTextEditor!.text,
+      );
     });
 
     addressTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onAddressChanged(value: addressTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onAddressChanged(
+        value: addressTextEditor!.text,
+      );
     });
     mobileNoTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onPhoneChanged(value: mobileNoTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onPhoneChanged(
+        value: mobileNoTextEditor!.text,
+      );
     });
     noOfSeatsTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onSeatChanged(value: noOfSeatsTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onSeatChanged(
+        value: noOfSeatsTextEditor!.text,
+      );
     });
 
     abnNoTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onAbnChanged(value: abnNoTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onAbnChanged(
+        value: abnNoTextEditor!.text,
+      );
     });
     certificateTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onCertificateNoChanged(value: certificateTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onCertificateNoChanged(
+        value: certificateTextEditor!.text,
+      );
     });
     bioTextEditor!.addListener(() {
-      context
-          .read<EditKitchenProfileCubit>()
-          .onBioChanged(value: bioTextEditor!.text);
+      context.read<EditKitchenProfileCubit>().onBioChanged(
+        value: bioTextEditor!.text,
+      );
     });
 
     nameTextEditor!.text = widget.routeArguments!.kitchen!.name!.toString();
-    addressTextEditor!.text =
-        widget.routeArguments!.kitchen!.address!.toString();
-    mobileNoTextEditor!.text =
-        widget.routeArguments!.kitchen!.phone!.toString();
-    noOfSeatsTextEditor!.text =
-        widget.routeArguments!.kitchen!.noOfSeats.toString();
+    addressTextEditor!.text = widget.routeArguments!.kitchen!.address!
+        .toString();
+    mobileNoTextEditor!.text = widget.routeArguments!.kitchen!.phone!
+        .toString();
+    noOfSeatsTextEditor!.text = widget.routeArguments!.kitchen!.noOfSeats
+        .toString();
     abnNoTextEditor!.text = widget.routeArguments!.kitchen!.abn ?? '';
     certificateTextEditor!.text =
         widget.routeArguments!.kitchen!.certificateNo ?? '';
@@ -122,518 +124,515 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
       listener: (context, state) {},
       builder: (context, state) {
         return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              leadingWidth: config.AppConfig(context).appWidth(50),
-              leading: Padding(
-                padding: EdgeInsets.only(
-                    left: config.AppConfig(context).appWidth(5)),
-                child: InkWell(
-                  onTap: () {
-                    navigatorKey.currentState!.pop();
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFFFFBF7),
+            elevation: 0,
+            leadingWidth: config.AppConfig(context).appWidth(50),
+            leading: Padding(
+              padding: EdgeInsets.only(
+                left: config.AppConfig(context).appWidth(5),
+              ),
+              child: InkWell(
+                onTap: () {
+                  navigatorKey.currentState!.pop();
+                },
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_back_ios,
+                      color: Theme.of(context).primaryColorDark,
+                      size: config.AppConfig(context).appWidth(5),
+                    ),
+                    SizedBox(width: config.AppConfig(context).appWidth(2)),
+                    Text(
+                      'Profile',
+                      style: GoogleFonts.gothicA1(
                         color: Theme.of(context).primaryColorDark,
-                        size: config.AppConfig(context).appWidth(5),
+                        fontSize: config.AppConfig(context).appWidth(5),
+                        fontWeight: FontWeight.w600,
                       ),
-                      SizedBox(
-                        width: config.AppConfig(context).appWidth(2),
-                      ),
-                      Text(
-                        'Profile',
-                        style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: config.AppConfig(context).appWidth(5),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            body: Container(
-              alignment: Alignment.center,
-              color: Colors.white,
-              height: config.AppConfig(context).appHeight(100),
-              width: config.AppConfig(context).appWidth(100),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      top: config.AppConfig(context).appHeight(2),
-                      left: config.AppConfig(context).appWidth(5),
-                      right: config.AppConfig(context).appWidth(5)),
-                  child: Container(
-                    alignment: Alignment.center,
-                    width: config.AppConfig(context).appWidth(90),
-                    child: Padding(
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: config.AppConfig(context).appHeight(2),
-                          ),
-                          state.pathFiles.isNotEmpty
-                              ? SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(20),
-                                  child: PageView.builder(
-                                    controller: controller,
-                                    onPageChanged: (page) {
-                                      context
-                                          .read<EditKitchenProfileCubit>()
-                                          .onImageScroll(index: page);
-                                    },
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(2)),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              height: config.AppConfig(context)
-                                                  .appHeight(20),
-                                              width: config.AppConfig(context)
-                                                  .appWidth(85),
-                                              decoration: BoxDecoration(
-                                                color: config.AppColors()
-                                                    .textFieldBackgroundColor(
-                                                        1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        config.AppConfig(
-                                                                context)
-                                                            .appWidth(5)),
-                                              ),
-                                              alignment: Alignment.center,
-                                              child: CachedNetworkImage(
-                                                imageUrl:
-                                                    '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
-                                                errorWidget:
-                                                    (context, data, e) {
-                                                  return Image.file(
-                                                    File(state.pathFiles[index]
-                                                        .path!),
-                                                    errorBuilder:
-                                                        (context, data, e) {
-                                                      return const Icon(
-                                                          Icons.error_outline);
-                                                    },
-                                                  );
-                                                },
+          ),
+          body: Container(
+            alignment: Alignment.center,
+            color: const Color(0xFFFFFBF7),
+            height: config.AppConfig(context).appHeight(100),
+            width: config.AppConfig(context).appWidth(100),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: config.AppConfig(context).appHeight(2),
+                  left: config.AppConfig(context).appWidth(5),
+                  right: config.AppConfig(context).appWidth(5),
+                ),
+                child: Container(
+                  alignment: Alignment.center,
+                  width: config.AppConfig(context).appWidth(90),
+                  child: Padding(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: config.AppConfig(context).appHeight(2),
+                        ),
+                        state.pathFiles.isNotEmpty
+                            ? SizedBox(
+                                height: config.AppConfig(context).appHeight(20),
+                                child: PageView.builder(
+                                  controller: controller,
+                                  onPageChanged: (page) {
+                                    context
+                                        .read<EditKitchenProfileCubit>()
+                                        .onImageScroll(index: page);
+                                  },
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: config.AppConfig(
+                                          context,
+                                        ).appWidth(2),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            height: config.AppConfig(
+                                              context,
+                                            ).appHeight(20),
+                                            width: config.AppConfig(
+                                              context,
+                                            ).appWidth(85),
+                                            decoration: BoxDecoration(
+                                              color: config.AppColors()
+                                                  .textFieldBackgroundColor(1),
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    config.AppConfig(
+                                                      context,
+                                                    ).appWidth(5),
+                                                  ),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                                  '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
+                                              errorWidget: (context, data, e) {
+                                                return Image.file(
+                                                  File(
+                                                    state
+                                                        .pathFiles[index]
+                                                        .path!,
+                                                  ),
+                                                  errorBuilder:
+                                                      (context, data, e) {
+                                                        return const Icon(
+                                                          Icons.error_outline,
+                                                        );
+                                                      },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 6,
+                                            top: 6,
+                                            child: InkWell(
+                                              onTap: () {
+                                                context
+                                                    .read<
+                                                      EditKitchenProfileCubit
+                                                    >()
+                                                    .onDeleteImage(
+                                                      path: state
+                                                          .pathFiles[index]
+                                                          .path,
+                                                      imagesCook: state
+                                                          .pathFiles[index],
+                                                    );
+                                              },
+                                              child: Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                                size: config.AppConfig(
+                                                  context,
+                                                ).appWidth(6),
                                               ),
                                             ),
-                                            Positioned(
-                                                right: 6,
-                                                top: 6,
-                                                child: InkWell(
-                                                  onTap: () {
-                                                    context
-                                                        .read<
-                                                            EditKitchenProfileCubit>()
-                                                        .onDeleteImage(
-                                                            path: state
-                                                                .pathFiles[
-                                                                    index]
-                                                                .path,
-                                                            imagesCook:
-                                                                state.pathFiles[
-                                                                    index]);
-                                                  },
-                                                  child: Icon(
-                                                    Icons.delete,
-                                                    color: Colors.red,
-                                                    size: config.AppConfig(
-                                                            context)
-                                                        .appWidth(6),
-                                                  ),
-                                                )),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    itemCount: state.pathFiles.length,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  itemCount: state.pathFiles.length,
+                                ),
+                              )
+                            : Container(
+                                height: config.AppConfig(context).appHeight(20),
+                                decoration: BoxDecoration(
+                                  color: config.AppColors()
+                                      .textFieldBackgroundColor(1),
+                                  borderRadius: BorderRadius.circular(
+                                    config.AppConfig(context).appWidth(5),
                                   ),
-                                )
-                              : Container(
-                                  height:
-                                      config.AppConfig(context).appHeight(20),
-                                  decoration: BoxDecoration(
+                                ),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.photo_outlined,
+                                  size: config.AppConfig(context).appWidth(30),
+                                  color: const Color(0xFF9CA3AF),
+                                ),
+                              ),
+                        SizedBox(
+                          height: config.AppConfig(context).appHeight(2),
+                        ),
+                        state.pathFiles.isNotEmpty
+                            ? Container(
+                                alignment: Alignment.center,
+                                height: config.AppConfig(context).appHeight(5),
+                                child: ListView.separated(
+                                  // controller: controller,
+                                  separatorBuilder: (context, index) {
+                                    return SizedBox(
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appWidth(2),
+                                    );
+                                  },
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appWidth(2),
+                                      decoration: BoxDecoration(
+                                        color: state.selectedPage == index
+                                            ? Colors.blue
+                                            : const Color(0xFF9CA3AF),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    );
+                                  },
+                                  itemCount: state.pathFiles.length,
+                                ),
+                              )
+                            : const SizedBox(),
+                        SizedBox(
+                          height: config.AppConfig(context).appHeight(2),
+                        ),
+                        _UploadButton(loginForm: this),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _KitchenName(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.zero,
+                              child: TextFormField(
+                                controller: addressTextEditor,
+                                style: const TextStyle(color: Colors.black),
+                                textInputAction: TextInputAction.next,
+                                keyboardType: TextInputType.name,
+                                maxLength: 55,
+                                onChanged: (text) {},
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  errorText: state.address!.invalid
+                                      ? 'Please enter a valid address'
+                                      : null,
+
+                                  hintStyle: GoogleFonts.gothicA1(
+                                    color: Theme.of(context).hintColor,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4),
+                                  ),
+                                  // labelText: 'Mobile Number',
+                                  hintText: 'Address',
+                                  contentPadding: EdgeInsets.all(
+                                    config.AppConfig(context).appWidth(2),
+                                  ),
+                                  fillColor: config.AppColors()
+                                      .textFieldBackgroundColor(1),
+                                  filled: true,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  border: InputBorder.none,
+                                  disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _PhoneNo(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _NoOfSeats(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _AbnField(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _CertificateField(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(2),
+                            ),
+                            _Timing(loginForm: this),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(3),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(40),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
                                       color: config.AppColors()
                                           .textFieldBackgroundColor(1),
-                                      borderRadius: BorderRadius.circular(
-                                          config.AppConfig(context)
-                                              .appWidth(5))),
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.photo_outlined,
-                                    size:
-                                        config.AppConfig(context).appWidth(30),
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                          SizedBox(
-                            height: config.AppConfig(context).appHeight(2),
-                          ),
-                          state.pathFiles.isNotEmpty
-                              ? Container(
-                                  alignment: Alignment.center,
-                                  height:
-                                      config.AppConfig(context).appHeight(5),
-                                  child: ListView.separated(
-                                    // controller: controller,
-                                    separatorBuilder: (context, index) {
-                                      return SizedBox(
-                                        width: config.AppConfig(context)
-                                            .appWidth(2),
-                                      );
-                                    },
-                                    shrinkWrap: true,
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder: (context, index) {
-                                      return Container(
-                                        width: config.AppConfig(context)
-                                            .appWidth(2),
-                                        decoration: BoxDecoration(
-                                            color: state.selectedPage == index
-                                                ? Colors.blue
-                                                : Colors.grey,
-                                            shape: BoxShape.circle),
-                                      );
-                                    },
-                                    itemCount: state.pathFiles.length,
-                                  ),
-                                )
-                              : const SizedBox(),
-                          SizedBox(
-                            height: config.AppConfig(context).appHeight(2),
-                          ),
-                          _UploadButton(
-                            loginForm: this,
-                          ),
-                          Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _KitchenName(
-                                  loginForm: this,
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  padding: EdgeInsets.zero,
-                                  child: TextFormField(
-                                    controller: addressTextEditor,
-                                    style: const TextStyle(color: Colors.black),
-                                    textInputAction: TextInputAction.next,
-                                    keyboardType: TextInputType.name,
-                                    maxLength: 55,
-                                    onChanged: (text) {},
-                                    decoration: InputDecoration(
-                                      counterText: '',
-                                      errorText: state.address!.invalid
-                                          ? 'Please enter a valid address'
-                                          : null,
-
-                                      hintStyle: GoogleFonts.gothicA1(
-                                          color: Theme.of(context).hintColor,
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(4)),
-                                      // labelText: 'Mobile Number',
-                                      hintText: 'Address',
-                                      contentPadding: EdgeInsets.all(
-                                          config.AppConfig(context)
-                                              .appWidth(2)),
-                                      fillColor: config.AppColors()
-                                          .textFieldBackgroundColor(1),
-                                      filled: true,
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      border: InputBorder.none,
-                                      disabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _PhoneNo(
-                                  loginForm: this,
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _NoOfSeats(
-                                  loginForm: this,
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _AbnField(
-                                  loginForm: this,
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _CertificateField(
-                                  loginForm: this,
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                _Timing(loginForm: this),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(3),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      flex: 2,
-                                      child: Container(
-                                        width: config.AppConfig(context)
-                                            .appWidth(40),
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: config.AppColors()
-                                              .textFieldBackgroundColor(1),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Expanded(
-                                              flex: 2,
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Checkbox(
-                                                    materialTapTargetSize:
-                                                        MaterialTapTargetSize
-                                                            .shrinkWrap,
-                                                    value: state.dineIn,
-                                                    onChanged: (value) {
-                                                      context
-                                                          .read<
-                                                              EditKitchenProfileCubit>()
-                                                          .onDineInChange(
-                                                              value: value);
-                                                    },
-                                                  ),
-                                                  Text(
-                                                    'Dine-in',
-                                                    style: GoogleFonts.gothicA1(
-                                                        fontSize:
-                                                            config.AppConfig(
-                                                                    context)
-                                                                .appHeight(2),
-                                                        color: Colors.grey),
-                                                  ),
-                                                ],
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Checkbox(
+                                                materialTapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                value: state.dineIn,
+                                                onChanged: (value) {
+                                                  context
+                                                      .read<
+                                                        EditKitchenProfileCubit
+                                                      >()
+                                                      .onDineInChange(
+                                                        value: value,
+                                                      );
+                                                },
                                               ),
-                                            ),
-                                            SizedBox(
-                                              width: config.AppConfig(context)
-                                                  .appWidth(3),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width:
-                                          config.AppConfig(context).appWidth(3),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Container(
-                                        width: config.AppConfig(context)
-                                            .appWidth(40),
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: config.AppColors()
-                                              .textFieldBackgroundColor(1),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Checkbox(
-                                                    materialTapTargetSize:
-                                                        MaterialTapTargetSize
-                                                            .shrinkWrap,
-                                                    value: state.takeAway,
-                                                    onChanged: (value) {
-                                                      context
-                                                          .read<
-                                                              EditKitchenProfileCubit>()
-                                                          .onTakeAwayChange(
-                                                              value: value);
-                                                    },
+                                              Text(
+                                                'Dine-in',
+                                                style: GoogleFonts.gothicA1(
+                                                  fontSize: config.AppConfig(
+                                                    context,
+                                                  ).appHeight(2),
+                                                  color: const Color(
+                                                    0xFF9CA3AF,
                                                   ),
-                                                  Text(
-                                                    'Takeaway',
-                                                    style: GoogleFonts.gothicA1(
-                                                        fontSize:
-                                                            config.AppConfig(
-                                                                    context)
-                                                                .appHeight(2),
-                                                        color: Colors.grey),
-                                                  ),
-                                                ],
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(3),
-                                ),
-                                const _DineInSlotSection(),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(3),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  padding: EdgeInsets.zero,
-                                  child: TextFormField(
-                                    controller: bioTextEditor,
-                                    style: const TextStyle(color: Colors.black),
-                                    textInputAction: TextInputAction.next,
-                                    keyboardType: TextInputType.text,
-                                    maxLength: 200,
-                                    maxLines: 5,
-                                    onChanged: (text) {},
-                                    decoration: InputDecoration(
-                                      counterText: '',
-                                      errorText: state.bio!.invalid
-                                          ? 'Please enter a valid bio'
-                                          : null,
-
-                                      hintStyle: GoogleFonts.gothicA1(
-                                          color: Theme.of(context).hintColor,
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(4)),
-                                      // labelText: 'Mobile Number',
-                                      hintText: 'Bio',
-                                      contentPadding: EdgeInsets.all(
-                                          config.AppConfig(context)
-                                              .appWidth(2)),
-                                      fillColor: config.AppColors()
-                                          .textFieldBackgroundColor(1),
-                                      filled: true,
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
+                                        SizedBox(
+                                          width: config.AppConfig(
+                                            context,
+                                          ).appWidth(3),
                                         ),
-                                      ),
-                                      border: InputBorder.none,
-                                      disabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: const BorderSide(
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ),
                                 SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(3),
+                                  width: config.AppConfig(context).appWidth(3),
                                 ),
-                                _LoginButton(
-                                  loginForm: this,
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(40),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: config.AppColors()
+                                          .textFieldBackgroundColor(1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Checkbox(
+                                                materialTapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                value: state.takeAway,
+                                                onChanged: (value) {
+                                                  context
+                                                      .read<
+                                                        EditKitchenProfileCubit
+                                                      >()
+                                                      .onTakeAwayChange(
+                                                        value: value,
+                                                      );
+                                                },
+                                              ),
+                                              Text(
+                                                'Takeaway',
+                                                style: GoogleFonts.gothicA1(
+                                                  fontSize: config.AppConfig(
+                                                    context,
+                                                  ).appHeight(2),
+                                                  color: const Color(
+                                                    0xFF9CA3AF,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ]),
-                        ],
-                      ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(3),
+                            ),
+                            const _DineInSlotSection(),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(3),
+                            ),
+                            Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.zero,
+                              child: TextFormField(
+                                controller: bioTextEditor,
+                                style: const TextStyle(color: Colors.black),
+                                textInputAction: TextInputAction.next,
+                                keyboardType: TextInputType.text,
+                                maxLength: 200,
+                                maxLines: 5,
+                                onChanged: (text) {},
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  errorText: state.bio!.invalid
+                                      ? 'Please enter a valid bio'
+                                      : null,
+
+                                  hintStyle: GoogleFonts.gothicA1(
+                                    color: Theme.of(context).hintColor,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4),
+                                  ),
+                                  // labelText: 'Mobile Number',
+                                  hintText: 'Bio',
+                                  contentPadding: EdgeInsets.all(
+                                    config.AppConfig(context).appWidth(2),
+                                  ),
+                                  fillColor: config.AppColors()
+                                      .textFieldBackgroundColor(1),
+                                  filled: true,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  border: InputBorder.none,
+                                  disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: const BorderSide(
+                                      color: const Color(0xFFFFFBF7),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: config.AppConfig(context).appHeight(3),
+                            ),
+                            _LoginButton(loginForm: this),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ));
+            ),
+          ),
+        );
       },
     );
   }
@@ -651,86 +650,94 @@ class _Timing extends StatefulWidget {
 class _TimingState extends State<_Timing> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraint) {
-      return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
+    return LayoutBuilder(
+      builder: (context, constraint) {
+        return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
           builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            readOnly: true,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 55,
-            onChanged: (text) {},
-            decoration: InputDecoration(
-              counterText: '',
-              // errorText:
-              //     state.email!.invalid ? 'Please enter a valid email id' : null,
+            return Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.zero,
+              child: TextFormField(
+                readOnly: true,
+                style: const TextStyle(color: Colors.black),
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.name,
+                maxLength: 55,
+                onChanged: (text) {},
+                decoration: InputDecoration(
+                  counterText: '',
 
-              suffixIcon: InkWell(
-                onTap: () {
-                  context.read<EditKitchenProfileCubit>().onOpenTimingDialog();
-                  showDialog(
-                      context: context,
-                      builder: (contexts) {
-                        return BlocProvider.value(
-                          value: context.read<EditKitchenProfileCubit>(),
-                          child: EditTimingDialog(),
-                        );
-                      });
-                },
-                child: Icon(
-                  Icons.access_time_rounded,
-                  color: Theme.of(context).primaryColor,
+                  // errorText:
+                  //     state.email!.invalid ? 'Please enter a valid email id' : null,
+                  suffixIcon: InkWell(
+                    onTap: () {
+                      context
+                          .read<EditKitchenProfileCubit>()
+                          .onOpenTimingDialog();
+                      showDialog(
+                        context: context,
+                        builder: (contexts) {
+                          return BlocProvider.value(
+                            value: context.read<EditKitchenProfileCubit>(),
+                            child: EditTimingDialog(),
+                          );
+                        },
+                      );
+                    },
+                    child: Icon(
+                      Icons.access_time_rounded,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  hintStyle: GoogleFonts.gothicA1(
+                    color: Theme.of(context).hintColor,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
+                  // labelText: 'Mobile Number',
+                  hintText: 'Timings',
+                  contentPadding: EdgeInsets.all(
+                    config.AppConfig(context).appWidth(2),
+                  ),
+                  fillColor: config.AppColors().textFieldBackgroundColor(1),
+                  filled: true,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
                 ),
               ),
-              hintStyle: GoogleFonts.gothicA1(
-                  color: Theme.of(context).hintColor,
-                  fontSize: config.AppConfig(context).appWidth(4)),
-              // labelText: 'Mobile Number',
-              hintText: 'Timings',
-              contentPadding:
-                  EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+            );
+          },
         );
-      });
-    });
+      },
+    );
   }
 }
 
@@ -741,8 +748,9 @@ class _DineInSlotSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
       builder: (context, state) {
-        final availableDays =
-            _resolveOpenDays(state.daysTimingOriginal ?? state.daysTiming);
+        final availableDays = _resolveOpenDays(
+          state.daysTimingOriginal ?? state.daysTiming,
+        );
 
         return Container(
           width: double.infinity,
@@ -769,10 +777,10 @@ class _DineInSlotSection extends StatelessWidget {
                   TextButton.icon(
                     onPressed: state.dineIn == true && availableDays.isNotEmpty
                         ? () => _showSlotEditor(
-                              context,
-                              state: state,
-                              availableDays: availableDays,
-                            )
+                            context,
+                            state: state,
+                            availableDays: availableDays,
+                          )
                         : null,
                     icon: const Icon(Icons.add),
                     label: const Text('Add slot'),
@@ -783,7 +791,7 @@ class _DineInSlotSection extends StatelessWidget {
               Text(
                 'Create bookable tables by day, time, and seat capacity.',
                 style: GoogleFonts.gothicA1(
-                  color: Colors.grey.shade700,
+                  color: const Color(0xFF9CA3AF),
                   fontSize: config.AppConfig(context).appWidth(3.3),
                 ),
               ),
@@ -804,8 +812,9 @@ class _DineInSlotSection extends StatelessWidget {
                     child: ListTile(
                       title: Text(
                         '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime ?? '--:--'} - ${slot.endTime ?? '--:--'}',
-                        style:
-                            GoogleFonts.gothicA1(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.gothicA1(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       subtitle: Text(
                         'Seats: ${slot.seatCapacity ?? 0}',
@@ -892,8 +901,9 @@ class _DineInSlotSection extends StatelessWidget {
                     TextFormField(
                       controller: seatController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: 'Seat capacity'),
+                      decoration: const InputDecoration(
+                        labelText: 'Seat capacity',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -903,7 +913,8 @@ class _DineInSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime: _parseTimeOfDay(startTime) ??
+                                initialTime:
+                                    _parseTimeOfDay(startTime) ??
                                     const TimeOfDay(hour: 12, minute: 0),
                               );
                               if (picked == null) {
@@ -914,9 +925,11 @@ class _DineInSlotSection extends StatelessWidget {
                                 startTime = _formatTime(picked);
                               });
                             },
-                            child: Text(startTime == null || startTime!.isEmpty
-                                ? 'Start time'
-                                : startTime!),
+                            child: Text(
+                              startTime == null || startTime!.isEmpty
+                                  ? 'Start time'
+                                  : startTime!,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -925,7 +938,8 @@ class _DineInSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime: _parseTimeOfDay(endTime) ??
+                                initialTime:
+                                    _parseTimeOfDay(endTime) ??
                                     const TimeOfDay(hour: 13, minute: 0),
                               );
                               if (picked == null) {
@@ -936,9 +950,11 @@ class _DineInSlotSection extends StatelessWidget {
                                 endTime = _formatTime(picked);
                               });
                             },
-                            child: Text(endTime == null || endTime!.isEmpty
-                                ? 'End time'
-                                : endTime!),
+                            child: Text(
+                              endTime == null || endTime!.isEmpty
+                                  ? 'End time'
+                                  : endTime!,
+                            ),
                           ),
                         ),
                       ],
@@ -987,7 +1003,8 @@ class _DineInSlotSection extends StatelessWidget {
                     );
                     if (selectedDayTiming == null) {
                       Helper.showToast(
-                          'Select an open kitchen day before adding a slot.');
+                        'Select an open kitchen day before adding a slot.',
+                      );
                       return;
                     }
                     if (!_fitsWithinWindow(
@@ -997,7 +1014,8 @@ class _DineInSlotSection extends StatelessWidget {
                       windowEnd: selectedDayTiming.endTime,
                     )) {
                       Helper.showToast(
-                          'Slots must stay within the kitchen opening hours for that day.');
+                        'Slots must stay within the kitchen opening hours for that day.',
+                      );
                       return;
                     }
                     if (_overlapsExistingSlot(
@@ -1008,7 +1026,8 @@ class _DineInSlotSection extends StatelessWidget {
                       excludeIndex: index,
                     )) {
                       Helper.showToast(
-                          'This slot overlaps another dine-in slot on the same day.');
+                        'This slot overlaps another dine-in slot on the same day.',
+                      );
                       return;
                     }
 
@@ -1114,9 +1133,11 @@ class _DineInSlotSection extends StatelessWidget {
       return false;
     }
 
-    final startMinutes = ((int.tryParse(startParts[0]) ?? 0) * 60) +
+    final startMinutes =
+        ((int.tryParse(startParts[0]) ?? 0) * 60) +
         (int.tryParse(startParts[1]) ?? 0);
-    final endMinutes = ((int.tryParse(endParts[0]) ?? 0) * 60) +
+    final endMinutes =
+        ((int.tryParse(endParts[0]) ?? 0) * 60) +
         (int.tryParse(endParts[1]) ?? 0);
 
     return endMinutes > startMinutes;
@@ -1195,9 +1216,11 @@ class _DineInSlotSection extends StatelessWidget {
   static int _compareTime(String left, String right) {
     final leftParts = left.split(':');
     final rightParts = right.split(':');
-    final leftMinutes = ((int.tryParse(leftParts[0]) ?? 0) * 60) +
+    final leftMinutes =
+        ((int.tryParse(leftParts[0]) ?? 0) * 60) +
         (int.tryParse(leftParts[1]) ?? 0);
-    final rightMinutes = ((int.tryParse(rightParts[0]) ?? 0) * 60) +
+    final rightMinutes =
+        ((int.tryParse(rightParts[0]) ?? 0) * 60) +
         (int.tryParse(rightParts[1]) ?? 0);
     return leftMinutes.compareTo(rightMinutes);
   }
@@ -1231,70 +1254,64 @@ class _KitchenNameState extends State<_KitchenName> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.loginForm!.nameTextEditor,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 15,
-          onChanged: (text) {
-            context
-                .read<EditKitchenProfileCubit>()
-                .onKitchnNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.nameKitchn!.invalid ? 'Please enter a valid name' : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.loginForm!.nameTextEditor,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 15,
+            onChanged: (text) {
+              context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
+                value: text,
+              );
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.nameKitchn!.invalid
+                  ? 'Please enter a valid name'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'mikitchn name',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'mikitchn name',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1311,66 +1328,62 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.loginForm!.noOfSeatsTextEditor,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.number,
-          maxLength: 10,
-          onChanged: (text) {
-            context.read<EditKitchenProfileCubit>().onSeatChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.noOfSeats.invalid ? 'Please enter a valid seats' : null,
-            hintStyle: GoogleFonts.gothicA1(
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.loginForm!.noOfSeatsTextEditor,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.number,
+            maxLength: 10,
+            onChanged: (text) {
+              context.read<EditKitchenProfileCubit>().onSeatChanged(
+                value: text,
+              );
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.noOfSeats.invalid
+                  ? 'Please enter a valid seats'
+                  : null,
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            hintText: 'No. of seats',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              hintText: 'No. of seats',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1387,68 +1400,64 @@ class _PhoneNoState extends State<_PhoneNo> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.phone,
-          maxLength: 15,
-          onChanged: (text) {
-            context.read<EditKitchenProfileCubit>().onPhoneChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.phone.invalid ? 'Please enter a valid phone no' : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            controller: widget.loginForm!.mobileNoTextEditor,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.phone,
+            maxLength: 15,
+            onChanged: (text) {
+              context.read<EditKitchenProfileCubit>().onPhoneChanged(
+                value: text,
+              );
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.phone.invalid
+                  ? 'Please enter a valid phone no'
+                  : null,
 
-            hintStyle: GoogleFonts.gothicA1(
+              hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4)),
-            // labelText: 'Mobile Number',
-            hintText: 'Phone',
-            contentPadding:
-                EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                fontSize: config.AppConfig(context).appWidth(4),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              // labelText: 'Mobile Number',
+              hintText: 'Phone',
+              contentPadding: EdgeInsets.all(
+                config.AppConfig(context).appWidth(2),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1471,42 +1480,33 @@ class _AbnField extends StatelessWidget {
         decoration: InputDecoration(
           counterText: '',
           hintStyle: GoogleFonts.gothicA1(
-              color: Theme.of(context).hintColor,
-              fontSize: config.AppConfig(context).appWidth(4)),
+            color: Theme.of(context).hintColor,
+            fontSize: config.AppConfig(context).appWidth(4),
+          ),
           hintText: 'ABN',
           contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
           fillColor: config.AppColors().textFieldBackgroundColor(1),
           filled: true,
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           border: InputBorder.none,
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
         ),
       ),
@@ -1533,42 +1533,33 @@ class _CertificateField extends StatelessWidget {
         decoration: InputDecoration(
           counterText: '',
           hintStyle: GoogleFonts.gothicA1(
-              color: Theme.of(context).hintColor,
-              fontSize: config.AppConfig(context).appWidth(4)),
+            color: Theme.of(context).hintColor,
+            fontSize: config.AppConfig(context).appWidth(4),
+          ),
           hintText: 'Certificate number',
           contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
           fillColor: config.AppColors().textFieldBackgroundColor(1),
           filled: true,
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           border: InputBorder.none,
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(
-              color: Colors.white,
-            ),
+            borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
           ),
         ),
       ),
@@ -1594,85 +1585,91 @@ class _UploadbuttonState extends State<_UploadButton> {
         return Container(
           height: 45,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.topRight,
-                  colors: [
-                    Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor,
-                  ])),
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.topRight,
+              colors: [
+                Theme.of(context).primaryColor,
+                Theme.of(context).primaryColor,
+              ],
+            ),
+          ),
           child: MaterialButton(
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                // _pickImage();
+            minWidth: config.AppConfig(context).appWidth(100),
+            height: 50.0,
+            onPressed: () {
+              // _pickImage();
 
-                if (state.pathFiles.length <= 4) {
-                  showDialog<bool>(
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(
-                                'Add image',
-                                style: GoogleFonts.gothicA1(
-                                    color: Colors.black,
-                                    fontSize:
-                                        config.AppConfig(context).appWidth(5)),
+              if (state.pathFiles.length <= 4) {
+                showDialog<bool>(
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text(
+                        'Add image',
+                        style: GoogleFonts.gothicA1(
+                          color: Colors.black,
+                          fontSize: config.AppConfig(context).appWidth(5),
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MaterialButton(
+                            color: Theme.of(context).primaryColor,
+                            child: const Text(
+                              "Gallery",
+                              style: TextStyle(
+                                color: const Color(0xB3FFFBF7),
+                                fontWeight: FontWeight.bold,
                               ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  MaterialButton(
-                                    color: Theme.of(context).primaryColor,
-                                    child: const Text(
-                                      "Gallery",
-                                      style: TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onPressed: () {
-                                      navigatorKey.currentState!.pop(false);
-                                    },
-                                  ),
-                                  MaterialButton(
-                                    color: Theme.of(context).primaryColor,
-                                    child: const Text(
-                                      "Camera",
-                                      style: TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onPressed: () {
-                                      navigatorKey.currentState!.pop(true);
-                                    },
-                                  )
-                                ],
+                            ),
+                            onPressed: () {
+                              navigatorKey.currentState!.pop(false);
+                            },
+                          ),
+                          MaterialButton(
+                            color: Theme.of(context).primaryColor,
+                            child: const Text(
+                              "Camera",
+                              style: TextStyle(
+                                color: const Color(0xB3FFFBF7),
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                          context: context)
-                      .then((value) {
-                    if (!context.mounted) return;
-                    if (value != null) {
-                      if (value) {
-                        //Get from camera
-                        _openCamera(context);
-                      } else {
-                        //Get from gallery
-                        _openGallery(context);
-                      }
+                            ),
+                            onPressed: () {
+                              navigatorKey.currentState!.pop(true);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  context: context,
+                ).then((value) {
+                  if (!context.mounted) return;
+                  if (value != null) {
+                    if (value) {
+                      //Get from camera
+                      _openCamera(context);
+                    } else {
+                      //Get from gallery
+                      _openGallery(context);
                     }
-                  });
-                } else {
-                  Helper.showToast('Photos limit reached.');
-                }
-              },
-              child: Text(
-                'Upload Photos',
-                style: GoogleFonts.gothicA1(
-                    fontSize: config.AppConfig(context).appWidth(3.5),
-                    color: Colors.white),
-              )),
+                  }
+                });
+              } else {
+                Helper.showToast('Photos limit reached.');
+              }
+            },
+            child: Text(
+              'Upload Photos',
+              style: GoogleFonts.gothicA1(
+                fontSize: config.AppConfig(context).appWidth(3.5),
+                color: const Color(0xFFFFFBF7),
+              ),
+            ),
+          ),
         );
       },
     );
@@ -1690,8 +1687,9 @@ class _UploadbuttonState extends State<_UploadButton> {
 
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
+        widget.loginForm!.controller!.jumpTo(
+          widget.loginForm!.controller!.position.maxScrollExtent,
+        );
       }
     } catch (e) {
       Helper.showToast('No image selected.');
@@ -1700,8 +1698,10 @@ class _UploadbuttonState extends State<_UploadButton> {
 
   Future<void> _openCamera(BuildContext context) async {
     final cubit = context.read<EditKitchenProfileCubit>();
-    final picture = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 50);
+    final picture = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
 
     try {
       if (!context.mounted || picture == null) {
@@ -1711,8 +1711,9 @@ class _UploadbuttonState extends State<_UploadButton> {
 
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
+        widget.loginForm!.controller!.jumpTo(
+          widget.loginForm!.controller!.position.maxScrollExtent,
+        );
       }
     } catch (e) {
       Helper.showToast('No image captured.');
@@ -1733,40 +1734,43 @@ class _LoginButton extends StatelessWidget {
         return Container(
           height: 45,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.topRight,
-                colors: state.status!.isValidated
-                    ? [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor,
-                      ]
-                    : [
-                        Theme.of(context).primaryColorLight,
-                        Theme.of(context).primaryColorLight,
-                      ],
-              )),
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.topRight,
+              colors: state.status!.isValidated
+                  ? [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor,
+                    ]
+                  : [
+                      Theme.of(context).primaryColorLight,
+                      Theme.of(context).primaryColorLight,
+                    ],
+            ),
+          ),
           child: MaterialButton(
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                if (state.status!.isValidated) {
-                  context.read<EditKitchenProfileCubit>().onKitchenEditUpload();
-                }
-              },
-              child: state.statusApi!.isSubmissionInProgress
-                  ? const Center(
-                      child: CupertinoActivityIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      'SUBMIT',
-                      style: GoogleFonts.gothicA1(
-                          fontSize: config.AppConfig(context).appWidth(3.5),
-                          color: Colors.white),
-                    )),
+            minWidth: config.AppConfig(context).appWidth(100),
+            height: 50.0,
+            onPressed: () {
+              if (state.status!.isValidated) {
+                context.read<EditKitchenProfileCubit>().onKitchenEditUpload();
+              }
+            },
+            child: state.statusApi!.isSubmissionInProgress
+                ? const Center(
+                    child: CupertinoActivityIndicator(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  )
+                : Text(
+                    'SUBMIT',
+                    style: GoogleFonts.gothicA1(
+                      fontSize: config.AppConfig(context).appWidth(3.5),
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+          ),
         );
       },
     );

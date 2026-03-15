@@ -35,27 +35,28 @@ class ProfileFoodieState extends Equatable {
     GetCookProfileModel? foodieProfile,
   }) {
     return ProfileFoodieState(
-        statusUpload: statusUpload ?? this.statusUpload,
-        avatarPath: avatarPath ?? this.avatarPath,
-        status: status ?? this.status,
-        email: email ?? this.email,
-        description: description ?? this.description,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
-        foodieProfile: foodieProfile ?? this.foodieProfile,
-        phoneNo: phoneNo ?? this.phoneNo);
+      statusUpload: statusUpload ?? this.statusUpload,
+      avatarPath: avatarPath ?? this.avatarPath,
+      status: status ?? this.status,
+      email: email ?? this.email,
+      description: description ?? this.description,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      foodieProfile: foodieProfile ?? this.foodieProfile,
+      phoneNo: phoneNo ?? this.phoneNo,
+    );
   }
 
   @override
   List<Object?> get props => [
-        statusUpload,
-        avatarPath,
-        status,
-        email,
-        phoneNo,
-        firstName,
-        lastName,
-        description,
-        foodieProfile
-      ];
+    statusUpload,
+    avatarPath,
+    status,
+    email,
+    phoneNo,
+    firstName,
+    lastName,
+    description,
+    foodieProfile,
+  ];
 }

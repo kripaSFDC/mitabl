@@ -32,28 +32,39 @@ class ForgotCubit extends Cubit<ForgotState> {
       if (response.statusCode == 200) {
         dynamic res = jsonDecode(response.body);
         if (res['isSuccess']) {
-          emit(state.copyWith(
+          emit(
+            state.copyWith(
               status: FormzStatus.submissionSuccess,
-              serverMessage: '${res['message']}'));
+              serverMessage: '${res['message']}',
+            ),
+          );
         } else {
-          emit(state.copyWith(
+          emit(
+            state.copyWith(
               status: FormzStatus.submissionFailure,
-              serverMessage: '${res['isError']}'));
+              serverMessage: '${res['isError']}',
+            ),
+          );
         }
       } else {
         String message = ApiErrorParser.parseMessage(response.body);
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: FormzStatus.submissionFailure,
-            serverMessage: message));
+            serverMessage: message,
+          ),
+        );
 
-        emit(state.copyWith(
-            status: FormzStatus.pure, serverMessage: message));
+        emit(state.copyWith(status: FormzStatus.pure, serverMessage: message));
       }
     } catch (e) {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: FormzStatus.submissionFailure,
-          serverMessage: 'Something went wrong...'));
+          serverMessage: 'Something went wrong...',
+        ),
+      );
     }
   }
 }

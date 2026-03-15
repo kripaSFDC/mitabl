@@ -17,7 +17,7 @@ part 'edit_kitchen_profile_state.dart';
 
 class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
   EditKitchenProfileCubit({this.routeArguments, this.userRepository})
-      : super(const EditKitchenProfileState()) {
+    : super(const EditKitchenProfileState()) {
     setUpTimingModel();
     loadDineInSlots();
   }
@@ -48,16 +48,18 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
     //         .cast<String>()
     //         .toList();
 
-    emit(state.copyWith(
-      daysTimingOriginal: timingModel.days,
-      daysTiming: timingModel.days,
-      pathFiles: routeArguments!.kitchen!.images,
-      dineIn: routeArguments!.kitchen!.dineIn == 1 ? true : false,
-      takeAway: routeArguments!.kitchen!.takeAway == 1 ? true : false,
-      abn: routeArguments!.kitchen!.abn ?? '',
-      certificateNo: routeArguments!.kitchen!.certificateNo ?? '',
-      dineInSlots: routeArguments!.kitchen!.dineInSlots ?? const [],
-    ));
+    emit(
+      state.copyWith(
+        daysTimingOriginal: timingModel.days,
+        daysTiming: timingModel.days,
+        pathFiles: routeArguments!.kitchen!.images,
+        dineIn: routeArguments!.kitchen!.dineIn == 1 ? true : false,
+        takeAway: routeArguments!.kitchen!.takeAway == 1 ? true : false,
+        abn: routeArguments!.kitchen!.abn ?? '',
+        certificateNo: routeArguments!.kitchen!.certificateNo ?? '',
+        dineInSlots: routeArguments!.kitchen!.dineInSlots ?? const [],
+      ),
+    );
   }
 
   onDineInChange({bool? value}) {
@@ -68,8 +70,12 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
     emit(state.copyWith(takeAway: value));
   }
 
-  onSwitchChanged(
-      {int? index, bool? switchValue, String? startTime, String? endTime}) {
+  onSwitchChanged({
+    int? index,
+    bool? switchValue,
+    String? startTime,
+    String? endTime,
+  }) {
     List<Days> daysTiming = [];
     daysTiming.addAll(state.daysTiming);
     Days? days;
@@ -82,16 +88,18 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
     } else if (startTime != null) {
       timing = daysTiming[index!].timing;
 
-      days = daysTiming[index]
-          .copyWith(timing: timing!.copyWith(startTime: startTime));
+      days = daysTiming[index].copyWith(
+        timing: timing!.copyWith(startTime: startTime),
+      );
       daysTiming.removeAt(index);
       daysTiming.insert(index, days);
       emit(state.copyWith(daysTiming: daysTiming));
     } else if (endTime != null) {
       timing = daysTiming[index!].timing;
 
-      days = daysTiming[index]
-          .copyWith(timing: timing!.copyWith(endTime: endTime));
+      days = daysTiming[index].copyWith(
+        timing: timing!.copyWith(endTime: endTime),
+      );
       daysTiming.removeAt(index);
       daysTiming.insert(index, days);
       emit(state.copyWith(daysTiming: daysTiming));
@@ -120,25 +128,31 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       if (state.pathFiles.isNotEmpty) {
         allPaths.addAll(state.pathFiles);
         allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
+          (element) => element.path.toString() == path.toString(),
+        );
       } else {
         allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
+          (element) => element.path.toString() == path.toString(),
+        );
       }
 
       emit(state.copyWith(pathFiles: allPaths));
     } else {
-      var response = await userRepository!
-          .deleteImage(id: imagesCook.id.toString(), type: 'mikitchns');
+      var response = await userRepository!.deleteImage(
+        id: imagesCook.id.toString(),
+        type: 'mikitchns',
+      );
       if (response.statusCode == 200) {
         List<ImagesCook> allPaths = [];
         if (state.pathFiles.isNotEmpty) {
           allPaths.addAll(state.pathFiles);
           allPaths.removeWhere(
-              (element) => element.path.toString() == path.toString());
+            (element) => element.path.toString() == path.toString(),
+          );
         } else {
           allPaths.removeWhere(
-              (element) => element.path.toString() == path.toString());
+            (element) => element.path.toString() == path.toString(),
+          );
         }
 
         emit(state.copyWith(pathFiles: allPaths));
@@ -169,14 +183,17 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
         );
       }
 
-      var paths =
-          state.pathFiles.where((element) => element.id == null).toList();
+      var paths = state.pathFiles
+          .where((element) => element.id == null)
+          .toList();
       List<String> localPaths = [];
       for (var element in paths) {
         localPaths.add(element.path!);
       }
-      var response = await userRepository!
-          .vendorKitchenEditUpload(data: map, filePaths: localPaths);
+      var response = await userRepository!.vendorKitchenEditUpload(
+        data: map,
+        filePaths: localPaths,
+      );
       if (response.statusCode == 200) {
         jsonDecode(response.body);
 
@@ -189,9 +206,7 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
         // );
       } else {
         Helper.showToast(jsonDecode(response.body)['isError']);
-        emit(state.copyWith(
-          statusApi: FormzStatus.submissionFailure,
-        ));
+        emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
       }
     } on Exception {
       emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
@@ -201,62 +216,82 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
 
   onKitchnNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         nameKitchn: name,
-        status: Formz.validate(
-            [name, state.bio!, state.phone, state.noOfSeats, state.address!])));
+        status: Formz.validate([
+          name,
+          state.bio!,
+          state.phone,
+          state.noOfSeats,
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onBioChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         bio: name,
         status: Formz.validate([
           name,
           state.nameKitchn!,
           state.phone,
           state.noOfSeats,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onAddressChanged({String? value}) {
     var address = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         address: address,
         status: Formz.validate([
           address,
           state.bio!,
           state.nameKitchn!,
           state.phone,
-          state.noOfSeats
-        ])));
+          state.noOfSeats,
+        ]),
+      ),
+    );
   }
 
   onPhoneChanged({String? value}) {
     var phone = Phone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         phone: phone,
         status: Formz.validate([
           state.nameKitchn!,
           state.bio!,
           state.noOfSeats,
           phone,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onSeatChanged({String? value}) {
     var seat = Phone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         noOfSeats: seat,
         status: Formz.validate([
           state.nameKitchn!,
           state.bio!,
           state.phone,
           seat,
-          state.address!
-        ])));
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onAbnChanged({String? value}) {
@@ -290,14 +325,18 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
 
       final slots = data
           .whereType<Map>()
-          .map((slot) =>
-              DineInSlotTemplate.fromJson(Map<String, dynamic>.from(slot)))
+          .map(
+            (slot) =>
+                DineInSlotTemplate.fromJson(Map<String, dynamic>.from(slot)),
+          )
           .toList(growable: false);
 
-      emit(state.copyWith(
-        dineInSlots: slots,
-        dineInSlotsStatus: FormzStatus.submissionSuccess,
-      ));
+      emit(
+        state.copyWith(
+          dineInSlots: slots,
+          dineInSlotsStatus: FormzStatus.submissionSuccess,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(dineInSlotsStatus: FormzStatus.submissionFailure));
     }

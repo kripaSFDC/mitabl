@@ -94,7 +94,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     final available = await BiometricService.instance.isAvailable();
     if (!mounted) return;
     if (!available && enabled) {
-      _showSnackBar('Biometric authentication is not available on this device.');
+      _showSnackBar(
+        'Biometric authentication is not available on this device.',
+      );
       return;
     }
 
@@ -108,9 +110,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _onNotificationChanged(bool enabled) async {
@@ -183,7 +185,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
         description: _descriptionController.text.trim(),
       );
 
-      final message = result['message']?.toString() ??
+      final message =
+          result['message']?.toString() ??
           'Support ticket created successfully.';
       _showSnackBar(message);
     } catch (error) {
@@ -290,18 +293,21 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   spacing: 8,
                   children: [
                     ElevatedButton(
-                      onPressed:
-                          _supportActionInFlight ? null : _submitSupportTicket,
+                      onPressed: _supportActionInFlight
+                          ? null
+                          : _submitSupportTicket,
                       child: const Text('Create Ticket'),
                     ),
                     ElevatedButton(
-                      onPressed:
-                          _supportActionInFlight ? null : _loadSupportTicket,
+                      onPressed: _supportActionInFlight
+                          ? null
+                          : _loadSupportTicket,
                       child: const Text('Get Ticket'),
                     ),
                     ElevatedButton(
-                      onPressed:
-                          _supportActionInFlight ? null : _replyToSupportTicket,
+                      onPressed: _supportActionInFlight
+                          ? null
+                          : _replyToSupportTicket,
                       child: const Text('Reply'),
                     ),
                   ],
@@ -389,11 +395,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: const CommonAppBar(
-          title: 'Settings',
-          isFilter: false,
-        ),
-        backgroundColor: Colors.white,
+        appBar: const CommonAppBar(title: 'Settings', isFilter: false),
+        backgroundColor: const Color(0xFFFFFBF7),
         body: Padding(
           padding: EdgeInsets.only(
             left: config.AppConfig(context).appWidth(3),
@@ -401,9 +404,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
           ),
           child: Column(
             children: [
-              SizedBox(
-                height: config.AppConfig(context).appHeight(3),
-              ),
+              SizedBox(height: config.AppConfig(context).appHeight(3)),
               ListTile(
                 onTap: () {
                   final routeId = widget.routeArguments?.id;
@@ -437,17 +438,16 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         ),
                       ],
                     ),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(4),
-                    ),
+                    SizedBox(width: config.AppConfig(context).appWidth(4)),
                     Text(
                       'Edit profile',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.5),
-                          fontWeight: FontWeight.w400),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4.5),
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
-                    )
+                    ),
                   ],
                 ),
                 trailing: Icon(
@@ -465,20 +465,17 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 leading: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      'assets/img/notification.svg',
-                    ),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(4),
-                    ),
+                    SvgPicture.asset('assets/img/notification.svg'),
+                    SizedBox(width: config.AppConfig(context).appWidth(4)),
                     Text(
                       'Notification',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.5),
-                          fontWeight: FontWeight.w400),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4.5),
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
-                    )
+                    ),
                   ],
                 ),
                 trailing: SizedBox(
@@ -500,17 +497,16 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.fingerprint),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(4),
-                    ),
+                    SizedBox(width: config.AppConfig(context).appWidth(4)),
                     Text(
                       'Biometric lock',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.5),
-                          fontWeight: FontWeight.w400),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4.5),
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
-                    )
+                    ),
                   ],
                 ),
                 trailing: SizedBox(
@@ -531,18 +527,15 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 leading: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      'assets/img/delete.svg',
-                    ),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(4),
-                    ),
+                    SvgPicture.asset('assets/img/delete.svg'),
+                    SizedBox(width: config.AppConfig(context).appWidth(4)),
                     Text(
                       'Help & Support',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.5),
-                          fontWeight: FontWeight.w400),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4.5),
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -560,18 +553,15 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 leading: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SvgPicture.asset(
-                      'assets/img/delete.svg',
-                    ),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(4),
-                    ),
+                    SvgPicture.asset('assets/img/delete.svg'),
+                    SizedBox(width: config.AppConfig(context).appWidth(4)),
                     Text(
                       'Delete Account',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.5),
-                          fontWeight: FontWeight.w400),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4.5),
+                        fontWeight: FontWeight.w400,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

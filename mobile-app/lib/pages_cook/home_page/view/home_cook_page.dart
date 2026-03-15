@@ -16,14 +16,11 @@ class HomePageCook extends StatefulWidget {
 }
 
 class _HomePageCookState extends State<HomePageCook> {
-
-
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFBF7),
         body: Padding(
           padding: EdgeInsets.only(
             left: config.AppConfig(context).appWidth(3),
@@ -37,17 +34,14 @@ class _HomePageCookState extends State<HomePageCook> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      height: config.AppConfig(context).appHeight(3),
-                    ),
+                    SizedBox(height: config.AppConfig(context).appHeight(3)),
                     const HomeCookHeaderWidget(),
-                    SizedBox(
-                      height: config.AppConfig(context).appHeight(4),
-                    ),
+                    SizedBox(height: config.AppConfig(context).appHeight(4)),
                     Container(
                       alignment: Alignment.center,
-                      padding:
-                          EdgeInsets.all(config.AppConfig(context).appWidth(6)),
+                      padding: EdgeInsets.all(
+                        config.AppConfig(context).appWidth(6),
+                      ),
                       width: config.AppConfig(context).appWidth(100),
                       height: config.AppConfig(context).appHeight(15),
                       decoration: BoxDecoration(
@@ -65,21 +59,24 @@ class _HomePageCookState extends State<HomePageCook> {
                               Text(
                                 'Total Earnings',
                                 style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: config.FontFamily().medium),
+                                  color: const Color(0xFFFFFBF7),
+                                  fontSize: 18,
+                                  fontWeight: config.FontFamily().medium,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                               SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(1)),
+                                height: config.AppConfig(context).appHeight(1),
+                              ),
                               Text(
                                 'AUD ${state.dashboardData!.data!.totalEarning.toString()}',
                                 style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize:
-                                        config.AppConfig(context).appWidth(7),
-                                    fontWeight: config.FontFamily().demi),
+                                  color: const Color(0xFFFFFBF7),
+                                  fontSize: config.AppConfig(
+                                    context,
+                                  ).appWidth(7),
+                                  fontWeight: config.FontFamily().demi,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -90,16 +87,14 @@ class _HomePageCookState extends State<HomePageCook> {
                             height: config.AppConfig(context).appHeight(10),
                             width: config.AppConfig(context).appHeight(10),
                             colorFilter: const ColorFilter.mode(
-                              Colors.white,
+                              const Color(0xFFFFFBF7),
                               BlendMode.srcIn,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: config.AppConfig(context).appHeight(2),
-                    ),
+                    SizedBox(height: config.AppConfig(context).appHeight(2)),
                     GestureDetector(
                       onTap: () {
                         navigatorKey.currentState!.pushNamed('/Bookings');
@@ -114,11 +109,12 @@ class _HomePageCookState extends State<HomePageCook> {
                             Container(
                               alignment: Alignment.center,
                               padding: EdgeInsets.all(
-                                  config.AppConfig(context).appWidth(6)),
+                                config.AppConfig(context).appWidth(6),
+                              ),
                               width: config.AppConfig(context).appWidth(100),
                               height: config.AppConfig(context).appHeight(15),
                               decoration: const BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFFFFFBF7),
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(16),
                                 ),
@@ -132,23 +128,28 @@ class _HomePageCookState extends State<HomePageCook> {
                                     children: [
                                       Text(
                                         'Number Of Bookings',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
                                         textAlign: TextAlign.center,
                                       ),
                                       SizedBox(
-                                          height: config.AppConfig(context)
-                                              .appHeight(1)),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
+                                      ),
                                       Text(
-                                        state.dashboardData!.data!.nBookings.toString(),
+                                        state.dashboardData!.data!.nBookings
+                                            .toString(),
                                         style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(7),
-                                            fontWeight:
-                                                config.FontFamily().demi),
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(7),
+                                          fontWeight: config.FontFamily().demi,
+                                        ),
                                         textAlign: TextAlign.center,
                                       ),
                                     ],
@@ -161,30 +162,37 @@ class _HomePageCookState extends State<HomePageCook> {
                               right: 0,
                               child: ClipRRect(
                                 borderRadius: const BorderRadius.only(
-                                    topRight: Radius.circular(16),
-                                    bottomRight: Radius.circular(16)),
+                                  topRight: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
                                 child: CustomPaint(
                                   painter: CustomShapeCook(),
                                   child: Container(
                                     padding: EdgeInsets.all(
-                                        config.AppConfig(context).appWidth(6)),
-                                    width:
-                                        config.AppConfig(context).appWidth(30),
-                                    height:
-                                        config.AppConfig(context).appHeight(15),
+                                      config.AppConfig(context).appWidth(6),
+                                    ),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(30),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(15),
                                     decoration: const BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(16),
-                                      bottomRight: Radius.circular(16),
-                                    )),
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(16),
+                                        bottomRight: Radius.circular(16),
+                                      ),
+                                    ),
                                     child: SvgPicture.asset(
                                       'assets/img/booking.svg',
-                                      height: config.AppConfig(context)
-                                          .appHeight(10),
-                                      width: config.AppConfig(context)
-                                          .appHeight(10),
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(10),
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appHeight(10),
                                       colorFilter: const ColorFilter.mode(
-                                        Colors.white,
+                                        const Color(0xFFFFFBF7),
                                         BlendMode.srcIn,
                                       ),
                                     ),
@@ -196,13 +204,12 @@ class _HomePageCookState extends State<HomePageCook> {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: config.AppConfig(context).appHeight(2),
-                    ),
+                    SizedBox(height: config.AppConfig(context).appHeight(2)),
                     InkWell(
                       onTap: () {
-                        navigatorKey.currentState!
-                            .pushNamed('/UpcomingBookings');
+                        navigatorKey.currentState!.pushNamed(
+                          '/UpcomingBookings',
+                        );
                       },
                       child: Card(
                         elevation: 3,
@@ -214,11 +221,12 @@ class _HomePageCookState extends State<HomePageCook> {
                             Container(
                               alignment: Alignment.center,
                               padding: EdgeInsets.all(
-                                  config.AppConfig(context).appWidth(6)),
+                                config.AppConfig(context).appWidth(6),
+                              ),
                               width: config.AppConfig(context).appWidth(100),
                               height: config.AppConfig(context).appHeight(15),
                               decoration: const BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFFFFFBF7),
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(16),
                                 ),
@@ -234,23 +242,34 @@ class _HomePageCookState extends State<HomePageCook> {
                                         'Upcoming Bookings',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyLarge!.copyWith(
-                                          fontSize: config.AppConfig(context).appWidth(4.5)
-                                        ),
+                                            .bodyLarge!
+                                            .copyWith(
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(4.5),
+                                            ),
                                         textAlign: TextAlign.center,
                                       ),
                                       SizedBox(
-                                          height: config.AppConfig(context)
-                                              .appHeight(1)),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
+                                      ),
                                       Text(
-                                        state.dashboardData!.data!.nUpcomingBookings.toString(),
+                                        state
+                                            .dashboardData!
+                                            .data!
+                                            .nUpcomingBookings
+                                            .toString(),
                                         style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(7),
-                                            fontWeight:
-                                                config.FontFamily().demi),
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(7),
+                                          fontWeight: config.FontFamily().demi,
+                                        ),
                                         textAlign: TextAlign.center,
                                       ),
                                     ],
@@ -263,30 +282,37 @@ class _HomePageCookState extends State<HomePageCook> {
                               right: 0,
                               child: ClipRRect(
                                 borderRadius: const BorderRadius.only(
-                                    topRight: Radius.circular(16),
-                                    bottomRight: Radius.circular(16)),
+                                  topRight: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
                                 child: CustomPaint(
                                   painter: CustomShapeCook(),
                                   child: Container(
                                     padding: EdgeInsets.all(
-                                        config.AppConfig(context).appWidth(6)),
-                                    width:
-                                        config.AppConfig(context).appWidth(30),
-                                    height:
-                                        config.AppConfig(context).appHeight(15),
+                                      config.AppConfig(context).appWidth(6),
+                                    ),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(30),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(15),
                                     decoration: const BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(16),
-                                      bottomRight: Radius.circular(16),
-                                    )),
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(16),
+                                        bottomRight: Radius.circular(16),
+                                      ),
+                                    ),
                                     child: SvgPicture.asset(
                                       'assets/img/plate.svg',
-                                      height: config.AppConfig(context)
-                                          .appHeight(10),
-                                      width: config.AppConfig(context)
-                                          .appHeight(10),
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(10),
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appHeight(10),
                                       colorFilter: const ColorFilter.mode(
-                                        Colors.white,
+                                        const Color(0xFFFFFBF7),
                                         BlendMode.srcIn,
                                       ),
                                     ),

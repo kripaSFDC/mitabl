@@ -14,16 +14,15 @@ class UserDetails extends StatelessWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-        builder: (_) => UserDetails(
-              routeArguments: routeArguments,
-            ));
+      builder: (_) => UserDetails(routeArguments: routeArguments),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFBF7),
         elevation: 0,
         leading: InkWell(
           onTap: () {
@@ -55,11 +54,12 @@ class UserDetails extends StatelessWidget {
                   height: config.AppConfig(context).appWidth(25),
                   width: config.AppConfig(context).appWidth(25),
                   decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                      ),
-                      borderRadius: BorderRadius.circular(100)),
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
                 ),
 
                 errorWidget: (context, data, e) {
@@ -83,9 +83,7 @@ class UserDetails extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(
-            height: config.AppConfig(context).appHeight(3),
-          ),
+          SizedBox(height: config.AppConfig(context).appHeight(3)),
           Text(
             routeArguments!.customer!.name.toString(),
             style: TextStyle(
@@ -96,31 +94,28 @@ class UserDetails extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(
-            height: config.AppConfig(context).appHeight(1),
-          ),
+          SizedBox(height: config.AppConfig(context).appHeight(1)),
           StarRating(
             rating: routeArguments!.customer!.rating!,
             size: config.AppConfig(context).appWidth(5),
             color: const Color(0xffFFA200),
           ),
-          SizedBox(
-            height: config.AppConfig(context).appHeight(1),
-          ),
+          SizedBox(height: config.AppConfig(context).appHeight(1)),
           Padding(
             padding: EdgeInsets.all(config.AppConfig(context).appWidth(4)),
             child: Text(
               routeArguments!.customer!.description.toString(),
               style: TextStyle(
-                  fontSize: config.AppConfig(context).appWidth(4),
-                  color: Theme.of(context).primaryColorDark,
-                  fontFamily:
-                  config.FontFamily().itcAvantGardeGothicStdFontFamily,
-                  fontWeight: config.FontFamily().book,
-                  overflow: TextOverflow.ellipsis),
+                fontSize: config.AppConfig(context).appWidth(4),
+                color: Theme.of(context).primaryColorDark,
+                fontFamily:
+                    config.FontFamily().itcAvantGardeGothicStdFontFamily,
+                fontWeight: config.FontFamily().book,
+                overflow: TextOverflow.ellipsis,
+              ),
               maxLines: 5,
             ),
-          )
+          ),
         ],
       ),
     );

@@ -17,7 +17,7 @@ part 'add_menu_state.dart';
 
 class AddMenuCubit extends Cubit<AddMenuState> {
   AddMenuCubit(this.cookRepository)
-      : super(AddMenuState(selectedCookingStyle: CookingStyleData(name: '')));
+    : super(AddMenuState(selectedCookingStyle: CookingStyleData(name: '')));
 
   final CookRepository cookRepository;
 
@@ -31,20 +31,25 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       picturesList.add(element);
     }
 
-    final availableSpecialDiets =
-        _cloneSpecialDietList(state.specialDietDataListOriginal);
+    final availableSpecialDiets = _cloneSpecialDietList(
+      state.specialDietDataListOriginal,
+    );
 
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         pathFiles: picturesList,
         selectedFoodMenu: foodData,
         specialDietDataList: availableSpecialDiets,
         availableDate: foodData.availableDate,
         availableDays: foodData.availableDays ?? const [],
         availableFromTime: foodData.availableFromTime,
-        availableToTime: foodData.availableToTime));
+        availableToTime: foodData.availableToTime,
+      ),
+    );
 
-    CookingStyleData cookingStyleData = state.cookingStyleList
-        .firstWhere((element) => element.id == foodData.cookingstyle);
+    CookingStyleData cookingStyleData = state.cookingStyleList.firstWhere(
+      (element) => element.id == foodData.cookingstyle,
+    );
     List<CookingStyleData> cookingStyleListTemp = [];
     if (state.cookingStyleList.isNotEmpty) {
       for (var element in state.cookingStyleList) {
@@ -55,9 +60,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         }
       }
     }
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         selectedCookingStyle: cookingStyleData.copyWith(isSelected: true),
-        cookingStyleList: cookingStyleListTemp));
+        cookingStyleList: cookingStyleListTemp,
+      ),
+    );
 
     final idsDiet = _extractSpecialDietIds(foodData.specialDiet);
 
@@ -78,8 +86,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       if (response.statusCode == 200) {
         FoodMenu foodMenu = FoodMenu.fromJson(jsonDecode(response.body));
 
-        emit(state.copyWith(
-            foodMenu: foodMenu, foodMenuStatus: FormzStatus.submissionSuccess));
+        emit(
+          state.copyWith(
+            foodMenu: foodMenu,
+            foodMenuStatus: FormzStatus.submissionSuccess,
+          ),
+        );
       } else {
         emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
         Helper.showToast('Unable to load menu items.');
@@ -101,8 +113,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
           .where((element) => element.isSelected!)
           .toList()
           .forEach((element) {
-        diets.add(element.id.toString());
-      });
+            diets.add(element.id.toString());
+          });
 
       for (var element in state.deleteImagesId) {
         if (deleteImageString == '') {
@@ -113,7 +125,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       }
 
       Map<String, dynamic> map = {};
-      final currentUser = cookRepository.userRepository!.currentUser ??
+      final currentUser =
+          cookRepository.userRepository!.currentUser ??
           await cookRepository.userRepository!.getUser();
       if (isEdit == true) {
         map['food_id'] = foodId;
@@ -131,18 +144,20 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       map['available_from_time'] = state.availableFromTime;
       map['available_to_time'] = state.availableToTime;
 
-      var paths =
-          state.pathFiles.where((element) => element.id == null).toList();
+      var paths = state.pathFiles
+          .where((element) => element.id == null)
+          .toList();
       List<String> localPaths = [];
       for (var element in paths) {
         localPaths.add(element.path!);
       }
 
       var response = await cookRepository.saveMenuItem(
-          data: map,
-          filePaths: localPaths,
-          isEdit: isEdit,
-          deleteImagsId: state.deleteImagesId);
+        data: map,
+        filePaths: localPaths,
+        isEdit: isEdit,
+        deleteImagsId: state.deleteImagesId,
+      );
       if (response.statusCode == 200) {
         if (isEdit == true) {
           // Helper.showToast('Food updated successfully.');
@@ -160,7 +175,8 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         try {
           final decoded = jsonDecode(response.body);
           if (decoded is Map<String, dynamic>) {
-            message = decoded['isError']?.toString() ??
+            message =
+                decoded['isError']?.toString() ??
                 decoded['message']?.toString() ??
                 message;
           }
@@ -174,43 +190,63 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
   resetFields() {
     getCookingStyle();
-    emit(AddMenuState(
+    emit(
+      AddMenuState(
         deleteImagesId: const [],
         cookingStyleList: _cloneCookingStyleList(state.cookingStyleList),
-        specialDietDataListOriginal:
-            _cloneSpecialDietList(state.specialDietDataListOriginal),
+        specialDietDataListOriginal: _cloneSpecialDietList(
+          state.specialDietDataListOriginal,
+        ),
         foodMenu: state.foodMenu,
-        specialDietDataList:
-            _cloneSpecialDietList(state.specialDietDataListOriginal),
+        specialDietDataList: _cloneSpecialDietList(
+          state.specialDietDataListOriginal,
+        ),
         availableDate: null,
         availableDays: const [],
         availableFromTime: null,
         availableToTime: null,
         selectedCookingStyle: CookingStyleData(name: ''),
-        selectedFoodMenu: state.selectedFoodMenu));
+        selectedFoodMenu: state.selectedFoodMenu,
+      ),
+    );
   }
 
   onItemNameChange({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         itemName: name,
-        formsStatus: Formz.validate([name, state.description!, state.price!])));
+        formsStatus: Formz.validate([name, state.description!, state.price!]),
+      ),
+    );
   }
 
   onPriceChange({String? value}) {
     var price = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         price: price,
-        formsStatus:
-            Formz.validate([price, state.description!, state.itemName!])));
+        formsStatus: Formz.validate([
+          price,
+          state.description!,
+          state.itemName!,
+        ]),
+      ),
+    );
   }
 
   onDescriptionChange({String? value}) {
     var description = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         description: description,
-        formsStatus:
-            Formz.validate([description, state.price!, state.itemName!])));
+        formsStatus: Formz.validate([
+          description,
+          state.price!,
+          state.itemName!,
+        ]),
+      ),
+    );
   }
 
   onCookingStyleChange({int? index, bool? value}) {
@@ -218,8 +254,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     List<CookingStyleData> tempListNew = [];
     tempList.addAll(state.cookingStyleList);
 
-    CookingStyleData specialDietData =
-        tempList[index!].copyWith(isSelected: true);
+    CookingStyleData specialDietData = tempList[index!].copyWith(
+      isSelected: true,
+    );
 
     if (value!) {
       tempList.removeAt(index);
@@ -233,9 +270,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
       tempListNew.insert(index, specialDietData);
 
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           cookingStyleList: tempListNew,
-          selectedCookingStyle: specialDietData));
+          selectedCookingStyle: specialDietData,
+        ),
+      );
     }
   }
 
@@ -244,8 +284,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     tempList.addAll(state.specialDietDataList!);
 
     int index = tempList.indexWhere((element) => element.id == id);
-    SpecialDietData specialDietData =
-        tempList[index].copyWith(isSelected: false);
+    SpecialDietData specialDietData = tempList[index].copyWith(
+      isSelected: false,
+    );
 
     tempList.removeAt(index);
     tempList.insert(index, specialDietData);
@@ -257,8 +298,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     List<SpecialDietData> tempList = [];
     tempList.addAll(state.specialDietDataList!);
     var index = tempList.indexWhere((element) => element.id == id);
-    SpecialDietData specialDietData =
-        tempList[index].copyWith(isSelected: value);
+    SpecialDietData specialDietData = tempList[index].copyWith(
+      isSelected: value,
+    );
 
     tempList.removeAt(index);
     tempList.insert(index, specialDietData);
@@ -269,12 +311,16 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   getCookingStyle() async {
     try {
       var response = await cookRepository.getCookingStyle();
-      CookingStyle cookingStyle =
-          CookingStyle.fromJson(jsonDecode(response.body));
+      CookingStyle cookingStyle = CookingStyle.fromJson(
+        jsonDecode(response.body),
+      );
 
       if (cookingStyle.status == 200) {
-        emit(state.copyWith(
-            cookingStyleList: _cloneCookingStyleList(cookingStyle.data ?? [])));
+        emit(
+          state.copyWith(
+            cookingStyleList: _cloneCookingStyleList(cookingStyle.data ?? []),
+          ),
+        );
       }
     } catch (e) {
       AppLogger.error('Unable to load cooking styles', e);
@@ -288,11 +334,15 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       SpecialDiet specialDiet = SpecialDiet.fromJson(jsonDecode(response.body));
 
       if (specialDiet.status == 200) {
-        final specialDiets =
-            _cloneSpecialDietList(specialDiet.data ?? const []);
-        emit(state.copyWith(
+        final specialDiets = _cloneSpecialDietList(
+          specialDiet.data ?? const [],
+        );
+        emit(
+          state.copyWith(
             specialDietDataList: specialDiets,
-            specialDietDataListOriginal: _cloneSpecialDietList(specialDiets)));
+            specialDietDataListOriginal: _cloneSpecialDietList(specialDiets),
+          ),
+        );
       }
     } catch (e) {
       AppLogger.error('Unable to load special diets', e);
@@ -306,10 +356,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       if (state.pathFiles.isNotEmpty) {
         allPaths.addAll(state.pathFiles);
         allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
+          (element) => element.path.toString() == path.toString(),
+        );
       } else {
         allPaths.removeWhere(
-            (element) => element.path.toString() == path.toString());
+          (element) => element.path.toString() == path.toString(),
+        );
       }
 
       emit(state.copyWith(pathFiles: allPaths));
@@ -320,9 +372,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       List<Pictures> allPaths = [...state.pathFiles];
       List<String> deletedImageIds = [...state.deleteImagesId];
       final removedPicture = allPaths.cast<Pictures?>().firstWhere(
-            (element) => element?.path.toString() == path.toString(),
-            orElse: () => null,
-          );
+        (element) => element?.path.toString() == path.toString(),
+        orElse: () => null,
+      );
 
       if (removedPicture == null) {
         return;
@@ -332,13 +384,13 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         deletedImageIds.add(removedPicture.id.toString());
       }
 
-      allPaths
-          .removeWhere((element) => element.path.toString() == path.toString());
+      allPaths.removeWhere(
+        (element) => element.path.toString() == path.toString(),
+      );
 
-      emit(state.copyWith(
-        pathFiles: allPaths,
-        deleteImagesId: deletedImageIds,
-      ));
+      emit(
+        state.copyWith(pathFiles: allPaths, deleteImagesId: deletedImageIds),
+      );
       getFoodMenu();
     }
   }
@@ -348,11 +400,14 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   void onAvailableDateChanged({String? value}) {
-    emit(state.copyWith(
-      availableDate: value,
-      availableDays:
-          (value != null && value.isNotEmpty) ? const [] : state.availableDays,
-    ));
+    emit(
+      state.copyWith(
+        availableDate: value,
+        availableDays: (value != null && value.isNotEmpty)
+            ? const []
+            : state.availableDays,
+      ),
+    );
   }
 
   void onAvailableDayToggled({required int day}) {
@@ -364,20 +419,24 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       nextDays.sort();
     }
 
-    emit(state.copyWith(
-      availableDate: nextDays.isNotEmpty ? '' : state.availableDate,
-      availableDays: nextDays,
-    ));
+    emit(
+      state.copyWith(
+        availableDate: nextDays.isNotEmpty ? '' : state.availableDate,
+        availableDays: nextDays,
+      ),
+    );
   }
 
   void onAvailableTimeChanged({
     String? availableFromTime,
     String? availableToTime,
   }) {
-    emit(state.copyWith(
-      availableFromTime: availableFromTime ?? state.availableFromTime,
-      availableToTime: availableToTime ?? state.availableToTime,
-    ));
+    emit(
+      state.copyWith(
+        availableFromTime: availableFromTime ?? state.availableFromTime,
+        availableToTime: availableToTime ?? state.availableToTime,
+      ),
+    );
   }
 
   onNewImageAdded({String? path}) {
@@ -396,17 +455,22 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   //StatusChange
   onFoodStatusChange({bool? value, String? foodId}) async {
     emit(
-        state.copyWith(foodStatusFormStatus: FormzStatus.submissionInProgress));
+      state.copyWith(foodStatusFormStatus: FormzStatus.submissionInProgress),
+    );
     var response = await cookRepository.changFoodStatus(foodId: foodId);
 
     if (response.statusCode == 200) {
-      FoodData foodData = state.selectedFoodMenu!
-          .copyWith(status: state.selectedFoodMenu!.status == 1 ? 0 : 1);
+      FoodData foodData = state.selectedFoodMenu!.copyWith(
+        status: state.selectedFoodMenu!.status == 1 ? 0 : 1,
+      );
       getFoodMenu();
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           selectedFoodMenu: foodData,
           selectedFoodMenuUnChanged: foodData,
-          foodStatusFormStatus: FormzStatus.submissionSuccess));
+          foodStatusFormStatus: FormzStatus.submissionSuccess,
+        ),
+      );
     } else {
       getFoodMenu();
       emit(state.copyWith(foodStatusFormStatus: FormzStatus.submissionFailure));
@@ -448,14 +512,16 @@ class AddMenuCubit extends Cubit<AddMenuState> {
   }
 
   List<CookingStyleData> _cloneCookingStyleList(
-      List<CookingStyleData> cookingStyles) {
+    List<CookingStyleData> cookingStyles,
+  ) {
     return cookingStyles
         .map((style) => style.copyWith())
         .toList(growable: false);
   }
 
   List<SpecialDietData> _cloneSpecialDietList(
-      List<SpecialDietData>? specialDiets) {
+    List<SpecialDietData>? specialDiets,
+  ) {
     if (specialDiets == null) {
       return const [];
     }

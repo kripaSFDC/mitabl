@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
 
 class OrderCartPage extends StatelessWidget {
-  const OrderCartPage({
-    super.key,
-    required this.session,
-  });
+  const OrderCartPage({super.key, required this.session});
 
   final OrderSessionController session;
 
@@ -110,9 +108,9 @@ class _CartLine extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: config.AppColors().textFieldBackgroundColor(1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: config.AppColors().colorDivider(1)),
       ),
       child: Row(
         children: [
@@ -130,7 +128,9 @@ class _CartLine extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '\$${line.item.price.toStringAsFixed(2)} each',
-                  style: GoogleFonts.gothicA1(color: Colors.grey.shade700),
+                  style: GoogleFonts.gothicA1(
+                    color: config.AppColors().hintTextBackgroundColor(1),
+                  ),
                 ),
               ],
             ),
@@ -294,7 +294,7 @@ class _DateTimeSection extends StatelessWidget {
                       final nextStartTotal = (picked.hour * 60) + picked.minute;
                       final currentEndTotal =
                           (session.scheduledTime.endHour * 60) +
-                              session.scheduledTime.endMinute;
+                          session.scheduledTime.endMinute;
                       if (nextStartTotal >= currentEndTotal) {
                         final adjustedEndTotal = (nextStartTotal + 60)
                             .clamp(1, (23 * 60) + 59)
@@ -343,7 +343,8 @@ class _DateTimeSection extends StatelessWidget {
                     if (picked == null) {
                       return;
                     }
-                    final startTotal = (session.scheduledTime.startHour * 60) +
+                    final startTotal =
+                        (session.scheduledTime.startHour * 60) +
                         session.scheduledTime.startMinute;
                     final endTotal = (picked.hour * 60) + picked.minute;
                     if (endTotal <= startTotal) {
@@ -428,7 +429,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: config.AppColors().textFieldBackgroundColor(0.7),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(

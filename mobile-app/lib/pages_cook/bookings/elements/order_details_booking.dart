@@ -20,19 +20,15 @@ class OrderDetailsBookings extends StatelessWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-        builder: (_) => OrderDetailsBookings(
-              routeArguments: routeArguments,
-            ));
+      builder: (_) => OrderDetailsBookings(routeArguments: routeArguments),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: const CommonAppBar(
-          title: 'Order Details',
-          isFilter: false,
-        ),
+        appBar: const CommonAppBar(title: 'Order Details', isFilter: false),
         body: BlocConsumer<BookingsCubit, BookingsState>(
           listener: (context, state) {
             if (state.orderCompleteCancelStatus!.isSubmissionSuccess) {
@@ -44,7 +40,8 @@ class OrderDetailsBookings extends StatelessWidget {
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: config.AppConfig(context).appWidth(4)),
+                    horizontal: config.AppConfig(context).appWidth(4),
+                  ),
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,10 +61,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                 children: [
                                   Center(
                                     child: Container(
-                                      height: config.AppConfig(context)
-                                          .appHeight(11),
-                                      width: config.AppConfig(context)
-                                          .appHeight(11),
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(11),
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appHeight(11),
                                       decoration: BoxDecoration(
                                         color: config.AppColors()
                                             .textFieldBackgroundColor(1),
@@ -80,41 +79,50 @@ class OrderDetailsBookings extends StatelessWidget {
                                         imageBuilder:
                                             (context, imageProvider) =>
                                                 Container(
-                                          height: config.AppConfig(context)
-                                              .appWidth(25),
-                                          width: config.AppConfig(context)
-                                              .appWidth(25),
-                                          decoration: BoxDecoration(
-                                              image: DecorationImage(
-                                                image: imageProvider,
-                                                fit: BoxFit.cover,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(100)),
-                                        ),
+                                                  height: config.AppConfig(
+                                                    context,
+                                                  ).appWidth(25),
+                                                  width: config.AppConfig(
+                                                    context,
+                                                  ).appWidth(25),
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      image: imageProvider,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          100,
+                                                        ),
+                                                  ),
+                                                ),
                                         errorWidget: (context, data, e) {
                                           return Container(
-                                            height: config.AppConfig(context)
-                                                .appHeight(15),
-                                            width: config.AppConfig(context)
-                                                .appHeight(15),
+                                            height: config.AppConfig(
+                                              context,
+                                            ).appHeight(15),
+                                            width: config.AppConfig(
+                                              context,
+                                            ).appHeight(15),
                                             decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .surface,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.surface,
                                               shape: BoxShape.circle,
                                             ),
                                           );
                                         },
                                         placeholder: (context, s) => Container(
-                                          height: config.AppConfig(context)
-                                              .appHeight(15),
-                                          width: config.AppConfig(context)
-                                              .appHeight(15),
+                                          height: config.AppConfig(
+                                            context,
+                                          ).appHeight(15),
+                                          width: config.AppConfig(
+                                            context,
+                                          ).appHeight(15),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surface,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.surface,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -122,8 +130,9 @@ class OrderDetailsBookings extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(
-                                    width:
-                                        config.AppConfig(context).appWidth(2),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(2),
                                   ),
                                   Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -141,23 +150,28 @@ class OrderDetailsBookings extends StatelessWidget {
                                           InkWell(
                                             onTap: () {
                                               navigatorKey.currentState!
-                                                  .pushNamed('/UserDetails',
-                                                      arguments: RouteArguments(
-                                                          customer:
-                                                              routeArguments!
-                                                                  .bookings!
-                                                                  .customer!));
+                                                  .pushNamed(
+                                                    '/UserDetails',
+                                                    arguments: RouteArguments(
+                                                      customer: routeArguments!
+                                                          .bookings!
+                                                          .customer!,
+                                                    ),
+                                                  );
                                             },
                                             child: Text(
                                               routeArguments!
-                                                  .bookings!.customer!.name
+                                                  .bookings!
+                                                  .customer!
+                                                  .name
                                                   .toString(),
                                               style: TextStyle(
-                                                fontSize:
-                                                    config.AppConfig(context)
-                                                        .appWidth(4),
-                                                color: Theme.of(context)
-                                                    .primaryColor,
+                                                fontSize: config.AppConfig(
+                                                  context,
+                                                ).appWidth(4),
+                                                color: Theme.of(
+                                                  context,
+                                                ).primaryColor,
                                                 fontFamily: config.FontFamily()
                                                     .itcAvantGardeGothicStdFontFamily,
                                                 fontWeight:
@@ -169,42 +183,54 @@ class OrderDetailsBookings extends StatelessWidget {
                                         ],
                                       ),
                                       SizedBox(
-                                        height: config.AppConfig(context)
-                                            .appHeight(1),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
                                       ),
                                       StarRating(
                                         rating: routeArguments!
-                                            .bookings!.customer!.rating!,
-                                        size: config.AppConfig(context)
-                                            .appWidth(3.5),
+                                            .bookings!
+                                            .customer!
+                                            .rating!,
+                                        size: config.AppConfig(
+                                          context,
+                                        ).appWidth(3.5),
                                         color: const Color(0xffFFA200),
                                       ),
                                       SizedBox(
-                                        height: config.AppConfig(context)
-                                            .appHeight(1),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
                                       ),
                                       Container(
                                         padding: EdgeInsets.symmetric(
-                                            vertical: config.AppConfig(context)
-                                                .appHeight(0.2),
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(2.5)),
+                                          vertical: config.AppConfig(
+                                            context,
+                                          ).appHeight(0.2),
+                                          horizontal: config.AppConfig(
+                                            context,
+                                          ).appWidth(2.5),
+                                        ),
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.all(
-                                              Radius.circular(
-                                                  config.AppConfig(context)
-                                                      .appWidth(2.5))),
+                                            Radius.circular(
+                                              config.AppConfig(
+                                                context,
+                                              ).appWidth(2.5),
+                                            ),
+                                          ),
                                           border: Border.all(
-                                              color: const Color(0xff707070)),
+                                            color: const Color(0xff707070),
+                                          ),
                                         ),
                                         child: Text(
                                           routeArguments!.bookings!.dineIn == 1
                                               ? 'Dine-in'
                                               : 'Take-away',
                                           style: TextStyle(
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(3),
+                                            fontSize: config.AppConfig(
+                                              context,
+                                            ).appWidth(3),
                                             color: config.AppColors()
                                                 .colorPrimaryDark(1),
                                             fontFamily: config.FontFamily()
@@ -226,55 +252,71 @@ class OrderDetailsBookings extends StatelessWidget {
                                 children: [
                                   !routeArguments!.isUpcoming!
                                       ? const Expanded(
-                                          flex: 1, child: SizedBox())
+                                          flex: 1,
+                                          child: SizedBox(),
+                                        )
                                       : const SizedBox(),
                                   !routeArguments!.isUpcoming!
                                       ? Container(
                                           margin: EdgeInsets.zero,
                                           alignment: Alignment.center,
                                           padding: EdgeInsets.symmetric(
-                                              vertical:
-                                                  config.AppConfig(context)
-                                                      .appHeight(0.3),
-                                              horizontal:
-                                                  config.AppConfig(context)
-                                                      .appWidth(2.5)),
+                                            vertical: config.AppConfig(
+                                              context,
+                                            ).appHeight(0.3),
+                                            horizontal: config.AppConfig(
+                                              context,
+                                            ).appWidth(2.5),
+                                          ),
                                           decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(
-                                                      config.AppConfig(context)
-                                                          .appWidth(2.5))),
-                                              color: routeArguments!
-                                                          .bookings!.status ==
-                                                      0
-                                                  ? Colors.red
-                                                  : routeArguments!.bookings!
-                                                              .status ==
-                                                          1
-                                                      ? const Color(0xff3DAE06)
-                                                      : routeArguments!
-                                                                  .bookings!
-                                                                  .status ==
-                                                              2
-                                                          ? Colors.yellow
-                                                          : Colors.blue),
+                                            borderRadius: BorderRadius.all(
+                                              Radius.circular(
+                                                config.AppConfig(
+                                                  context,
+                                                ).appWidth(2.5),
+                                              ),
+                                            ),
+                                            color:
+                                                routeArguments!
+                                                        .bookings!
+                                                        .status ==
+                                                    0
+                                                ? Colors.red
+                                                : routeArguments!
+                                                          .bookings!
+                                                          .status ==
+                                                      1
+                                                ? const Color(0xff3DAE06)
+                                                : routeArguments!
+                                                          .bookings!
+                                                          .status ==
+                                                      2
+                                                ? Colors.yellow
+                                                : Colors.blue,
+                                          ),
                                           child: Text(
                                             routeArguments!.bookings!.status ==
                                                     0
                                                 ? 'Canceled'
                                                 : routeArguments!
-                                                            .bookings!.status ==
-                                                        1
-                                                    ? 'Completed'
-                                                    : routeArguments!.bookings!
-                                                                .status ==
-                                                            2
-                                                        ? 'Pending'
-                                                        : 'Accepted',
+                                                          .bookings!
+                                                          .status ==
+                                                      1
+                                                ? 'Completed'
+                                                : routeArguments!
+                                                          .bookings!
+                                                          .status ==
+                                                      2
+                                                ? 'Pending'
+                                                : 'Accepted',
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleSmall
-                                                ?.copyWith(color: Colors.white),
+                                                ?.copyWith(
+                                                  color: const Color(
+                                                    0xFFFFFBF7,
+                                                  ),
+                                                ),
                                           ),
                                         )
                                       : const SizedBox(),
@@ -282,8 +324,9 @@ class OrderDetailsBookings extends StatelessWidget {
                                   Text(
                                     'ID: ${routeArguments!.bookings!.orderTypeId.toString()}',
                                     style: TextStyle(
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(3.5),
+                                      fontSize: config.AppConfig(
+                                        context,
+                                      ).appWidth(3.5),
                                       color: Theme.of(context).primaryColorDark,
                                       fontFamily: config.FontFamily()
                                           .itcAvantGardeGothicStdFontFamily,
@@ -293,7 +336,7 @@ class OrderDetailsBookings extends StatelessWidget {
                                   ),
                                   const Expanded(flex: 1, child: SizedBox()),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -321,10 +364,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                         Text(
                                           'Date:',
                                           style: TextStyle(
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(3.8),
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
+                                            fontSize: config.AppConfig(
+                                              context,
+                                            ).appWidth(3.8),
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColorDark,
                                             fontFamily: config.FontFamily()
                                                 .itcAvantGardeGothicStdFontFamily,
                                             fontWeight:
@@ -333,24 +378,27 @@ class OrderDetailsBookings extends StatelessWidget {
                                           ),
                                         ),
                                         SizedBox(
-                                          height: config.AppConfig(context)
-                                              .appHeight(0.5),
+                                          height: config.AppConfig(
+                                            context,
+                                          ).appHeight(0.5),
                                         ),
                                         Text(
                                           routeArguments!.bookings!.date
                                               .toString(),
                                           style: TextStyle(
-                                            fontSize: config.AppConfig(context)
-                                                .appWidth(3.5),
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
+                                            fontSize: config.AppConfig(
+                                              context,
+                                            ).appWidth(3.5),
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColorDark,
                                             fontFamily: config.FontFamily()
                                                 .itcAvantGardeGothicStdFontFamily,
                                             fontWeight:
                                                 config.FontFamily().book,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -372,10 +420,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                     Text(
                                       'Time:',
                                       style: TextStyle(
-                                        fontSize: config.AppConfig(context)
-                                            .appWidth(3.8),
-                                        color:
-                                            Theme.of(context).primaryColorDark,
+                                        fontSize: config.AppConfig(
+                                          context,
+                                        ).appWidth(3.8),
+                                        color: Theme.of(
+                                          context,
+                                        ).primaryColorDark,
                                         fontFamily: config.FontFamily()
                                             .itcAvantGardeGothicStdFontFamily,
                                         fontWeight: config.FontFamily().demi,
@@ -383,23 +433,26 @@ class OrderDetailsBookings extends StatelessWidget {
                                       ),
                                     ),
                                     SizedBox(
-                                      height: config.AppConfig(context)
-                                          .appHeight(0.5),
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(0.5),
                                     ),
                                     Text(
                                       '${routeArguments!.bookings!.timeFrom} to ${routeArguments!.bookings!.timeTo}',
                                       style: TextStyle(
-                                        fontSize: config.AppConfig(context)
-                                            .appWidth(3.5),
-                                        color:
-                                            Theme.of(context).primaryColorDark,
+                                        fontSize: config.AppConfig(
+                                          context,
+                                        ).appWidth(3.5),
+                                        color: Theme.of(
+                                          context,
+                                        ).primaryColorDark,
                                         fontFamily: config.FontFamily()
                                             .itcAvantGardeGothicStdFontFamily,
                                         fontWeight: config.FontFamily().book,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       maxLines: 2,
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -424,11 +477,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                           Text(
                                             'Persons:',
                                             style: TextStyle(
-                                              fontSize:
-                                                  config.AppConfig(context)
-                                                      .appWidth(3.8),
-                                              color: Theme.of(context)
-                                                  .primaryColorDark,
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(3.8),
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColorDark,
                                               fontFamily: config.FontFamily()
                                                   .itcAvantGardeGothicStdFontFamily,
                                               fontWeight:
@@ -437,17 +491,19 @@ class OrderDetailsBookings extends StatelessWidget {
                                             ),
                                           ),
                                           SizedBox(
-                                            height: config.AppConfig(context)
-                                                .appHeight(0.5),
+                                            height: config.AppConfig(
+                                              context,
+                                            ).appHeight(0.5),
                                           ),
                                           Text(
                                             '${routeArguments!.bookings!.persons}',
                                             style: TextStyle(
-                                              fontSize:
-                                                  config.AppConfig(context)
-                                                      .appWidth(3.5),
-                                              color: Theme.of(context)
-                                                  .primaryColorDark,
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(3.5),
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColorDark,
                                               fontFamily: config.FontFamily()
                                                   .itcAvantGardeGothicStdFontFamily,
                                               fontWeight:
@@ -455,7 +511,7 @@ class OrderDetailsBookings extends StatelessWidget {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             maxLines: 2,
-                                          )
+                                          ),
                                         ],
                                       ),
                                     )
@@ -467,8 +523,9 @@ class OrderDetailsBookings extends StatelessWidget {
                             ? Column(
                                 children: [
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                   Row(
                                     mainAxisAlignment:
@@ -477,10 +534,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                       Text(
                                         'Contact ${routeArguments!.bookings!.customer!.name}',
                                         style: TextStyle(
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(3.8),
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(3.8),
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
                                           fontFamily: config.FontFamily()
                                               .itcAvantGardeGothicStdFontFamily,
                                           fontWeight: config.FontFamily().demi,
@@ -489,17 +548,20 @@ class OrderDetailsBookings extends StatelessWidget {
                                       ),
                                       SvgPicture.asset(
                                         'assets/img/contact_w.svg',
-                                        height: config.AppConfig(context)
-                                            .appHeight(6),
-                                        width: config.AppConfig(context)
-                                            .appHeight(6),
-                                        // color: Colors.white,
-                                      )
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(6),
+                                        width: config.AppConfig(
+                                          context,
+                                        ).appHeight(6),
+                                        // color: const Color(0xFFFFFBF7),
+                                      ),
                                     ],
                                   ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                 ],
                               )
@@ -511,14 +573,16 @@ class OrderDetailsBookings extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                   Text(
                                     'Food Ordered',
                                     style: TextStyle(
-                                      fontSize:
-                                          config.AppConfig(context).appWidth(4),
+                                      fontSize: config.AppConfig(
+                                        context,
+                                      ).appWidth(4),
                                       color: Theme.of(context).primaryColorDark,
                                       fontFamily: config.FontFamily()
                                           .itcAvantGardeGothicStdFontFamily,
@@ -527,73 +591,81 @@ class OrderDetailsBookings extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                   ListView.separated(
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      itemBuilder: (context, index) {
-                                        return Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              '${routeArguments!.bookings!.items![index].quantity} x ${routeArguments!.bookings!.items![index].food}',
-                                              style: TextStyle(
-                                                fontSize:
-                                                    config.AppConfig(context)
-                                                        .appWidth(4),
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemBuilder: (context, index) {
+                                      return Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${routeArguments!.bookings!.items![index].quantity} x ${routeArguments!.bookings!.items![index].food}',
+                                            style: TextStyle(
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(4),
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColorDark,
+                                              fontFamily: config.FontFamily()
+                                                  .itcAvantGardeGothicStdFontFamily,
+                                              fontWeight:
+                                                  config.FontFamily().book,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            Text(
-                                              'AUD ${routeArguments!.bookings!.items![index].price}',
-                                              style: TextStyle(
-                                                fontSize:
-                                                    config.AppConfig(context)
-                                                        .appWidth(4),
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            )
-                                          ],
-                                        );
-                                      },
-                                      separatorBuilder: (context, index) {
-                                        return SizedBox(
-                                          height: config.AppConfig(context)
-                                              .appHeight(1),
-                                        );
-                                      },
-                                      itemCount: routeArguments!
-                                          .bookings!.items!.length),
+                                          ),
+                                          Text(
+                                            'AUD ${routeArguments!.bookings!.items![index].price}',
+                                            style: TextStyle(
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(4),
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColorDark,
+                                              fontFamily: config.FontFamily()
+                                                  .itcAvantGardeGothicStdFontFamily,
+                                              fontWeight:
+                                                  config.FontFamily().book,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                    separatorBuilder: (context, index) {
+                                      return SizedBox(
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
+                                      );
+                                    },
+                                    itemCount:
+                                        routeArguments!.bookings!.items!.length,
+                                  ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(1),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(1),
                                   ),
                                   Divider(
-                                    height: config.AppConfig(context)
-                                        .appHeight(1.2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(1.2),
                                     color: const Color(0xffE9E9E9),
                                   ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(1),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(1),
                                   ),
                                   Row(
                                     mainAxisAlignment:
@@ -602,10 +674,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                       Text(
                                         'Total Bill',
                                         style: TextStyle(
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(4),
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(4),
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
                                           fontFamily: config.FontFamily()
                                               .itcAvantGardeGothicStdFontFamily,
                                           fontWeight:
@@ -616,10 +690,12 @@ class OrderDetailsBookings extends StatelessWidget {
                                       Text(
                                         "AUD ${routeArguments!.bookings!.itemTotalPrice.toString()}",
                                         style: TextStyle(
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(4),
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(4),
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
                                           fontFamily: config.FontFamily()
                                               .itcAvantGardeGothicStdFontFamily,
                                           fontWeight: config.FontFamily().demi,
@@ -633,7 +709,8 @@ class OrderDetailsBookings extends StatelessWidget {
                             : const SizedBox(),
                         SizedBox(
                           height: config.AppConfig(context).appHeight(
-                              routeArguments!.bookings!.dineIn == 1 ? 20 : 10),
+                            routeArguments!.bookings!.dineIn == 1 ? 20 : 10,
+                          ),
                         ),
                         routeArguments!.isUpcoming!
                             ? Center(
@@ -644,138 +721,169 @@ class OrderDetailsBookings extends StatelessWidget {
                                     if (routeArguments!.bookings!.status !=
                                         5) ...[
                                       Container(
-                                        height: config.AppConfig(context)
-                                            .appHeight(6),
-                                        width: config.AppConfig(context)
-                                            .appWidth(80),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(6),
+                                        width: config.AppConfig(
+                                          context,
+                                        ).appWidth(80),
                                         decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(26.0),
-                                            color: const Color(0xffE9E9E9)),
+                                          borderRadius: BorderRadius.circular(
+                                            26.0,
+                                          ),
+                                          color: const Color(0xffE9E9E9),
+                                        ),
                                         child: MaterialButton(
-                                            height: config.AppConfig(context)
-                                                .appHeight(6),
-                                            minWidth: config.AppConfig(context)
-                                                .appWidth(100),
-                                            onPressed: () {
-                                              context
-                                                  .read<BookingsCubit>()
-                                                  .updateOrderWorkflowStatus(
-                                                    orderId: routeArguments!
-                                                        .bookings!.orderId!,
-                                                    status: '5',
-                                                  );
-                                            },
-                                            child: Text(
-                                              'MARK IN PROGRESS',
-                                              style: TextStyle(
-                                                fontSize:
-                                                    config.AppConfig(context)
-                                                        .appWidth(3.5),
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                                color: config.AppColors()
-                                                    .colorPrimaryDark(1),
-                                              ),
-                                            )),
-                                      ),
-                                      SizedBox(
-                                        height: config.AppConfig(context)
-                                            .appHeight(2),
-                                      ),
-                                    ],
-                                    Container(
-                                      height: config.AppConfig(context)
-                                          .appHeight(6),
-                                      width: config.AppConfig(context)
-                                          .appWidth(80),
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(26.0),
-                                          gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.topRight,
-                                              colors: [
-                                                Theme.of(context).primaryColor,
-                                                Theme.of(context).primaryColor,
-                                              ])),
-                                      child: MaterialButton(
-                                          height: config.AppConfig(context)
-                                              .appHeight(6),
-                                          minWidth: config.AppConfig(context)
-                                              .appWidth(100),
+                                          height: config.AppConfig(
+                                            context,
+                                          ).appHeight(6),
+                                          minWidth: config.AppConfig(
+                                            context,
+                                          ).appWidth(100),
                                           onPressed: () {
                                             context
                                                 .read<BookingsCubit>()
-                                                .onOrderCompleteDecline(
-                                                    orderId: routeArguments!
-                                                        .bookings!.orderId!,
-                                                    isCompleted: true);
+                                                .updateOrderWorkflowStatus(
+                                                  orderId: routeArguments!
+                                                      .bookings!
+                                                      .orderId!,
+                                                  status: '5',
+                                                );
                                           },
                                           child: Text(
-                                            'ORDER COMPLETED',
+                                            'MARK IN PROGRESS',
                                             style: TextStyle(
-                                                fontSize:
-                                                    config.AppConfig(context)
-                                                        .appWidth(3.5),
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                                color: Colors.white),
-                                          )),
-                                    ),
-                                    SizedBox(
-                                      height: config.AppConfig(context)
-                                          .appHeight(2),
-                                    ),
-                                    Container(
-                                      height: config.AppConfig(context)
-                                          .appHeight(6),
-                                      width: config.AppConfig(context)
-                                          .appWidth(80),
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(26.0),
-                                          color: const Color(0xffE9E9E9)),
-                                      child: MaterialButton(
-                                          height: config.AppConfig(context)
-                                              .appHeight(6),
-                                          minWidth: config.AppConfig(context)
-                                              .appWidth(100),
-                                          onPressed: () {
-                                            context
-                                                .read<BookingsCubit>()
-                                                .onOrderCompleteDecline(
-                                                    orderId: routeArguments!
-                                                        .bookings!.orderId!,
-                                                    isCompleted: false);
-                                          },
-                                          child: Text(
-                                            'CANCEL ORDER',
-                                            style: TextStyle(
-                                              fontSize:
-                                                  config.AppConfig(context)
-                                                      .appWidth(3.5),
-                                              color: config.AppColors()
-                                                  .colorPrimaryDark(1),
+                                              fontSize: config.AppConfig(
+                                                context,
+                                              ).appWidth(3.5),
                                               fontFamily: config.FontFamily()
                                                   .itcAvantGardeGothicStdFontFamily,
                                               fontWeight:
                                                   config.FontFamily().book,
+                                              color: config.AppColors()
+                                                  .colorPrimaryDark(1),
                                             ),
-                                          )),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(2),
+                                      ),
+                                    ],
+                                    Container(
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(6),
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appWidth(80),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          26.0,
+                                        ),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.topRight,
+                                          colors: [
+                                            Theme.of(context).primaryColor,
+                                            Theme.of(context).primaryColor,
+                                          ],
+                                        ),
+                                      ),
+                                      child: MaterialButton(
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(6),
+                                        minWidth: config.AppConfig(
+                                          context,
+                                        ).appWidth(100),
+                                        onPressed: () {
+                                          context
+                                              .read<BookingsCubit>()
+                                              .onOrderCompleteDecline(
+                                                orderId: routeArguments!
+                                                    .bookings!
+                                                    .orderId!,
+                                                isCompleted: true,
+                                              );
+                                        },
+                                        child: Text(
+                                          'ORDER COMPLETED',
+                                          style: TextStyle(
+                                            fontSize: config.AppConfig(
+                                              context,
+                                            ).appWidth(3.5),
+                                            fontFamily: config.FontFamily()
+                                                .itcAvantGardeGothicStdFontFamily,
+                                            fontWeight:
+                                                config.FontFamily().book,
+                                            color: const Color(0xFFFFFBF7),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     SizedBox(
-                                      height: config.AppConfig(context)
-                                          .appHeight(2),
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(2),
+                                    ),
+                                    Container(
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(6),
+                                      width: config.AppConfig(
+                                        context,
+                                      ).appWidth(80),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          26.0,
+                                        ),
+                                        color: const Color(0xffE9E9E9),
+                                      ),
+                                      child: MaterialButton(
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(6),
+                                        minWidth: config.AppConfig(
+                                          context,
+                                        ).appWidth(100),
+                                        onPressed: () {
+                                          context
+                                              .read<BookingsCubit>()
+                                              .onOrderCompleteDecline(
+                                                orderId: routeArguments!
+                                                    .bookings!
+                                                    .orderId!,
+                                                isCompleted: false,
+                                              );
+                                        },
+                                        child: Text(
+                                          'CANCEL ORDER',
+                                          style: TextStyle(
+                                            fontSize: config.AppConfig(
+                                              context,
+                                            ).appWidth(3.5),
+                                            color: config.AppColors()
+                                                .colorPrimaryDark(1),
+                                            fontFamily: config.FontFamily()
+                                                .itcAvantGardeGothicStdFontFamily,
+                                            fontWeight:
+                                                config.FontFamily().book,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(2),
                                     ),
                                   ],
                                 ),
                               )
-                            : const SizedBox()
+                            : const SizedBox(),
                       ],
                     ),
                   ),

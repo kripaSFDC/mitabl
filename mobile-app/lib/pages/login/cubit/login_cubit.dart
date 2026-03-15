@@ -1,4 +1,3 @@
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/connectivity_service.dart';
@@ -15,12 +14,12 @@ import '../../../model/email.dart';
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit(
-      {required AuthenticationRepository authRepository,
-      required UserRepository repo})
-      : _authenticationRepository = authRepository,
-        userRepository = repo,
-        super(const LoginState());
+  LoginCubit({
+    required AuthenticationRepository authRepository,
+    required UserRepository repo,
+  }) : _authenticationRepository = authRepository,
+       userRepository = repo,
+       super(const LoginState());
 
   final AuthenticationRepository _authenticationRepository;
   final UserRepository userRepository;
@@ -30,17 +29,21 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   void onEmailChanged({String? value}) {
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         email: Email.dirty(value.toString()),
-        status:
-            Formz.validate([Email.dirty(value.toString()), state.password])));
+        status: Formz.validate([Email.dirty(value.toString()), state.password]),
+      ),
+    );
   }
 
   void onPasswordChanged({String? value}) {
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         password: Password.dirty(value.toString()),
-        status:
-            Formz.validate([Password.dirty(value.toString()), state.email])));
+        status: Formz.validate([Password.dirty(value.toString()), state.email]),
+      ),
+    );
   }
 
   void doLogin() async {
@@ -56,9 +59,12 @@ class LoginCubit extends Cubit<LoginState> {
       if (response.statusCode == 200) {
         await userRepository.setCurrentUser(response.body);
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             apiStatus: FormzStatus.submissionSuccess,
-            serverMessage: 'Login Successfully...'));
+            serverMessage: 'Login Successfully...',
+          ),
+        );
 
         _authenticationRepository.notifyAuthenticated();
       } else {
@@ -66,20 +72,31 @@ class LoginCubit extends Cubit<LoginState> {
           response.body,
           fallbackMessage: 'Request failed. Please try again.',
         );
-        emit(state.copyWith(
-            apiStatus: FormzStatus.submissionFailure, serverMessage: message));
-        emit(state.copyWith(
-            apiStatus: FormzStatus.pure, serverMessage: message));
+        emit(
+          state.copyWith(
+            apiStatus: FormzStatus.submissionFailure,
+            serverMessage: message,
+          ),
+        );
+        emit(
+          state.copyWith(apiStatus: FormzStatus.pure, serverMessage: message),
+        );
       }
     } on OfflineException {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           apiStatus: FormzStatus.submissionFailure,
-          serverMessage: 'No internet connection. Please try again.'));
+          serverMessage: 'No internet connection. Please try again.',
+        ),
+      );
     } catch (e) {
       AppLogger.error('Login failed', e);
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           apiStatus: FormzStatus.submissionFailure,
-          serverMessage: 'Something went wrong...'));
+          serverMessage: 'Something went wrong...',
+        ),
+      );
     }
   }
 }

@@ -242,6 +242,27 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
             config.AppColors().scaffoldColor(1, brightness: Brightness.light),
         primaryColorLight: config.AppColors().colorPrimaryLight(1),
         primaryColorDark: config.AppColors().colorPrimaryDark(1),
+        appBarTheme: AppBarTheme(
+          backgroundColor: config.AppColors().scaffoldColor(1),
+          foregroundColor: config.AppColors().colorPrimaryDark(1),
+          elevation: 0,
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+          selectedItemColor: config.AppColors().colorPrimary(1),
+          unselectedItemColor: config.AppColors().colorPrimaryDark(0.7),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: config.AppColors().colorPrimary(1),
+            foregroundColor: Colors.white,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: config.AppColors().colorPrimary(1),
+          ),
+        ),
         textTheme: TextTheme(
             headlineSmall: TextStyle(
                 color: config.AppColors().colorPrimaryDark(1),
@@ -266,7 +287,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
         colorScheme: ColorScheme.fromSeed(
           seedColor: config.AppColors().colorPrimary(1),
           secondary: config.AppColors().accentColor(1),
-          surface: Colors.grey.shade200,
+          surface: config.AppColors().textFieldBackgroundColor(1),
           error: Colors.red,
         ),
       ),

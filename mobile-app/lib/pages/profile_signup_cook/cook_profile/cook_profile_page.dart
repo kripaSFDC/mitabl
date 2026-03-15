@@ -19,17 +19,18 @@ import 'cubit/cook_profile_cubit.dart';
 import 'package:mitabl_user/model/international_phone.dart';
 
 class CookProfilePage extends StatefulWidget {
-  const CookProfilePage({
-    super.key,
-  });
+  const CookProfilePage({super.key});
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-              create: (context) => CookProfileCubit(
-                  context.read<AuthenticationRepository>(), routeArguments),
-              child: const CookProfilePage(),
-            ));
+      builder: (_) => BlocProvider(
+        create: (context) => CookProfileCubit(
+          context.read<AuthenticationRepository>(),
+          routeArguments,
+        ),
+        child: const CookProfilePage(),
+      ),
+    );
   }
 
   @override
@@ -63,198 +64,219 @@ class _CookProfilePage extends State<CookProfilePage>
     return SafeArea(
       child: Scaffold(
         body: BlocConsumer<CookProfileCubit, CookProfileState>(
-            builder: (context, state) {
-          return Stack(
-            children: [
-              Container(
-                color: Colors.white,
-                height: config.AppConfig(context).appHeight(100),
-                width: config.AppConfig(context).appWidth(100),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(
+          builder: (context, state) {
+            return Stack(
+              children: [
+                Container(
+                  color: const Color(0xFFFFFBF7),
+                  height: config.AppConfig(context).appHeight(100),
+                  width: config.AppConfig(context).appWidth(100),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.only(
                         top: config.AppConfig(context).appHeight(2),
                         left: config.AppConfig(context).appWidth(5),
-                        right: config.AppConfig(context).appWidth(5)),
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: config.AppConfig(context).appWidth(90),
-                      child: Padding(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                Text(
-                                  'Your account has been created',
-                                  style: TextStyle(
+                        right: config.AppConfig(context).appWidth(5),
+                      ),
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: config.AppConfig(context).appWidth(90),
+                        child: Padding(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
+                                  ),
+                                  Text(
+                                    'Your account has been created',
+                                    style: TextStyle(
                                       color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(6.0),
-                                      fontWeight: config.FontFamily().demi),
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(0.5),
-                                ),
-                                Text(
-                                  'Please enter mikitchn details to continue',
-                                  style: TextStyle(
+                                      fontSize: config.AppConfig(
+                                        context,
+                                      ).appWidth(6.0),
+                                      fontWeight: config.FontFamily().demi,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(0.5),
+                                  ),
+                                  Text(
+                                    'Please enter mikitchn details to continue',
+                                    style: TextStyle(
                                       color: Theme.of(context).primaryColorDark,
                                       fontSize: 16,
-                                      fontWeight: config.FontFamily().book),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            state.pathFiles.isNotEmpty
-                                ? SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(20),
-                                    child: PageView.builder(
-                                      controller: controller,
-                                      onPageChanged: (page) {
-                                        context
-                                            .read<CookProfileCubit>()
-                                            .onImageScroll(index: page);
-                                      },
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal:
-                                                  config.AppConfig(context)
-                                                      .appWidth(2)),
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                height:
-                                                    config.AppConfig(context)
-                                                        .appHeight(20),
-                                                width: config.AppConfig(context)
-                                                    .appWidth(85),
-                                                decoration: BoxDecoration(
-                                                  color: config.AppColors()
-                                                      .textFieldBackgroundColor(
-                                                          1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
+                                      fontWeight: config.FontFamily().book,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: config.AppConfig(context).appHeight(2),
+                              ),
+                              state.pathFiles.isNotEmpty
+                                  ? SizedBox(
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(20),
+                                      child: PageView.builder(
+                                        controller: controller,
+                                        onPageChanged: (page) {
+                                          context
+                                              .read<CookProfileCubit>()
+                                              .onImageScroll(index: page);
+                                        },
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: config.AppConfig(
+                                                context,
+                                              ).appWidth(2),
+                                            ),
+                                            child: Stack(
+                                              children: [
+                                                Container(
+                                                  height: config.AppConfig(
+                                                    context,
+                                                  ).appHeight(20),
+                                                  width: config.AppConfig(
+                                                    context,
+                                                  ).appWidth(85),
+                                                  decoration: BoxDecoration(
+                                                    color: config.AppColors()
+                                                        .textFieldBackgroundColor(
+                                                          1,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
                                                           config.AppConfig(
-                                                                  context)
-                                                              .appWidth(5)),
+                                                            context,
+                                                          ).appWidth(5),
+                                                        ),
+                                                  ),
+                                                  alignment: Alignment.center,
+                                                  child: Image.file(
+                                                    File(
+                                                      state.pathFiles[index],
+                                                    ),
+                                                  ),
                                                 ),
-                                                alignment: Alignment.center,
-                                                child: Image.file(File(
-                                                    state.pathFiles[index])),
-                                              ),
-                                              Positioned(
+                                                Positioned(
                                                   right: 6,
                                                   top: 6,
                                                   child: InkWell(
                                                     onTap: () {
                                                       context
                                                           .read<
-                                                              CookProfileCubit>()
+                                                            CookProfileCubit
+                                                          >()
                                                           .onDeleteImage(
-                                                              path: state
-                                                                      .pathFiles[
-                                                                  index]);
+                                                            path: state
+                                                                .pathFiles[index],
+                                                          );
                                                     },
                                                     child: Icon(
                                                       Icons.delete,
                                                       color: Colors.red,
                                                       size: config.AppConfig(
-                                                              context)
-                                                          .appWidth(6),
+                                                        context,
+                                                      ).appWidth(6),
                                                     ),
-                                                  )),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      itemCount: state.pathFiles.length,
-                                    ),
-                                  )
-                                : Container(
-                                    height:
-                                        config.AppConfig(context).appHeight(20),
-                                    decoration: BoxDecoration(
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        itemCount: state.pathFiles.length,
+                                      ),
+                                    )
+                                  : Container(
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(20),
+                                      decoration: BoxDecoration(
                                         color: config.AppColors()
                                             .textFieldBackgroundColor(1),
                                         borderRadius: BorderRadius.circular(
-                                            config.AppConfig(context)
-                                                .appWidth(5))),
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.photo_outlined,
-                                      size: config.AppConfig(context)
-                                          .appWidth(30),
-                                      color: Colors.grey,
+                                          config.AppConfig(context).appWidth(5),
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Icon(
+                                        Icons.photo_outlined,
+                                        size: config.AppConfig(
+                                          context,
+                                        ).appWidth(30),
+                                        color: const Color(0xFF9CA3AF),
+                                      ),
                                     ),
-                                  ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            state.pathFiles.isNotEmpty
-                                ? Container(
-                                    alignment: Alignment.center,
-                                    height:
-                                        config.AppConfig(context).appHeight(5),
-                                    child: ListView.separated(
-                                      // controller: controller,
-                                      separatorBuilder: (context, index) {
-                                        return SizedBox(
-                                          width: config.AppConfig(context)
-                                              .appWidth(2),
-                                        );
-                                      },
-                                      shrinkWrap: true,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        return Container(
-                                          width: config.AppConfig(context)
-                                              .appWidth(2),
-                                          decoration: BoxDecoration(
+                              SizedBox(
+                                height: config.AppConfig(context).appHeight(2),
+                              ),
+                              state.pathFiles.isNotEmpty
+                                  ? Container(
+                                      alignment: Alignment.center,
+                                      height: config.AppConfig(
+                                        context,
+                                      ).appHeight(5),
+                                      child: ListView.separated(
+                                        // controller: controller,
+                                        separatorBuilder: (context, index) {
+                                          return SizedBox(
+                                            width: config.AppConfig(
+                                              context,
+                                            ).appWidth(2),
+                                          );
+                                        },
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (context, index) {
+                                          return Container(
+                                            width: config.AppConfig(
+                                              context,
+                                            ).appWidth(2),
+                                            decoration: BoxDecoration(
                                               color: state.selectedPage == index
                                                   ? Colors.blue
-                                                  : Colors.grey,
-                                              shape: BoxShape.circle),
-                                        );
-                                      },
-                                      itemCount: state.pathFiles.length,
-                                    ),
-                                  )
-                                : const SizedBox(),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(1),
-                            ),
-                            _UploadButton(
-                              loginForm: this,
-                            ),
-                            Column(
+                                                  : const Color(0xFF9CA3AF),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          );
+                                        },
+                                        itemCount: state.pathFiles.length,
+                                      ),
+                                    )
+                                  : const SizedBox(),
+                              SizedBox(
+                                height: config.AppConfig(context).appHeight(1),
+                              ),
+                              _UploadButton(loginForm: this),
+                              Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _KitchenName(
-                                    loginForm: this,
-                                  ),
+                                  _KitchenName(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
                                   Container(
                                     alignment: Alignment.center,
@@ -262,7 +284,9 @@ class _CookProfilePage extends State<CookProfilePage>
                                     child: TextFormField(
                                       // controller: widget.loginForm!.mobileNoTextEditor,
                                       style: const TextStyle(
-                                          color: Colors.black, fontSize: 16),
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                      ),
                                       textInputAction: TextInputAction.next,
                                       keyboardType: TextInputType.name,
                                       maxLength: 55,
@@ -277,119 +301,131 @@ class _CookProfilePage extends State<CookProfilePage>
                                             ? 'Please enter a valid address'
                                             : null,
                                         hintStyle: TextStyle(
-                                            color: Theme.of(context).hintColor,
-                                            fontSize: 16,
-                                            fontWeight:
-                                                config.FontFamily().book),
+                                          color: Theme.of(context).hintColor,
+                                          fontSize: 16,
+                                          fontWeight: config.FontFamily().book,
+                                        ),
                                         // labelText: 'Mobile Number',
                                         hintText: 'Address',
                                         contentPadding: EdgeInsets.symmetric(
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(5),
-                                            vertical: config.AppConfig(context)
-                                                .appWidth(3)),
+                                          horizontal: config.AppConfig(
+                                            context,
+                                          ).appWidth(5),
+                                          vertical: config.AppConfig(
+                                            context,
+                                          ).appWidth(3),
+                                        ),
                                         fillColor: config.AppColors()
                                             .textFieldBackgroundColor(1),
                                         filled: true,
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         border: InputBorder.none,
                                         disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _PhoneNo(
-                                    loginForm: this,
-                                  ),
+                                  _PhoneNo(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _NoOfSeats(
-                                    loginForm: this,
-                                  ),
+                                  _NoOfSeats(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
                                   _Timing(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                   _ServiceTypeSection(),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
                                   const _CreateKitchenSlotSection(),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
-                                  _LoginButton(
-                                    loginForm: this,
-                                  ),
+                                  _LoginButton(loginForm: this),
                                   SizedBox(
-                                    height: config.AppConfig(context)
-                                        .appHeight(4.5),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(4.5),
                                   ),
-                                ]),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              state.statusApi!.isSubmissionInProgress
-                  ? const CommonProgressWidget()
-                  : const SizedBox(),
-            ],
-          );
-        }, listener: (context, state) async {
-          if (state.statusApi!.isSubmissionFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${state.serverMessage}')));
-          }
-        }),
+                state.statusApi!.isSubmissionInProgress
+                    ? const CommonProgressWidget()
+                    : const SizedBox(),
+              ],
+            );
+          },
+          listener: (context, state) async {
+            if (state.statusApi!.isSubmissionFailure) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('${state.serverMessage}')));
+            }
+          },
+        ),
       ),
     );
   }
@@ -407,91 +443,97 @@ class _Timing extends StatefulWidget {
 class _TimingState extends State<_Timing> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraint) {
-      return BlocBuilder<CookProfileCubit, CookProfileState>(
+    return LayoutBuilder(
+      builder: (context, constraint) {
+        return BlocBuilder<CookProfileCubit, CookProfileState>(
           builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            readOnly: true,
-            controller: widget.loginForm!.mobileNoTextEditor,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 55,
-            onChanged: (text) {
-              // context.read<SignUpCubit>().onEmailChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              // errorText:
-              //     state.email!.invalid ? 'Please enter a valid email id' : null,
-
-              suffixIcon: InkWell(
-                onTap: () {
-                  context.read<CookProfileCubit>().onOpenTimingDialog();
-                  showDialog(
-                      context: context,
-                      builder: (contexts) {
-                        return BlocProvider.value(
-                          value: context.read<CookProfileCubit>(),
-                          child: TimingDialog(),
-                        );
-                      });
+            return Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.zero,
+              child: TextFormField(
+                readOnly: true,
+                controller: widget.loginForm!.mobileNoTextEditor,
+                style: const TextStyle(color: Colors.black),
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.name,
+                maxLength: 55,
+                onChanged: (text) {
+                  // context.read<SignUpCubit>().onEmailChanged(value: text);
                 },
-                child: Icon(
-                  Icons.access_time_rounded,
-                  color: Theme.of(context).primaryColor,
+                decoration: InputDecoration(
+                  counterText: '',
+
+                  // errorText:
+                  //     state.email!.invalid ? 'Please enter a valid email id' : null,
+                  suffixIcon: InkWell(
+                    onTap: () {
+                      context.read<CookProfileCubit>().onOpenTimingDialog();
+                      showDialog(
+                        context: context,
+                        builder: (contexts) {
+                          return BlocProvider.value(
+                            value: context.read<CookProfileCubit>(),
+                            child: TimingDialog(),
+                          );
+                        },
+                      );
+                    },
+                    child: Icon(
+                      Icons.access_time_rounded,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 16,
+                    fontWeight: config.FontFamily().book,
+                  ),
+                  // labelText: 'Mobile Number',
+                  hintText: 'Timings',
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: config.AppConfig(context).appWidth(5),
+                    vertical: config.AppConfig(context).appWidth(3),
+                  ),
+                  fillColor: config.AppColors().textFieldBackgroundColor(1),
+                  filled: true,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
                 ),
               ),
-              hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
-                  fontWeight: config.FontFamily().book),
-              // labelText: 'Mobile Number',
-              hintText: 'Timings',
-              contentPadding: EdgeInsets.symmetric(
-                  horizontal: config.AppConfig(context).appWidth(5),
-                  vertical: config.AppConfig(context).appWidth(3)),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+            );
+          },
         );
-      });
-    });
+      },
+    );
   }
 }
 
@@ -575,10 +617,10 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                   TextButton.icon(
                     onPressed: state.dineIn && availableDays.isNotEmpty
                         ? () => _showSlotEditor(
-                              context,
-                              state: state,
-                              availableDays: availableDays,
-                            )
+                            context,
+                            state: state,
+                            availableDays: availableDays,
+                          )
                         : null,
                     icon: const Icon(Icons.add),
                     label: const Text('Add slot'),
@@ -598,7 +640,8 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                   return Card(
                     child: ListTile(
                       title: Text(
-                          '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime} - ${slot.endTime}'),
+                        '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime} - ${slot.endTime}',
+                      ),
                       subtitle: Text('Seats: ${slot.seatCapacity ?? 0}'),
                       trailing: Wrap(
                         spacing: 4,
@@ -641,8 +684,9 @@ class _CreateKitchenSlotSection extends StatelessWidget {
     int selectedDay = existing?.dayOfWeek ?? availableDays.first.dayOfWeek;
     String? startTime = existing?.startTime;
     String? endTime = existing?.endTime;
-    final seatController =
-        TextEditingController(text: (existing?.seatCapacity ?? '').toString());
+    final seatController = TextEditingController(
+      text: (existing?.seatCapacity ?? '').toString(),
+    );
 
     await showDialog<void>(
       context: context,
@@ -658,10 +702,12 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                     DropdownButtonFormField<int>(
                       initialValue: selectedDay,
                       items: availableDays
-                          .map((day) => DropdownMenuItem<int>(
-                                value: day.dayOfWeek,
-                                child: Text(day.label),
-                              ))
+                          .map(
+                            (day) => DropdownMenuItem<int>(
+                              value: day.dayOfWeek,
+                              child: Text(day.label),
+                            ),
+                          )
                           .toList(growable: false),
                       onChanged: (value) {
                         if (value != null) {
@@ -674,8 +720,9 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                     TextFormField(
                       controller: seatController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: 'Seat capacity'),
+                      decoration: const InputDecoration(
+                        labelText: 'Seat capacity',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -685,12 +732,14 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime: _parseTime(startTime) ??
+                                initialTime:
+                                    _parseTime(startTime) ??
                                     const TimeOfDay(hour: 12, minute: 0),
                               );
                               if (picked != null) {
                                 setDialogState(
-                                    () => startTime = _formatTime(picked));
+                                  () => startTime = _formatTime(picked),
+                                );
                               }
                             },
                             child: Text(startTime ?? 'Start time'),
@@ -702,12 +751,14 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime: _parseTime(endTime) ??
+                                initialTime:
+                                    _parseTime(endTime) ??
                                     const TimeOfDay(hour: 13, minute: 0),
                               );
                               if (picked != null) {
                                 setDialogState(
-                                    () => endTime = _formatTime(picked));
+                                  () => endTime = _formatTime(picked),
+                                );
                               }
                             },
                             child: Text(endTime ?? 'End time'),
@@ -738,8 +789,10 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                       Helper.showToast('End time must be after start time.');
                       return;
                     }
-                    final timing =
-                        _timingForDay(state.daysTimingOriginal, selectedDay);
+                    final timing = _timingForDay(
+                      state.daysTimingOriginal,
+                      selectedDay,
+                    );
                     if (timing == null ||
                         !_fitsWithinWindow(
                           startTime: startTime!,
@@ -748,7 +801,8 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                           windowEnd: timing.endTime,
                         )) {
                       Helper.showToast(
-                          'Slots must stay within the kitchen opening hours for that day.');
+                        'Slots must stay within the kitchen opening hours for that day.',
+                      );
                       return;
                     }
                     if (_overlapsExistingSlot(
@@ -759,23 +813,25 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                       excludeIndex: index,
                     )) {
                       Helper.showToast(
-                          'This slot overlaps another dine-in slot on the same day.');
+                        'This slot overlaps another dine-in slot on the same day.',
+                      );
                       return;
                     }
 
-                    final selectedOption = availableDays
-                        .firstWhere((day) => day.dayOfWeek == selectedDay);
+                    final selectedOption = availableDays.firstWhere(
+                      (day) => day.dayOfWeek == selectedDay,
+                    );
                     context.read<CookProfileCubit>().addOrUpdateDineInSlot(
-                          DineInSlotTemplate(
-                            dayOfWeek: selectedDay,
-                            dayName: selectedOption.label,
-                            startTime: startTime,
-                            endTime: endTime,
-                            seatCapacity: seats,
-                            status: 1,
-                          ),
-                          index: index,
-                        );
+                      DineInSlotTemplate(
+                        dayOfWeek: selectedDay,
+                        dayName: selectedOption.label,
+                        startTime: startTime,
+                        endTime: endTime,
+                        seatCapacity: seats,
+                        status: 1,
+                      ),
+                      index: index,
+                    );
                     Navigator.of(dialogContext).pop();
                   },
                   child: const Text('Save'),
@@ -903,9 +959,11 @@ class _CreateKitchenSlotSection extends StatelessWidget {
   static int _compareTime(String left, String right) {
     final leftParts = left.split(':');
     final rightParts = right.split(':');
-    final leftMinutes = ((int.tryParse(leftParts[0]) ?? 0) * 60) +
+    final leftMinutes =
+        ((int.tryParse(leftParts[0]) ?? 0) * 60) +
         (int.tryParse(leftParts[1]) ?? 0);
-    final rightMinutes = ((int.tryParse(rightParts[0]) ?? 0) * 60) +
+    final rightMinutes =
+        ((int.tryParse(rightParts[0]) ?? 0) * 60) +
         (int.tryParse(rightParts[1]) ?? 0);
     return leftMinutes.compareTo(rightMinutes);
   }
@@ -938,70 +996,64 @@ class _KitchenNameState extends State<_KitchenName> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          // controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(color: Colors.black, fontSize: 16),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 15,
-          onChanged: (text) {
-            context.read<CookProfileCubit>().onKitchnNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.nameKitchn!.invalid ? 'Please enter a valid name' : null,
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            // controller: widget.loginForm!.mobileNoTextEditor,
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 15,
+            onChanged: (text) {
+              context.read<CookProfileCubit>().onKitchnNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.nameKitchn!.invalid
+                  ? 'Please enter a valid name'
+                  : null,
 
-            hintStyle: TextStyle(
+              hintStyle: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontSize: 16,
-                fontWeight: config.FontFamily().book),
-            // labelText: 'Mobile Number',
-            hintText: 'mikitchn name',
-            contentPadding: EdgeInsets.symmetric(
+                fontWeight: config.FontFamily().book,
+              ),
+              // labelText: 'Mobile Number',
+              hintText: 'mikitchn name',
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(3)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                vertical: config.AppConfig(context).appWidth(3),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1018,68 +1070,62 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
-        builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          // controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(color: Colors.black),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.number,
-          maxLength: 10,
-          onChanged: (text) {
-            context.read<CookProfileCubit>().onSeatChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText:
-                state.noOfSeats.invalid ? 'Please enter a valid seats' : null,
-            hintStyle: TextStyle(
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            // controller: widget.loginForm!.mobileNoTextEditor,
+            style: const TextStyle(color: Colors.black),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.number,
+            maxLength: 10,
+            onChanged: (text) {
+              context.read<CookProfileCubit>().onSeatChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.noOfSeats.invalid
+                  ? 'Please enter a valid seats'
+                  : null,
+              hintStyle: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontSize: 16,
-                fontWeight: config.FontFamily().book),
-            hintText: 'No. of seats',
-            contentPadding: EdgeInsets.symmetric(
+                fontWeight: config.FontFamily().book,
+              ),
+              hintText: 'No. of seats',
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(3)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                vertical: config.AppConfig(context).appWidth(3),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1113,88 +1159,102 @@ class _PhoneNoState extends State<_PhoneNo> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
-        builder: (context, state) {
-      return Row(
-        children: [
-          SizedBox(
-            width: config.AppConfig(context).appWidth(22),
-            child: TextFormField(
-              controller: _countryCodeController,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-              ],
-              maxLength: 5,
-              onChanged: (value) {
-                context.read<CookProfileCubit>().onCountryCodeChanged(
-                      value: value,
-                      localNumber: _phoneController.text,
-                    );
-              },
-              decoration: _phoneInputDecoration(context,
-                  hintText: '+61', showError: state.phone.invalid),
+      builder: (context, state) {
+        return Row(
+          children: [
+            SizedBox(
+              width: config.AppConfig(context).appWidth(22),
+              child: TextFormField(
+                controller: _countryCodeController,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
+                maxLength: 5,
+                onChanged: (value) {
+                  context.read<CookProfileCubit>().onCountryCodeChanged(
+                    value: value,
+                    localNumber: _phoneController.text,
+                  );
+                },
+                decoration: _phoneInputDecoration(
+                  context,
+                  hintText: '+61',
+                  showError: state.phone.invalid,
+                ),
+              ),
             ),
-          ),
-          SizedBox(width: config.AppConfig(context).appWidth(3)),
-          Expanded(
-            child: TextFormField(
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              controller: _phoneController,
-              textInputAction: TextInputAction.next,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              maxLength: 14,
-              onChanged: (text) {
-                context.read<CookProfileCubit>().onPhoneChanged(
+            SizedBox(width: config.AppConfig(context).appWidth(3)),
+            Expanded(
+              child: TextFormField(
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                controller: _phoneController,
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 14,
+                onChanged: (text) {
+                  context.read<CookProfileCubit>().onPhoneChanged(
                     value: InternationalPhone.compose(
-                        countryCode: _countryCodeController.text,
-                        number: text));
-              },
-              decoration: _phoneInputDecoration(context,
-                  hintText: 'Phone', showError: state.phone.invalid),
+                      countryCode: _countryCodeController.text,
+                      number: text,
+                    ),
+                  );
+                },
+                decoration: _phoneInputDecoration(
+                  context,
+                  hintText: 'Phone',
+                  showError: state.phone.invalid,
+                ),
+              ),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 
-  InputDecoration _phoneInputDecoration(BuildContext context,
-      {required String hintText, required bool showError}) {
+  InputDecoration _phoneInputDecoration(
+    BuildContext context, {
+    required String hintText,
+    required bool showError,
+  }) {
     return InputDecoration(
       counterText: '',
       errorText: showError ? 'Enter valid country code and phone no' : null,
       hintStyle: TextStyle(
-          color: Theme.of(context).hintColor,
-          fontSize: 16,
-          fontWeight: config.FontFamily().book),
+        color: Theme.of(context).hintColor,
+        fontSize: 16,
+        fontWeight: config.FontFamily().book,
+      ),
       hintText: hintText,
       contentPadding: EdgeInsets.symmetric(
-          horizontal: config.AppConfig(context).appWidth(5),
-          vertical: config.AppConfig(context).appWidth(3)),
+        horizontal: config.AppConfig(context).appWidth(5),
+        vertical: config.AppConfig(context).appWidth(3),
+      ),
       fillColor: config.AppColors().textFieldBackgroundColor(1),
       filled: true,
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       border: InputBorder.none,
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
     );
   }
@@ -1218,84 +1278,90 @@ class _UploadbuttonState extends State<_UploadButton> {
         return Container(
           height: 45,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.topRight,
-                  colors: [
-                    Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor,
-                  ])),
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.topRight,
+              colors: [
+                Theme.of(context).primaryColor,
+                Theme.of(context).primaryColor,
+              ],
+            ),
+          ),
           child: MaterialButton(
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                // _pickImage();
+            minWidth: config.AppConfig(context).appWidth(100),
+            height: 50.0,
+            onPressed: () {
+              // _pickImage();
 
-                if (state.pathFiles.length <= 4) {
-                  showDialog<bool>(
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text(
-                                'Add image',
-                                style: GoogleFonts.gothicA1(
-                                    color: Colors.black,
-                                    fontSize:
-                                        config.AppConfig(context).appWidth(5)),
+              if (state.pathFiles.length <= 4) {
+                showDialog<bool>(
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text(
+                        'Add image',
+                        style: GoogleFonts.gothicA1(
+                          color: Colors.black,
+                          fontSize: config.AppConfig(context).appWidth(5),
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MaterialButton(
+                            color: Theme.of(context).primaryColor,
+                            child: const Text(
+                              "Gallery",
+                              style: TextStyle(
+                                color: const Color(0xB3FFFBF7),
+                                fontWeight: FontWeight.bold,
                               ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  MaterialButton(
-                                    color: Theme.of(context).primaryColor,
-                                    child: const Text(
-                                      "Gallery",
-                                      style: TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onPressed: () {
-                                      navigatorKey.currentState!.pop(false);
-                                    },
-                                  ),
-                                  MaterialButton(
-                                    color: Theme.of(context).primaryColor,
-                                    child: const Text(
-                                      "Camera",
-                                      style: TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    onPressed: () {
-                                      navigatorKey.currentState!.pop(true);
-                                    },
-                                  )
-                                ],
+                            ),
+                            onPressed: () {
+                              navigatorKey.currentState!.pop(false);
+                            },
+                          ),
+                          MaterialButton(
+                            color: Theme.of(context).primaryColor,
+                            child: const Text(
+                              "Camera",
+                              style: TextStyle(
+                                color: const Color(0xB3FFFBF7),
+                                fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                          context: context)
-                      .then((value) {
-                    if (!context.mounted) return;
-                    if (value != null) {
-                      if (value) {
-                        _openCamera(context);
-                      } else {
-                        _openGallery(context);
-                      }
+                            ),
+                            onPressed: () {
+                              navigatorKey.currentState!.pop(true);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  context: context,
+                ).then((value) {
+                  if (!context.mounted) return;
+                  if (value != null) {
+                    if (value) {
+                      _openCamera(context);
+                    } else {
+                      _openGallery(context);
                     }
-                  });
-                } else {
-                  Helper.showToast('Photos limit reached.');
-                }
-              },
-              child: Text(
-                'Upload Photos',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: config.FontFamily().book),
-              )),
+                  }
+                });
+              } else {
+                Helper.showToast('Photos limit reached.');
+              }
+            },
+            child: Text(
+              'Upload Photos',
+              style: TextStyle(
+                color: const Color(0xFFFFFBF7),
+                fontSize: 18,
+                fontWeight: config.FontFamily().book,
+              ),
+            ),
+          ),
         );
       },
     );
@@ -1312,8 +1378,9 @@ class _UploadbuttonState extends State<_UploadButton> {
 
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
+        widget.loginForm!.controller!.jumpTo(
+          widget.loginForm!.controller!.position.maxScrollExtent,
+        );
       }
     } catch (e) {
       Helper.showToast('No image selected.');
@@ -1322,8 +1389,10 @@ class _UploadbuttonState extends State<_UploadButton> {
 
   Future<void> _openCamera(BuildContext context) async {
     final cubit = context.read<CookProfileCubit>();
-    final picture = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 50);
+    final picture = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
 
     try {
       if (!context.mounted || picture == null) {
@@ -1333,8 +1402,9 @@ class _UploadbuttonState extends State<_UploadButton> {
 
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
-        widget.loginForm!.controller!
-            .jumpTo(widget.loginForm!.controller!.position.maxScrollExtent);
+        widget.loginForm!.controller!.jumpTo(
+          widget.loginForm!.controller!.position.maxScrollExtent,
+        );
       }
     } catch (e) {
       Helper.showToast('No image captured.');
@@ -1355,35 +1425,38 @@ class _LoginButton extends StatelessWidget {
         return Container(
           height: 45,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.topRight,
-                colors: state.status!.isValidated
-                    ? [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor,
-                      ]
-                    : [
-                        Theme.of(context).primaryColorLight,
-                        Theme.of(context).primaryColorLight,
-                      ],
-              )),
+            borderRadius: BorderRadius.circular(20.0),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.topRight,
+              colors: state.status!.isValidated
+                  ? [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor,
+                    ]
+                  : [
+                      Theme.of(context).primaryColorLight,
+                      Theme.of(context).primaryColorLight,
+                    ],
+            ),
+          ),
           child: MaterialButton(
-              minWidth: config.AppConfig(context).appWidth(100),
-              height: 50.0,
-              onPressed: () {
-                if (state.status!.isValidated) {
-                  context.read<CookProfileCubit>().onKitchnUpload();
-                }
-              },
-              child: Text(
-                'SUBMIT',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: config.FontFamily().book),
-              )),
+            minWidth: config.AppConfig(context).appWidth(100),
+            height: 50.0,
+            onPressed: () {
+              if (state.status!.isValidated) {
+                context.read<CookProfileCubit>().onKitchnUpload();
+              }
+            },
+            child: Text(
+              'SUBMIT',
+              style: TextStyle(
+                color: const Color(0xFFFFFBF7),
+                fontSize: 18,
+                fontWeight: config.FontFamily().book,
+              ),
+            ),
+          ),
         );
       },
     );

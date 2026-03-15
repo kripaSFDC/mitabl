@@ -58,8 +58,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response =
-          await userRepository.switchRole(roleId: AppConstants.FOODI);
+      final response = await userRepository.switchRole(
+        roleId: AppConstants.FOODI,
+      );
       if (!mounted) return false;
 
       if (response.statusCode == 200) {
@@ -75,15 +76,18 @@ class _PaymentsPageState extends State<PaymentsPage> {
           fallbackMessage: 'mifoodi profile is not available for this account.',
         );
 
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (_) {
       if (!mounted || silent) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Unable to switch profile right now. Please try again.')),
+          content: Text(
+            'Unable to switch profile right now. Please try again.',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -148,8 +152,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
       final userRepository = context.read<UserRepository>();
       final userModel =
           userRepository.currentUser ?? await userRepository.getUser();
-      final url =
-          await _repository.createCardCheckoutSession(userModel: userModel);
+      final url = await _repository.createCardCheckoutSession(
+        userModel: userModel,
+      );
       final launched = await launchUrl(
         Uri.parse(url),
         mode: LaunchMode.externalApplication,
@@ -167,8 +172,9 @@ class _PaymentsPageState extends State<PaymentsPage> {
       );
     } on RepositoryHttpException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -196,7 +202,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
           ),
         ],
       ),
-      floatingActionButton: _status == _ViewStatus.loaded || _status == _ViewStatus.serverError
+      floatingActionButton:
+          _status == _ViewStatus.loaded || _status == _ViewStatus.serverError
           ? FloatingActionButton.extended(
               onPressed: _startingAddCardFlow ? null : _startAddCardFlow,
               label: Text(_startingAddCardFlow ? 'Opening...' : 'Add card'),
@@ -207,67 +214,77 @@ class _PaymentsPageState extends State<PaymentsPage> {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
         _ViewStatus.forbidden => _SwitchToMifoodiCta(
-            onPressed: _switchToMifoodi,
-            isLoading: _switchingRole,
-          ),
+          onPressed: _switchToMifoodi,
+          isLoading: _switchingRole,
+        ),
         _ViewStatus.serverError => _ServerErrorWidget(
-            message: _errorMessage,
-            onRetry: _load,
-          ),
-        _ViewStatus.loaded => (_history.isEmpty && _cards.isEmpty)
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const NoDataWidget(),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _startingAddCardFlow ? null : _startAddCardFlow,
-                      icon: const Icon(Icons.add_card_outlined),
-                      label: Text(
-                        _startingAddCardFlow
-                            ? 'Opening secure setup...'
-                            : 'Add your first card',
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: _load,
-                child: ListView(
-                children: [
-                  if (_cards.isNotEmpty) ...[
-                    const ListTile(title: Text('Saved cards')),
-                    ..._cards.map(
-                      (card) => ListTile(
-                        title: Text((card['brand'] ?? 'Card').toString()),
-                        subtitle: Text(
-                          [
-                            if ((card['last4'] ?? '').toString().isNotEmpty)
-                              '•••• ${(card['last4'] ?? '').toString()}',
-                            if ((card['exp_month'] ?? '').toString().isNotEmpty &&
-                                (card['exp_year'] ?? '').toString().isNotEmpty)
-                              'Expires ${(card['exp_month'] ?? '').toString()}/${(card['exp_year'] ?? '').toString()}',
-                          ].join('  •  '),
+          message: _errorMessage,
+          onRetry: _load,
+        ),
+        _ViewStatus.loaded =>
+          (_history.isEmpty && _cards.isEmpty)
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const NoDataWidget(),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _startingAddCardFlow
+                            ? null
+                            : _startAddCardFlow,
+                        icon: const Icon(Icons.add_card_outlined),
+                        label: Text(
+                          _startingAddCardFlow
+                              ? 'Opening secure setup...'
+                              : 'Add your first card',
                         ),
                       ),
-                    ),
-                    const Divider(),
-                  ],
-                  if (_history.isNotEmpty) ...[
-                    const ListTile(title: Text('Payment history')),
-                    ..._history.map(
-                      (payment) => ListTile(
-                        title:
-                            Text((payment['amount'] ?? 'Payment').toString()),
-                        subtitle: Text((payment['status'] ?? '').toString()),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView(
+                    children: [
+                      if (_cards.isNotEmpty) ...[
+                        const ListTile(title: Text('Saved cards')),
+                        ..._cards.map(
+                          (card) => ListTile(
+                            title: Text((card['brand'] ?? 'Card').toString()),
+                            subtitle: Text(
+                              [
+                                if ((card['last4'] ?? '').toString().isNotEmpty)
+                                  '•••• ${(card['last4'] ?? '').toString()}',
+                                if ((card['exp_month'] ?? '')
+                                        .toString()
+                                        .isNotEmpty &&
+                                    (card['exp_year'] ?? '')
+                                        .toString()
+                                        .isNotEmpty)
+                                  'Expires ${(card['exp_month'] ?? '').toString()}/${(card['exp_year'] ?? '').toString()}',
+                              ].join('  •  '),
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                      ],
+                      if (_history.isNotEmpty) ...[
+                        const ListTile(title: Text('Payment history')),
+                        ..._history.map(
+                          (payment) => ListTile(
+                            title: Text(
+                              (payment['amount'] ?? 'Payment').toString(),
+                            ),
+                            subtitle: Text(
+                              (payment['status'] ?? '').toString(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
       },
     );
   }
@@ -289,8 +306,10 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Switch to mifoodi to access this page',
-                textAlign: TextAlign.center),
+            const Text(
+              'Switch to mifoodi to access this page',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: isLoading ? null : onPressed,

@@ -37,17 +37,17 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
       onTap: kitchenId == null
           ? null
           : () => Navigator.of(context).pushNamed(
-                '/OrderMenu',
-                arguments: RouteArguments(
-                  data: OrderRouteData(kitchenId: kitchenId),
-                ),
+              '/OrderMenu',
+              arguments: RouteArguments(
+                data: OrderRouteData(kitchenId: kitchenId),
               ),
+            ),
       borderRadius: const BorderRadius.all(Radius.circular(10)),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 5.0),
         width: config.AppConfig(context).appWidth(100.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFBF7),
           boxShadow: [
             BoxShadow(
               offset: const Offset(2, 2),
@@ -67,8 +67,9 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                   children: <Widget>[
                     ClipRRect(
                       borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10),
+                      ),
                       child: CachedNetworkImage(
                         imageUrl: _primaryImagePath() != null
                             ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath()}'
@@ -76,32 +77,37 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                         progressIndicatorBuilder:
                             (context, url, downloadProgress) =>
                                 CircularProgressIndicator(
-                                    value: downloadProgress.progress),
+                                  value: downloadProgress.progress,
+                                ),
                         errorWidget: (context, url, error) => Container(
-                            height: config.AppConfig(context).appHeight(17),
-                            width: config.AppConfig(context).appWidth(100),
-                            padding: EdgeInsets.all(
-                                config.AppConfig(context).appWidth(3)),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: config.AppConfig(context).appWidth(8),
-                            )),
+                          height: config.AppConfig(context).appHeight(17),
+                          width: config.AppConfig(context).appWidth(100),
+                          padding: EdgeInsets.all(
+                            config.AppConfig(context).appWidth(3),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: const Color(0xFFFFFBF7),
+                            size: config.AppConfig(context).appWidth(8),
+                          ),
+                        ),
                         imageBuilder: (context, imageProvider) => Container(
                           height: config.AppConfig(context).appHeight(16),
                           width: config.AppConfig(context).appWidth(100),
                           decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                              borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  topRight: Radius.circular(10))),
+                            image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              topRight: Radius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -121,10 +127,10 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontWeight: FontWeight.w600,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(3.4)),
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.w600,
+                              fontSize: config.AppConfig(context).appWidth(3.4),
+                            ),
                           ),
                         ),
                       ],
@@ -133,9 +139,7 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 10.0,
-                    ),
+                    padding: const EdgeInsets.only(left: 10.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -148,10 +152,10 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                             overflow: TextOverflow.ellipsis,
                             // softWrap: false,
                             style: GoogleFonts.gothicA1(
-                                color: Theme.of(context).primaryColorDark,
-                                fontWeight: FontWeight.w600,
-                                fontSize:
-                                    config.AppConfig(context).appWidth(2.7)),
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.w600,
+                              fontSize: config.AppConfig(context).appWidth(2.7),
+                            ),
                           ),
                         ),
                       ],
@@ -161,49 +165,52 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
               ],
             ),
             Positioned(
-                left: 1,
-                bottom: 1,
-                right: 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 10.0, top: 2, bottom: 6, right: 10.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/img/rating_icon.png',
-                            height: config.AppConfig(context).appHeight(1.5),
-                            width: config.AppConfig(context).appHeight(1.5),
-                            fit: BoxFit.fitHeight,
+              left: 1,
+              bottom: 1,
+              right: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 10.0,
+                  top: 2,
+                  bottom: 6,
+                  right: 10.0,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/img/rating_icon.png',
+                          height: config.AppConfig(context).appHeight(1.5),
+                          width: config.AppConfig(context).appHeight(1.5),
+                          fit: BoxFit.fitHeight,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          _ratingValue().toStringAsFixed(1),
+                          style: GoogleFonts.gothicA1(
+                            fontSize: config.AppConfig(context).appWidth(2.7),
+                            color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(
-                            width: 2,
-                          ),
-                          Text(
-                            _ratingValue().toStringAsFixed(1),
-                            style: GoogleFonts.gothicA1(
-                              fontSize: config.AppConfig(context).appWidth(2.7),
-                              color: Theme.of(context).primaryColorDark,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Image.asset(
-                        'assets/img/heart_icon.png',
-                        height: config.AppConfig(context).appHeight(1.5),
-                        width: config.AppConfig(context).appHeight(1.8),
-                        fit: BoxFit.fitHeight,
-                        color: Theme.of(context).hintColor,
-                      ),
-                    ],
-                  ),
-                ))
+                        ),
+                      ],
+                    ),
+                    Image.asset(
+                      'assets/img/heart_icon.png',
+                      height: config.AppConfig(context).appHeight(1.5),
+                      width: config.AppConfig(context).appHeight(1.8),
+                      fit: BoxFit.fitHeight,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

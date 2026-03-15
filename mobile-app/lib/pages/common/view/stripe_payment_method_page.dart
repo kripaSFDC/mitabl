@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class StripePaymentMethodPage extends StatefulWidget {
-  const StripePaymentMethodPage({
-    super.key,
-    required this.initialUrl,
-  });
+  const StripePaymentMethodPage({super.key, required this.initialUrl});
 
   final String initialUrl;
 
@@ -21,7 +18,8 @@ class StripePaymentMethodPage extends StatefulWidget {
   }
 
   @override
-  State<StripePaymentMethodPage> createState() => _StripePaymentMethodPageState();
+  State<StripePaymentMethodPage> createState() =>
+      _StripePaymentMethodPageState();
 }
 
 class _StripePaymentMethodPageState extends State<StripePaymentMethodPage> {
@@ -45,8 +43,9 @@ class _StripePaymentMethodPageState extends State<StripePaymentMethodPage> {
             if (uri != null &&
                 uri.scheme == 'mitabl' &&
                 uri.host == 'payment-method-complete') {
-              Navigator.of(context)
-                  .pop(uri.queryParameters['payment_method_id']);
+              Navigator.of(
+                context,
+              ).pop(uri.queryParameters['payment_method_id']);
               return NavigationDecision.prevent;
             }
 

@@ -17,7 +17,7 @@ part 'profile_foodie_state.dart';
 
 class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
   ProfileFoodieCubit({this.userRepository, this.authenticationRepository})
-      : super(const ProfileFoodieState());
+    : super(const ProfileFoodieState());
 
   final UserRepository? userRepository;
   final AuthenticationRepository? authenticationRepository;
@@ -25,36 +25,43 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
   getFoodieProfile() async {
     var response = await userRepository!.getFoodieProfile();
     if (response.statusCode == 200) {
-      GetCookProfileModel foodieProfile =
-          GetCookProfileModel.fromJson(jsonDecode(response.body));
+      GetCookProfileModel foodieProfile = GetCookProfileModel.fromJson(
+        jsonDecode(response.body),
+      );
 
-      emit(state.copyWith(
-        firstName: Name.dirty(foodieProfile.data!.firstName!),
-        lastName: Name.dirty(foodieProfile.data!.lastName!),
-        description: Name.dirty(foodieProfile.data!.description ?? ''),
-        phoneNo: Phone.dirty(foodieProfile.data!.phone!.toString()),
-        email: Email.dirty(foodieProfile.data!.email!.toString()),
-        foodieProfile: foodieProfile,
-      ));
+      emit(
+        state.copyWith(
+          firstName: Name.dirty(foodieProfile.data!.firstName!),
+          lastName: Name.dirty(foodieProfile.data!.lastName!),
+          description: Name.dirty(foodieProfile.data!.description ?? ''),
+          phoneNo: Phone.dirty(foodieProfile.data!.phone!.toString()),
+          email: Email.dirty(foodieProfile.data!.email!.toString()),
+          foodieProfile: foodieProfile,
+        ),
+      );
     }
   }
 
   onFirstNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         firstName: name,
         status: Formz.validate([
           name,
           state.phoneNo!,
           state.email!,
           state.lastName!,
-          state.description!
-        ])));
+          state.description!,
+        ]),
+      ),
+    );
   }
 
   onLastNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         lastName: name,
         status: Formz.validate([
           name,
@@ -62,12 +69,15 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
           state.email!,
           state.firstName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onEmailChanged({String? value}) {
     var email = Email.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         email: email,
         status: Formz.validate([
           state.firstName!,
@@ -75,12 +85,15 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
           email,
           state.lastName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onPhoneChanged({String? value}) {
     var phone = Phone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         phoneNo: phone,
         status: Formz.validate([
           state.firstName!,
@@ -88,12 +101,15 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
           state.email!,
           state.lastName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onDescriptionChanged({String? value}) {
     var description = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         description: description,
         status: Formz.validate([
           state.firstName!,
@@ -101,7 +117,9 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
           state.email!,
           state.lastName!,
           state.phoneNo!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onAvatarImageSelect({String? path}) {
@@ -118,46 +136,57 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
       map['phone'] = state.phoneNo!.value;
       map['description'] = state.description!.value;
 
-      var response = await userRepository!
-          .updateFoodieProfile(data: map, filePath: state.avatarPath ?? '');
+      var response = await userRepository!.updateFoodieProfile(
+        data: map,
+        filePath: state.avatarPath ?? '',
+      );
 
       if (response.statusCode == 200) {
         getFoodieProfile();
-        emit(state.copyWith(
-            avatarPath: '', statusUpload: FormzStatus.submissionSuccess));
+        emit(
+          state.copyWith(
+            avatarPath: '',
+            statusUpload: FormzStatus.submissionSuccess,
+          ),
+        );
         Helper.showToast('User Profile Updated');
       } else {
         getFoodieProfile();
-        emit(state.copyWith(
-            avatarPath: '', statusUpload: FormzStatus.submissionFailure));
+        emit(
+          state.copyWith(
+            avatarPath: '',
+            statusUpload: FormzStatus.submissionFailure,
+          ),
+        );
       }
     } on Exception {
       getFoodieProfile();
-      emit(state.copyWith(
-          avatarPath: '', statusUpload: FormzStatus.submissionFailure));
+      emit(
+        state.copyWith(
+          avatarPath: '',
+          statusUpload: FormzStatus.submissionFailure,
+        ),
+      );
     }
   }
 
   void doLogout() async {
     try {
-      final userModel = userRepository!.currentUser ?? await userRepository!.getUser();
-      Response response = await authenticationRepository!
-          .logOutApi(userModel: userModel);
-
+      final userModel =
+          userRepository!.currentUser ?? await userRepository!.getUser();
+      Response response = await authenticationRepository!.logOutApi(
+        userModel: userModel,
+      );
 
       if (response.statusCode == 200) {
         await authenticationRepository!.logOut();
       } else {
-        emit(state.copyWith(
-          status: FormzStatus.pure,
-        ));
+        emit(state.copyWith(status: FormzStatus.pure));
         await authenticationRepository!.logOut();
       }
     } catch (e) {
       AppLogger.error('Logout failed', e);
-      emit(state.copyWith(
-        status: FormzStatus.submissionFailure,
-      ));
+      emit(state.copyWith(status: FormzStatus.submissionFailure));
     }
   }
 }

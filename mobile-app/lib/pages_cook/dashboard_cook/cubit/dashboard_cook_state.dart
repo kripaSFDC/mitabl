@@ -6,8 +6,10 @@ class DashboardCookState extends Equatable {
   final int? selectedIndex;
   final dd.DashboardData? dashboardData;
 
-  DashboardCookState copyWith(
-      {dd.DashboardData? dashboardData, int? selectedIndex}) {
+  DashboardCookState copyWith({
+    dd.DashboardData? dashboardData,
+    int? selectedIndex,
+  }) {
     return DashboardCookState(
       selectedIndex: selectedIndex ?? this.selectedIndex,
       dashboardData: dashboardData ?? this.dashboardData,

@@ -7,14 +7,15 @@ part 'special_diet_state.dart';
 
 class SpecialDietCubit extends Cubit<SpecialDietState> {
   SpecialDietCubit({List<SpecialDietData>? specialDietDataList})
-      : super(SpecialDietState(specialDietDataList: specialDietDataList));
+    : super(SpecialDietState(specialDietDataList: specialDietDataList));
 
   onSpecialDietChange({int? id, bool? value}) {
     List<SpecialDietData> tempList = [];
     tempList.addAll(state.specialDietDataList!);
     var index = tempList.indexWhere((element) => element.id == id);
-    SpecialDietData specialDietData =
-    tempList[index].copyWith(isSelected: value);
+    SpecialDietData specialDietData = tempList[index].copyWith(
+      isSelected: value,
+    );
 
     tempList.removeAt(index);
     tempList.insert(index, specialDietData);

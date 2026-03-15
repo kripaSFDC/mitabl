@@ -7,7 +7,8 @@ class SpecialDietState extends Equatable {
 
   SpecialDietState copyWith({List<SpecialDietData>? specialDietDataList}) {
     return SpecialDietState(
-        specialDietDataList: specialDietDataList ?? this.specialDietDataList);
+      specialDietDataList: specialDietDataList ?? this.specialDietDataList,
+    );
   }
 
   @override

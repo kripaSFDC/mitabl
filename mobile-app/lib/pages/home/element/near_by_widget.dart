@@ -36,15 +36,15 @@ class NearByRestWidget extends StatelessWidget {
       onTap: kitchenId == null
           ? null
           : () => Navigator.of(context).pushNamed(
-                '/OrderMenu',
-                arguments: RouteArguments(
-                  data: OrderRouteData(kitchenId: kitchenId),
-                ),
+              '/OrderMenu',
+              arguments: RouteArguments(
+                data: OrderRouteData(kitchenId: kitchenId),
               ),
+            ),
       borderRadius: const BorderRadius.all(Radius.circular(10)),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFBF7),
           boxShadow: [
             BoxShadow(
               offset: const Offset(2, 2),
@@ -73,31 +73,36 @@ class NearByRestWidget extends StatelessWidget {
                       progressIndicatorBuilder:
                           (context, url, downloadProgress) =>
                               CircularProgressIndicator(
-                                  value: downloadProgress.progress),
+                                value: downloadProgress.progress,
+                              ),
                       errorWidget: (context, url, error) => Container(
-                          height: config.AppConfig(context).appHeight(14),
-                          width: config.AppConfig(context).appWidth(70),
-                          padding: EdgeInsets.all(
-                              config.AppConfig(context).appWidth(3)),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                          child: Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: config.AppConfig(context).appWidth(8),
-                          )),
+                        height: config.AppConfig(context).appHeight(14),
+                        width: config.AppConfig(context).appWidth(70),
+                        padding: EdgeInsets.all(
+                          config.AppConfig(context).appWidth(3),
+                        ),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                        child: Icon(
+                          Icons.person,
+                          color: const Color(0xFFFFFBF7),
+                          size: config.AppConfig(context).appWidth(8),
+                        ),
+                      ),
                       imageBuilder: (context, imageProvider) => Container(
                         height: config.AppConfig(context).appHeight(14),
                         width: config.AppConfig(context).appWidth(70),
                         decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                            ),
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10))),
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -118,9 +123,10 @@ class NearByRestWidget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
                         style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColorDark,
-                            fontWeight: FontWeight.w600,
-                            fontSize: config.AppConfig(context).appWidth(3.4)),
+                          color: Theme.of(context).primaryColorDark,
+                          fontWeight: FontWeight.w600,
+                          fontSize: config.AppConfig(context).appWidth(3.4),
+                        ),
                       ),
                     ),
                   ],
@@ -141,9 +147,10 @@ class NearByRestWidget extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColorDark,
-                            fontWeight: FontWeight.w600,
-                            fontSize: config.AppConfig(context).appWidth(2.7)),
+                          color: Theme.of(context).primaryColorDark,
+                          fontWeight: FontWeight.w600,
+                          fontSize: config.AppConfig(context).appWidth(2.7),
+                        ),
                       ),
                     ),
                   ],
@@ -152,7 +159,11 @@ class NearByRestWidget extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.only(
-                  left: 10.0, top: 2, bottom: 2, right: 10.0),
+                left: 10.0,
+                top: 2,
+                bottom: 2,
+                right: 10.0,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

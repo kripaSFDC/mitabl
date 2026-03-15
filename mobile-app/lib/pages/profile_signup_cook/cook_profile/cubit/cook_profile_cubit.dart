@@ -19,7 +19,7 @@ part 'cook_profile_state.dart';
 
 class CookProfileCubit extends Cubit<CookProfileState> {
   CookProfileCubit(this.authenticationRepository, this.routeArguments)
-      : super(const CookProfileState(days: AppConstants.DAYS)) {
+    : super(const CookProfileState(days: AppConstants.DAYS)) {
     setUpTimingModel();
   }
 
@@ -39,18 +39,26 @@ class CookProfileCubit extends Cubit<CookProfileState> {
   setUpTimingModel() {
     List<Days> daysTiming = [];
     for (var element in AppConstants.DAYS) {
-      daysTiming.add(Days(
+      daysTiming.add(
+        Days(
           day: element.toString(),
           isOn: false,
-          timing: Timing(endTime: '23:59', startTime: '00:00')));
+          timing: Timing(endTime: '23:59', startTime: '00:00'),
+        ),
+      );
     }
 
     emit(
-        state.copyWith(daysTiming: daysTiming, daysTimingOriginal: daysTiming));
+      state.copyWith(daysTiming: daysTiming, daysTimingOriginal: daysTiming),
+    );
   }
 
-  onSwitchChanged(
-      {int? index, bool? switchValue, String? startTime, String? endTime}) {
+  onSwitchChanged({
+    int? index,
+    bool? switchValue,
+    String? startTime,
+    String? endTime,
+  }) {
     List<Days> daysTiming = [];
     daysTiming.addAll(state.daysTiming);
     Days? days;
@@ -63,16 +71,18 @@ class CookProfileCubit extends Cubit<CookProfileState> {
     } else if (startTime != null) {
       timing = daysTiming[index!].timing;
 
-      days = daysTiming[index]
-          .copyWith(timing: timing!.copyWith(startTime: startTime));
+      days = daysTiming[index].copyWith(
+        timing: timing!.copyWith(startTime: startTime),
+      );
       daysTiming.removeAt(index);
       daysTiming.insert(index, days);
       emit(state.copyWith(daysTiming: daysTiming));
     } else if (endTime != null) {
       timing = daysTiming[index!].timing;
 
-      days = daysTiming[index]
-          .copyWith(timing: timing!.copyWith(endTime: endTime));
+      days = daysTiming[index].copyWith(
+        timing: timing!.copyWith(endTime: endTime),
+      );
       daysTiming.removeAt(index);
       daysTiming.insert(index, days);
       emit(state.copyWith(daysTiming: daysTiming));
@@ -127,9 +137,10 @@ class CookProfileCubit extends Cubit<CookProfileState> {
       }
 
       var response = await authenticationRepository!.vendorKitchnUpload(
-          data: map,
-          routeArguments: routeArguments,
-          filePaths: state.pathFiles);
+        data: map,
+        routeArguments: routeArguments,
+        filePaths: state.pathFiles,
+      );
       if (response.statusCode == 200) {
         emit(state.copyWith(statusApi: FormzStatus.submissionSuccess));
         authenticationRepository!.notifyAuthenticated();
@@ -138,54 +149,95 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         //   (route) => false,
         // );
       } else {
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             statusApi: FormzStatus.submissionFailure,
-            serverMessage: ApiErrorParser.parseMessage(response.body)));
+            serverMessage: ApiErrorParser.parseMessage(response.body),
+          ),
+        );
       }
     } on Exception {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           statusApi: FormzStatus.submissionFailure,
-          serverMessage: 'Something went wrong...'));
+          serverMessage: 'Something went wrong...',
+        ),
+      );
     }
   }
 
   onKitchnNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         nameKitchn: name,
-        status: Formz.validate(
-            [name, state.phone, state.noOfSeats, state.address!])));
+        status: Formz.validate([
+          name,
+          state.phone,
+          state.noOfSeats,
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   onAddressChanged({String? value}) {
     var address = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         address: address,
-        status: Formz.validate(
-            [address, state.nameKitchn!, state.phone, state.noOfSeats])));
+        status: Formz.validate([
+          address,
+          state.nameKitchn!,
+          state.phone,
+          state.noOfSeats,
+        ]),
+      ),
+    );
   }
 
   onPhoneChanged({String? value}) {
     var phone = InternationalPhone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         phone: phone,
-        status: Formz.validate(
-            [state.nameKitchn!, state.noOfSeats, phone, state.address!])));
+        status: Formz.validate([
+          state.nameKitchn!,
+          state.noOfSeats,
+          phone,
+          state.address!,
+        ]),
+      ),
+    );
   }
 
-
-  void onCountryCodeChanged({required String value, required String localNumber}) {
+  void onCountryCodeChanged({
+    required String value,
+    required String localNumber,
+  }) {
     final normalizedCountryCode = value.trim().isEmpty ? '+61' : value.trim();
     emit(state.copyWith(countryCode: normalizedCountryCode));
-    onPhoneChanged(value: InternationalPhone.compose(countryCode: normalizedCountryCode, number: localNumber));
+    onPhoneChanged(
+      value: InternationalPhone.compose(
+        countryCode: normalizedCountryCode,
+        number: localNumber,
+      ),
+    );
   }
 
   onSeatChanged({String? value}) {
     var seat = Phone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         noOfSeats: seat,
-        status: Formz.validate(
-            [state.nameKitchn!, state.phone, seat, state.address!])));
+        status: Formz.validate([
+          state.nameKitchn!,
+          state.phone,
+          seat,
+          state.address!,
+        ]),
+      ),
+    );
   }
 
   void onDineInChange({bool? value}) {

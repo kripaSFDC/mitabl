@@ -47,32 +47,32 @@ class AppColors {
   }
 
   Color mainColor(double opacity) {
-    return _withOpacity(const Color.fromARGB(255, 28, 36, 89), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color secondColor(double opacity) {
-    return _withOpacity(Colors.grey.shade500, opacity);
+    return _withOpacity(const Color(0xFF9A3412), opacity);
   }
 
   Color accentColor(double opacity) {
-    return _withOpacity(const Color(0xFF18489C), opacity);
+    return _withOpacity(const Color(0xFF10B981), opacity);
   }
 
   Color colorPrimary(double opacity) {
-    return _withOpacity(const Color(0xff0071BC), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color colorPrimaryLight(double opacity) {
-    return _withOpacity(Colors.grey, opacity);
+    return _withOpacity(const Color(0xFFF97316), opacity);
   }
 
   Color colorPrimaryDark(double opacity) {
-    return _withOpacity(const Color(0xFF666666), opacity);
+    return _withOpacity(const Color(0xFF7C2D12), opacity);
   }
 
   Color colorDivider(double opacity) {
     try {
-      return const Color(0xFF001757).withValues(alpha: opacity);
+      return const Color(0xFFFFEDD5).withValues(alpha: opacity);
     } catch (e) {
       return const Color(0xFFCCCCCC).withValues(alpha: opacity);
     }
@@ -80,7 +80,7 @@ class AppColors {
 
   Color textFieldBackgroundColor(double opacity) {
     try {
-      return const Color(0xFFE9E9E9).withValues(alpha: opacity);
+      return const Color(0xFFFFF7ED).withValues(alpha: opacity);
     } catch (e) {
       return const Color(0xFFCCCCCC).withValues(alpha: opacity);
     }
@@ -88,7 +88,7 @@ class AppColors {
 
   Color hintTextBackgroundColor(double opacity) {
     try {
-      return const Color(0xFFAEAEAE).withValues(alpha: opacity);
+      return const Color(0xFF9CA3AF).withValues(alpha: opacity);
     } catch (e) {
       return const Color(0xFFCCCCCC).withValues(alpha: opacity);
     }
@@ -120,7 +120,7 @@ class AppColors {
 
   Color scaffoldColor(double opacity, {Brightness brightness = Brightness.light}) {
     final baseColor =
-        brightness == Brightness.dark ? const Color(0xFF121212) : Colors.white;
+        brightness == Brightness.dark ? const Color(0xFF121212) : const Color(0xFFFFFAF5);
     return _withOpacity(baseColor, opacity);
   }
 

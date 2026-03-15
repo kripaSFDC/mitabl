@@ -11,13 +11,14 @@ class LoginPage extends StatelessWidget {
 
   static Route route() {
     return MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-              create: (context) => cubit.LoginCubit(
-                authRepository: context.read<AuthenticationRepository>(),
-                repo: context.read<UserRepository>(),
-              ),
-              child: LoginPage(),
-            ));
+      builder: (_) => BlocProvider(
+        create: (context) => cubit.LoginCubit(
+          authRepository: context.read<AuthenticationRepository>(),
+          repo: context.read<UserRepository>(),
+        ),
+        child: LoginPage(),
+      ),
+    );
   }
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -28,10 +29,11 @@ class LoginPage extends StatelessWidget {
       child: Scaffold(
         key: scaffoldKey,
         body: BlocConsumer<cubit.LoginCubit, cubit.LoginState>(
-            builder: (context, state) {
-              return const LoginForm();
-            },
-            listener: (context, state) {}),
+          builder: (context, state) {
+            return const LoginForm();
+          },
+          listener: (context, state) {},
+        ),
       ),
     );
   }

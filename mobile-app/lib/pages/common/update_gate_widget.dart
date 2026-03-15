@@ -52,9 +52,9 @@ class UpdateGateWidget extends StatelessWidget {
         content: Text(
           isRequired
               ? 'A required update (${result.latestVersion}) is available. '
-                  'Please update to continue using Mitabl.'
+                    'Please update to continue using Mitabl.'
               : 'Version ${result.latestVersion} is available with new features '
-                  'and improvements.',
+                    'and improvements.',
         ),
         actions: [
           if (!isRequired)

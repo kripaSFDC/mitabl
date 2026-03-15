@@ -13,11 +13,12 @@ class OtpState extends Equatable {
   final FormzStatus? statusAPI;
   final String? serverMessage;
 
-  OtpState copyWith(
-      {OTP? otp,
-      FormzStatus? status,
-      FormzStatus? statusAPI,
-      String? serverMessage}) {
+  OtpState copyWith({
+    OTP? otp,
+    FormzStatus? status,
+    FormzStatus? statusAPI,
+    String? serverMessage,
+  }) {
     return OtpState(
       otp: otp ?? this.otp,
       status: status ?? this.status,

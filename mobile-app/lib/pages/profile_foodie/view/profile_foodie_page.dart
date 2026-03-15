@@ -63,9 +63,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     }
 
     final step = transition['next_required_step']?.toString();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_onboardingStepDescription(step))),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(_onboardingStepDescription(step))));
   }
 
   @override
@@ -86,8 +86,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Biometric authentication is not available on this device.'),
+          content: Text(
+            'Biometric authentication is not available on this device.',
+          ),
         ),
       );
       return;
@@ -104,15 +105,17 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response =
-          await userRepository.switchRole(roleId: AppConstants.COOK);
+      final response = await userRepository.switchRole(
+        roleId: AppConstants.COOK,
+      );
       if (!mounted) return;
 
       if (response.statusCode == 200) {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final data = payload['data'];
-        final transition =
-            data is Map<String, dynamic> ? data['role_transition'] : null;
+        final transition = data is Map<String, dynamic>
+            ? data['role_transition']
+            : null;
         final transitionMap = transition is Map<String, dynamic>
             ? transition
             : <String, dynamic>{};
@@ -138,15 +141,16 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
         }
       } catch (_) {}
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Unable to switch profile right now. Please try again.'),
+          content: Text(
+            'Unable to switch profile right now. Please try again.',
+          ),
         ),
       );
     } finally {
@@ -161,21 +165,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
       builder: (context, state) {
         return SafeArea(
-            child: Scaffold(
-          appBar: AppBar(
-            shadowColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios,
-                size: config.AppConfig(context).appWidth(5),
-                color: Theme.of(context).primaryColorDark,
+          child: Scaffold(
+            appBar: AppBar(
+              shadowColor: Colors.transparent,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  size: config.AppConfig(context).appWidth(5),
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                onPressed: () => {navigatorKey.currentState!.pop()},
               ),
-              onPressed: () => {navigatorKey.currentState!.pop()},
             ),
-          ),
-          backgroundColor: Colors.white,
-          body: Padding(
+            backgroundColor: const Color(0xFFFFFBF7),
+            body: Padding(
               padding: EdgeInsets.only(
                 left: config.AppConfig(context).appWidth(3),
                 right: config.AppConfig(context).appWidth(3),
@@ -197,27 +201,31 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               '${state.foodieProfile != null ? state.foodieProfile!.data!.firstName : ''} ${state.foodieProfile != null ? state.foodieProfile!.data!.lastName : ''}',
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.gothicA1(
-                                  color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize:
-                                      config.AppConfig(context).appWidth(5)),
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: config.AppConfig(context).appWidth(5),
+                              ),
                             ),
                             Text(
                               '${state.foodieProfile != null ? state.foodieProfile!.data!.email : ''}',
                               style: GoogleFonts.gothicA1(
-                                  color: const Color(0xffAEAEAE),
-                                  fontSize:
-                                      config.AppConfig(context).appWidth(3.5),
-                                  fontWeight: FontWeight.normal),
+                                color: const Color(0xffAEAEAE),
+                                fontSize: config.AppConfig(
+                                  context,
+                                ).appWidth(3.5),
+                                fontWeight: FontWeight.normal,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               '${state.foodieProfile != null ? state.foodieProfile!.data!.phone : ''}',
                               style: GoogleFonts.gothicA1(
-                                  color: const Color(0xffAEAEAE),
-                                  fontSize:
-                                      config.AppConfig(context).appWidth(3.5),
-                                  fontWeight: FontWeight.normal),
+                                color: const Color(0xffAEAEAE),
+                                fontSize: config.AppConfig(
+                                  context,
+                                ).appWidth(3.5),
+                                fontWeight: FontWeight.normal,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -229,37 +237,39 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         progressIndicatorBuilder:
                             (context, url, downloadProgress) =>
                                 CircularProgressIndicator(
-                                    value: downloadProgress.progress),
+                                  value: downloadProgress.progress,
+                                ),
                         errorWidget: (context, url, error) => Container(
-                            height: config.AppConfig(context).appWidth(18),
-                            width: config.AppConfig(context).appWidth(18),
-                            padding: EdgeInsets.all(
-                                config.AppConfig(context).appWidth(3)),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: config.AppConfig(context).appWidth(8),
-                            )),
+                          height: config.AppConfig(context).appWidth(18),
+                          width: config.AppConfig(context).appWidth(18),
+                          padding: EdgeInsets.all(
+                            config.AppConfig(context).appWidth(3),
+                          ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: const Color(0xFFFFFBF7),
+                            size: config.AppConfig(context).appWidth(8),
+                          ),
+                        ),
                         imageBuilder: (context, imageProvider) => Container(
                           height: config.AppConfig(context).appWidth(18),
                           width: config.AppConfig(context).appWidth(18),
                           decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                              borderRadius: BorderRadius.circular(100)),
+                            image: DecorationImage(
+                              image: imageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: config.AppConfig(context).appHeight(1),
-                  ),
+                  SizedBox(height: config.AppConfig(context).appHeight(1)),
                   Container(
                     alignment: Alignment.topLeft,
                     constraints: BoxConstraints(
@@ -271,9 +281,10 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           ? state.foodieProfile!.data!.description ?? ''
                           : '',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4),
-                          fontWeight: FontWeight.normal),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4),
+                        fontWeight: FontWeight.normal,
+                      ),
                       textAlign: TextAlign.center,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
@@ -290,17 +301,16 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           'assets/img/cook.png',
                           height: config.AppConfig(context).appHeight(3),
                         ),
-                        SizedBox(
-                          width: config.AppConfig(context).appWidth(4),
-                        ),
+                        SizedBox(width: config.AppConfig(context).appWidth(4)),
                         Text(
                           'switch to micook',
                           style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(5),
-                              fontWeight: FontWeight.w600),
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: config.AppConfig(context).appWidth(5),
+                            fontWeight: FontWeight.w600,
+                          ),
                           overflow: TextOverflow.ellipsis,
-                        )
+                        ),
                       ],
                     ),
                     trailing: _switchingRole
@@ -317,10 +327,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             color: Theme.of(context).primaryColorDark,
                           ),
                   ),
-                  const Divider(
-                    color: Color(0xffAEAEAE),
-                    thickness: 0.4,
-                  ),
+                  const Divider(color: Color(0xffAEAEAE), thickness: 0.4),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -337,8 +344,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/miorders.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -346,12 +354,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'miorders',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -366,8 +376,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/favourites.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -375,12 +386,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'favourites',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -395,8 +408,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/payments.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -404,19 +418,22 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'payments',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
                           ListTile(
                             onTap: () {
-                              Navigator.of(context)
-                                  .push(FaqWebviewPage.route());
+                              Navigator.of(
+                                context,
+                              ).push(FaqWebviewPage.route());
                             },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
@@ -425,8 +442,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/faq.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -434,19 +452,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'faq',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
                           ListTile(
                             onTap: () async {
-                              final userRepository =
-                                  context.read<UserRepository>();
+                              final userRepository = context
+                                  .read<UserRepository>();
                               try {
                                 final user = await userRepository.getUser();
                                 final payload = await MobileContactRepository(
@@ -454,15 +474,20 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 ).fetch(user);
                                 final message =
                                     payload['message']?.toString() ??
-                                        'Contact information loaded.';
+                                    'Contact information loaded.';
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(message)));
+                                  SnackBar(content: Text(message)),
+                                );
                               } catch (error) {
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
                                     content: Text(
-                                        'Unable to load contact info: $error')));
+                                      'Unable to load contact info: $error',
+                                    ),
+                                  ),
+                                );
                               }
                             },
                             minVerticalPadding: 0,
@@ -472,8 +497,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/contact.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -481,12 +507,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'contact us',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -498,8 +526,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/my_partners.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -507,20 +536,23 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'my partners',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
                           ListTile(
                             onTap: () {
                               navigatorKey.currentState!.pushNamed(
-                                  '/SettingsCook',
-                                  arguments: RouteArguments(id: 'foodie'));
+                                '/SettingsCook',
+                                arguments: RouteArguments(id: 'foodie'),
+                              );
                             },
                             minVerticalPadding: 0,
                             contentPadding: EdgeInsets.zero,
@@ -529,8 +561,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                               children: [
                                 Image.asset(
                                   'assets/img/setting.png',
-                                  height:
-                                      config.AppConfig(context).appHeight(4),
+                                  height: config.AppConfig(
+                                    context,
+                                  ).appHeight(4),
                                 ),
                                 SizedBox(
                                   width: config.AppConfig(context).appWidth(4),
@@ -538,12 +571,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'settings',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
@@ -563,20 +598,23 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'biometric lock',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                             trailing: SizedBox(
                               width: config.AppConfig(context).appWidth(20),
                               child: Switch(
                                 value: _biometricEnabled,
-                                inactiveTrackColor:
-                                    Theme.of(context).primaryColorDark,
+                                inactiveTrackColor: Theme.of(
+                                  context,
+                                ).primaryColorDark,
                                 onChanged: _onBiometricChanged,
                               ),
                             ),
@@ -600,22 +638,26 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 Text(
                                   'logout',
                                   style: GoogleFonts.gothicA1(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(4.5),
-                                      fontWeight: FontWeight.w400),
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appWidth(4.5),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
-                                )
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  )
+                  ),
                 ],
-              )),
-        ));
+              ),
+            ),
+          ),
+        );
       },
     );
   }

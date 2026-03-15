@@ -27,13 +27,12 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
     emit(state.copyWith(tabIndex: index));
   }
 
-
-
   getCookProfile() async {
     var response = await userRepository!.getCookProfile();
     if (response.statusCode == 200) {
-      GetCookProfileModel cookProfile =
-          GetCookProfileModel.fromJson(jsonDecode(response.body));
+      GetCookProfileModel cookProfile = GetCookProfileModel.fromJson(
+        jsonDecode(response.body),
+      );
 
       // List<String>? value =
       //     (jsonDecode(cookProfile.data!.kitchen!.images!) as List<dynamic>)
@@ -44,7 +43,8 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
       var valueDays = (jsonDecode(cookProfile.data!.kitchen!.timings!));
       TimingModel timingModel = TimingModel.fromJson(valueDays);
 
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           daysTiming: timingModel.days!,
           daysTimingOriginal: timingModel.days!,
           firstName: Name.dirty(cookProfile.data!.firstName!),
@@ -53,26 +53,32 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           phoneNo: Phone.dirty(cookProfile.data!.phone!.toString()),
           email: Email.dirty(cookProfile.data!.email!.toString()),
           cookProfile: cookProfile,
-          pathFiles: cookProfile.data!.kitchen!.images));
+          pathFiles: cookProfile.data!.kitchen!.images,
+        ),
+      );
     }
   }
 
   onFirstNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         firstName: name,
         status: Formz.validate([
           name,
           state.phoneNo!,
           state.email!,
           state.lastName!,
-          state.description!
-        ])));
+          state.description!,
+        ]),
+      ),
+    );
   }
 
   onLastNameChanged({String? value}) {
     var name = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         lastName: name,
         status: Formz.validate([
           name,
@@ -80,12 +86,15 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           state.email!,
           state.firstName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onEmailChanged({String? value}) {
     var email = Email.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         email: email,
         status: Formz.validate([
           state.firstName!,
@@ -93,12 +102,15 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           email,
           state.lastName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onPhoneChanged({String? value}) {
     var phone = Phone.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         phoneNo: phone,
         status: Formz.validate([
           state.firstName!,
@@ -106,12 +118,15 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           state.email!,
           state.lastName!,
           state.description!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onDescriptionChanged({String? value}) {
     var description = Name.dirty(value!);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         description: description,
         status: Formz.validate([
           state.firstName!,
@@ -119,7 +134,9 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           state.email!,
           state.lastName!,
           state.phoneNo!,
-        ])));
+        ]),
+      ),
+    );
   }
 
   onAvatarImageSelect({String? path}) {
@@ -136,23 +153,37 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
       map['phone'] = state.phoneNo!.value;
       map['description'] = state.description!.value;
 
-      var response = await userRepository!
-          .updateCookProfile(data: map, filePath: state.avatarPath ?? '');
+      var response = await userRepository!.updateCookProfile(
+        data: map,
+        filePath: state.avatarPath ?? '',
+      );
 
       if (response.statusCode == 200) {
         getCookProfile();
-        emit(state.copyWith(
-            avatarPath: '', statusUpload: FormzStatus.submissionSuccess));
+        emit(
+          state.copyWith(
+            avatarPath: '',
+            statusUpload: FormzStatus.submissionSuccess,
+          ),
+        );
         Helper.showToast('Profile updated successfully.');
       } else {
         getCookProfile();
-        emit(state.copyWith(
-            avatarPath: '', statusUpload: FormzStatus.submissionFailure));
+        emit(
+          state.copyWith(
+            avatarPath: '',
+            statusUpload: FormzStatus.submissionFailure,
+          ),
+        );
       }
     } on Exception {
       getCookProfile();
-      emit(state.copyWith(
-          avatarPath: '', statusUpload: FormzStatus.submissionFailure));
+      emit(
+        state.copyWith(
+          avatarPath: '',
+          statusUpload: FormzStatus.submissionFailure,
+        ),
+      );
     }
   }
 }

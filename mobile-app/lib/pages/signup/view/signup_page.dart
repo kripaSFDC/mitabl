@@ -11,17 +11,16 @@ import '../cubit/sign_up_cubit.dart';
 import 'package:mitabl_user/model/international_phone.dart';
 
 class SignupPage extends StatefulWidget {
-  const SignupPage({
-    super.key,
-  });
+  const SignupPage({super.key});
 
   static Route route() {
     return MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-              create: (context) =>
-                  SignUpCubit(context.read<AuthenticationRepository>()),
-              child: const SignupPage(),
-            ));
+      builder: (_) => BlocProvider(
+        create: (context) =>
+            SignUpCubit(context.read<AuthenticationRepository>()),
+        child: const SignupPage(),
+      ),
+    );
     // );
   }
 
@@ -56,73 +55,81 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return SafeArea(
       child: Scaffold(
-        body: BlocConsumer<SignUpCubit, SignUpState>(builder: (context, state) {
-          return Stack(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                color: Colors.white,
-                height: config.AppConfig(context).appHeight(100),
-                width: config.AppConfig(context).appWidth(100),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(
+        body: BlocConsumer<SignUpCubit, SignUpState>(
+          builder: (context, state) {
+            return Stack(
+              children: [
+                Container(
+                  alignment: Alignment.center,
+                  color: const Color(0xFFFFFBF7),
+                  height: config.AppConfig(context).appHeight(100),
+                  width: config.AppConfig(context).appWidth(100),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.only(
                         top: config.AppConfig(context).appHeight(2),
                         left: config.AppConfig(context).appWidth(5),
-                        right: config.AppConfig(context).appWidth(5)),
-                    child: Container(
-                      alignment: Alignment.center,
-                      width: config.AppConfig(context).appWidth(90),
-                      child: Padding(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          children: [
-                            Container(
-                              alignment: Alignment.centerLeft,
-                              child: InkWell(
-                                onTap: () {
-                                  navigatorKey.currentState!.pop();
-                                },
-                                child: Icon(
-                                  Icons.arrow_back_ios,
-                                  color: Theme.of(context).primaryColorDark,
-                                  size: config.AppConfig(context).appWidth(5),
+                        right: config.AppConfig(context).appWidth(5),
+                      ),
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: config.AppConfig(context).appWidth(90),
+                        child: Padding(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: InkWell(
+                                  onTap: () {
+                                    navigatorKey.currentState!.pop();
+                                  },
+                                  child: Icon(
+                                    Icons.arrow_back_ios,
+                                    color: Theme.of(context).primaryColorDark,
+                                    size: config.AppConfig(context).appWidth(5),
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            Column(
-                              children: [
-                                Image.asset(
-                                  'assets/img/logo.png',
-                                  fit: BoxFit.contain,
-                                  height:
-                                      config.AppConfig(context).appHeight(15),
-                                  width: config.AppConfig(context).appWidth(70),
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(2),
-                                ),
-                                Text(
-                                  'Create Account',
-                                  style: TextStyle(
+                              SizedBox(
+                                height: config.AppConfig(context).appHeight(2),
+                              ),
+                              Column(
+                                children: [
+                                  Image.asset(
+                                    'assets/img/logo.png',
+                                    fit: BoxFit.contain,
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(15),
+                                    width: config.AppConfig(
+                                      context,
+                                    ).appWidth(70),
+                                  ),
+                                  SizedBox(
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
+                                  ),
+                                  Text(
+                                    'Create Account',
+                                    style: TextStyle(
                                       color: Theme.of(context).primaryColorDark,
                                       fontSize: 30,
-                                      fontWeight: config.FontFamily().demi),
-                                ),
-                                SizedBox(
-                                  height:
-                                      config.AppConfig(context).appHeight(1),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(4),
-                            ),
-                            Column(
+                                      fontWeight: config.FontFamily().demi,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(1),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: config.AppConfig(context).appHeight(4),
+                              ),
+                              Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -133,21 +140,26 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                     children: [
                                       Container(
                                         padding: EdgeInsets.only(
-                                            left: config.AppConfig(context)
-                                                .appWidth(1.0)),
+                                          left: config.AppConfig(
+                                            context,
+                                          ).appWidth(1.0),
+                                        ),
                                         child: Text(
                                           'Sign up as',
                                           style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .primaryColorDark,
-                                              fontSize: 18,
-                                              fontWeight:
-                                                  config.FontFamily().book),
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColorDark,
+                                            fontSize: 18,
+                                            fontWeight:
+                                                config.FontFamily().book,
+                                          ),
                                         ),
                                       ),
                                       SizedBox(
-                                        height: config.AppConfig(context)
-                                            .appHeight(1),
+                                        height: config.AppConfig(
+                                          context,
+                                        ).appHeight(1),
                                       ),
                                       Row(
                                         mainAxisAlignment:
@@ -162,22 +174,25 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                 context
                                                     .read<SignUpCubit>()
                                                     .onRoleChanged(
-                                                        role:
-                                                            AppConstants.FOODI);
+                                                      role: AppConstants.FOODI,
+                                                    );
                                               },
                                               child: Container(
                                                 alignment: Alignment.center,
                                                 decoration: BoxDecoration(
                                                   color: config.AppColors()
                                                       .textFieldBackgroundColor(
-                                                          1),
+                                                        1,
+                                                      ),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
                                                 child: Padding(
                                                   padding: EdgeInsets.all(
-                                                      config.AppConfig(context)
-                                                          .appWidth(2)),
+                                                    config.AppConfig(
+                                                      context,
+                                                    ).appWidth(2),
+                                                  ),
                                                   child: Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
@@ -192,70 +207,79 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                           children: [
                                                             Image.asset(
                                                               'assets/img/foodi.png',
-                                                              height: config
-                                                                      .AppConfig(
-                                                                          context)
-                                                                  .appHeight(3),
-                                                              width: config
-                                                                      .AppConfig(
-                                                                          context)
-                                                                  .appHeight(3),
+                                                              height:
+                                                                  config.AppConfig(
+                                                                    context,
+                                                                  ).appHeight(
+                                                                    3,
+                                                                  ),
+                                                              width:
+                                                                  config.AppConfig(
+                                                                    context,
+                                                                  ).appHeight(
+                                                                    3,
+                                                                  ),
                                                               fit: BoxFit
                                                                   .fitHeight,
                                                             ),
                                                             Text(
                                                               'mifoodi',
                                                               style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .primaryColorDark,
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      config.FontFamily()
-                                                                          .book),
+                                                                color: Theme.of(
+                                                                  context,
+                                                                ).primaryColorDark,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    config.FontFamily()
+                                                                        .book,
+                                                              ),
                                                             ),
                                                           ],
                                                         ),
                                                       ),
                                                       SizedBox(
                                                         width: config.AppConfig(
-                                                                context)
-                                                            .appWidth(3),
+                                                          context,
+                                                        ).appWidth(3),
                                                       ),
                                                       Expanded(
                                                         flex: 1,
                                                         child:
                                                             state.selectedRole ==
-                                                                    AppConstants
-                                                                        .FOODI
-                                                                ? Container(
-                                                                    decoration: BoxDecoration(
-                                                                        shape: BoxShape
-                                                                            .circle,
-                                                                        color: Theme.of(context)
-                                                                            .primaryColor),
-                                                                    child: Icon(
-                                                                      Icons
-                                                                          .done,
-                                                                      color: Colors
-                                                                          .white,
-                                                                      size: config.AppConfig(
-                                                                              context)
-                                                                          .appWidth(
-                                                                              5),
+                                                                AppConstants
+                                                                    .FOODI
+                                                            ? Container(
+                                                                decoration: BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  color: Theme.of(
+                                                                    context,
+                                                                  ).primaryColor,
+                                                                ),
+                                                                child: Icon(
+                                                                  Icons.done,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  size:
+                                                                      config.AppConfig(
+                                                                        context,
+                                                                      ).appWidth(
+                                                                        5,
+                                                                      ),
+                                                                ),
+                                                              )
+                                                            : Icon(
+                                                                Icons.circle,
+                                                                color: Colors
+                                                                    .white,
+                                                                size:
+                                                                    config.AppConfig(
+                                                                      context,
+                                                                    ).appWidth(
+                                                                      5,
                                                                     ),
-                                                                  )
-                                                                : Icon(
-                                                                    Icons
-                                                                        .circle,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    size: config.AppConfig(
-                                                                            context)
-                                                                        .appWidth(
-                                                                            5),
-                                                                  ),
-                                                      )
+                                                              ),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
@@ -263,8 +287,9 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                             ),
                                           ),
                                           SizedBox(
-                                            width: config.AppConfig(context)
-                                                .appWidth(2),
+                                            width: config.AppConfig(
+                                              context,
+                                            ).appWidth(2),
                                           ),
                                           Expanded(
                                             flex: 1,
@@ -273,22 +298,25 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                 context
                                                     .read<SignUpCubit>()
                                                     .onRoleChanged(
-                                                        role:
-                                                            AppConstants.COOK);
+                                                      role: AppConstants.COOK,
+                                                    );
                                               },
                                               child: Container(
                                                 alignment: Alignment.center,
                                                 decoration: BoxDecoration(
                                                   color: config.AppColors()
                                                       .textFieldBackgroundColor(
-                                                          1),
+                                                        1,
+                                                      ),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
                                                 child: Padding(
                                                   padding: EdgeInsets.all(
-                                                      config.AppConfig(context)
-                                                          .appWidth(2)),
+                                                    config.AppConfig(
+                                                      context,
+                                                    ).appWidth(2),
+                                                  ),
                                                   child: Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
@@ -303,70 +331,79 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                           children: [
                                                             Image.asset(
                                                               'assets/img/cook.png',
-                                                              height: config
-                                                                      .AppConfig(
-                                                                          context)
-                                                                  .appHeight(3),
-                                                              width: config
-                                                                      .AppConfig(
-                                                                          context)
-                                                                  .appHeight(3),
+                                                              height:
+                                                                  config.AppConfig(
+                                                                    context,
+                                                                  ).appHeight(
+                                                                    3,
+                                                                  ),
+                                                              width:
+                                                                  config.AppConfig(
+                                                                    context,
+                                                                  ).appHeight(
+                                                                    3,
+                                                                  ),
                                                               fit: BoxFit
                                                                   .fitHeight,
                                                             ),
                                                             Text(
                                                               'micook',
                                                               style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .primaryColorDark,
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      config.FontFamily()
-                                                                          .book),
+                                                                color: Theme.of(
+                                                                  context,
+                                                                ).primaryColorDark,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    config.FontFamily()
+                                                                        .book,
+                                                              ),
                                                             ),
                                                           ],
                                                         ),
                                                       ),
                                                       SizedBox(
                                                         width: config.AppConfig(
-                                                                context)
-                                                            .appWidth(3),
+                                                          context,
+                                                        ).appWidth(3),
                                                       ),
                                                       Expanded(
                                                         flex: 1,
                                                         child:
                                                             state.selectedRole ==
-                                                                    AppConstants
-                                                                        .COOK
-                                                                ? Container(
-                                                                    decoration: BoxDecoration(
-                                                                        shape: BoxShape
-                                                                            .circle,
-                                                                        color: Theme.of(context)
-                                                                            .primaryColor),
-                                                                    child: Icon(
-                                                                      Icons
-                                                                          .done,
-                                                                      color: Colors
-                                                                          .white,
-                                                                      size: config.AppConfig(
-                                                                              context)
-                                                                          .appWidth(
-                                                                              5),
+                                                                AppConstants
+                                                                    .COOK
+                                                            ? Container(
+                                                                decoration: BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  color: Theme.of(
+                                                                    context,
+                                                                  ).primaryColor,
+                                                                ),
+                                                                child: Icon(
+                                                                  Icons.done,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  size:
+                                                                      config.AppConfig(
+                                                                        context,
+                                                                      ).appWidth(
+                                                                        5,
+                                                                      ),
+                                                                ),
+                                                              )
+                                                            : Icon(
+                                                                Icons.circle,
+                                                                color: Colors
+                                                                    .white,
+                                                                size:
+                                                                    config.AppConfig(
+                                                                      context,
+                                                                    ).appWidth(
+                                                                      5,
                                                                     ),
-                                                                  )
-                                                                : Icon(
-                                                                    Icons
-                                                                        .circle,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    size: config.AppConfig(
-                                                                            context)
-                                                                        .appWidth(
-                                                                            5),
-                                                                  ),
-                                                      )
+                                                              ),
+                                                      ),
                                                     ],
                                                   ),
                                                 ),
@@ -374,40 +411,37 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                             ),
                                           ),
                                         ],
-                                      )
+                                      ),
                                     ],
                                   ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _FirstName(
-                                    loginForm: this,
-                                  ),
+                                  _FirstName(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _LastName(
-                                    loginForm: this,
-                                  ),
+                                  _LastName(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _Email(
-                                    loginForm: this,
-                                  ),
+                                  _Email(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
-                                  _PhoneNo(
-                                    loginForm: this,
-                                  ),
+                                  _PhoneNo(loginForm: this),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
                                   Container(
                                     alignment: Alignment.center,
@@ -433,56 +467,63 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                             : null,
 
                                         hintStyle: TextStyle(
-                                            color: Theme.of(context).hintColor,
-                                            fontSize: 16,
-                                            fontWeight:
-                                                config.FontFamily().book),
+                                          color: Theme.of(context).hintColor,
+                                          fontSize: 16,
+                                          fontWeight: config.FontFamily().book,
+                                        ),
                                         // labelText: 'Mobile Number',
                                         hintText: 'Address',
 
                                         contentPadding: EdgeInsets.symmetric(
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(5),
-                                            vertical: config.AppConfig(context)
-                                                .appWidth(3)),
+                                          horizontal: config.AppConfig(
+                                            context,
+                                          ).appWidth(5),
+                                          vertical: config.AppConfig(
+                                            context,
+                                          ).appWidth(3),
+                                        ),
                                         fillColor: config.AppColors()
                                             .textFieldBackgroundColor(1),
                                         filled: true,
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         border: InputBorder.none,
                                         disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
                                           borderSide: const BorderSide(
-                                            color: Colors.white,
+                                            color: const Color(0xFFFFFBF7),
                                           ),
                                         ),
                                       ),
@@ -490,203 +531,202 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                   ),
 
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
 
                                   TextFormField(
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                      ),
-                                      obscureText: state.showPassword,
-                                      textInputAction: TextInputAction.next,
-                                      keyboardType:
-                                          TextInputType.visiblePassword,
-                                      onChanged: (text) {
-                                        context
-                                            .read<SignUpCubit>()
-                                            .onPasswordChanged(value: text);
-                                        context
-                                            .read<SignUpCubit>()
-                                            .onConfirmPasswordChanged(context
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                    ),
+                                    obscureText: state.showPassword,
+                                    textInputAction: TextInputAction.next,
+                                    keyboardType: TextInputType.visiblePassword,
+                                    onChanged: (text) {
+                                      context
+                                          .read<SignUpCubit>()
+                                          .onPasswordChanged(value: text);
+                                      context
+                                          .read<SignUpCubit>()
+                                          .onConfirmPasswordChanged(
+                                            context
                                                 .read<SignUpCubit>()
                                                 .state
                                                 .confirmPassword
-                                                .value['confirmPassword']);
-                                      },
-                                      maxLength: 50,
-                                      decoration: InputDecoration(
-                                        errorText: state.password.invalid
-                                            ? 'Please enter a valid password'
-                                            : null,
-                                        counterText: '',
-                                        suffixIcon: IconButton(
-                                          onPressed: () {
-                                            context
-                                                .read<SignUpCubit>()
-                                                .showPassword();
-                                          },
-                                          color: Colors.white,
-                                          icon: Icon(
-                                            !state.showPassword
-                                                ? Icons.visibility
-                                                : Icons.visibility_off,
-                                            color: Theme.of(context)
-                                                .primaryColorLight,
-                                          ),
+                                                .value['confirmPassword'],
+                                          );
+                                    },
+                                    maxLength: 50,
+                                    decoration: InputDecoration(
+                                      errorText: state.password.invalid
+                                          ? 'Please enter a valid password'
+                                          : null,
+                                      counterText: '',
+                                      suffixIcon: IconButton(
+                                        onPressed: () {
+                                          context
+                                              .read<SignUpCubit>()
+                                              .showPassword();
+                                        },
+                                        color: const Color(0xFFFFFBF7),
+                                        icon: Icon(
+                                          !state.showPassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorLight,
                                         ),
-                                        hintStyle: TextStyle(
-                                            color: Theme.of(context).hintColor,
-                                            fontSize: 16,
-                                            fontWeight:
-                                                config.FontFamily().book),
-                                        hintText: 'Password',
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(5),
-                                            vertical: config.AppConfig(context)
-                                                .appWidth(3)),
-                                        fillColor: config.AppColors()
-                                            .textFieldBackgroundColor(1),
-                                        filled: true,
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      hintStyle: TextStyle(
+                                        color: Theme.of(context).hintColor,
+                                        fontSize: 16,
+                                        fontWeight: config.FontFamily().book,
+                                      ),
+                                      hintText: 'Password',
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: config.AppConfig(
+                                          context,
+                                        ).appWidth(5),
+                                        vertical: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                      ),
+                                      fillColor: config.AppColors()
+                                          .textFieldBackgroundColor(1),
+                                      filled: true,
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        border: InputBorder.none,
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      border: InputBorder.none,
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
                                       ),
                                     ),
+                                  ),
 
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
 
                                   TextFormField(
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 16,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                    ),
+                                    obscureText: state.showConfirmPassword,
+                                    textInputAction: TextInputAction.next,
+                                    keyboardType: TextInputType.visiblePassword,
+                                    onChanged: (text) {
+                                      context
+                                          .read<SignUpCubit>()
+                                          .onConfirmPasswordChanged(text);
+                                    },
+                                    maxLength: 50,
+                                    decoration: InputDecoration(
+                                      errorText: state.confirmPassword.invalid
+                                          ? 'Please enter a valid password'
+                                          : null,
+                                      counterText: '',
+                                      suffixIcon: IconButton(
+                                        onPressed: () {
+                                          context
+                                              .read<SignUpCubit>()
+                                              .showConfirmPassword();
+                                        },
+                                        color: const Color(0xFFFFFBF7),
+                                        icon: Icon(
+                                          !state.showConfirmPassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorLight,
+                                        ),
                                       ),
-                                      obscureText: state.showConfirmPassword,
-                                      textInputAction: TextInputAction.next,
-                                      keyboardType:
-                                          TextInputType.visiblePassword,
-                                      onChanged: (text) {
-                                        context
-                                            .read<SignUpCubit>()
-                                            .onConfirmPasswordChanged(text);
-                                      },
-                                      maxLength: 50,
-                                      decoration: InputDecoration(
-                                        errorText: state.confirmPassword.invalid
-                                            ? 'Please enter a valid password'
-                                            : null,
-                                        counterText: '',
-                                        suffixIcon: IconButton(
-                                          onPressed: () {
-                                            context
-                                                .read<SignUpCubit>()
-                                                .showConfirmPassword();
-                                          },
-                                          color: Colors.white,
-                                          icon: Icon(
-                                            !state.showConfirmPassword
-                                                ? Icons.visibility
-                                                : Icons.visibility_off,
-                                            color: Theme.of(context)
-                                                .primaryColorLight,
-                                          ),
+                                      hintStyle: TextStyle(
+                                        color: Theme.of(context).hintColor,
+                                        fontSize: 16,
+                                        fontWeight: config.FontFamily().book,
+                                      ),
+                                      hintText: 'Confirm Password',
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: config.AppConfig(
+                                          context,
+                                        ).appWidth(5),
+                                        vertical: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                      ),
+                                      fillColor: config.AppColors()
+                                          .textFieldBackgroundColor(1),
+                                      filled: true,
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        hintStyle: TextStyle(
-                                            color: Theme.of(context).hintColor,
-                                            fontSize: 16,
-                                            fontWeight:
-                                                config.FontFamily().book),
-                                        hintText: 'Confirm Password',
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal:
-                                                config.AppConfig(context)
-                                                    .appWidth(5),
-                                            vertical: config.AppConfig(context)
-                                                .appWidth(3)),
-                                        fillColor: config.AppColors()
-                                            .textFieldBackgroundColor(1),
-                                        filled: true,
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      border: InputBorder.none,
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        border: InputBorder.none,
-                                        focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
-                                        disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          borderSide: const BorderSide(
-                                            color: Colors.white,
-                                          ),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: const BorderSide(
+                                          color: const Color(0xFFFFFBF7),
                                         ),
                                       ),
                                     ),
+                                  ),
 
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(2),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
                                   ),
                                   // Text(
                                   //   ' Forgot password?',
@@ -696,35 +736,39 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                   //       color: Theme.of(context).primaryColor),
                                   // ),
                                   SizedBox(
-                                    height:
-                                        config.AppConfig(context).appHeight(3),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(3),
                                   ),
-                                  _LoginButton(
-                                    loginForm: this,
-                                  ),
+                                  _LoginButton(loginForm: this),
                                   SizedBox(
-                                    height: config.AppConfig(context)
-                                        .appHeight(4.5),
+                                    height: config.AppConfig(
+                                      context,
+                                    ).appHeight(4.5),
                                   ),
-                                ]),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              state.statusApi!.isSubmissionInProgress
-                  ? const CommonProgressWidget()
-                  : const SizedBox(),
-            ],
-          );
-        }, listener: (context, state) async {
-          if (state.statusApi!.isSubmissionFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.serverMessage)));
-          }
-        }),
+                state.statusApi!.isSubmissionInProgress
+                    ? const CommonProgressWidget()
+                    : const SizedBox(),
+              ],
+            );
+          },
+          listener: (context, state) async {
+            if (state.statusApi!.isSubmissionFailure) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.serverMessage)));
+            }
+          },
+        ),
       ),
     );
   }
@@ -742,81 +786,85 @@ class _Email extends StatefulWidget {
 class _EmailState extends State<_Email> {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraint) {
-      return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.loginForm!.mobileNoTextEditor,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-            ),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 55,
-            onChanged: (text) {
-              context.read<SignUpCubit>().onEmailChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.email!.invalid ? 'Please enter a valid email id' : null,
+    return LayoutBuilder(
+      builder: (context, constraint) {
+        return BlocBuilder<SignUpCubit, SignUpState>(
+          builder: (context, state) {
+            return Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.zero,
+              child: TextFormField(
+                controller: widget.loginForm!.mobileNoTextEditor,
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.name,
+                maxLength: 55,
+                onChanged: (text) {
+                  context.read<SignUpCubit>().onEmailChanged(value: text);
+                },
+                decoration: InputDecoration(
+                  counterText: '',
+                  errorText: state.email!.invalid
+                      ? 'Please enter a valid email id'
+                      : null,
 
-              suffixIcon: state.email!.valid
-                  ? Icon(
-                      Icons.check_circle_outline,
-                      color: Theme.of(context).primaryColor,
-                    )
-                  : const SizedBox(),
-              hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
-                  fontWeight: config.FontFamily().book),
-              // labelText: 'Mobile Number',
-              hintText: 'Email Address',
-              contentPadding: EdgeInsets.symmetric(
-                  horizontal: config.AppConfig(context).appWidth(5),
-                  vertical: config.AppConfig(context).appWidth(3)),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
+                  suffixIcon: state.email!.valid
+                      ? Icon(
+                          Icons.check_circle_outline,
+                          color: Theme.of(context).primaryColor,
+                        )
+                      : const SizedBox(),
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 16,
+                    fontWeight: config.FontFamily().book,
+                  ),
+                  // labelText: 'Mobile Number',
+                  hintText: 'Email Address',
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: config.AppConfig(context).appWidth(5),
+                    vertical: config.AppConfig(context).appWidth(3),
+                  ),
+                  fillColor: config.AppColors().textFieldBackgroundColor(1),
+                  filled: true,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: const BorderSide(
+                      color: const Color(0xFFFFFBF7),
+                    ),
+                  ),
                 ),
               ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+            );
+          },
         );
-      });
-    });
+      },
+    );
   }
 }
 
@@ -832,80 +880,71 @@ class _FirstName extends StatefulWidget {
 class _FirstNameState extends State<_FirstName> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          // controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 20,
-          onChanged: (text) {
-            context.read<SignUpCubit>().onFirstNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText: state.nameFirst!.invalid
-                ? 'Please enter a valid first name'
-                : null,
+    return BlocBuilder<SignUpCubit, SignUpState>(
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            // controller: widget.loginForm!.mobileNoTextEditor,
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 20,
+            onChanged: (text) {
+              context.read<SignUpCubit>().onFirstNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.nameFirst!.invalid
+                  ? 'Please enter a valid first name'
+                  : null,
 
-            // suffixIcon: state.email!.valid
-            //     ? Icon(
-            //   Icons.check_circle_outline,
-            //   color: Theme.of(context).primaryColor,
-            // )
-            //     : SizedBox(),
-            hintStyle: TextStyle(
+              // suffixIcon: state.email!.valid
+              //     ? Icon(
+              //   Icons.check_circle_outline,
+              //   color: Theme.of(context).primaryColor,
+              // )
+              //     : SizedBox(),
+              hintStyle: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontSize: 16,
-                fontWeight: config.FontFamily().book),
-            // labelText: 'Mobile Number',
-            hintText: 'First Name',
-            contentPadding: EdgeInsets.symmetric(
+                fontWeight: config.FontFamily().book,
+              ),
+              // labelText: 'Mobile Number',
+              hintText: 'First Name',
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(3)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                vertical: config.AppConfig(context).appWidth(3),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -921,80 +960,71 @@ class _LastName extends StatefulWidget {
 class _LastNameState extends State<_LastName> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.zero,
-        child: TextFormField(
-          // controller: widget.loginForm!.mobileNoTextEditor,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-          ),
-          textInputAction: TextInputAction.next,
-          keyboardType: TextInputType.name,
-          maxLength: 20,
-          onChanged: (text) {
-            context.read<SignUpCubit>().onLastNameChanged(value: text);
-          },
-          decoration: InputDecoration(
-            counterText: '',
-            errorText: state.nameLast!.invalid
-                ? 'Please enter a valid last name'
-                : null,
+    return BlocBuilder<SignUpCubit, SignUpState>(
+      builder: (context, state) {
+        return Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.zero,
+          child: TextFormField(
+            // controller: widget.loginForm!.mobileNoTextEditor,
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.name,
+            maxLength: 20,
+            onChanged: (text) {
+              context.read<SignUpCubit>().onLastNameChanged(value: text);
+            },
+            decoration: InputDecoration(
+              counterText: '',
+              errorText: state.nameLast!.invalid
+                  ? 'Please enter a valid last name'
+                  : null,
 
-            // suffixIcon: state.email!.valid
-            //     ? Icon(
-            //   Icons.check_circle_outline,
-            //   color: Theme.of(context).primaryColor,
-            // )
-            //     : SizedBox(),
-            hintStyle: TextStyle(
+              // suffixIcon: state.email!.valid
+              //     ? Icon(
+              //   Icons.check_circle_outline,
+              //   color: Theme.of(context).primaryColor,
+              // )
+              //     : SizedBox(),
+              hintStyle: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontSize: 16,
-                fontWeight: config.FontFamily().book),
-            // labelText: 'Mobile Number',
-            hintText: 'Last Name',
-            contentPadding: EdgeInsets.symmetric(
+                fontWeight: config.FontFamily().book,
+              ),
+              // labelText: 'Mobile Number',
+              hintText: 'Last Name',
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(3)),
-            fillColor: config.AppColors().textFieldBackgroundColor(1),
-            filled: true,
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+                vertical: config.AppConfig(context).appWidth(3),
               ),
-            ),
-            border: InputBorder.none,
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              fillColor: config.AppColors().textFieldBackgroundColor(1),
+              filled: true,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              border: InputBorder.none,
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(
-                color: Colors.white,
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -1027,88 +1057,103 @@ class _PhoneNoState extends State<_PhoneNo> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SignUpCubit, SignUpState>(builder: (context, state) {
-      return Row(
-        children: [
-          SizedBox(
-            width: config.AppConfig(context).appWidth(22),
-            child: TextFormField(
-              controller: _countryCodeController,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-              ],
-              maxLength: 5,
-              onChanged: (value) {
-                context.read<SignUpCubit>().onCountryCodeChanged(
-                      value: value,
-                      localNumber: _phoneController.text,
-                    );
-              },
-              decoration: _phoneInputDecoration(context,
-                  hintText: '+61', showError: state.phone.invalid),
+    return BlocBuilder<SignUpCubit, SignUpState>(
+      builder: (context, state) {
+        return Row(
+          children: [
+            SizedBox(
+              width: config.AppConfig(context).appWidth(22),
+              child: TextFormField(
+                controller: _countryCodeController,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
+                maxLength: 5,
+                onChanged: (value) {
+                  context.read<SignUpCubit>().onCountryCodeChanged(
+                    value: value,
+                    localNumber: _phoneController.text,
+                  );
+                },
+                decoration: _phoneInputDecoration(
+                  context,
+                  hintText: '+61',
+                  showError: state.phone.invalid,
+                ),
+              ),
             ),
-          ),
-          SizedBox(width: config.AppConfig(context).appWidth(3)),
-          Expanded(
-            child: TextFormField(
-              controller: _phoneController,
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              textInputAction: TextInputAction.next,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              maxLength: 14,
-              onChanged: (text) {
-                context.read<SignUpCubit>().onPhoneChanged(
+            SizedBox(width: config.AppConfig(context).appWidth(3)),
+            Expanded(
+              child: TextFormField(
+                controller: _phoneController,
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 14,
+                onChanged: (text) {
+                  context.read<SignUpCubit>().onPhoneChanged(
                     value: InternationalPhone.compose(
-                        countryCode: _countryCodeController.text,
-                        number: text));
-              },
-              decoration: _phoneInputDecoration(context,
-                  hintText: 'Phone', showError: state.phone.invalid),
+                      countryCode: _countryCodeController.text,
+                      number: text,
+                    ),
+                  );
+                },
+                decoration: _phoneInputDecoration(
+                  context,
+                  hintText: 'Phone',
+                  showError: state.phone.invalid,
+                ),
+              ),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 
-  InputDecoration _phoneInputDecoration(BuildContext context,
-      {required String hintText, required bool showError}) {
+  InputDecoration _phoneInputDecoration(
+    BuildContext context, {
+    required String hintText,
+    required bool showError,
+  }) {
     return InputDecoration(
       counterText: '',
       errorText: showError ? 'Enter valid country code and phone no' : null,
       hintStyle: TextStyle(
-          color: Theme.of(context).hintColor,
-          fontSize: 16,
-          fontWeight: config.FontFamily().book),
+        color: Theme.of(context).hintColor,
+        fontSize: 16,
+        fontWeight: config.FontFamily().book,
+      ),
       hintText: hintText,
       contentPadding: EdgeInsets.symmetric(
-          horizontal: config.AppConfig(context).appWidth(5),
-          vertical: config.AppConfig(context).appWidth(3)),
+        horizontal: config.AppConfig(context).appWidth(5),
+        vertical: config.AppConfig(context).appWidth(3),
+      ),
       fillColor: config.AppColors().textFieldBackgroundColor(1),
       filled: true,
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       border: InputBorder.none,
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
       ),
     );
   }
@@ -1129,39 +1174,42 @@ class _LoginButton extends StatelessWidget {
             : Container(
                 height: 45,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.topRight,
-                      colors: state.status!.isValidated
-                          ? [
-                              Theme.of(context).primaryColor,
-                              Theme.of(context).primaryColor,
-                            ]
-                          : [
-                              Theme.of(context).primaryColorLight,
-                              Theme.of(context).primaryColorLight,
-                            ],
-                    )),
+                  borderRadius: BorderRadius.circular(20.0),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.topRight,
+                    colors: state.status!.isValidated
+                        ? [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor,
+                          ]
+                        : [
+                            Theme.of(context).primaryColorLight,
+                            Theme.of(context).primaryColorLight,
+                          ],
+                  ),
+                ),
                 child: MaterialButton(
-                    minWidth: config.AppConfig(context).appWidth(100),
-                    height: 50.0,
-                    onPressed: () {
-                      // navigatorKey.currentState!.popAndPushNamed('/OTPPage',
-                      //     arguments: RouteArguments(
-                      //         id: '1',
-                      //         role: 1));
-                      if (state.status!.isValidated) {
-                        context.read<SignUpCubit>().onSignUp();
-                      }
-                    },
-                    child: Text(
-                      'NEXT',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: config.FontFamily().book),
-                    )),
+                  minWidth: config.AppConfig(context).appWidth(100),
+                  height: 50.0,
+                  onPressed: () {
+                    // navigatorKey.currentState!.popAndPushNamed('/OTPPage',
+                    //     arguments: RouteArguments(
+                    //         id: '1',
+                    //         role: 1));
+                    if (state.status!.isValidated) {
+                      context.read<SignUpCubit>().onSignUp();
+                    }
+                  },
+                  child: Text(
+                    'NEXT',
+                    style: TextStyle(
+                      color: const Color(0xFFFFFBF7),
+                      fontSize: 18,
+                      fontWeight: config.FontFamily().book,
+                    ),
+                  ),
+                ),
               );
       },
     );

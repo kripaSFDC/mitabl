@@ -40,25 +40,25 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 state.pathFiles.isNotEmpty
                     ? SizedBox(
                         height: config.AppConfig(context).appHeight(20),
                         child: PageView.builder(
                           controller: controller,
                           onPageChanged: (page) {
-                            context
-                                .read<ProfileCookCubit>()
-                                .onImageScroll(index: page);
+                            context.read<ProfileCookCubit>().onImageScroll(
+                              index: page,
+                            );
                           },
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal:
-                                      config.AppConfig(context).appWidth(2)),
+                                horizontal: config.AppConfig(
+                                  context,
+                                ).appWidth(2),
+                              ),
                               child: Container(
                                 height: config.AppConfig(context).appHeight(20),
                                 width: config.AppConfig(context).appWidth(85),
@@ -66,7 +66,8 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                   color: config.AppColors()
                                       .textFieldBackgroundColor(1),
                                   borderRadius: BorderRadius.circular(
-                                      config.AppConfig(context).appWidth(5)),
+                                    config.AppConfig(context).appWidth(5),
+                                  ),
                                 ),
                                 alignment: Alignment.center,
                                 child: CachedNetworkImage(
@@ -82,20 +83,19 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     : Container(
                         height: config.AppConfig(context).appHeight(20),
                         decoration: BoxDecoration(
-                            color:
-                                config.AppColors().textFieldBackgroundColor(1),
-                            borderRadius: BorderRadius.circular(
-                                config.AppConfig(context).appWidth(5))),
+                          color: config.AppColors().textFieldBackgroundColor(1),
+                          borderRadius: BorderRadius.circular(
+                            config.AppConfig(context).appWidth(5),
+                          ),
+                        ),
                         alignment: Alignment.center,
                         child: Icon(
                           Icons.photo_outlined,
                           size: config.AppConfig(context).appWidth(30),
-                          color: Colors.grey,
+                          color: const Color(0xFF9CA3AF),
                         ),
                       ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 state.pathFiles.isNotEmpty
                     ? Container(
                         alignment: Alignment.center,
@@ -113,19 +113,18 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                             return Container(
                               width: config.AppConfig(context).appWidth(2),
                               decoration: BoxDecoration(
-                                  color: state.selectedPage == index
-                                      ? Colors.blue
-                                      : Colors.grey,
-                                  shape: BoxShape.circle),
+                                color: state.selectedPage == index
+                                    ? Colors.blue
+                                    : const Color(0xFF9CA3AF),
+                                shape: BoxShape.circle,
+                              ),
                             );
                           },
                           itemCount: state.pathFiles.length,
                         ),
                       )
                     : const SizedBox(),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -134,49 +133,52 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                           ? 'Your account is activated.'
                           : 'Your account is inactive.',
                       style: GoogleFonts.gothicA1(
-                          color: state.cookProfile!.data!.kitchen!.status == '1'
-                              ? Colors.lightGreen
-                              : Colors.red,
-                          fontSize: config.AppConfig(context).appWidth(4)),
+                        color: state.cookProfile!.data!.kitchen!.status == '1'
+                            ? Colors.lightGreen
+                            : Colors.red,
+                        fontSize: config.AppConfig(context).appWidth(4),
+                      ),
                     ),
                     state.cookProfile!.data!.kitchen!.status == '0'
                         ? Container(
                             height: config.AppConfig(context).appHeight(4),
                             width: config.AppConfig(context).appWidth(30),
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.topRight,
-                                  colors: [
-                                    Theme.of(context).primaryColor,
-                                    Theme.of(context).primaryColor,
-                                  ],
-                                )),
+                              borderRadius: BorderRadius.circular(20.0),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.topRight,
+                                colors: [
+                                  Theme.of(context).primaryColor,
+                                  Theme.of(context).primaryColor,
+                                ],
+                              ),
+                            ),
                             child: MaterialButton(
-                                height: config.AppConfig(context).appHeight(6),
-                                minWidth:
-                                    config.AppConfig(context).appWidth(100),
-                                onPressed: () {},
-                                child: Text(
-                                  'Activate',
-                                  style: GoogleFonts.gothicA1(
-                                      fontSize: config.AppConfig(context)
-                                          .appWidth(3.5),
-                                      color: Colors.white),
-                                )),
+                              height: config.AppConfig(context).appHeight(6),
+                              minWidth: config.AppConfig(context).appWidth(100),
+                              onPressed: () {},
+                              child: Text(
+                                'Activate',
+                                style: GoogleFonts.gothicA1(
+                                  fontSize: config.AppConfig(
+                                    context,
+                                  ).appWidth(3.5),
+                                  color: const Color(0xFFFFFBF7),
+                                ),
+                              ),
+                            ),
                           )
-                        : const SizedBox()
+                        : const SizedBox(),
                   ],
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
                 Text(
                   state.cookProfile!.data!.kitchen!.name.toString(),
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4)),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -188,8 +190,9 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 Text(
                   state.cookProfile!.data!.kitchen!.address.toString(),
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4)),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -201,8 +204,9 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 Text(
                   state.cookProfile!.data!.kitchen!.phone.toString(),
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4)),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -214,8 +218,9 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 Text(
                   state.cookProfile!.data!.kitchen!.noOfSeats.toString(),
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4)),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -227,8 +232,9 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 Text(
                   state.cookProfile!.data!.kitchen!.description ?? '-',
                   style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(4)),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: config.AppConfig(context).appWidth(4),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -257,7 +263,11 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Checkbox(
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
-                                  value: state.cookProfile!.data!.kitchen!
+                                  value:
+                                      state
+                                              .cookProfile!
+                                              .data!
+                                              .kitchen!
                                               .dineIn ==
                                           1
                                       ? true
@@ -267,9 +277,11 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Text(
                                   'Dine-in',
                                   style: GoogleFonts.gothicA1(
-                                      fontSize: config.AppConfig(context)
-                                          .appHeight(2),
-                                      color: Colors.grey),
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
+                                    color: const Color(0xFF9CA3AF),
+                                  ),
                                 ),
                               ],
                             ),
@@ -280,9 +292,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: config.AppConfig(context).appWidth(3),
-                    ),
+                    SizedBox(width: config.AppConfig(context).appWidth(3)),
                     Container(
                       width: config.AppConfig(context).appWidth(45),
                       alignment: Alignment.center,
@@ -300,7 +310,11 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Checkbox(
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
-                                  value: state.cookProfile!.data!.kitchen!
+                                  value:
+                                      state
+                                              .cookProfile!
+                                              .data!
+                                              .kitchen!
                                               .takeAway ==
                                           1
                                       ? true
@@ -310,9 +324,11 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Text(
                                   'Takeaway',
                                   style: GoogleFonts.gothicA1(
-                                      fontSize: config.AppConfig(context)
-                                          .appHeight(2),
-                                      color: Colors.grey),
+                                    fontSize: config.AppConfig(
+                                      context,
+                                    ).appHeight(2),
+                                    color: const Color(0xFF9CA3AF),
+                                  ),
                                 ),
                               ],
                             ),
@@ -322,17 +338,16 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Available',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4)),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4),
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -342,31 +357,30 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Timings:',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4)),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4),
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     InkWell(
                       onTap: () {
-
                         showDialog(
-                            context: context,
-                            builder: (contexts) {
-                              return BlocProvider.value(
-                                value: context.read<ProfileCookCubit>(),
-                                child: TimingViewDialog(),
-                              );
-                            });
+                          context: context,
+                          builder: (contexts) {
+                            return BlocProvider.value(
+                              value: context.read<ProfileCookCubit>(),
+                              child: TimingViewDialog(),
+                            );
+                          },
+                        );
                       },
                       child: Icon(
                         Icons.access_time_rounded,
@@ -375,9 +389,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 // Text(
                 //   'Verification Details',
                 //   style: GoogleFonts.gothicA1(
@@ -443,28 +455,29 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     Text(
                       'Customer reviews',
                       style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4)),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: config.AppConfig(context).appWidth(4),
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     InkWell(
                       onTap: () {
                         navigatorKey.currentState!.pushNamed(
-                            '/CustomerReviewPage',
-                            arguments: RouteArguments(
-                                kitchen: state.cookProfile!.data!.kitchen!));
+                          '/CustomerReviewPage',
+                          arguments: RouteArguments(
+                            kitchen: state.cookProfile!.data!.kitchen!,
+                          ),
+                        );
                       },
                       child: SvgPicture.asset(
                         'assets/img/next.svg',
                         height: config.AppConfig(context).appHeight(3),
                       ),
-                    )
+                    ),
                   ],
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(3),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
                 Align(
                   alignment: Alignment.center,
                   child: Container(
@@ -472,42 +485,47 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                     height: config.AppConfig(context).appHeight(6),
                     width: config.AppConfig(context).appWidth(80),
                     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.topRight,
-                          colors: [
-                            Theme.of(context).primaryColor,
-                            Theme.of(context).primaryColor,
-                          ],
-                        )),
+                      borderRadius: BorderRadius.circular(20.0),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.topRight,
+                        colors: [
+                          Theme.of(context).primaryColor,
+                          Theme.of(context).primaryColor,
+                        ],
+                      ),
+                    ),
                     child: MaterialButton(
-                        height: config.AppConfig(context).appHeight(6),
-                        minWidth: config.AppConfig(context).appWidth(100),
-                        onPressed: () {
-                          navigatorKey.currentState!
-                              .pushNamed('/EditKitchenProfile',
-                                  arguments: RouteArguments(
-                                      kitchen:
-                                          state.cookProfile!.data!.kitchen!))
-                              .then((value) {
-                            if (!context.mounted) return;
-                            if (value != null && value == true) {
-                              context.read<ProfileCookCubit>().getCookProfile();
-                            }
-                          });
-                        },
-                        child: Text(
-                          'Edit Info',
-                          style: GoogleFonts.gothicA1(
-                              fontSize: config.AppConfig(context).appWidth(3.5),
-                              color: Colors.white),
-                        )),
+                      height: config.AppConfig(context).appHeight(6),
+                      minWidth: config.AppConfig(context).appWidth(100),
+                      onPressed: () {
+                        navigatorKey.currentState!
+                            .pushNamed(
+                              '/EditKitchenProfile',
+                              arguments: RouteArguments(
+                                kitchen: state.cookProfile!.data!.kitchen!,
+                              ),
+                            )
+                            .then((value) {
+                              if (!context.mounted) return;
+                              if (value != null && value == true) {
+                                context
+                                    .read<ProfileCookCubit>()
+                                    .getCookProfile();
+                              }
+                            });
+                      },
+                      child: Text(
+                        'Edit Info',
+                        style: GoogleFonts.gothicA1(
+                          fontSize: config.AppConfig(context).appWidth(3.5),
+                          color: const Color(0xFFFFFBF7),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: config.AppConfig(context).appHeight(2),
-                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
               ],
             ),
           ),

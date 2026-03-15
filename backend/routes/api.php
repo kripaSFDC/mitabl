@@ -58,13 +58,13 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
 // Mobile app version gate — no auth required.
 // Returns minimum/latest version info for the update check dialog.
 Route::get('/app/version', [AppVersionController::class, 'show'])
-    ->middleware('throttle:60,1');
+    ->middleware('throttle:public-api');
 
-Route::post('login', [UserController::class, 'login'])->middleware('throttle:10,1');
-Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:30,1');
+Route::post('login', [UserController::class, 'login'])->middleware('throttle:mobile-login');
+Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:mobile-token-refresh');
 Route::post('register', [UserController::class, 'register']);
-Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:10,1');
-Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:5,1');
+Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:mobile-verify-otp');
+Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:mobile-resend-otp');
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);

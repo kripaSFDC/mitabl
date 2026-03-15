@@ -56,8 +56,9 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response =
-          await userRepository.switchRole(roleId: AppConstants.FOODI);
+      final response = await userRepository.switchRole(
+        roleId: AppConstants.FOODI,
+      );
       if (!mounted) return false;
 
       if (response.statusCode == 200) {
@@ -73,15 +74,18 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
           fallbackMessage: 'mifoodi profile is not available for this account.',
         );
 
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } catch (_) {
       if (!mounted || silent) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Unable to switch profile right now. Please try again.')),
+          content: Text(
+            'Unable to switch profile right now. Please try again.',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -98,8 +102,9 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
       final userRepository = context.read<UserRepository>();
       final userModel =
           userRepository.currentUser ?? await userRepository.getUser();
-      final records =
-          await _repository.fetchOrdersHistory(userModel: userModel);
+      final records = await _repository.fetchOrdersHistory(
+        userModel: userModel,
+      );
       if (!mounted) return;
       setState(() {
         _orders = records;
@@ -142,40 +147,41 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
         _ViewStatus.forbidden => _SwitchToMifoodiCta(
-            onPressed: _switchToMifoodi,
-            isLoading: _switchingRole,
-          ),
+          onPressed: _switchToMifoodi,
+          isLoading: _switchingRole,
+        ),
         _ViewStatus.serverError => _ServerErrorWidget(
-            message: _errorMessage,
-            onRetry: _load,
-          ),
-        _ViewStatus.loaded => _orders.isEmpty
-            ? const NoDataWidget()
-            : ListView.separated(
-                itemCount: _orders.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final order = _orders[index];
-                  final title = _orderTitle(order, index);
-                  final subtitle = _orderSubtitle(order);
-                  final statusLabel = _statusLabel(order['status']);
-                  final canCancel = _canCancel(order);
-                  return ListTile(
-                    title: Text(title),
-                    subtitle: Text(subtitle),
-                    trailing: canCancel
-                        ? TextButton(
-                            onPressed: _isCancellingOrder
-                                ? null
-                                : () => _cancelOrder(order),
-                            child: Text(
-                              _isCancellingOrder ? 'Cancelling...' : 'Cancel',
-                            ),
-                          )
-                        : Text(statusLabel),
-                  );
-                },
-              ),
+          message: _errorMessage,
+          onRetry: _load,
+        ),
+        _ViewStatus.loaded =>
+          _orders.isEmpty
+              ? const NoDataWidget()
+              : ListView.separated(
+                  itemCount: _orders.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final order = _orders[index];
+                    final title = _orderTitle(order, index);
+                    final subtitle = _orderSubtitle(order);
+                    final statusLabel = _statusLabel(order['status']);
+                    final canCancel = _canCancel(order);
+                    return ListTile(
+                      title: Text(title),
+                      subtitle: Text(subtitle),
+                      trailing: canCancel
+                          ? TextButton(
+                              onPressed: _isCancellingOrder
+                                  ? null
+                                  : () => _cancelOrder(order),
+                              child: Text(
+                                _isCancellingOrder ? 'Cancelling...' : 'Cancel',
+                              ),
+                            )
+                          : Text(statusLabel),
+                    );
+                  },
+                ),
       },
     );
   }
@@ -185,7 +191,8 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
     final kitchenName = kitchen is Map<String, dynamic>
         ? (kitchen['name']?.toString() ?? '')
         : '';
-    final orderCode = order['order_type_id']?.toString() ??
+    final orderCode =
+        order['order_type_id']?.toString() ??
         order['order_id']?.toString() ??
         'Order ${index + 1}';
 
@@ -197,8 +204,9 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
   }
 
   String _orderSubtitle(Map<String, dynamic> order) {
-    final serviceType =
-        (order['dine_in']?.toString() == '1') ? 'Dine-in' : 'Take-away';
+    final serviceType = (order['dine_in']?.toString() == '1')
+        ? 'Dine-in'
+        : 'Take-away';
     final date = order['date']?.toString() ?? '';
     final timeFrom = order['time_from']?.toString() ?? '';
     final timeTo = order['time_to']?.toString() ?? '';
@@ -259,8 +267,9 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
       await _load(forceFoodieRecovery: false);
     } on RepositoryHttpException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,8 +331,10 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Switch to mifoodi to access this page',
-                textAlign: TextAlign.center),
+            const Text(
+              'Switch to mifoodi to access this page',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: isLoading ? null : onPressed,
