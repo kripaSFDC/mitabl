@@ -216,34 +216,10 @@ class DiscoveryService
                 ]);
 
                 $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
-                $kitchens = $allMatchingKitchens
-                    ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
-                    ->values();
-
-                $totalCount = $kitchens->count();
-                $pagedKitchens = $kitchens->slice(($page - 1) * $limit, $limit)->values();
-                $paginator = new LengthAwarePaginator(
-                    $pagedKitchens,
-                    $totalCount,
-                    $limit,
-                    $page,
-                    ['path' => LengthAwarePaginator::resolveCurrentPath()]
-                );
-
-                $pagedKitchens = collect($paginator->items());
-                $pagedKitchens->each(function ($kitchen): void {
-                    $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
-                });
-                $this->annotateFavorites($pagedKitchens);
-
-                return [
-                    'total_count' => $totalCount,
-                    'kitchens' => RestaurantResource::collection($pagedKitchens)->resolve(),
-                ];
+                return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page);
             }
 
             [$kitchens, $totalCount] = $this->executePagedQuery($query, $limit, $page);
-
             $kitchens->load([
                 'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
                     $foodQuery->active()
@@ -255,9 +231,13 @@ class DiscoveryService
             ]);
 
             $this->applyScheduledFoodFilteringToKitchens($kitchens, $request);
-            $kitchens = $kitchens->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())->values();
+            $kitchens = $kitchens
+                ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
+                ->values()
+                ->each(function ($kitchen): void {
+                    $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
+                });
 
-            $kitchens = $kitchens->makeHidden(['reviews', 'addedimage', 'certificate']);
             $this->annotateFavorites($kitchens);
 
             return [
@@ -341,6 +321,33 @@ class DiscoveryService
         return $foods
             ->filter(fn (Foods $food): bool => $food->isScheduledFor($deliveryDate, $deliveryTimeFrom, $deliveryTimeTo))
             ->values();
+    }
+
+    private function buildFilteredSearchPayload(Collection $kitchens, int $limit, int $page): array
+    {
+        $filteredKitchens = $kitchens
+            ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
+            ->values();
+
+        $totalCount = $filteredKitchens->count();
+        $paginator = new LengthAwarePaginator(
+            $filteredKitchens->slice(($page - 1) * $limit, $limit)->values(),
+            $totalCount,
+            $limit,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        $pagedKitchens = collect($paginator->items())->each(function ($kitchen): void {
+            $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
+        });
+
+        $this->annotateFavorites($pagedKitchens);
+
+        return [
+            'total_count' => $totalCount,
+            'kitchens' => RestaurantResource::collection($pagedKitchens)->resolve(),
+        ];
     }
 
     private function remember(string $segment, Request $request, callable $callback): array

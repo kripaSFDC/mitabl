@@ -148,6 +148,10 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
           ),
         ),
         const SizedBox(height: 12),
+        if (_session.isRefreshingMenu) ...[
+          const LinearProgressIndicator(),
+          const SizedBox(height: 12),
+        ],
         if (_session.menuItems.isEmpty)
           const Text('No menu items are available for this kitchen yet.'),
         ..._session.menuItems.map(
@@ -184,7 +188,7 @@ class _KitchenHero extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 18,
             offset: const Offset(0, 10),
           ),

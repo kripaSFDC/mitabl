@@ -16,6 +16,10 @@ class AddMenuState extends Equatable {
       this.foodMenuStatus = FormzStatus.pure,
       this.addFoodStatus = FormzStatus.pure,
       this.foodStatusFormStatus = FormzStatus.pure,
+      this.availableDate,
+      this.availableDays = const [],
+      this.availableFromTime,
+      this.availableToTime,
       this.foodMenu,
       this.selectedFoodMenu,
       this.selectedFoodMenuUnChanged});
@@ -35,6 +39,10 @@ class AddMenuState extends Equatable {
 
   final FoodMenu? foodMenu;
   final FormzStatus? foodMenuStatus;
+  final String? availableDate;
+  final List<int> availableDays;
+  final String? availableFromTime;
+  final String? availableToTime;
 
   final FoodData? selectedFoodMenu;
   final FoodData? selectedFoodMenuUnChanged;
@@ -56,6 +64,10 @@ class AddMenuState extends Equatable {
       List<SpecialDietData>? specialDietDataListOriginal,
       Name? price,
       Name? description,
+      String? availableDate,
+      List<int>? availableDays,
+      String? availableFromTime,
+      String? availableToTime,
       List<Pictures>? pathFiles,
       int? selectedPage}) {
     return AddMenuState(
@@ -73,6 +85,10 @@ class AddMenuState extends Equatable {
       formzStatus: formsStatus ?? formzStatus,
       price: price ?? this.price,
       itemName: itemName ?? this.itemName,
+      availableDate: availableDate ?? this.availableDate,
+      availableDays: availableDays ?? this.availableDays,
+      availableFromTime: availableFromTime ?? this.availableFromTime,
+      availableToTime: availableToTime ?? this.availableToTime,
       selectedCookingStyle: selectedCookingStyle ?? this.selectedCookingStyle,
       specialDietDataList: specialDietDataList ?? this.specialDietDataList,
       cookingStyleList: cookingStyleList ?? this.cookingStyleList,
@@ -94,6 +110,10 @@ class AddMenuState extends Equatable {
         formzStatus,
         price,
         itemName,
+        availableDate,
+        availableDays,
+        availableFromTime,
+        availableToTime,
         selectedCookingStyle,
         specialDietDataList,
         cookingStyleList,

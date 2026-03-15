@@ -28,11 +28,19 @@ class OrderSessionController extends ChangeNotifier {
 
   bool isLoading = false;
   bool isSubmitting = false;
+  bool isLoadingDineInSlots = false;
+  bool isRefreshingMenu = false;
   String? errorMessage;
+  String? dineInSlotError;
   OrderKitchenSummary? kitchen;
   List<OrderMenuItem> menuItems = const <OrderMenuItem>[];
+  List<DineInSlotOption> dineInSlots = const <DineInSlotOption>[];
   final Map<int, CartLineItem> _cartItems = <int, CartLineItem>{};
   OrderServiceType? serviceType;
+  int? selectedDineInSlotId;
+  int _dineInSlotRequestVersion = 0;
+  int _menuRequestVersion = 0;
+  bool _isDisposed = false;
   late DateTime scheduledDate;
   TimeOfDayRange scheduledTime = const TimeOfDayRange(
     startHour: 12,
@@ -65,8 +73,26 @@ class OrderSessionController extends ChangeNotifier {
 
   double get estimatedTotal => _roundMoney(itemTotal + taxTotal);
 
+  DineInSlotOption? get selectedDineInSlot {
+    final selectedId = selectedDineInSlotId;
+    if (selectedId == null) {
+      return null;
+    }
+
+    for (final slot in dineInSlots) {
+      if (slot.id == selectedId) {
+        return slot;
+      }
+    }
+
+    return null;
+  }
+
   bool get canCheckout =>
-      kitchen != null && serviceType != null && _cartItems.isNotEmpty;
+      kitchen != null &&
+      serviceType != null &&
+      _cartItems.isNotEmpty &&
+      (serviceType != OrderServiceType.dineIn || selectedDineInSlot != null);
 
   Future<void> load() async {
     isLoading = true;
@@ -74,9 +100,11 @@ class OrderSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final (loadedKitchen, loadedMenu) = await repository.fetchKitchen(kitchenId);
+      final (loadedKitchen, _) = await repository.fetchKitchen(kitchenId);
       kitchen = loadedKitchen;
-      menuItems = loadedMenu;
+      dineInSlots = loadedKitchen.dineInSlots
+          .where((slot) => slot.matchesDate(scheduledDate))
+          .toList(growable: false);
       serviceType ??= loadedKitchen.takeAwayAvailable
           ? OrderServiceType.takeAway
           : loadedKitchen.dineInAvailable
@@ -84,6 +112,10 @@ class OrderSessionController extends ChangeNotifier {
               : null;
       if (serviceType == null) {
         errorMessage = 'This kitchen is not currently accepting orders.';
+      }
+      await _refreshDineInSlotsIfNeeded(notify: false);
+      if (serviceType != OrderServiceType.dineIn) {
+        await _refreshMenuAvailability(notify: false);
       }
       _removeUnavailableCartLines();
     } catch (error) {
@@ -137,13 +169,31 @@ class OrderSessionController extends ChangeNotifier {
     }
 
     serviceType = nextType;
+    if (nextType != OrderServiceType.dineIn) {
+      _dineInSlotRequestVersion++;
+      isLoadingDineInSlots = false;
+      dineInSlotError = null;
+      selectedDineInSlotId = null;
+    }
     _removeUnavailableCartLines();
     notifyListeners();
+    if (nextType == OrderServiceType.dineIn) {
+      _refreshDineInSlotsIfNeeded();
+      return;
+    }
+
+    _refreshMenuAvailability();
   }
 
   void updateScheduledDate(DateTime date) {
     scheduledDate = DateTime(date.year, date.month, date.day);
     notifyListeners();
+    if (serviceType == OrderServiceType.dineIn) {
+      _refreshDineInSlotsIfNeeded();
+      return;
+    }
+
+    _refreshMenuAvailability();
   }
 
   void updateTime({
@@ -163,13 +213,26 @@ class OrderSessionController extends ChangeNotifier {
       return;
     }
 
+    if (serviceType == OrderServiceType.dineIn) {
+      return;
+    }
+
     scheduledTime = next;
     notifyListeners();
+    _refreshMenuAvailability();
   }
 
   void updatePersons(int value) {
     persons = value.clamp(1, 20).toInt();
     notifyListeners();
+    _refreshDineInSlotsIfNeeded();
+  }
+
+  void selectDineInSlot(int? slotId) {
+    selectedDineInSlotId = slotId;
+    _syncScheduledTimeToSelectedSlot();
+    notifyListeners();
+    _refreshMenuAvailability();
   }
 
   void selectPayment(OrderPaymentSelection selection) {
@@ -189,6 +252,9 @@ class OrderSessionController extends ChangeNotifier {
     if (paymentSelection == null || paymentSelection!.isBlank) {
       throw StateError('Payment method is incomplete.');
     }
+    if (serviceType == OrderServiceType.dineIn && selectedDineInSlot == null) {
+      throw StateError('Please choose an available dine-in slot.');
+    }
 
     isSubmitting = true;
     errorMessage = null;
@@ -203,6 +269,9 @@ class OrderSessionController extends ChangeNotifier {
         serviceType: serviceType!,
         items: cartItems,
         persons: serviceType == OrderServiceType.dineIn ? persons : null,
+        dineInSlotId: serviceType == OrderServiceType.dineIn
+            ? selectedDineInSlotId
+            : null,
         taxes: taxTotal,
         paymentSelection: paymentSelection,
       );
@@ -220,7 +289,8 @@ class OrderSessionController extends ChangeNotifier {
     }
   }
 
-  bool isItemAvailable(OrderMenuItem item) => _isItemAvailableForCurrentService(item);
+  bool isItemAvailable(OrderMenuItem item) =>
+      _isItemAvailableForCurrentService(item);
 
   void _removeUnavailableCartLines() {
     final currentType = serviceType;
@@ -228,7 +298,12 @@ class OrderSessionController extends ChangeNotifier {
       return;
     }
 
-    _cartItems.removeWhere((_, line) => !_isItemAvailableForCurrentService(line.item));
+    final visibleIds = menuItems.map((item) => item.id).toSet();
+    _cartItems.removeWhere(
+      (_, line) =>
+          !visibleIds.contains(line.item.id) ||
+          !_isItemAvailableForCurrentService(line.item),
+    );
   }
 
   bool _isItemAvailableForCurrentService(OrderMenuItem item) {
@@ -244,6 +319,156 @@ class OrderSessionController extends ChangeNotifier {
 
   double _roundMoney(double value) {
     return double.parse(value.toStringAsFixed(2));
+  }
+
+  Future<void> _refreshDineInSlotsIfNeeded({bool notify = true}) async {
+    final currentKitchen = kitchen;
+    if (currentKitchen == null ||
+        serviceType != OrderServiceType.dineIn ||
+        !currentKitchen.dineInAvailable) {
+      return;
+    }
+
+    final requestVersion = ++_dineInSlotRequestVersion;
+    isLoadingDineInSlots = true;
+    dineInSlotError = null;
+    if (notify) {
+      notifyListeners();
+    }
+
+    try {
+      final slots = await repository.fetchDineInSlots(
+        kitchenId: currentKitchen.id,
+        date: DateFormat('yyyy-MM-dd').format(scheduledDate),
+        persons: persons,
+      );
+      if (!_shouldApplyDineInSlotResponse(requestVersion, currentKitchen.id)) {
+        return;
+      }
+      dineInSlots =
+          slots.where((slot) => slot.isAvailable).toList(growable: false);
+
+      final selectedId = selectedDineInSlotId;
+      if (selectedId == null ||
+          !dineInSlots.any((slot) => slot.id == selectedId)) {
+        selectedDineInSlotId =
+            dineInSlots.isEmpty ? null : dineInSlots.first.id;
+      }
+
+      if (dineInSlots.isEmpty) {
+        dineInSlotError =
+            'No dine-in tables are available for this date and party size.';
+      }
+
+      _syncScheduledTimeToSelectedSlot();
+      await _refreshMenuAvailability(notify: false);
+    } catch (error) {
+      if (!_shouldApplyDineInSlotResponse(requestVersion, currentKitchen.id)) {
+        return;
+      }
+      dineInSlots = currentKitchen.dineInSlots
+          .where((slot) => slot.matchesDate(scheduledDate) && slot.status == 1)
+          .toList(growable: false);
+      final selectedId = selectedDineInSlotId;
+      if (selectedId == null ||
+          !dineInSlots.any((slot) => slot.id == selectedId)) {
+        selectedDineInSlotId =
+            dineInSlots.isEmpty ? null : dineInSlots.first.id;
+      }
+      dineInSlotError = dineInSlots.isEmpty
+          ? error.toString()
+          : 'Live slot availability could not be refreshed. Showing scheduled slots.';
+      _syncScheduledTimeToSelectedSlot();
+      await _refreshMenuAvailability(notify: false);
+    } finally {
+      if (_shouldApplyDineInSlotResponse(requestVersion, currentKitchen.id)) {
+        isLoadingDineInSlots = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> _refreshMenuAvailability({bool notify = true}) async {
+    final currentKitchen = kitchen;
+    final currentType = serviceType;
+    if (currentKitchen == null || currentType == null) {
+      return;
+    }
+
+    final requestVersion = ++_menuRequestVersion;
+    isRefreshingMenu = true;
+    if (notify) {
+      notifyListeners();
+    }
+
+    try {
+      final refreshedMenu = await repository.fetchMenu(
+        kitchenId: currentKitchen.id,
+        deliveryDate: DateFormat('yyyy-MM-dd').format(scheduledDate),
+        deliveryTimeFrom: scheduledTime.startApiValue,
+        deliveryTimeTo: scheduledTime.endApiValue,
+        serviceType: currentType,
+      );
+
+      if (!_shouldApplyMenuResponse(requestVersion, currentKitchen.id)) {
+        return;
+      }
+
+      menuItems = refreshedMenu;
+      errorMessage = null;
+      _removeUnavailableCartLines();
+    } catch (error) {
+      if (!_shouldApplyMenuResponse(requestVersion, currentKitchen.id)) {
+        return;
+      }
+
+      errorMessage = error.toString();
+    } finally {
+      if (_shouldApplyMenuResponse(requestVersion, currentKitchen.id)) {
+        isRefreshingMenu = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  void _syncScheduledTimeToSelectedSlot() {
+    final slot = selectedDineInSlot;
+    if (slot == null) {
+      return;
+    }
+
+    scheduledTime = TimeOfDayRange.fromApiRange(
+      start: slot.startTime,
+      end: slot.endTime,
+    );
+  }
+
+  bool _shouldApplyDineInSlotResponse(int requestVersion, int kitchenId) {
+    return !_isDisposed &&
+        requestVersion == _dineInSlotRequestVersion &&
+        kitchen?.id == kitchenId &&
+        serviceType == OrderServiceType.dineIn;
+  }
+
+  bool _shouldApplyMenuResponse(int requestVersion, int kitchenId) {
+    return !_isDisposed &&
+        requestVersion == _menuRequestVersion &&
+        kitchen?.id == kitchenId;
+  }
+
+  @override
+  void notifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
+
+    super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }
 
@@ -273,6 +498,22 @@ class TimeOfDayRange {
   String get startLabel => _toLabel(startHour, startMinute);
 
   String get endLabel => _toLabel(endHour, endMinute);
+
+  factory TimeOfDayRange.fromApiRange({
+    required String start,
+    required String end,
+  }) {
+    final startParts = start.split(':');
+    final endParts = end.split(':');
+
+    return TimeOfDayRange(
+      startHour: int.tryParse(startParts.isNotEmpty ? startParts[0] : '') ?? 0,
+      startMinute:
+          int.tryParse(startParts.length > 1 ? startParts[1] : '') ?? 0,
+      endHour: int.tryParse(endParts.isNotEmpty ? endParts[0] : '') ?? 0,
+      endMinute: int.tryParse(endParts.length > 1 ? endParts[1] : '') ?? 0,
+    );
+  }
 
   static String _toApiValue(int hour, int minute) {
     final normalizedHour = hour.toString().padLeft(2, '0');

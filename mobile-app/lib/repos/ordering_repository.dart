@@ -17,7 +17,8 @@ class OrderingRepository {
   final http.Client _httpClient;
   final bool _ownsHttpClient;
 
-  Future<(OrderKitchenSummary, List<OrderMenuItem>)> fetchKitchen(int id) async {
+  Future<(OrderKitchenSummary, List<OrderMenuItem>)> fetchKitchen(
+      int id) async {
     final response = await _httpClient
         .get(
           ApiContract.uri('v2/discovery/restaurants/$id'),
@@ -48,12 +49,57 @@ class OrderingRepository {
     final foods = rawFoods is List
         ? rawFoods
             .whereType<Map>()
-            .map((item) => OrderMenuItem.fromJson(
-                Map<String, dynamic>.from(item)))
+            .map((item) =>
+                OrderMenuItem.fromJson(Map<String, dynamic>.from(item)))
             .toList(growable: false)
         : const <OrderMenuItem>[];
 
     return (kitchen, foods);
+  }
+
+  Future<List<OrderMenuItem>> fetchMenu({
+    required int kitchenId,
+    required String deliveryDate,
+    required OrderServiceType serviceType,
+    String? deliveryTimeFrom,
+    String? deliveryTimeTo,
+  }) async {
+    final response = await _httpClient
+        .get(
+          ApiContract.uri(
+            'v2/discovery/restaurants/$kitchenId/menu',
+            queryParameters: <String, dynamic>{
+              'delivery_date': deliveryDate,
+              if (deliveryTimeFrom != null)
+                'delivery_time_from': deliveryTimeFrom,
+              if (deliveryTimeTo != null) 'delivery_time_to': deliveryTimeTo,
+              'dine_in': serviceType == OrderServiceType.dineIn ? 1 : 0,
+              'take_away': serviceType == OrderServiceType.takeAway ? 1 : 0,
+            },
+          ),
+          headers: await userRepository.authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to load kitchen menu',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    final dynamic data =
+        decoded is Map<String, dynamic> ? decoded['data'] : null;
+    if (data is! List) {
+      throw const FormatException('Invalid menu response format.');
+    }
+
+    return data
+        .whereType<Map>()
+        .map((item) => OrderMenuItem.fromJson(Map<String, dynamic>.from(item)))
+        .toList(growable: false);
   }
 
   Future<OrderSubmissionResult> placeOrder({
@@ -64,6 +110,7 @@ class OrderingRepository {
     required OrderServiceType serviceType,
     required List<CartLineItem> items,
     required int? persons,
+    required int? dineInSlotId,
     required double taxes,
     OrderPaymentSelection? paymentSelection,
   }) async {
@@ -86,6 +133,9 @@ class OrderingRepository {
 
     if (serviceType == OrderServiceType.dineIn && persons != null) {
       payload['persons'] = persons;
+      if (dineInSlotId != null) {
+        payload['dine_in_slot_id'] = dineInSlotId;
+      }
     }
 
     final response = await _httpClient
@@ -112,6 +162,46 @@ class OrderingRepository {
     }
 
     return OrderSubmissionResult.fromJson(decoded);
+  }
+
+  Future<List<DineInSlotOption>> fetchDineInSlots({
+    required int kitchenId,
+    required String date,
+    int? persons,
+  }) async {
+    final response = await _httpClient
+        .get(
+          ApiContract.uri(
+            'v2/discovery/restaurants/$kitchenId/dine-in-slots',
+            queryParameters: <String, dynamic>{
+              'date': date,
+              if (persons != null) 'persons': persons,
+            },
+          ),
+          headers: await userRepository.authorizedHeaders(),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to load dine-in slots',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    final dynamic data =
+        decoded is Map<String, dynamic> ? decoded['data'] : null;
+    if (data is! List) {
+      throw const FormatException('Invalid dine-in slot response format.');
+    }
+
+    return data
+        .whereType<Map>()
+        .map((slot) =>
+            DineInSlotOption.fromJson(Map<String, dynamic>.from(slot)))
+        .toList(growable: false);
   }
 
   Future<OrderSubmissionResult> attachPaymentMethodToOrder({

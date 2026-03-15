@@ -37,7 +37,11 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     emit(state.copyWith(
         pathFiles: picturesList,
         selectedFoodMenu: foodData,
-        specialDietDataList: availableSpecialDiets));
+        specialDietDataList: availableSpecialDiets,
+        availableDate: foodData.availableDate,
+        availableDays: foodData.availableDays ?? const [],
+        availableFromTime: foodData.availableFromTime,
+        availableToTime: foodData.availableToTime));
 
     CookingStyleData cookingStyleData = state.cookingStyleList
         .firstWhere((element) => element.id == foodData.cookingstyle);
@@ -122,6 +126,10 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       map['description'] = state.description!.value;
       map['specialDietIds'] = diets;
       map['delete_images'] = deleteImageString.toString();
+      map['available_date'] = state.availableDate;
+      map['available_days'] = state.availableDays;
+      map['available_from_time'] = state.availableFromTime;
+      map['available_to_time'] = state.availableToTime;
 
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
@@ -148,7 +156,16 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       } else {
         emit(state.copyWith(addFoodStatus: FormzStatus.submissionFailure));
         getFoodMenu();
-        Helper.showToast('Something went wrong...');
+        String message = 'Something went wrong...';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            message = decoded['isError']?.toString() ??
+                decoded['message']?.toString() ??
+                message;
+          }
+        } catch (_) {}
+        Helper.showToast(message);
       }
     } on Exception {
       emit(state.copyWith(addFoodStatus: FormzStatus.submissionFailure));
@@ -165,6 +182,10 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         foodMenu: state.foodMenu,
         specialDietDataList:
             _cloneSpecialDietList(state.specialDietDataListOriginal),
+        availableDate: null,
+        availableDays: const [],
+        availableFromTime: null,
+        availableToTime: null,
         selectedCookingStyle: CookingStyleData(name: ''),
         selectedFoodMenu: state.selectedFoodMenu));
   }
@@ -324,6 +345,39 @@ class AddMenuCubit extends Cubit<AddMenuState> {
 
   onImageScroll({int? index}) {
     emit(state.copyWith(selectedPage: index));
+  }
+
+  void onAvailableDateChanged({String? value}) {
+    emit(state.copyWith(
+      availableDate: value,
+      availableDays:
+          (value != null && value.isNotEmpty) ? const [] : state.availableDays,
+    ));
+  }
+
+  void onAvailableDayToggled({required int day}) {
+    final nextDays = [...state.availableDays];
+    if (nextDays.contains(day)) {
+      nextDays.remove(day);
+    } else {
+      nextDays.add(day);
+      nextDays.sort();
+    }
+
+    emit(state.copyWith(
+      availableDate: nextDays.isNotEmpty ? '' : state.availableDate,
+      availableDays: nextDays,
+    ));
+  }
+
+  void onAvailableTimeChanged({
+    String? availableFromTime,
+    String? availableToTime,
+  }) {
+    emit(state.copyWith(
+      availableFromTime: availableFromTime ?? state.availableFromTime,
+      availableToTime: availableToTime ?? state.availableToTime,
+    ));
   }
 
   onNewImageAdded({String? path}) {

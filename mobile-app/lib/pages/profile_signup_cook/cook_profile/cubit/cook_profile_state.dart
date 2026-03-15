@@ -13,6 +13,9 @@ class CookProfileState extends Equatable {
       this.days = const [],
       this.daysTiming = const [],
       this.daysTimingOriginal = const [],
+      this.dineIn = true,
+      this.takeAway = true,
+      this.dineInSlots = const [],
       this.selectedPage = 0});
 
   final Name? nameKitchn;
@@ -26,6 +29,9 @@ class CookProfileState extends Equatable {
   final List<String>? days;
   final List<Days> daysTiming;
   final List<Days> daysTimingOriginal;
+  final bool dineIn;
+  final bool takeAway;
+  final List<DineInSlotTemplate> dineInSlots;
 
   final int? selectedPage;
 
@@ -34,6 +40,9 @@ class CookProfileState extends Equatable {
       List<Days>? daysTiming,
       List<Days>? daysTimingOriginal,
       List<String>? days,
+      bool? dineIn,
+      bool? takeAway,
+      List<DineInSlotTemplate>? dineInSlots,
       FormzStatus? status,
       List<String>? pathFiles,
       FormzStatus? statusApi,
@@ -46,6 +55,9 @@ class CookProfileState extends Equatable {
         daysTimingOriginal: daysTimingOriginal ?? this.daysTimingOriginal,
         selectedPage: selectedPage ?? this.selectedPage,
         daysTiming: daysTiming ?? this.daysTiming,
+        dineIn: dineIn ?? this.dineIn,
+        takeAway: takeAway ?? this.takeAway,
+        dineInSlots: dineInSlots ?? this.dineInSlots,
         pathFiles: pathFiles ?? this.pathFiles,
         statusApi: statusApi ?? this.statusApi,
         status: status ?? this.status,
@@ -61,6 +73,9 @@ class CookProfileState extends Equatable {
         selectedPage,
         daysTimingOriginal,
         daysTiming,
+        dineIn,
+        takeAway,
+        dineInSlots,
         pathFiles,
         noOfSeats,
         statusApi,

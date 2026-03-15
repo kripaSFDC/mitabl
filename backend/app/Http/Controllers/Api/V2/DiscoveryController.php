@@ -192,8 +192,8 @@ class DiscoveryController extends Controller
             'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
             'page' => ['nullable', 'integer', 'min:1'],
             'delivery_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
-            'delivery_time_from' => ['nullable', 'date_format:H:i'],
-            'delivery_time_to' => ['nullable', 'date_format:H:i', 'after:delivery_time_from'],
+            'delivery_time_from' => ['nullable', 'date_format:H:i', 'required_with:delivery_time_to'],
+            'delivery_time_to' => ['nullable', 'date_format:H:i', 'after:delivery_time_from', 'required_with:delivery_time_from'],
         ];
 
         if ($includeSearchTerm) {

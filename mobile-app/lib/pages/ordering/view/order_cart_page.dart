@@ -206,6 +206,8 @@ class _DateTimeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDineIn = session.serviceType == OrderServiceType.dineIn;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -229,6 +231,9 @@ class _DateTimeSection extends StatelessWidget {
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
                   if (selected != null) {
+                    if (!context.mounted) {
+                      return;
+                    }
                     session.updateScheduledDate(selected);
                   }
                 },
@@ -241,88 +246,127 @@ class _DateTimeSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () async {
-                  final picked = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(
-                      hour: session.scheduledTime.startHour,
-                      minute: session.scheduledTime.startMinute,
-                    ),
-                  );
-                  if (picked != null) {
-                    final nextStartTotal = (picked.hour * 60) + picked.minute;
-                    final currentEndTotal =
-                        (session.scheduledTime.endHour * 60) +
-                            session.scheduledTime.endMinute;
-                    if (nextStartTotal >= currentEndTotal) {
-                      final adjustedEndTotal =
-                          (nextStartTotal + 60).clamp(1, (23 * 60) + 59).toInt();
-                      if (adjustedEndTotal <= nextStartTotal) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please choose a start time earlier in the day.',
+        if (isDineIn) ...[
+          if (session.isLoadingDineInSlots) const LinearProgressIndicator(),
+          if (session.isLoadingDineInSlots) const SizedBox(height: 10),
+          DropdownButtonFormField<int>(
+            key: ValueKey<String>(
+              'dine-in-slot-${session.selectedDineInSlotId}-${session.dineInSlots.length}',
+            ),
+            initialValue: session.selectedDineInSlotId,
+            items: session.dineInSlots
+                .map(
+                  (slot) => DropdownMenuItem<int>(
+                    value: slot.id,
+                    child: Text('${slot.startLabel} - ${slot.endLabel}'),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: session.dineInSlots.isEmpty
+                ? null
+                : (value) => session.selectDineInSlot(value),
+            decoration: const InputDecoration(
+              labelText: 'Available table slot',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          if (session.dineInSlotError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              session.dineInSlotError!,
+              style: GoogleFonts.gothicA1(color: Colors.red.shade700),
+            ),
+          ],
+        ] else
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(
+                        hour: session.scheduledTime.startHour,
+                        minute: session.scheduledTime.startMinute,
+                      ),
+                    );
+                    if (picked != null) {
+                      final nextStartTotal = (picked.hour * 60) + picked.minute;
+                      final currentEndTotal =
+                          (session.scheduledTime.endHour * 60) +
+                              session.scheduledTime.endMinute;
+                      if (nextStartTotal >= currentEndTotal) {
+                        final adjustedEndTotal = (nextStartTotal + 60)
+                            .clamp(1, (23 * 60) + 59)
+                            .toInt();
+                        if (adjustedEndTotal <= nextStartTotal) {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please choose a start time earlier in the day.',
+                              ),
                             ),
-                          ),
+                          );
+                          return;
+                        }
+                        session.updateTime(
+                          startHour: picked.hour,
+                          startMinute: picked.minute,
+                          endHour: adjustedEndTotal ~/ 60,
+                          endMinute: adjustedEndTotal % 60,
                         );
                         return;
                       }
                       session.updateTime(
                         startHour: picked.hour,
                         startMinute: picked.minute,
-                        endHour: adjustedEndTotal ~/ 60,
-                        endMinute: adjustedEndTotal % 60,
+                      );
+                    }
+                  },
+                  child: Text('From ${session.scheduledTime.startLabel}'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(
+                        hour: session.scheduledTime.endHour,
+                        minute: session.scheduledTime.endMinute,
+                      ),
+                    );
+                    if (picked == null) {
+                      return;
+                    }
+                    final startTotal = (session.scheduledTime.startHour * 60) +
+                        session.scheduledTime.startMinute;
+                    final endTotal = (picked.hour * 60) + picked.minute;
+                    if (endTotal <= startTotal) {
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('End time must be after start time.'),
+                        ),
                       );
                       return;
                     }
                     session.updateTime(
-                      startHour: picked.hour,
-                      startMinute: picked.minute,
+                      endHour: picked.hour,
+                      endMinute: picked.minute,
                     );
-                  }
-                },
-                child: Text('From ${session.scheduledTime.startLabel}'),
+                  },
+                  child: Text('To ${session.scheduledTime.endLabel}'),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () async {
-                  final picked = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(
-                      hour: session.scheduledTime.endHour,
-                      minute: session.scheduledTime.endMinute,
-                    ),
-                  );
-                  if (picked == null) {
-                    return;
-                  }
-                  final startTotal = (session.scheduledTime.startHour * 60) +
-                      session.scheduledTime.startMinute;
-                  final endTotal = (picked.hour * 60) + picked.minute;
-                  if (endTotal <= startTotal) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('End time must be after start time.'),
-                      ),
-                    );
-                    return;
-                  }
-                  session.updateTime(
-                    endHour: picked.hour,
-                    endMinute: picked.minute,
-                  );
-                },
-                child: Text('To ${session.scheduledTime.endLabel}'),
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
   }

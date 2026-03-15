@@ -19,19 +19,57 @@ class DineInSlotService
 
     public function syncKitchenSlots(Mikitchn $kitchen, array $slots): void
     {
-        $kitchen->dineInSlots()->delete();
+        $existingSlots = $kitchen->dineInSlots()->get()->keyBy(
+            fn (DineInSlot $slot): string => $this->slotFingerprint(
+                (int) $slot->day_of_week,
+                (string) $slot->start_time,
+                (string) $slot->end_time
+            )
+        );
+        $retainedSlotIds = [];
 
         foreach ($slots as $slot) {
-            $kitchen->dineInSlots()->create([
-                'day_of_week' => (int) $slot['day_of_week'],
-                'start_time' => Carbon::parse((string) $slot['start_time'])->format('H:i:s'),
-                'end_time' => Carbon::parse((string) $slot['end_time'])->format('H:i:s'),
-                'seat_capacity' => array_key_exists('seat_capacity', $slot) && $slot['seat_capacity'] !== null
-                    ? (int) $slot['seat_capacity']
-                    : null,
-                'status' => (int) ($slot['status'] ?? 1),
+            $dayOfWeek = (int) $slot['day_of_week'];
+            $startTime = Carbon::parse((string) $slot['start_time'])->format('H:i:s');
+            $endTime = Carbon::parse((string) $slot['end_time'])->format('H:i:s');
+            $fingerprint = $this->slotFingerprint($dayOfWeek, $startTime, $endTime);
+            $slotModel = $existingSlots->get($fingerprint) ?? new DineInSlot([
+                'mikitchn_id' => $kitchen->id,
+                'day_of_week' => $dayOfWeek,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
             ]);
+
+            $slotModel->mikitchn_id = $kitchen->id;
+            $slotModel->day_of_week = $dayOfWeek;
+            $slotModel->start_time = $startTime;
+            $slotModel->end_time = $endTime;
+            $slotModel->seat_capacity = array_key_exists('seat_capacity', $slot) && $slot['seat_capacity'] !== null
+                ? (int) $slot['seat_capacity']
+                : null;
+            $slotModel->status = (int) ($slot['status'] ?? 1);
+            $slotModel->save();
+
+            $retainedSlotIds[] = (int) $slotModel->id;
         }
+
+        $kitchen->dineInSlots()
+            ->whereNotIn('id', $retainedSlotIds)
+            ->get()
+            ->each(function (DineInSlot $slot): void {
+                if ($slot->orders()->exists()) {
+                    $slot->status = 0;
+                    $slot->save();
+                    return;
+                }
+
+                $slot->delete();
+            });
+    }
+
+    private function slotFingerprint(int $dayOfWeek, string $startTime, string $endTime): string
+    {
+        return implode('|', [$dayOfWeek, $startTime, $endTime]);
     }
 
     public function getAvailabilityForDate(Mikitchn $kitchen, Carbon $date, ?int $persons = null): Collection

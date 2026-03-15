@@ -7,6 +7,7 @@ use App\Models\Foods;
 use App\Models\Mikitchn;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Services\DineInSlotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -99,6 +100,75 @@ class RequirementSevenMenuAndSlotsTest extends TestCase
         $this->assertSame('13:00:00', $food->available_to_time);
     }
 
+    public function test_food_update_rejects_partial_schedule_window(): void
+    {
+        Storage::fake('my_files');
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture();
+
+        $food = Foods::query()->create([
+            'restaurant_id' => $kitchen->id,
+            'food_name' => 'Breakfast Dish',
+            'pictures' => '[]',
+            'price' => 12.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[1]',
+            'description' => 'Breakfast item',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+        ]);
+
+        $this->actingAs($cook, 'api')
+            ->post('/api/v2/food/editfood', [
+                'food_id' => $food->id,
+                'food_name' => 'Breakfast Dish',
+                'cookingstyle' => 1,
+                'specialDiet' => [1],
+                'price' => '12.00',
+                'description' => 'Breakfast item',
+                'dine_in' => 1,
+                'take_away' => 1,
+                'available_from_time' => '09:00',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('isError', 'The available to time field is required when available from time is present.');
+    }
+
+    public function test_food_update_rejects_specific_date_and_recurring_days_combined(): void
+    {
+        Storage::fake('my_files');
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture();
+
+        $food = Foods::query()->create([
+            'restaurant_id' => $kitchen->id,
+            'food_name' => 'Weekend Dish',
+            'pictures' => '[]',
+            'price' => 14.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[1]',
+            'description' => 'Weekend item',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+        ]);
+
+        $this->actingAs($cook, 'api')
+            ->post('/api/v2/food/editfood', [
+                'food_id' => $food->id,
+                'food_name' => 'Weekend Dish',
+                'cookingstyle' => 1,
+                'specialDiet' => [1],
+                'price' => '14.00',
+                'description' => 'Weekend item',
+                'dine_in' => 1,
+                'take_away' => 1,
+                'available_date' => now()->addDay()->format('Y-m-d'),
+                'available_days' => [5, 6],
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('isError', 'Choose either a specific available date or recurring available days for a food item, not both.');
+    }
+
     public function test_discovery_dine_in_slots_reports_remaining_capacity_for_person_count(): void
     {
         [$cook, $foodie, $kitchen] = $this->createKitchenFixture(['no_of_seats' => 4, 'dine_in' => 1, 'take_away' => 0]);
@@ -181,6 +251,55 @@ class RequirementSevenMenuAndSlotsTest extends TestCase
             ])
             ->assertStatus(422)
             ->assertJsonPath('isError', 'Requested party size exceeds the kitchen dine-in seat capacity.');
+    }
+
+    public function test_syncing_slots_preserves_booked_slot_records_for_existing_orders(): void
+    {
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture(['no_of_seats' => 4, 'dine_in' => 1, 'take_away' => 0]);
+
+        $originalSlot = DineInSlot::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => now()->addDay()->dayOfWeek,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'seat_capacity' => 4,
+            'status' => 1,
+        ]);
+
+        DB::table('orders')->insert([
+            'mikitchn_id' => $kitchen->id,
+            'user_id' => $foodie->id,
+            'dine_in' => 1,
+            'take_away' => 0,
+            'persons' => 2,
+            'dine_in_slot_id' => $originalSlot->id,
+            'delivery_date' => now()->addDay()->format('Y-m-d'),
+            'delivery_time_from' => '18:00:00',
+            'delivery_time_to' => '19:00:00',
+            'item_total_price' => 10,
+            'taxes' => 0,
+            'total_price' => 10,
+            'status' => 2,
+            'paid' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        app(DineInSlotService::class)->syncKitchenSlots($kitchen, [[
+            'day_of_week' => now()->addDay()->dayOfWeek,
+            'start_time' => '19:00',
+            'end_time' => '20:00',
+            'seat_capacity' => 4,
+            'status' => 1,
+        ]]);
+
+        $this->assertDatabaseHas('dine_in_slots', [
+            'id' => $originalSlot->id,
+            'status' => 0,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'dine_in_slot_id' => $originalSlot->id,
+        ]);
     }
 
     public function test_kitchen_update_clears_existing_dine_in_slots_when_dine_in_is_disabled(): void

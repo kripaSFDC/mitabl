@@ -83,6 +83,17 @@ class FoodsController extends Controller
 
     private function saveFood(Request $request, bool $isUpdate)
     {
+        if ($request->filled('available_days_json')) {
+            $decodedAvailableDays = json_decode((string) $request->input('available_days_json'), true);
+            if (! is_array($decodedAvailableDays)) {
+                return $this->responser([], 'available_days_json must be valid JSON.', 422);
+            }
+
+            $request->merge([
+                'available_days' => $decodedAvailableDays,
+            ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'food_name' => 'required',
             'cookingstyle' => 'required|integer',
@@ -94,8 +105,9 @@ class FoodsController extends Controller
             'available_date' => 'nullable|date_format:Y-m-d',
             'available_days' => 'nullable|array',
             'available_days.*' => 'integer|between:0,6',
-            'available_from_time' => 'nullable|date_format:H:i',
-            'available_to_time' => 'nullable|date_format:H:i|after:available_from_time',
+            'available_days_json' => 'nullable|string',
+            'available_from_time' => 'nullable|date_format:H:i|required_with:available_to_time',
+            'available_to_time' => 'nullable|date_format:H:i|after:available_from_time|required_with:available_from_time',
         ]);
         // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
@@ -163,6 +175,18 @@ class FoodsController extends Controller
         $availableToTime = $request->filled('available_to_time')
             ? Carbon::parse((string) $request->input('available_to_time'))->format('H:i:s')
             : ($request->has('available_to_time') ? null : $existFood?->available_to_time);
+
+        $requestHasAvailableDate = $request->has('available_date');
+        $requestHasAvailableDays = $request->has('available_days') || $request->filled('available_days_json');
+        if (
+            $requestHasAvailableDate &&
+            $requestHasAvailableDays &&
+            $availableDate !== null &&
+            $availableDays !== null &&
+            $availableDays !== []
+        ) {
+            return $this->responser([], 'Choose either a specific available date or recurring available days for a food item, not both.', 422);
+        }
 
         if ($isUpdate) {
             Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->update([

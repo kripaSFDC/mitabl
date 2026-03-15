@@ -178,7 +178,11 @@ class AuthenticationRepository {
         'no_of_seats': '${data['no_of_seats']}',
         'timings': data['timings'],
         'phone': '${data['phone']}',
-        'user_id': '${data['user_id']}'
+        'user_id': '${data['user_id']}',
+        'dine_in': '${data['dine_in'] ?? 1}',
+        'take_away': '${data['take_away'] ?? 1}',
+        if (data.containsKey('dine_in_slots'))
+          'dine_in_slots': '${data['dine_in_slots']}',
       });
 
       final response =

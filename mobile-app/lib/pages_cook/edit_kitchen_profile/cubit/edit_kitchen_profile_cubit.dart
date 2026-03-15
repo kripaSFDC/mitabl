@@ -19,6 +19,7 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
   EditKitchenProfileCubit({this.routeArguments, this.userRepository})
       : super(const EditKitchenProfileState()) {
     setUpTimingModel();
+    loadDineInSlots();
   }
 
   onOpenTimingDialog() {
@@ -55,6 +56,7 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       takeAway: routeArguments!.kitchen!.takeAway == 1 ? true : false,
       abn: routeArguments!.kitchen!.abn ?? '',
       certificateNo: routeArguments!.kitchen!.certificateNo ?? '',
+      dineInSlots: routeArguments!.kitchen!.dineInSlots ?? const [],
     ));
   }
 
@@ -159,6 +161,13 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       map['dine_in'] = state.dineIn == true ? 1 : 0;
       map['take_away'] = state.takeAway == true ? 1 : 0;
       map['description'] = state.bio!.value;
+      if (state.dineIn == true) {
+        map['dine_in_slots'] = jsonEncode(
+          state.dineInSlots
+              .map((slot) => slot.toJson())
+              .toList(growable: false),
+        );
+      }
 
       var paths =
           state.pathFiles.where((element) => element.id == null).toList();
@@ -256,5 +265,71 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
 
   onCertificateNoChanged({String? value}) {
     emit(state.copyWith(certificateNo: value ?? ''));
+  }
+
+  Future<void> loadDineInSlots() async {
+    final repo = userRepository;
+    if (repo == null) {
+      return;
+    }
+
+    try {
+      emit(state.copyWith(dineInSlotsStatus: FormzStatus.submissionInProgress));
+      final response = await repo.fetchMyDineInSlots();
+      if (response.statusCode != 200) {
+        emit(state.copyWith(dineInSlotsStatus: FormzStatus.submissionFailure));
+        return;
+      }
+
+      final decoded = jsonDecode(response.body);
+      final data = decoded is Map<String, dynamic> ? decoded['data'] : null;
+      if (data is! List) {
+        emit(state.copyWith(dineInSlotsStatus: FormzStatus.submissionFailure));
+        return;
+      }
+
+      final slots = data
+          .whereType<Map>()
+          .map((slot) =>
+              DineInSlotTemplate.fromJson(Map<String, dynamic>.from(slot)))
+          .toList(growable: false);
+
+      emit(state.copyWith(
+        dineInSlots: slots,
+        dineInSlotsStatus: FormzStatus.submissionSuccess,
+      ));
+    } catch (_) {
+      emit(state.copyWith(dineInSlotsStatus: FormzStatus.submissionFailure));
+    }
+  }
+
+  void addOrUpdateDineInSlot(DineInSlotTemplate slot, {int? index}) {
+    final next = [...state.dineInSlots];
+    if (index != null && index >= 0 && index < next.length) {
+      next[index] = slot;
+    } else {
+      next.add(slot);
+    }
+
+    next.sort((left, right) {
+      final dayCompare = (left.dayOfWeek ?? 0).compareTo(right.dayOfWeek ?? 0);
+      if (dayCompare != 0) {
+        return dayCompare;
+      }
+
+      return (left.startTime ?? '').compareTo(right.startTime ?? '');
+    });
+
+    emit(state.copyWith(dineInSlots: next));
+  }
+
+  void deleteDineInSlot(int index) {
+    final next = [...state.dineInSlots];
+    if (index < 0 || index >= next.length) {
+      return;
+    }
+
+    next.removeAt(index);
+    emit(state.copyWith(dineInSlots: next));
   }
 }

@@ -275,6 +275,47 @@ class DiscoveryMenuAccessTest extends TestCase
             ->assertJsonPath('data.kitchens.0.foods.0.take_away', 1);
     }
 
+    public function test_search_without_delivery_date_recalculates_total_count_after_food_filtering(): void
+    {
+        [$foodie, $firstKitchen] = $this->createFoodieAndKitchen('search-no-date-foodie@example.test', 'Alpha Kitchen');
+        [, $secondKitchen] = $this->createFoodieAndKitchen('search-no-date-foodie-2@example.test', 'Beta Kitchen');
+
+        Foods::query()->create([
+            'restaurant_id' => $firstKitchen->id,
+            'food_name' => 'Pasta Alpha',
+            'pictures' => '[]',
+            'price' => 16.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Only dine in pasta',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 0,
+        ]);
+
+        Foods::query()->create([
+            'restaurant_id' => $secondKitchen->id,
+            'food_name' => 'Pasta Beta',
+            'pictures' => '[]',
+            'price' => 17.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Available for take away',
+            'status' => 1,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/discovery/search?q=pasta&take_away=1&limit=1&page=1')
+            ->assertOk()
+            ->assertJsonPath('data.total_count', 1)
+            ->assertJsonCount(1, 'data.kitchens')
+            ->assertJsonPath('data.kitchens.0.id', $secondKitchen->id)
+            ->assertJsonPath('data.kitchens.0.foods.0.food_name', 'Pasta Beta');
+    }
+
     public function test_search_with_delivery_date_filters_before_pagination(): void
     {
         $deliveryDate = now()->addDays(2);

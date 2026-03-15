@@ -192,11 +192,13 @@ class UserRepository {
         if (data is Map<String, dynamic>) {
           final roleName = data['role']?.toString() ??
               (data['user'] is Map<String, dynamic>
-                  ? (data['user']['data']?['role'] ?? data['user']['role'])?.toString()
+                  ? (data['user']['data']?['role'] ?? data['user']['role'])
+                      ?.toString()
                   : null);
           final resolvedRoleId = data['role_id'] ??
               (data['user'] is Map<String, dynamic>
-                  ? (data['user']['data']?['role_id'] ?? data['user']['role_id'])
+                  ? (data['user']['data']?['role_id'] ??
+                      data['user']['role_id'])
                   : null);
 
           try {
@@ -205,7 +207,8 @@ class UserRepository {
               roleId: resolvedRoleId,
             );
           } catch (e) {
-            AppLogger.error('Role switched but failed to sync local user role', e);
+            AppLogger.error(
+                'Role switched but failed to sync local user role', e);
             _user?.data?.user?.role = roleName;
             if (resolvedRoleId is int) {
               _user?.data?.user?.roleId = resolvedRoleId;
@@ -368,6 +371,8 @@ class UserRepository {
         'description': '${data['description']}',
         'abn': '${data['abn'] ?? ''}',
         'certificate_no': '${data['certificate_no'] ?? ''}',
+        if (data.containsKey('dine_in_slots'))
+          'dine_in_slots': '${data['dine_in_slots']}',
       });
       final response =
           await _httpClient.send(request).timeout(ApiContract.requestTimeout);
@@ -375,6 +380,20 @@ class UserRepository {
       return http.Response.fromStream(response);
     } catch (e) {
       AppLogger.error('Failed to update vendor kitchen', e);
+      rethrow;
+    }
+  }
+
+  Future<http.Response> fetchMyDineInSlots() async {
+    try {
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/mikitchn/dine-in-slots'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to load dine-in slots', e);
       rethrow;
     }
   }
