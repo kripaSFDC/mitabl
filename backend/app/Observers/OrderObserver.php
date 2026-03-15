@@ -4,15 +4,13 @@ namespace App\Observers;
 
 use App\Models\Order;
 use App\Models\Mikitchn;
-use App\Models\User;
-use App\Models\CancelReason;
 use App\Mail\Invoice;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushOrderNotification;
+use Carbon\Carbon;
 use Throwable;
-use Auth;
 
 class OrderObserver
 {
@@ -24,10 +22,27 @@ class OrderObserver
      */
     public function created(Order $order)
     {
-        // $kitchen_id = $order->mikitchn_id;
-        // $kitchen = Mikitchn::find($kitchen_id)->user;
-        // $kMsg = 'new order '.$order->order_id.' added.';
-        // Notification::send($kitchen ,new PushOrderNotification($order,$kMsg));
+        $order->loadMissing(['user', 'Mikitchn.user']);
+        $kitchenUser = $order->Mikitchn?->user ?? optional(Mikitchn::find($order->mikitchn_id))->user;
+        if (! $kitchenUser) {
+            return;
+        }
+
+        $this->safeSendNotification(
+            $kitchenUser,
+            new PushOrderNotification(
+                $order,
+                'New order request from '.$this->customerDisplayName($order).'!',
+                1
+            ),
+            'orders.kitchen_notification_failed',
+            [
+                'order_id' => $order->id,
+                'recipient_id' => $kitchenUser->id,
+                'status' => $order->status,
+                'event' => 'created',
+            ]
+        );
     }
 
     /**
@@ -38,12 +53,44 @@ class OrderObserver
      */
     public function updated(Order $order)
     {
-        
-        // if($order->isDirty('status')){
-        //     // email has changed
-        //     $new_status = $order->status; 
-        //     $old_status = $order->getOriginal('status'); 
-        // }
+        if (! $order->wasChanged('status')) {
+            return;
+        }
+
+        $order->loadMissing(['user', 'cancelreason', 'Mikitchn.user']);
+
+        $newStatus = (int) $order->status;
+        $kitchenUser = $order->Mikitchn?->user ?? optional(Mikitchn::find($order->mikitchn_id))->user;
+        $foodie = $order->user;
+
+        foreach ($this->statusNotifications($order, $newStatus, $foodie, $kitchenUser) as $notification) {
+            $this->safeSendNotification(
+                $notification['recipient'],
+                new PushOrderNotification($order, $notification['message'], $notification['type']),
+                $notification['log_event'],
+                [
+                    'order_id' => $order->id,
+                    'recipient_id' => $notification['recipient']->id,
+                    'status' => $newStatus,
+                ]
+            );
+        }
+
+        if ($newStatus === Order::STATUS_COMPLETED) {
+            if ($foodie?->email) {
+                $this->safeQueueMail($foodie->email, new Invoice($foodie, $order, 1), 'orders.customer_invoice_failed', [
+                    'order_id' => $order->id,
+                    'recipient' => $foodie->email,
+                ]);
+            }
+
+            if ($kitchenUser?->email) {
+                $this->safeQueueMail($kitchenUser->email, new Invoice($foodie, $order, 0), 'orders.kitchen_invoice_failed', [
+                    'order_id' => $order->id,
+                    'recipient' => $kitchenUser->email,
+                ]);
+            }
+        }
     }
 
     /**
@@ -54,98 +101,7 @@ class OrderObserver
      */
     public function updating(Order $order)
     {
-        $user_id = $order->user_id;
-
-        $user = User::where('id', $user_id)->get();
-        $kitchenUser = optional(Mikitchn::find($order->mikitchn_id))->user;
-        $actor = Auth::user();
-        $actorRoleId = (int) optional($actor)->role_id;
-        if($order->isDirty('status')){
-            // email has changed
-            $new_status = $order->status; 
-            $old_status = $order->getOriginal('status');
-            
-            switch ($new_status) {
-                case Order::STATUS_LEGACY_CANCELLED:
-                case Order::STATUS_CANCELLED:
-
-                    // $cancelBy = CancelReason::where('order_id',$order->id)->get()->first();
-
-                    // print_r($cancelBy); die();
-                    if ($actorRoleId === 3) {
-                        $type = 3;
-                        $sMsg = 'your order '.$order->order_id.' was canceled by mifoodie';
-                         $user = $kitchenUser ? collect([$kitchenUser]) : collect();
-                    } else {
-                        $type = 4;
-                        $sMsg = 'your order '.$order->order_id.' was canceled by micook'; 
-                    }
-
-                    break;
-                case Order::STATUS_COMPLETED:
-                    $type = 5;
-                    $sMsg = 'your order '.$order->order_id.' is completed';
-                    break;
-                case Order::STATUS_REQUESTED:
-                    $type = 1;
-                    // $sMsg = 'your order '.$order->order_id.' has pending.';
-                    $sMsg = '';
-                    break;
-                case Order::STATUS_CONFIRMED:
-                    $type = 2;
-                    $sMsg = 'your order '.$order->order_id.' is accepted';
-                    break;
-                
-                default:
-                    $type = 4;
-                    $sMsg = '';
-                    break;
-            }
-            // die('jkfkd');
-            if ((int) $new_status === Order::STATUS_REQUESTED) {
-                $kMsg = 'new order '.$order->order_id.' added';
-
-                
-                
-                if ($kitchenUser) {
-                    $this->safeSendNotification($kitchenUser, new PushOrderNotification($order, $kMsg, $type), 'orders.kitchen_notification_failed', [
-                        'order_id' => $order->id,
-                        'recipient_id' => $kitchenUser->id,
-                        'status' => $new_status,
-                    ]);
-                }
-                
-
-            } else {
-
-                if ($user instanceof \Illuminate\Support\Collection && $user->isNotEmpty()) {
-                    $this->safeSendNotification($user, new PushOrderNotification($order, $sMsg, $type), 'orders.user_notification_failed', [
-                        'order_id' => $order->id,
-                        'status' => $new_status,
-                    ]);
-                }
-                
-            }
-            
-            if ((int) $new_status === Order::STATUS_COMPLETED) {
-                if ($order->user?->email) {
-                    $this->safeQueueMail($order->user->email, new Invoice($order->user, $order, 1), 'orders.customer_invoice_failed', [
-                        'order_id' => $order->id,
-                        'recipient' => $order->user->email,
-                    ]);
-                }
-
-                if ($kitchenUser?->email) {
-                    $this->safeQueueMail($kitchenUser->email, new Invoice($order->user, $order, 0), 'orders.kitchen_invoice_failed', [
-                        'order_id' => $order->id,
-                        'recipient' => $kitchenUser->email,
-                    ]);
-                }
-            }
-             
-        }
-
-        
+        //
     }
 
     /**
@@ -184,6 +140,10 @@ class OrderObserver
     private function safeSendNotification(mixed $notifiables, object $notification, string $logEvent, array $context = []): void
     {
         try {
+            if (method_exists($notification, 'afterCommit')) {
+                $notification->afterCommit();
+            }
+
             Notification::send($notifiables, $notification);
         } catch (Throwable $throwable) {
             Log::error($logEvent, $context + [
@@ -201,5 +161,93 @@ class OrderObserver
                 'error' => $throwable->getMessage(),
             ]);
         }
+    }
+
+    private function fulfillmentLabel(Order $order): string
+    {
+        return (int) $order->dine_in === 1 ? 'dine-in' : 'pick-up';
+    }
+
+    private function fulfillmentWindow(Order $order): string
+    {
+        $date = Carbon::parse((string) $order->delivery_date)->format('d M Y');
+        $from = Carbon::parse((string) $order->delivery_time_from)->format('H:i');
+        $to = Carbon::parse((string) $order->delivery_time_to)->format('H:i');
+
+        return $this->fulfillmentLabel($order).' between '.$date.' '.$from.'-'.$to;
+    }
+
+    private function customerDisplayName(Order $order): string
+    {
+        $firstName = trim((string) $order->user?->first_name);
+        $lastName = trim((string) $order->user?->last_name);
+        $fullName = trim($firstName.' '.$lastName);
+
+        return $fullName !== '' ? $fullName : 'miFoodi';
+    }
+
+    private function pickupOrDineIn(Order $order): string
+    {
+        return (int) $order->dine_in === 1 ? 'dine-in' : 'pickup';
+    }
+
+    private function confirmationTime(Order $order): string
+    {
+        $date = Carbon::parse((string) $order->delivery_date)->format('d M Y');
+        $from = Carbon::parse((string) $order->delivery_time_from)->format('H:i');
+        $to = Carbon::parse((string) $order->delivery_time_to)->format('H:i');
+
+        return $date.' '.$from.'-'.$to;
+    }
+
+    private function wasCancelledByCustomer(Order $order): bool
+    {
+        return $order->cancelreason?->by_user === 'customer';
+    }
+
+    private function statusNotifications(Order $order, int $newStatus, $foodie, $kitchenUser): array
+    {
+        return match ($newStatus) {
+            Order::STATUS_CONFIRMED => $foodie ? [[
+                'recipient' => $foodie,
+                'message' => 'Your order is confirmed! Come at '.$this->confirmationTime($order).'.',
+                'type' => 2,
+                'log_event' => 'orders.user_notification_failed',
+            ]] : [],
+            Order::STATUS_LEGACY_CANCELLED, Order::STATUS_CANCELLED => $this->wasCancelledByCustomer($order)
+                ? ($kitchenUser ? [[
+                    'recipient' => $kitchenUser,
+                    'message' => 'Order cancelled by customer.',
+                    'type' => 3,
+                    'log_event' => 'orders.kitchen_notification_failed',
+                ]] : [])
+                : ($foodie ? [[
+                    'recipient' => $foodie,
+                    'message' => 'Your order was declined. Full refund initiated.',
+                    'type' => 4,
+                    'log_event' => 'orders.user_notification_failed',
+                ]] : []),
+            Order::STATUS_IN_PROGRESS => $foodie ? [[
+                'recipient' => $foodie,
+                'message' => 'Your meal is ready for '.$this->pickupOrDineIn($order).'.',
+                'type' => 2,
+                'log_event' => 'orders.user_notification_failed',
+            ]] : [],
+            Order::STATUS_COMPLETED => array_values(array_filter([
+                $foodie ? [
+                    'recipient' => $foodie,
+                    'message' => 'Thanks for using mitabl! Leave a review.',
+                    'type' => 5,
+                    'log_event' => 'orders.user_notification_failed',
+                ] : null,
+                $kitchenUser ? [
+                    'recipient' => $kitchenUser,
+                    'message' => 'Thanks for using mitabl! Leave a review.',
+                    'type' => 5,
+                    'log_event' => 'orders.kitchen_notification_failed',
+                ] : null,
+            ])),
+            default => [],
+        };
     }
 }

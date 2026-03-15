@@ -10,6 +10,8 @@ import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
+import 'package:mitabl_user/model/timing_model.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/element/timing_dialog.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
@@ -351,6 +353,16 @@ class _CookProfilePage extends State<CookProfilePage>
                                     height:
                                         config.AppConfig(context).appHeight(3),
                                   ),
+                                  _ServiceTypeSection(),
+                                  SizedBox(
+                                    height:
+                                        config.AppConfig(context).appHeight(3),
+                                  ),
+                                  const _CreateKitchenSlotSection(),
+                                  SizedBox(
+                                    height:
+                                        config.AppConfig(context).appHeight(3),
+                                  ),
                                   _LoginButton(
                                     loginForm: this,
                                   ),
@@ -480,6 +492,436 @@ class _TimingState extends State<_Timing> {
       });
     });
   }
+}
+
+class _ServiceTypeSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CookProfileCubit, CookProfileState>(
+      builder: (context, state) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: config.AppColors().textFieldBackgroundColor(1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: CheckboxListTile(
+                  value: state.dineIn,
+                  onChanged: (value) => context
+                      .read<CookProfileCubit>()
+                      .onDineInChange(value: value),
+                  title: const Text('Dine-in'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: config.AppColors().textFieldBackgroundColor(1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: CheckboxListTile(
+                  value: state.takeAway,
+                  onChanged: (value) => context
+                      .read<CookProfileCubit>()
+                      .onTakeAwayChange(value: value),
+                  title: const Text('Takeaway'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CreateKitchenSlotSection extends StatelessWidget {
+  const _CreateKitchenSlotSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CookProfileCubit, CookProfileState>(
+      builder: (context, state) {
+        final availableDays = _resolveOpenDays(state.daysTimingOriginal);
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(config.AppConfig(context).appWidth(4)),
+          decoration: BoxDecoration(
+            color: config.AppColors().textFieldBackgroundColor(1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Dine-in timeslots',
+                      style: GoogleFonts.gothicA1(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: state.dineIn && availableDays.isNotEmpty
+                        ? () => _showSlotEditor(
+                              context,
+                              state: state,
+                              availableDays: availableDays,
+                            )
+                        : null,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add slot'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (!state.dineIn)
+                const Text('Enable dine-in to add bookable table slots.')
+              else if (availableDays.isEmpty)
+                const Text('Turn on at least one kitchen opening day first.')
+              else if (state.dineInSlots.isEmpty)
+                const Text('No dine-in slots added yet.')
+              else
+                ...List<Widget>.generate(state.dineInSlots.length, (index) {
+                  final slot = state.dineInSlots[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(
+                          '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime} - ${slot.endTime}'),
+                      subtitle: Text('Seats: ${slot.seatCapacity ?? 0}'),
+                      trailing: Wrap(
+                        spacing: 4,
+                        children: [
+                          IconButton(
+                            onPressed: () => _showSlotEditor(
+                              context,
+                              state: state,
+                              availableDays: availableDays,
+                              existing: slot,
+                              index: index,
+                            ),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            onPressed: () => context
+                                .read<CookProfileCubit>()
+                                .deleteDineInSlot(index),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showSlotEditor(
+    BuildContext context, {
+    required CookProfileState state,
+    required List<_OpenDayOption> availableDays,
+    DineInSlotTemplate? existing,
+    int? index,
+  }) async {
+    int selectedDay = existing?.dayOfWeek ?? availableDays.first.dayOfWeek;
+    String? startTime = existing?.startTime;
+    String? endTime = existing?.endTime;
+    final seatController =
+        TextEditingController(text: (existing?.seatCapacity ?? '').toString());
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: Text(existing == null ? 'Add slot' : 'Edit slot'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<int>(
+                      initialValue: selectedDay,
+                      items: availableDays
+                          .map((day) => DropdownMenuItem<int>(
+                                value: day.dayOfWeek,
+                                child: Text(day.label),
+                              ))
+                          .toList(growable: false),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => selectedDay = value);
+                        }
+                      },
+                      decoration: const InputDecoration(labelText: 'Day'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: seatController,
+                      keyboardType: TextInputType.number,
+                      decoration:
+                          const InputDecoration(labelText: 'Seat capacity'),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              final picked = await showTimePicker(
+                                context: dialogContext,
+                                initialTime: _parseTime(startTime) ??
+                                    const TimeOfDay(hour: 12, minute: 0),
+                              );
+                              if (picked != null) {
+                                setDialogState(
+                                    () => startTime = _formatTime(picked));
+                              }
+                            },
+                            child: Text(startTime ?? 'Start time'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              final picked = await showTimePicker(
+                                context: dialogContext,
+                                initialTime: _parseTime(endTime) ??
+                                    const TimeOfDay(hour: 13, minute: 0),
+                              );
+                              if (picked != null) {
+                                setDialogState(
+                                    () => endTime = _formatTime(picked));
+                              }
+                            },
+                            child: Text(endTime ?? 'End time'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final seats = int.tryParse(seatController.text.trim());
+                    if (seats == null || seats <= 0) {
+                      Helper.showToast('Enter a valid seat capacity.');
+                      return;
+                    }
+                    if (startTime == null || endTime == null) {
+                      Helper.showToast('Choose both start and end times.');
+                      return;
+                    }
+                    if (!_isEndAfterStart(startTime!, endTime!)) {
+                      Helper.showToast('End time must be after start time.');
+                      return;
+                    }
+                    final timing =
+                        _timingForDay(state.daysTimingOriginal, selectedDay);
+                    if (timing == null ||
+                        !_fitsWithinWindow(
+                          startTime: startTime!,
+                          endTime: endTime!,
+                          windowStart: timing.startTime,
+                          windowEnd: timing.endTime,
+                        )) {
+                      Helper.showToast(
+                          'Slots must stay within the kitchen opening hours for that day.');
+                      return;
+                    }
+                    if (_overlapsExistingSlot(
+                      slots: state.dineInSlots,
+                      dayOfWeek: selectedDay,
+                      startTime: startTime!,
+                      endTime: endTime!,
+                      excludeIndex: index,
+                    )) {
+                      Helper.showToast(
+                          'This slot overlaps another dine-in slot on the same day.');
+                      return;
+                    }
+
+                    final selectedOption = availableDays
+                        .firstWhere((day) => day.dayOfWeek == selectedDay);
+                    context.read<CookProfileCubit>().addOrUpdateDineInSlot(
+                          DineInSlotTemplate(
+                            dayOfWeek: selectedDay,
+                            dayName: selectedOption.label,
+                            startTime: startTime,
+                            endTime: endTime,
+                            seatCapacity: seats,
+                            status: 1,
+                          ),
+                          index: index,
+                        );
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<_OpenDayOption> _resolveOpenDays(List<Days> days) {
+    const mapping = <String, _OpenDayOption>{
+      'Sun': _OpenDayOption(0, 'Sunday'),
+      'Mon': _OpenDayOption(1, 'Monday'),
+      'Tue': _OpenDayOption(2, 'Tuesday'),
+      'Wed': _OpenDayOption(3, 'Wednesday'),
+      'Thus': _OpenDayOption(4, 'Thursday'),
+      'Thu': _OpenDayOption(4, 'Thursday'),
+      'Fri': _OpenDayOption(5, 'Friday'),
+      'Sat': _OpenDayOption(6, 'Saturday'),
+    };
+
+    return days
+        .where((day) => day.isOn == true && mapping.containsKey(day.day ?? ''))
+        .map((day) => mapping[day.day ?? '']!)
+        .toSet()
+        .toList(growable: false)
+      ..sort((left, right) => left.dayOfWeek.compareTo(right.dayOfWeek));
+  }
+
+  static String _labelForDay(int? dayOfWeek) {
+    switch (dayOfWeek) {
+      case 0:
+        return 'Sunday';
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      default:
+        return 'Day';
+    }
+  }
+
+  static TimeOfDay? _parseTime(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final parts = value.split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  static String _formatTime(TimeOfDay time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+
+  static bool _isEndAfterStart(String start, String end) =>
+      _compareTime(end, start) > 0;
+
+  static Timing? _timingForDay(List<Days> days, int dayOfWeek) {
+    final labels = <int, List<String>>{
+      0: ['Sun'],
+      1: ['Mon'],
+      2: ['Tue'],
+      3: ['Wed'],
+      4: ['Thu', 'Thus'],
+      5: ['Fri'],
+      6: ['Sat'],
+    };
+
+    for (final day in days) {
+      if (day.isOn == true &&
+          labels[dayOfWeek]!.contains(day.day) &&
+          day.timing != null) {
+        return day.timing;
+      }
+    }
+    return null;
+  }
+
+  static bool _fitsWithinWindow({
+    required String startTime,
+    required String endTime,
+    required String? windowStart,
+    required String? windowEnd,
+  }) {
+    if (windowStart == null || windowEnd == null) return false;
+    return _compareTime(startTime, windowStart) >= 0 &&
+        _compareTime(endTime, windowEnd) <= 0;
+  }
+
+  static bool _overlapsExistingSlot({
+    required List<DineInSlotTemplate> slots,
+    required int dayOfWeek,
+    required String startTime,
+    required String endTime,
+    int? excludeIndex,
+  }) {
+    for (var i = 0; i < slots.length; i++) {
+      if (excludeIndex != null && i == excludeIndex) continue;
+      final slot = slots[i];
+      if (slot.dayOfWeek != dayOfWeek ||
+          slot.startTime == null ||
+          slot.endTime == null) {
+        continue;
+      }
+      if (_compareTime(startTime, slot.endTime!) < 0 &&
+          _compareTime(endTime, slot.startTime!) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static int _compareTime(String left, String right) {
+    final leftParts = left.split(':');
+    final rightParts = right.split(':');
+    final leftMinutes = ((int.tryParse(leftParts[0]) ?? 0) * 60) +
+        (int.tryParse(leftParts[1]) ?? 0);
+    final rightMinutes = ((int.tryParse(rightParts[0]) ?? 0) * 60) +
+        (int.tryParse(rightParts[1]) ?? 0);
+    return leftMinutes.compareTo(rightMinutes);
+  }
+}
+
+class _OpenDayOption {
+  const _OpenDayOption(this.dayOfWeek, this.label);
+
+  final int dayOfWeek;
+  final String label;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _OpenDayOption && other.dayOfWeek == dayOfWeek;
+
+  @override
+  int get hashCode => dayOfWeek.hashCode;
 }
 
 class _KitchenName extends StatefulWidget {

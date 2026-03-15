@@ -1,100 +1,233 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact mitabl</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://use.typekit.net/nzh0bps.css">
-    <link rel="stylesheet" href="/frontend/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/frontend/css/style.css">
-  </head>
-  <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-    <header role="banner">
-      <div class="container">
-        <nav class="navbar navbar-expand-md navbar-dark" aria-label="Primary">
-          <a class="navbar-brand" href="/" aria-label="mitabl home">
-            <img src="/frontend/images/logo.png" alt="mitabl logo">
-          </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar" aria-controls="collapsibleNavbar" aria-expanded="false" aria-label="Toggle navigation menu">
-            <span class="navbar-toggler-icon" aria-hidden="true"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="collapsibleNavbar">
-            <ul id="lu-ID" class="navbar-nav ml-auto">
-              <li class="nav-item" id="home"><a class="nav-link" href="/">HOME</a></li>
-              <li class="nav-item"><a class="nav-link" href="/about">ABOUT</a></li>
-              <li class="nav-item"><a class="nav-link" href="/faq">FAQ</a></li>
-              <li class="nav-item contact-btn"><a class="nav-link" href="/contact">CONTACT</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-    </header>
-    <main id="main-content" tabindex="-1">
-<section class="about-section">
-   <div class="container">
-      <div class="row">
-         <div class="col-md-8">
-            <h2>Contact mitabl</h2>
-            <p>Connecting local cooks and food lovers with confidence, care, and community.</p>
-         </div>
-      </div>
-   </div>
-</section>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        },
+                        accent: '#10b981',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .video-container {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body {
+            background-color: #fffaf5;
+            overflow-x: hidden;
+        }
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #ea580c;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-link.active {
+            color: #ea580c;
+            font-weight: 600;
+        }
+        
+        /* Modal transitions */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-900 leading-tight relative min-h-screen flex flex-col">
 
-<section class="contact-sec">
-   <div class="container">
-      <div class="row">
-         <div class="col-lg-5">
-            <div class="contact-data">
-               <h2>Let's build better local food moments</h2>
-               <p><strong>mitabl</strong> is where local flavour meets modern reliability.</p>
-               <p>Whether you're a foodie, a micook, or a partner, we'd love to hear from you.</p>
-               <p><strong>Email:</strong> <a href="mailto:admin@mitabl.com">admin@mitabl.com</a></p>
-               <p><strong>Follow mitabl:</strong></p>
-               <ul class="social-links">
-                  <li>
-                     <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">
-                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                           <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
-                        </svg>
-                        <span>Instagram</span>
-                     </a>
-                  </li>
-               </ul>
+    <!-- Decorative Background Elements -->
+    <div class="blob top-[-100px] left-[-100px] animate-pulse-slow"></div>
+    <div class="blob bottom-[-100px] right-[-100px] animate-float"></div>
+
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 glass px-4 py-2 rounded-lg text-brand-600 font-bold shadow-lg">Skip to main content</a>
+    
+    <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" aria-label="mitabl home" class="flex items-center gap-2 group">
+                <h2 class="text-brand-600 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                    <span class="bg-brand-600 text-white px-2 py-0.5 rounded-lg shadow-md shadow-brand-500/20">mi</span>tabl
+                </h2>
+            </a>
+            
+            <button id="mobile-menu-btn" class="md:hidden text-brand-900 focus:outline-none bg-white p-2 rounded-lg shadow-sm" aria-label="Toggle navigation menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            
+            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-6 py-6 md:py-0 shadow-lg md:shadow-none transition-all duration-300">
+                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/">Home</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/about">About</a></li>
+                    <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/faq">FAQ</a></li>
+                    <li><a class="nav-link px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-md shadow-brand-500/20 active:scale-95 border-none after:hidden" href="/contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+<div class="w-full mb-16 text-center" data-aos="fade-down">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-brand-900 tracking-tight leading-[1.1] mb-6">
+                Contact <span class="font-serif italic font-normal text-brand-600">mitabl</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+                Connecting local cooks and food lovers with confidence, care, and community.
+            </p>
+        </div>
+
+        <div class="w-full max-w-6xl mx-auto">
+            <div class="glass p-8 md:p-12 rounded-[2.5rem] shadow-lg relative overflow-hidden flex flex-col lg:flex-row gap-12">
+                <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60"></div>
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-accent/10 rounded-full mix-blend-multiply filter blur-3xl opacity-60"></div>
+
+                <!-- Left Column: Contact Info -->
+                <div class="lg:w-5/12 relative z-10 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-brand-900 mb-6">Let's build better local food moments</h2>
+                        <p class="text-gray-600 text-lg leading-relaxed mb-4">
+                            <strong class="font-bold text-brand-700">mitabl</strong> is where local flavour meets modern reliability.
+                        </p>
+                        <p class="text-gray-600 text-lg leading-relaxed mb-8">
+                            Whether you're a foodie, a micook, or a partner, we'd love to hear from you.
+                        </p>
+
+                        <div class="bg-white/60 p-6 rounded-2xl shadow-sm border border-white mb-8">
+                            <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Email</p>
+                            <a href="mailto:admin@mitabl.com" class="text-xl font-bold text-brand-600 hover:text-brand-700 transition-colors">admin@mitabl.com</a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Follow mitabl</p>
+                        <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 bg-white/60 hover:bg-white px-6 py-3 rounded-xl shadow-sm border border-white hover:border-brand-200 transition-all font-bold text-gray-700 hover:text-brand-600 group" aria-label="Visit mitabl Instagram">
+                            <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center group-hover:bg-brand-100 transition-colors">
+                                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" class="text-brand-600">
+                                   <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                                </svg>
+                            </div>
+                            <span>Instagram</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Column: Contact Form -->
+                <div class="lg:w-7/12 relative z-10">
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100">
+                        <h2 class="text-2xl font-bold text-brand-900 mb-2">Send us a message</h2>
+                        <p class="text-gray-500 mb-8">Use the form below to securely send your message to our support team.</p>
+                        
+                        <div id="contact-form-status" class="hidden p-4 mb-6 rounded-xl font-medium" role="status" aria-live="polite"></div>
+                        
+                        <form id="contact-form" action="/api/support/ticket" method="post" novalidate class="space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="requester_name" class="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                                    <input type="text" id="requester_name" name="requester_name" placeholder="Jane Doe" autocomplete="name" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-colors outline-none">
+                                </div>
+                                <div>
+                                    <label for="requester_email" class="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                                    <input type="email" id="requester_email" name="requester_email" placeholder="jane@example.com" autocomplete="email" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-colors outline-none">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="subject" class="block text-sm font-bold text-gray-700 mb-1">Subject</label>
+                                <input type="text" id="subject" name="subject" placeholder="How can we help you?" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-colors outline-none">
+                            </div>
+                            
+                            <div>
+                                <label for="description" class="block text-sm font-bold text-gray-700 mb-1">Message</label>
+                                <textarea id="description" name="description" placeholder="Please provide details..." required rows="5" class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-colors outline-none resize-none"></textarea>
+                            </div>
+                            
+                            <!-- Honeypot -->
+                            <div class="hidden" aria-hidden="true">
+                                <label for="website-hp">Website</label>
+                                <input id="website-hp" type="text" name="website" tabindex="-1" autocomplete="off">
+                            </div>
+                            
+                            <div class="pt-2">
+                                <button id="contact-submit" type="submit" class="w-full px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] shadow-xl shadow-brand-500/20 active:scale-[0.98]">
+                                    Send Message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-         </div>
-         <div class="col-lg-7">
-            <div class="contact-data">
-               <h2>Send us a message</h2>
-               <p>Use the form below to securely send your message to our support team.</p>
-               <div id="contact-form-status" class="alert d-none" role="status" aria-live="polite"></div>
-               <form class="contact-form" id="contact-form" action="/api/support/ticket" method="post" novalidate>
-                  <div class="form-outer">
-                     <input type="text" name="requester_name" placeholder="Your full name" autocomplete="name" required>
-                  </div>
-                  <div class="form-outer">
-                     <input type="email" name="requester_email" placeholder="Your email address" autocomplete="email" required>
-                  </div>
-                  <div class="form-outer">
-                     <input type="text" name="subject" placeholder="Subject" required>
-                  </div>
-                  <div class="form-outer">
-                     <textarea name="description" placeholder="How can we help you?" required></textarea>
-                  </div>
-                  <div class="form-outer d-none" aria-hidden="true">
-                     <label for="website-hp">Website</label>
-                     <input id="website-hp" type="text" name="website" tabindex="-1" autocomplete="off">
-                  </div>
-                  <div class="form-outer">
-                     <input id="contact-submit" type="submit" value="Send Message">
-                  </div>
-               </form>
-            </div>
-         </div>
-      </div>
-   </div>
-</section>
+        </div>
 
 <script>
    (function() {
@@ -113,8 +246,14 @@
             return;
          }
 
-         status.classList.remove('d-none', 'alert-success', 'alert-danger');
-         status.classList.add(isSuccess ? 'alert-success' : 'alert-danger');
+         status.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border', 'border-green-200', 'bg-red-100', 'text-red-800', 'border-red-200');
+         
+         if (isSuccess) {
+            status.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-200');
+         } else {
+            status.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-200');
+         }
+         
          status.textContent = message;
       }
 
@@ -154,7 +293,7 @@
 
          if (submitButton) {
             submitButton.disabled = true;
-            submitButton.value = 'Sending...';
+            submitButton.textContent = 'Sending...';
          }
 
          var formData = new FormData(form);
@@ -173,7 +312,7 @@
             showStatus('You recently sent the same message. Please wait a few minutes before sending it again.', false);
             if (submitButton) {
                submitButton.disabled = false;
-               submitButton.value = 'Send Message';
+               submitButton.textContent = 'Send Message';
             }
             return;
          }
@@ -218,7 +357,7 @@
          } finally {
             if (submitButton) {
                submitButton.disabled = false;
-               submitButton.value = 'Send Message';
+               submitButton.textContent = 'Send Message';
             }
          }
       });
@@ -226,69 +365,112 @@
 </script>
 
     </main>
-    <footer role="contentinfo">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-md-6">
-            <div class="footer-menu">
-              <ul class="d-flex" aria-label="Footer links">
-                <li><a href="/terms">Terms</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/contact">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-md-2">
-            <div class="footer-logo">
-              <a href="/" aria-label="mitabl home"><img src="/frontend/images/logo.png" alt="mitabl logo"></a>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="footer-app">
-              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" aria-label="Visit mitabl Instagram (opens in a new tab)">Instagram</a>
-            </div>
-          </div>
+    <footer role="contentinfo" class="w-full relative z-10 glass border-t border-brand-100 mt-20">
+      <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        
+        <div class="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-4 font-medium text-gray-600">
+            <a href="/terms" class="hover:text-brand-600 transition-colors">Terms</a>
+            <a href="/privacy-policy" class="hover:text-brand-600 transition-colors">Privacy Policy</a>
+            <a href="/contact" class="hover:text-brand-600 transition-colors">Contact</a>
+        </div>
+        
+        <div class="flex items-center justify-center">
+            <h2 class="text-gray-400 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 grayscale opacity-70">
+                <span class="bg-gray-400 text-white px-2 py-0.5 rounded-lg shadow-sm">mi</span>tabl
+            </h2>
+        </div>
+        
+        <div class="flex justify-center md:justify-end gap-4 h-11">
+            <style>
+               .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
+            </style>
+            
+              <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-bold hover:text-brand-700 transition-colors flex items-center gap-2" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
+                Instagram
+              </a>
+            
         </div>
       </div>
-      <div class="copyright-area">
-        <div class="container d-flex justify-content-between align-items-center">
-          <p>&copy; 2026 mitabl All rights reserved.</p>
-          <p class="d-flex align-items-center mb-0">
-            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="text-white mr-3" aria-label="Visit mitabl Instagram (opens in a new tab)">
-              <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">
-                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
-              </svg>
+      
+      <div class="px-6 py-6 border-t border-gray-200/50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>&copy; 2026 mitabl All rights reserved.</p>
+            <a href="https://instagram.com/_mitabl_/" target="_blank" rel="noopener noreferrer" class="hover:text-brand-600 transition-colors" aria-label="Visit mitabl Instagram">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                  <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.75A4 4 0 0 0 3.75 7.75v8.5a4 4 0 0 0 4 4h8.5a4 4 0 0 0 4-4v-8.5a4 4 0 0 0-4-4h-8.5Zm8.9 1.5a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 1.75A3.25 3.25 0 1 0 12 15.25 3.25 3.25 0 0 0 12 8.75Z" fill="currentColor"></path>
+                </svg>
             </a>
-          </p>
         </div>
       </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      $(document).ready(function() {
-        var CurrentUrl= document.URL;
-        var CurrentUrlEnd = CurrentUrl.split('/').filter(Boolean).pop();
-        if (CurrentUrlEnd === window.location.hostname || window.location.pathname === "/") {
-          $('#home').addClass('active')
-        } else {
-          $("#lu-ID li a").each(function() {
-            var ThisUrl = $(this).attr('href');
-            var ThisUrlEnd = ThisUrl.split('/').filter(Boolean).pop();
-            if(ThisUrlEnd == CurrentUrlEnd){
-              $(this).closest('li').addClass('active')
-            }
-          });
-        }
+        // Custom active link logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname;
+            const currentPathEnd = currentPath.split('/').filter(Boolean).pop() || "";
+            
+            const navLinks = document.querySelectorAll('#nav-list .nav-link:not(.bg-brand-600)');
+            
+            navLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                const linkPathEnd = linkHref.split('/').filter(Boolean).pop() || "";
+                
+                if ((currentPath === "/" || currentPath.endsWith("/index.html")) && (linkHref === "/" || linkHref.endsWith("/index.html"))) {
+                    link.classList.add('active');
+                } else if (currentPath !== "/" && !currentPath.endsWith("/index.html") && linkPathEnd === currentPathEnd) {
+                    link.classList.add('active');
+                }
+            });
 
-        $('[data-target="#myModal"]').on('click', function(event) {
-          if ($(this).attr('href') === '#') {
-            event.preventDefault();
-          }
+            // Mobile menu toggle
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navMenu = document.getElementById('navbar-menu');
+            
+            if (mobileBtn && navMenu) {
+                mobileBtn.addEventListener('click', () => {
+                    navMenu.classList.toggle('hidden');
+                    navMenu.classList.toggle('flex');
+                });
+            }
+
+            // Modal logic
+            const modal = document.getElementById('myModal');
+            const modalTriggers = document.querySelectorAll('.modal-trigger');
+            const modalCloseBtns = document.querySelectorAll('.modal-close, .modal');
+            const modalContent = document.querySelector('.modal-content');
+
+            if (modal) {
+                modalTriggers.forEach(trigger => {
+                    trigger.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        modal.classList.remove('invisible', 'opacity-0');
+                        modal.classList.add('open');
+                        setTimeout(() => modal.classList.add('opacity-100'), 10);
+                    });
+                });
+                
+                modalCloseBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (e.target === modal || btn.classList.contains('modal-close')) {
+                            e.preventDefault();
+                            modal.classList.remove('opacity-100', 'open');
+                            setTimeout(() => modal.classList.add('invisible', 'opacity-0'), 300);
+                        }
+                    });
+                });
+                
+                // Prevent click inside modal content from closing
+                if (modalContent) {
+                    modalContent.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+            }
         });
-      });
     </script>
   </body>
 </html>

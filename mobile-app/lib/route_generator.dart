@@ -9,6 +9,9 @@ import 'package:mitabl_user/pages/home/view/home_page.dart';
 import 'package:mitabl_user/pages/landing_page/landing_page.dart';
 import 'package:mitabl_user/pages/login/view/login_page.dart';
 import 'package:mitabl_user/pages/otp/view/otp_page.dart';
+import 'package:mitabl_user/pages/ordering/view/order_cart_page.dart';
+import 'package:mitabl_user/pages/ordering/view/order_checkout_page.dart';
+import 'package:mitabl_user/pages/ordering/view/order_menu_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/view/profile_foodie_page.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cook_profile_page.dart';
 import 'package:mitabl_user/pages/signup/view/signup_page.dart';
@@ -90,6 +93,24 @@ class RouteGenerator {
 
       case '/Payments':
         return PaymentsPage.route();
+
+      case '/OrderMenu':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderMenu');
+        }
+        return OrderMenuPage.route(routeArguments: routeArguments);
+
+      case '/OrderCart':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderCart');
+        }
+        return OrderCartPage.route(routeArguments: routeArguments);
+
+      case '/OrderCheckout':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderCheckout');
+        }
+        return OrderCheckoutPage.route(routeArguments: routeArguments);
 
       case '/DashboardCook':
         return DashBoardCookPage.route();

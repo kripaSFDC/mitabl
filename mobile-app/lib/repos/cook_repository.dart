@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'dart:convert';
 
 class CookRepository {
   CookRepository(this.userRepository, {http.Client? httpClient})
@@ -77,6 +78,11 @@ class CookRepository {
       'cookingstyle': '${data['cookingstyle']}',
       'delete_images': '${data['delete_images'] ?? ''}',
       'description': '${data['description']}',
+      'available_date': '${data['available_date'] ?? ''}',
+      'available_from_time': '${data['available_from_time'] ?? ''}',
+      'available_to_time': '${data['available_to_time'] ?? ''}',
+      'available_days_json':
+          jsonEncode(data['available_days'] as List<dynamic>? ?? const []),
     });
 
     final specialDietIds = (data['specialDietIds'] as List<dynamic>? ?? [])

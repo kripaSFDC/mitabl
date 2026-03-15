@@ -38,11 +38,53 @@ class MiOrdersRepository {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    final records = _extractList(decoded, const ['items', 'data', 'orders', 'results']);
+    final records =
+        _extractList(decoded, const ['items', 'data', 'orders', 'results']);
     return records
         .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item as Map))
+        .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
+  }
+
+  Future<Map<String, dynamic>> cancelOrder({
+    required UserModel? userModel,
+    required Object orderId,
+    required String cancelComment,
+  }) async {
+    final response = await _httpClient
+        .post(
+          ApiContract.uri('v2/updateorderstatus'),
+          headers: authorizedHeadersForUser(
+            userModel,
+            includeJsonContentType: true,
+          ),
+          body: jsonEncode(<String, dynamic>{
+            'order_id': orderId,
+            'status': 4,
+            'cancel_comment': cancelComment.trim(),
+          }),
+        )
+        .timeout(ApiContract.requestTimeout);
+
+    if (response.statusCode != 200) {
+      throw RepositoryHttpException.fromResponse(
+        statusCode: response.statusCode,
+        body: response.body,
+        fallbackMessage: 'Unable to cancel order',
+      );
+    }
+
+    final dynamic decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      return const <String, dynamic>{};
+    }
+
+    final dynamic data = decoded['data'];
+    if (data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(data);
+    }
+
+    return decoded;
   }
 
   List<dynamic> _extractList(dynamic decoded, List<String> keys) {

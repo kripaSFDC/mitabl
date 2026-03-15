@@ -112,6 +112,7 @@ class Kitchen {
   List<ReviewsData>? reviewsData;
   double? ratingCount;
   List<ImagesCook>? images;
+  List<DineInSlotTemplate>? dineInSlots;
 
   Kitchen(
       {this.id,
@@ -135,7 +136,8 @@ class Kitchen {
       this.updatedAt,
       this.reviewsData,
       this.ratingCount,
-      this.images});
+      this.images,
+      this.dineInSlots});
 
   Kitchen.fromJson(Map<String, dynamic> json) {
     id = _asInt(json['id']);
@@ -170,6 +172,12 @@ class Kitchen {
         images!.add(ImagesCook.fromJson(v));
       });
     }
+    if (json['dine_in_slots'] != null) {
+      dineInSlots = <DineInSlotTemplate>[];
+      json['dine_in_slots'].forEach((v) {
+        dineInSlots!.add(DineInSlotTemplate.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -200,7 +208,72 @@ class Kitchen {
     if (images != null) {
       data['images'] = images!.map((v) => v.toJson()).toList();
     }
+    if (dineInSlots != null) {
+      data['dine_in_slots'] = dineInSlots!.map((v) => v.toJson()).toList();
+    }
     return data;
+  }
+}
+
+class DineInSlotTemplate {
+  int? id;
+  int? dayOfWeek;
+  String? dayName;
+  String? startTime;
+  String? endTime;
+  int? seatCapacity;
+  int? status;
+
+  DineInSlotTemplate({
+    this.id,
+    this.dayOfWeek,
+    this.dayName,
+    this.startTime,
+    this.endTime,
+    this.seatCapacity,
+    this.status,
+  });
+
+  DineInSlotTemplate copyWith({
+    int? id,
+    int? dayOfWeek,
+    String? dayName,
+    String? startTime,
+    String? endTime,
+    int? seatCapacity,
+    int? status,
+  }) {
+    return DineInSlotTemplate(
+      id: id ?? this.id,
+      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
+      dayName: dayName ?? this.dayName,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      seatCapacity: seatCapacity ?? this.seatCapacity,
+      status: status ?? this.status,
+    );
+  }
+
+  DineInSlotTemplate.fromJson(Map<String, dynamic> json) {
+    id = _asInt(json['id']);
+    dayOfWeek = _asInt(json['day_of_week']);
+    dayName = json['day_name']?.toString();
+    startTime = json['start_time']?.toString();
+    endTime = json['end_time']?.toString();
+    seatCapacity = _asInt(json['seat_capacity']);
+    status = _asInt(json['status']) ?? 1;
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      if (id != null) 'id': id,
+      'day_of_week': dayOfWeek,
+      'day_name': dayName,
+      'start_time': startTime,
+      'end_time': endTime,
+      'seat_capacity': seatCapacity,
+      'status': status ?? 1,
+    };
   }
 }
 

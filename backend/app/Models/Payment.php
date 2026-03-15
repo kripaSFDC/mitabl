@@ -9,6 +9,16 @@ class Payment extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'order_id',
+        'payment_id',
+        'card_id',
+        'amount',
+        'confirm',
+        'confirm_date_time',
+        'status',
+    ];
+
     protected $casts = [
         'confirm' => 'boolean',
         'confirm_date_time' => 'datetime',

@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
+use App\Http\Resources\Restaurant\Food as FoodResource;
+use App\Models\Foods;
 use App\Models\Mikitchn;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -11,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 class DiscoveryService
 {
@@ -141,6 +146,101 @@ class DiscoveryService
         return ['data' => $result['payload']];
     }
 
+    public function menu(Request $request, int $restaurantId): array
+    {
+        $foods = Foods::query()
+            ->with('addedimage:id,ref_id,model_name,path')
+            ->forRestaurant($restaurantId)
+            ->active();
+
+        $this->applyFoodAvailabilityFilters($request, $foods);
+
+        $foodCollection = $foods->orderBy('food_name')->get();
+        $foodCollection = $this->filterScheduledFoods($foodCollection, $request);
+
+        return [
+            'data' => FoodResource::collection($foodCollection)->resolve(),
+        ];
+    }
+
+    public function search(Request $request): array
+    {
+        $term = trim((string) $request->query('q', ''));
+        if ($term === '') {
+            return ['data' => ['total_count' => 0, 'kitchens' => []]];
+        }
+
+        $limit = min(max((int) ($request->query('limit', 10)), 1), 50);
+        $page = max((int) ($request->query('page', 1)), 1);
+        $likeTerm = '%' . $term . '%';
+        $dineIn = $request->has('dine_in') ? (int) $request->query('dine_in') : null;
+        $takeAway = $request->has('take_away') ? (int) $request->query('take_away') : null;
+
+        $query = $this->buildBaseDiscoveryQuery($request, true)
+            ->where('mikitchns.status', 1)
+            ->where(function ($subQuery) use ($likeTerm, $dineIn, $takeAway): void {
+                $subQuery->where('mikitchns.name', 'like', $likeTerm)
+                    ->orWhere('mikitchns.description', 'like', $likeTerm)
+                    ->orWhereExists(function ($foodQuery) use ($likeTerm, $dineIn, $takeAway): void {
+                        $foodQuery->selectRaw('1')
+                            ->from('foods')
+                            ->whereColumn('foods.restaurant_id', 'mikitchns.id')
+                            ->where('foods.status', 1)
+                            ->when($dineIn !== null, fn ($innerQuery) => $innerQuery->where('foods.dine_in', $dineIn))
+                            ->when($takeAway !== null, fn ($innerQuery) => $innerQuery->where('foods.take_away', $takeAway))
+                            ->where(function ($matchQuery) use ($likeTerm): void {
+                                $matchQuery->where('foods.food_name', 'like', $likeTerm)
+                                    ->orWhere('foods.description', 'like', $likeTerm);
+                            });
+                    });
+            });
+
+        if ($this->hasValidCoordinates($request)) {
+            $query->orderBy('distance', 'ASC');
+        } else {
+            $query->orderByDesc('reviews_avg_rating')
+                ->orderBy('mikitchns.name');
+        }
+
+        $start = microtime(true);
+        $result = $this->remember('search', $request, function () use ($query, $limit, $page, $term, $dineIn, $takeAway, $request) {
+            if ($request->filled('delivery_date')) {
+                $allMatchingKitchens = $query->get();
+                $allMatchingKitchens->load([
+                    'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
+                        $foodQuery->active()
+                            ->searchTerm($term)
+                            ->availableForOrderType($dineIn, $takeAway)
+                            ->with('addedimage:id,ref_id,model_name,path')
+                            ->orderBy('food_name');
+                    },
+                ]);
+
+                $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
+                return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page, $term);
+            }
+
+            $allMatchingKitchens = $query->get();
+            $allMatchingKitchens->load([
+                'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
+                    $foodQuery->active()
+                        ->searchTerm($term)
+                        ->availableForOrderType($dineIn, $takeAway)
+                        ->with('addedimage:id,ref_id,model_name,path')
+                        ->orderBy('food_name');
+                },
+            ]);
+
+            $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
+
+            return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page, $term);
+        });
+
+        $this->logMetrics('searchRestaurant', $start, $result['cache_hit']);
+
+        return ['data' => $result['payload']];
+    }
+
     private function buildBaseDiscoveryQuery(Request $request, bool $withDistance)
     {
         $query = Mikitchn::query()->select(['mikitchns.*']);
@@ -177,6 +277,78 @@ class DiscoveryService
         if ($request->has('take_away')) {
             $query->where('mikitchns.take_away', $request->take_away);
         }
+    }
+
+    private function applyFoodAvailabilityFilters(Request $request, $query): void
+    {
+        $dineIn = $request->has('dine_in') ? (int) $request->query('dine_in') : null;
+        $takeAway = $request->has('take_away') ? (int) $request->query('take_away') : null;
+
+        $query->availableForOrderType($dineIn, $takeAway);
+    }
+
+    private function applyScheduledFoodFilteringToKitchens(Collection $kitchens, Request $request): void
+    {
+        foreach ($kitchens as $kitchen) {
+            if (! $kitchen->relationLoaded('foods')) {
+                continue;
+            }
+
+            $kitchen->setRelation('foods', $this->filterScheduledFoods($kitchen->foods, $request));
+        }
+    }
+
+    private function filterScheduledFoods(Collection $foods, Request $request): Collection
+    {
+        if (! $request->filled('delivery_date')) {
+            return $foods->values();
+        }
+
+        $deliveryDate = Carbon::parse((string) $request->query('delivery_date'))->startOfDay();
+        $deliveryTimeFrom = $request->query('delivery_time_from');
+        $deliveryTimeTo = $request->query('delivery_time_to');
+
+        return $foods
+            ->filter(fn (Foods $food): bool => $food->isScheduledFor($deliveryDate, $deliveryTimeFrom, $deliveryTimeTo))
+            ->values();
+    }
+
+    private function buildFilteredSearchPayload(Collection $kitchens, int $limit, int $page, string $term): array
+    {
+        $filteredKitchens = $kitchens
+            ->filter(fn ($kitchen) => $this->kitchenMatchesSearchTerm($kitchen, $term) || $kitchen->foods->isNotEmpty())
+            ->values();
+
+        $totalCount = $filteredKitchens->count();
+        $paginator = new LengthAwarePaginator(
+            $filteredKitchens->slice(($page - 1) * $limit, $limit)->values(),
+            $totalCount,
+            $limit,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        $pagedKitchens = collect($paginator->items())->each(function ($kitchen): void {
+            $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
+        });
+
+        $this->annotateFavorites($pagedKitchens);
+
+        return [
+            'total_count' => $totalCount,
+            'kitchens' => RestaurantResource::collection($pagedKitchens)->resolve(),
+        ];
+    }
+
+    private function kitchenMatchesSearchTerm($kitchen, string $term): bool
+    {
+        $normalizedTerm = Str::lower(trim($term));
+        if ($normalizedTerm === '') {
+            return false;
+        }
+
+        return Str::contains(Str::lower((string) ($kitchen->name ?? '')), $normalizedTerm)
+            || Str::contains(Str::lower((string) ($kitchen->description ?? '')), $normalizedTerm);
     }
 
     private function remember(string $segment, Request $request, callable $callback): array

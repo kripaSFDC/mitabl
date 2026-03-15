@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources\Restaurant;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Restaurant\DineInSlot as DineInSlotResource;
 
 class Restaurant extends JsonResource
 {
@@ -44,6 +44,9 @@ class Restaurant extends JsonResource
             'rating_count' => $rating,
             'orders_count' => isset($this->orders_count) ? (int) $this->orders_count : null,
             'images' => $images,
+            'foods' => Food::collection($this->whenLoaded('foods')),
+            'weektimings' => $this->whenLoaded('weektimings'),
+            'dine_in_slots' => DineInSlotResource::collection($this->whenLoaded('dineInSlots')),
             'certificate' => $this->whenLoaded('certificate', function () {
                 return [
                     'id' => $this->certificate?->id,
@@ -52,6 +55,8 @@ class Restaurant extends JsonResource
                     'abn_gst' => $this->certificate?->abn_gst,
                 ];
             }),
+            'cock' => $this->when(isset($this->cock), $this->cock),
+            'gst' => $this->when(isset($this->gst), $this->gst),
             'is_favourited' => (bool) ($this->is_favourited ?? false),
         ];
     }

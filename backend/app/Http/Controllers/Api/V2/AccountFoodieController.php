@@ -46,6 +46,7 @@ class AccountFoodieController extends Controller
                 'cancelreason.actor.restaurant',
                 'review',
                 'payment',
+                'dineInSlot',
             ])
             ->where('user_id', (int) Auth::id());
 
@@ -216,6 +217,7 @@ class AccountFoodieController extends Controller
             Order::STATUS_REQUESTED,
             Order::STATUS_CONFIRMED,
             Order::STATUS_CANCELLED,
+            Order::STATUS_IN_PROGRESS,
         ];
 
         foreach ($statuses as $status) {

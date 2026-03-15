@@ -16,6 +16,8 @@ class EditKitchenProfileState extends Equatable {
       this.days = const [],
       this.daysTiming = const [],
       this.daysTimingOriginal = const [],
+      this.dineInSlots = const [],
+      this.dineInSlotsStatus = FormzStatus.pure,
       this.selectedPage = 0,
       this.takeAway,
       this.dineIn});
@@ -34,6 +36,8 @@ class EditKitchenProfileState extends Equatable {
   final List<String>? days;
   final List<Days> daysTiming;
   final List<Days>? daysTimingOriginal;
+  final List<DineInSlotTemplate> dineInSlots;
+  final FormzStatus dineInSlotsStatus;
   final int? selectedPage;
   final bool? dineIn;
   final bool? takeAway;
@@ -45,6 +49,8 @@ class EditKitchenProfileState extends Equatable {
       bool? takeAway,
       List<Days>? daysTiming,
       List<Days>? daysTimingOriginal,
+      List<DineInSlotTemplate>? dineInSlots,
+      FormzStatus? dineInSlotsStatus,
       List<String>? days,
       FormzStatus? status,
       List<ImagesCook>? pathFiles,
@@ -63,6 +69,8 @@ class EditKitchenProfileState extends Equatable {
         takeAway: takeAway ?? this.takeAway,
         selectedPage: selectedPage ?? this.selectedPage,
         daysTiming: daysTiming ?? this.daysTiming,
+        dineInSlots: dineInSlots ?? this.dineInSlots,
+        dineInSlotsStatus: dineInSlotsStatus ?? this.dineInSlotsStatus,
         pathFiles: pathFiles ?? this.pathFiles,
         statusApi: statusApi ?? this.statusApi,
         status: status ?? this.status,
@@ -83,6 +91,8 @@ class EditKitchenProfileState extends Equatable {
         dineIn,
         selectedPage,
         daysTiming,
+        dineInSlots,
+        dineInSlotsStatus,
         pathFiles,
         noOfSeats,
         statusApi,

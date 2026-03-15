@@ -41,12 +41,16 @@ class RequestsCubit extends Cubit<RequestsState> {
     bool? isAccept,
     dynamic orderId,
     bool? isFromOrderView,
+    String? cancelComment,
   }) async {
     try {
       Map<String, dynamic>? map = {};
 
       map['order_id'] = orderId.toString();
-      map['status'] = isAccept! ? '3' : '0';
+      map['status'] = isAccept! ? '3' : '4';
+      if (!isAccept && (cancelComment ?? '').trim().isNotEmpty) {
+        map['cancel_comment'] = cancelComment!.trim();
+      }
 
       var response = await bookingRepository!.updateOrderStatus(data: map);
       if (response.statusCode == 200) {

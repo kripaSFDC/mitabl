@@ -40,6 +40,10 @@ class FoodData {
   double? price;
   int? status;
   String? description;
+  String? availableDate;
+  List<int>? availableDays;
+  String? availableFromTime;
+  String? availableToTime;
 
   FoodData copyWith({
     int? id,
@@ -51,6 +55,10 @@ class FoodData {
     double? price,
     int? status,
     String? description,
+    String? availableDate,
+    List<int>? availableDays,
+    String? availableFromTime,
+    String? availableToTime,
   }) {
     return FoodData(
         id: id ?? this.id,
@@ -61,7 +69,11 @@ class FoodData {
         foodName: foodName ?? this.foodName,
         pictures: pictures ?? this.pictures,
         restaurantId: restaurantId ?? this.restaurantId,
-        specialDiet: specialDiet ?? this.specialDiet);
+        specialDiet: specialDiet ?? this.specialDiet,
+        availableDate: availableDate ?? this.availableDate,
+        availableDays: availableDays ?? this.availableDays,
+        availableFromTime: availableFromTime ?? this.availableFromTime,
+        availableToTime: availableToTime ?? this.availableToTime);
   }
 
   FoodData(
@@ -73,7 +85,11 @@ class FoodData {
       this.pictures,
       this.price,
       this.status,
-      this.description});
+      this.description,
+      this.availableDate,
+      this.availableDays,
+      this.availableFromTime,
+      this.availableToTime});
 
   FoodData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -91,6 +107,10 @@ class FoodData {
         json['price'] != null ? double.parse(json['price'].toString()) : 0.0;
     status = json['status'];
     description = json['description'];
+    availableDate = json['available_date']?.toString();
+    availableDays = _parseAvailableDays(json['available_days']);
+    availableFromTime = json['available_from_time']?.toString();
+    availableToTime = json['available_to_time']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -106,8 +126,27 @@ class FoodData {
     data['price'] = price;
     data['status'] = status;
     data['description'] = description;
+    data['available_date'] = availableDate;
+    data['available_days'] = availableDays;
+    data['available_from_time'] = availableFromTime;
+    data['available_to_time'] = availableToTime;
     return data;
   }
+}
+
+List<int>? _parseAvailableDays(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value is List) {
+    return value
+        .map((day) => int.tryParse(day.toString()))
+        .whereType<int>()
+        .toList(growable: false);
+  }
+
+  return null;
 }
 
 class Pictures {

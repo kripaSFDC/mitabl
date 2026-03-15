@@ -9,6 +9,7 @@ import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/name.dart';
 import 'package:mitabl_user/model/phone.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 
 import '../../../../model/timing_model.dart';
@@ -114,6 +115,15 @@ class CookProfileCubit extends Cubit<CookProfileState> {
       map['phone'] = state.phone.value;
       map['user_id'] = routeArguments!.data!.user!.id;
       map['timings'] = jsonEncode(TimingModel(days: state.daysTiming));
+      map['dine_in'] = state.dineIn ? 1 : 0;
+      map['take_away'] = state.takeAway ? 1 : 0;
+      if (state.dineIn) {
+        map['dine_in_slots'] = jsonEncode(
+          state.dineInSlots
+              .map((slot) => slot.toJson())
+              .toList(growable: false),
+        );
+      }
 
       var response = await authenticationRepository!.vendorKitchnUpload(
           data: map,
@@ -168,5 +178,43 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         noOfSeats: seat,
         status: Formz.validate(
             [state.nameKitchn!, state.phone, seat, state.address!])));
+  }
+
+  void onDineInChange({bool? value}) {
+    emit(state.copyWith(dineIn: value ?? false));
+  }
+
+  void onTakeAwayChange({bool? value}) {
+    emit(state.copyWith(takeAway: value ?? false));
+  }
+
+  void addOrUpdateDineInSlot(DineInSlotTemplate slot, {int? index}) {
+    final next = [...state.dineInSlots];
+    if (index != null && index >= 0 && index < next.length) {
+      next[index] = slot;
+    } else {
+      next.add(slot);
+    }
+
+    next.sort((left, right) {
+      final dayCompare = (left.dayOfWeek ?? 0).compareTo(right.dayOfWeek ?? 0);
+      if (dayCompare != 0) {
+        return dayCompare;
+      }
+
+      return (left.startTime ?? '').compareTo(right.startTime ?? '');
+    });
+
+    emit(state.copyWith(dineInSlots: next));
+  }
+
+  void deleteDineInSlot(int index) {
+    final next = [...state.dineInSlots];
+    if (index < 0 || index >= next.length) {
+      return;
+    }
+
+    next.removeAt(index);
+    emit(state.copyWith(dineInSlots: next));
   }
 }

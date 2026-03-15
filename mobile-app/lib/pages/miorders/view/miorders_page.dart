@@ -32,6 +32,7 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
   List<Map<String, dynamic>> _orders = const [];
   bool _switchingRole = false;
   bool _attemptedFoodieRecovery = false;
+  bool _isCancellingOrder = false;
 
   @override
   void initState() {
@@ -155,18 +156,153 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final order = _orders[index];
-                  final title =
-                      (order['title'] ?? order['id'] ?? 'Order ${index + 1}')
-                          .toString();
-                  final subtitle = (order['status'] ??
-                          order['date'] ??
-                          'Details unavailable')
-                      .toString();
-                  return ListTile(title: Text(title), subtitle: Text(subtitle));
+                  final title = _orderTitle(order, index);
+                  final subtitle = _orderSubtitle(order);
+                  final statusLabel = _statusLabel(order['status']);
+                  final canCancel = _canCancel(order);
+                  return ListTile(
+                    title: Text(title),
+                    subtitle: Text(subtitle),
+                    trailing: canCancel
+                        ? TextButton(
+                            onPressed: _isCancellingOrder
+                                ? null
+                                : () => _cancelOrder(order),
+                            child: Text(
+                              _isCancellingOrder ? 'Cancelling...' : 'Cancel',
+                            ),
+                          )
+                        : Text(statusLabel),
+                  );
                 },
               ),
       },
     );
+  }
+
+  String _orderTitle(Map<String, dynamic> order, int index) {
+    final dynamic kitchen = order['mikitchn'];
+    final kitchenName = kitchen is Map<String, dynamic>
+        ? (kitchen['name']?.toString() ?? '')
+        : '';
+    final orderCode = order['order_type_id']?.toString() ??
+        order['order_id']?.toString() ??
+        'Order ${index + 1}';
+
+    if (kitchenName.isEmpty) {
+      return orderCode;
+    }
+
+    return '$orderCode • $kitchenName';
+  }
+
+  String _orderSubtitle(Map<String, dynamic> order) {
+    final serviceType =
+        (order['dine_in']?.toString() == '1') ? 'Dine-in' : 'Take-away';
+    final date = order['date']?.toString() ?? '';
+    final timeFrom = order['time_from']?.toString() ?? '';
+    final timeTo = order['time_to']?.toString() ?? '';
+    final totalPrice = order['total_price']?.toString() ?? '';
+
+    final parts = <String>[
+      serviceType,
+      if (date.isNotEmpty) date,
+      if (timeFrom.isNotEmpty && timeTo.isNotEmpty) '$timeFrom - $timeTo',
+      if (totalPrice.isNotEmpty) '\$$totalPrice',
+      _statusLabel(order['status']),
+    ];
+
+    return parts.join(' • ');
+  }
+
+  String _statusLabel(dynamic status) {
+    switch ('$status') {
+      case '0':
+      case '4':
+        return 'Cancelled';
+      case '1':
+        return 'Completed';
+      case '2':
+        return 'Requested';
+      case '3':
+        return 'Confirmed';
+      case '5':
+        return 'In progress';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  bool _canCancel(Map<String, dynamic> order) => '${order['status']}' == '2';
+
+  Future<void> _cancelOrder(Map<String, dynamic> order) async {
+    final comment = await _showCancelDialog();
+    if (!mounted || comment == null || comment.trim().isEmpty) {
+      return;
+    }
+
+    setState(() => _isCancellingOrder = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      await _repository.cancelOrder(
+        userModel: userModel,
+        orderId: order['order_id'] ?? order['id'] ?? '',
+        cancelComment: comment,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order cancelled successfully.')),
+      );
+      await _load(forceFoodieRecovery: false);
+    } on RepositoryHttpException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to cancel this order right now.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isCancellingOrder = false);
+      }
+    }
+  }
+
+  Future<String?> _showCancelDialog() async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cancel order'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Add a short cancellation reason',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Keep order'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('Cancel order'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    return result;
   }
 }
 

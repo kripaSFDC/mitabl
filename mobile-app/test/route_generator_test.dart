@@ -148,6 +148,54 @@ void main() {
 
     expect(find.text('payments'), findsOneWidget);
   });
+
+  testWidgets('Order menu route without args shows route error', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: '/OrderMenu',
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Missing route arguments for /OrderMenu'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Order cart route without args shows route error', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: '/OrderCart',
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Missing route arguments for /OrderCart'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Order checkout route without args shows route error', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: '/OrderCheckout',
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Missing route arguments for /OrderCheckout'),
+      findsOneWidget,
+    );
+  });
 }
 
 class _RouteObserver extends NavigatorObserver {

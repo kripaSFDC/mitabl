@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\OrderData;
 use App\Models\Foods;
+use App\Models\Mikitchn;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use InvalidArgumentException;
 
 class OrderService
 {
+    public function __construct(private DineInSlotService $dineInSlotService)
+    {
+    }
+
     public function completedOrderCountForUser(int $userId, bool $lock = false): int
     {
         $query = Order::query()
@@ -36,9 +41,57 @@ class OrderService
             // Serialize discount eligibility checks for concurrent order creation by the same user.
             User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
-            $fromTime = Carbon::parse($payload['delivery_time_from'])->format('H:i:s');
-            $toTime = Carbon::parse($payload['delivery_time_to'])->format('H:i:s');
             $kitchenId = (int) $payload['kitchen_id'];
+            $dineIn = (int) ($payload['dine_in'] ?? 0);
+            $takeAway = (int) ($payload['take_away'] ?? 0);
+
+            if (($dineIn + $takeAway) !== 1) {
+                throw new InvalidArgumentException('Exactly one of dine_in or take_away must be selected.');
+            }
+
+            $kitchen = Mikitchn::query()
+                ->select(['id', 'status', 'dine_in', 'take_away', 'no_of_seats'])
+                ->whereKey($kitchenId)
+                ->lockForUpdate()
+                ->first();
+            if (! $kitchen) {
+                throw new InvalidArgumentException('Selected kitchen does not exist.');
+            }
+            if ((int) $kitchen->status !== 1) {
+                throw new InvalidArgumentException('Selected kitchen is currently unavailable.');
+            }
+            if ($dineIn === 1 && (int) $kitchen->dine_in !== 1) {
+                throw new InvalidArgumentException('Selected kitchen does not offer dine-in orders.');
+            }
+            if ($takeAway === 1 && (int) $kitchen->take_away !== 1) {
+                throw new InvalidArgumentException('Selected kitchen does not offer take-away orders.');
+            }
+
+            $deliveryDate = Carbon::parse((string) $payload['delivery_date'])->startOfDay();
+            $slotId = $payload['dine_in_slot_id'] ?? null;
+            $persons = $dineIn === 1 ? (int) ($payload['persons'] ?? 0) : 0;
+            $slot = null;
+            $fromTime = null;
+            $toTime = null;
+
+            if ($dineIn === 1) {
+                if (! $slotId) {
+                    throw new InvalidArgumentException('dine_in_slot_id is required for dine-in orders.');
+                }
+
+                $slot = $this->dineInSlotService->assertBookable(
+                    $kitchen,
+                    (int) $slotId,
+                    $deliveryDate->toDateString(),
+                    $persons
+                );
+
+                $fromTime = (string) $slot->start_time;
+                $toTime = (string) $slot->end_time;
+            } else {
+                $fromTime = Carbon::parse((string) ($payload['delivery_time_from'] ?? ''))->format('H:i:s');
+                $toTime = Carbon::parse((string) ($payload['delivery_time_to'] ?? ''))->format('H:i:s');
+            }
 
             $normalizedItems = [];
             $foodIds = [];
@@ -51,15 +104,26 @@ class OrderService
                 $normalizedItems[] = ['food_id' => $foodId, 'quantity' => $quantity];
                 $foodIds[] = $foodId;
             }
+            $uniqueFoodIds = array_values(array_unique($foodIds));
 
             $foods = Foods::query()
-                ->select(['id', 'price'])
+                ->select([
+                    'id',
+                    'price',
+                    'dine_in',
+                    'take_away',
+                    'status',
+                    'available_date',
+                    'available_days',
+                    'available_from_time',
+                    'available_to_time',
+                ])
                 ->where('restaurant_id', $kitchenId)
-                ->whereIn('id', $foodIds)
+                ->whereIn('id', $uniqueFoodIds)
                 ->get()
                 ->keyBy('id');
 
-            if (count($foodIds) !== $foods->count()) {
+            if (count($uniqueFoodIds) !== $foods->count()) {
                 throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
             }
 
@@ -69,6 +133,18 @@ class OrderService
                 $food = $foods->get($item['food_id']);
                 if (! $food) {
                     throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
+                }
+                if ((int) $food->status !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are currently unavailable.');
+                }
+                if ($dineIn === 1 && (int) $food->dine_in !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are not available for dine-in.');
+                }
+                if ($takeAway === 1 && (int) $food->take_away !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are not available for take-away.');
+                }
+                if (! $food->isScheduledFor($deliveryDate, $fromTime, $toTime)) {
+                    throw new InvalidArgumentException('One or more selected dishes are not available for the chosen date/time.');
                 }
 
                 $unitPriceCents = $this->moneyToCents($food->price, 'food price');
@@ -96,8 +172,9 @@ class OrderService
             $order->item_total_price = $this->centsToMoney($itemTotalCents);
             $order->promo_code = $payload['promo_code'] ?? null;
             $order->taxes = $this->centsToMoney($taxesCents);
-            $order->dine_in = $payload['dine_in'];
-            $order->take_away = $payload['take_away'];
+            $order->dine_in = $dineIn;
+            $order->take_away = $takeAway;
+            $order->paymentmethod_id = $payload['payment_method_id'] ?? $payload['card_id'] ?? null;
 
             $discountAmountCents = 0;
             if ($this->completedOrderCountForUser($user->id, true) < 5) {
@@ -107,7 +184,8 @@ class OrderService
             $order->total_price = $this->centsToMoney(max($itemTotalCents + $taxesCents - $discountAmountCents, 0));
 
             if (!empty($payload['dine_in']) && (int) $payload['dine_in'] === 1) {
-                $order->persons = (int) ($payload['persons'] ?? 0);
+                $order->persons = $persons;
+                $order->dine_in_slot_id = $slot?->id;
             }
 
             // If clients still send totals, enforce consistency rather than trusting request values.

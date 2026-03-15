@@ -37,7 +37,6 @@ class AddMenuPage extends StatefulWidget {
 }
 
 class _AddMenuPageState extends State<AddMenuPage> {
-
   Future<bool> _onBackPressed() async {
     context.read<AddMenuCubit>().resetFields();
     return true;
@@ -144,8 +143,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                     child: Text(
                       widget.routeArguments!.isEdit! ? 'Edit Item' : 'Add Item',
                       style: TextStyle(
-                        fontFamily:
-                            config.FontFamily().itcAvantGardeGothicStdFontFamily,
+                        fontFamily: config.FontFamily()
+                            .itcAvantGardeGothicStdFontFamily,
                         fontWeight: config.FontFamily().medium,
                         color: Theme.of(context).primaryColorDark,
                         fontSize: config.AppConfig(context).appWidth(4.8),
@@ -176,8 +175,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                             children: [
                               state.pathFiles.isNotEmpty
                                   ? SizedBox(
-                                      height:
-                                          config.AppConfig(context).appHeight(20),
+                                      height: config.AppConfig(context)
+                                          .appHeight(20),
                                       child: PageView.builder(
                                         padEnds: true,
                                         clipBehavior: Clip.hardEdge,
@@ -200,8 +199,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                   height:
                                                       config.AppConfig(context)
                                                           .appHeight(20),
-                                                  width: config.AppConfig(context)
-                                                      .appWidth(100),
+                                                  width:
+                                                      config.AppConfig(context)
+                                                          .appWidth(100),
                                                   decoration: BoxDecoration(
                                                     color: config.AppColors()
                                                         .textFieldBackgroundColor(
@@ -218,9 +218,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                         '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
                                                     errorWidget:
                                                         (context, data, e) {
-                                                      return Image.file(File(state
-                                                          .pathFiles[index]
-                                                          .path!));
+                                                      return Image.file(File(
+                                                          state.pathFiles[index]
+                                                              .path!));
                                                     },
                                                     // errorWidget: (context, url, error) =>
                                                     //     Container(
@@ -229,7 +229,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                     placeholder: (context, s) =>
                                                         Container(
                                                       color: Theme.of(context)
-                                                          .colorScheme.surface,
+                                                          .colorScheme
+                                                          .surface,
                                                     ),
                                                   ),
                                                 ),
@@ -237,11 +238,12 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                     right: 6,
                                                     top: 6,
                                                     child: InkWell(
-                                                      splashFactory:
-                                                          NoSplash.splashFactory,
+                                                      splashFactory: NoSplash
+                                                          .splashFactory,
                                                       onTap: () {
                                                         context
-                                                            .read<AddMenuCubit>()
+                                                            .read<
+                                                                AddMenuCubit>()
                                                             .onDeleteImage(
                                                                 path: state
                                                                     .pathFiles[
@@ -314,10 +316,10 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                               width: config.AppConfig(context)
                                                   .appWidth(2),
                                               decoration: BoxDecoration(
-                                                  color:
-                                                      state.selectedPage == index
-                                                          ? Colors.blue
-                                                          : Colors.grey,
+                                                  color: state.selectedPage ==
+                                                          index
+                                                      ? Colors.blue
+                                                      : Colors.grey,
                                                   shape: BoxShape.circle),
                                             );
                                           },
@@ -339,19 +341,22 @@ class _AddMenuPageState extends State<AddMenuPage> {
                               children: [
                                 const _UploadButton(),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(3),
+                                  height:
+                                      config.AppConfig(context).appHeight(3),
                                 ),
                                 _ItemName(
                                   menuForm: this,
                                 ),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                                 _ItemPrice(
                                   menuForm: this,
                                 ),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                                 TextFormField(
                                   onTap: () {
@@ -359,15 +364,17 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                         context: context,
                                         builder: (contextB) {
                                           return BlocProvider(
-                                            create: (context) => SpecialDietCubit(
-                                                specialDietDataList:
-                                                    state.specialDietDataList),
+                                            create: (context) =>
+                                                SpecialDietCubit(
+                                                    specialDietDataList: state
+                                                        .specialDietDataList),
                                             child: const SpecialDietDialog(),
                                           );
                                         }).then((value) {
                                       if (!context.mounted) return;
                                       if (value != null) {
-                                        for (var element in (value as List<SpecialDietData>)) {
+                                        for (var element in (value
+                                            as List<SpecialDietData>)) {
                                           context
                                               .read<AddMenuCubit>()
                                               .onSpecialDietChange(
@@ -386,7 +393,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   decoration: InputDecoration(
                                     suffixIcon: Icon(
                                       Icons.arrow_right,
-                                      size: config.AppConfig(context).appWidth(8),
+                                      size:
+                                          config.AppConfig(context).appWidth(8),
                                     ),
                                     counterText: '',
                                     hintStyle: GoogleFonts.gothicA1(
@@ -467,19 +475,22 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                             .FontFamily()
                                                         .itcAvantGardeGothicStdFontFamily,
                                                     fontWeight:
-                                                        config.FontFamily().book,
+                                                        config.FontFamily()
+                                                            .book,
                                                     color: Theme.of(context)
                                                         .primaryColor,
                                                   ),
                                                   shape: StadiumBorder(
                                                       side: BorderSide(
-                                                          color: Theme.of(context)
-                                                              .primaryColor,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
                                                           width: 0.5)),
                                                   backgroundColor:
                                                       Theme.of(context)
                                                           .primaryColor
-                                                          .withValues(alpha: 0.2),
+                                                          .withValues(
+                                                              alpha: 0.2),
                                                   label: Text(
                                                     state.specialDietDataList!
                                                                 .where((element) =>
@@ -489,14 +500,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                                 .name!
                                                                 .length >
                                                             15
-                                                        ? '${state.specialDietDataList!
-                                                                .where((element) =>
-                                                                    element
-                                                                        .isSelected!)
-                                                                .toList()[index]
-                                                                .name!
-                                                                .substring(
-                                                                    0, 14)}...'
+                                                        ? '${state.specialDietDataList!.where((element) => element.isSelected!).toList()[index].name!.substring(0, 14)}...'
                                                         : state
                                                             .specialDietDataList!
                                                             .where((element) =>
@@ -508,9 +512,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                         fontFamily: config
                                                                 .FontFamily()
                                                             .itcAvantGardeGothicStdFontFamily,
-                                                        fontWeight:
-                                                            config.FontFamily()
-                                                                .book,
+                                                        fontWeight: config
+                                                                .FontFamily()
+                                                            .book,
                                                         color: Theme.of(context)
                                                             .primaryColor,
                                                         overflow: TextOverflow
@@ -533,14 +537,15 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                                 .id);
                                                   },
                                                   deleteIcon: Container(
-                                                    height:
-                                                        config.AppConfig(context)
-                                                            .appHeight(1.5),
-                                                    width:
-                                                        config.AppConfig(context)
-                                                            .appHeight(1.5),
+                                                    height: config.AppConfig(
+                                                            context)
+                                                        .appHeight(1.5),
+                                                    width: config.AppConfig(
+                                                            context)
+                                                        .appHeight(1.5),
                                                     padding: EdgeInsets.all(
-                                                        config.AppConfig(context)
+                                                        config.AppConfig(
+                                                                context)
                                                             .appWidth(0)),
                                                     alignment: Alignment.center,
                                                     decoration: BoxDecoration(
@@ -565,7 +570,6 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                   ),
                                                 ),
                                               );
-
                                             }),
                                           ),
                                           SizedBox(
@@ -696,7 +700,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                       )
                                     : const SizedBox(),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                                 TextFormField(
                                   onTap: () {
@@ -718,8 +723,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   readOnly: true,
                                   style: TextStyle(
                                       color: Colors.black,
-                                      fontSize:
-                                          config.AppConfig(context).appWidth(4)),
+                                      fontSize: config.AppConfig(context)
+                                          .appWidth(4)),
                                   textInputAction: TextInputAction.next,
                                   keyboardType: TextInputType.name,
                                   // maxLength: 15,
@@ -727,7 +732,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   decoration: InputDecoration(
                                     suffixIcon: Icon(
                                       Icons.arrow_right,
-                                      size: config.AppConfig(context).appWidth(8),
+                                      size:
+                                          config.AppConfig(context).appWidth(8),
                                     ),
                                     counterText: '',
                                     hintStyle: GoogleFonts.gothicA1(
@@ -775,13 +781,20 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   ),
                                 ),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                                 _ItemDescription(
                                   menuForm: this,
                                 ),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
+                                ),
+                                const _AvailabilityScheduleSection(),
+                                SizedBox(
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                                 Container(
                                   height: 45,
@@ -792,8 +805,10 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                           end: Alignment.topRight,
                                           colors: state.formzStatus!.isValidated
                                               ? [
-                                                  Theme.of(context).primaryColor,
-                                                  Theme.of(context).primaryColor,
+                                                  Theme.of(context)
+                                                      .primaryColor,
+                                                  Theme.of(context)
+                                                      .primaryColor,
                                                 ]
                                               : [
                                                   Colors.grey,
@@ -801,8 +816,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                   Colors.grey
                                                 ])),
                                   child: MaterialButton(
-                                      minWidth:
-                                          config.AppConfig(context).appWidth(100),
+                                      minWidth: config.AppConfig(context)
+                                          .appWidth(100),
                                       height: 50.0,
                                       onPressed: () {
                                         if (state.formzStatus!.isValidated) {
@@ -866,7 +881,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                       )),
                                 ),
                                 SizedBox(
-                                  height: config.AppConfig(context).appHeight(2),
+                                  height:
+                                      config.AppConfig(context).appHeight(2),
                                 ),
                               ],
                             ),
@@ -1129,6 +1145,220 @@ class _ItemDescriptionState extends State<_ItemDescription> {
   }
 }
 
+class _AvailabilityScheduleSection extends StatelessWidget {
+  const _AvailabilityScheduleSection();
+
+  static const List<String> _dayLabels = <String>[
+    'Sun',
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AddMenuCubit, AddMenuState>(
+      builder: (context, state) {
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(config.AppConfig(context).appWidth(4)),
+          decoration: BoxDecoration(
+            color: config.AppColors().textFieldBackgroundColor(1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Availability schedule',
+                style: GoogleFonts.gothicA1(
+                  color: Colors.black,
+                  fontSize: config.AppConfig(context).appWidth(4.5),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Choose a specific date, recurring weekdays, and an optional serving window.',
+                style: GoogleFonts.gothicA1(
+                  color: Colors.grey.shade700,
+                  fontSize: config.AppConfig(context).appWidth(3.3),
+                ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _pickAvailableDate(context, state.availableDate),
+                icon: const Icon(Icons.event_outlined),
+                label: Text(
+                  state.availableDate == null || state.availableDate!.isEmpty
+                      ? 'Pick one specific date'
+                      : 'Specific date: ${state.availableDate}',
+                ),
+              ),
+              if ((state.availableDate ?? '').isNotEmpty)
+                TextButton(
+                  onPressed: () => context
+                      .read<AddMenuCubit>()
+                      .onAvailableDateChanged(value: ''),
+                  child: const Text('Clear specific date'),
+                ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List<Widget>.generate(_dayLabels.length, (index) {
+                  final selected = state.availableDays.contains(index);
+                  return FilterChip(
+                    label: Text(_dayLabels[index]),
+                    selected: selected,
+                    onSelected: (_) => context
+                        .read<AddMenuCubit>()
+                        .onAvailableDayToggled(day: index),
+                  );
+                }),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pickTime(
+                        context,
+                        isStart: true,
+                        initialValue: state.availableFromTime,
+                      ),
+                      child: Text(
+                        state.availableFromTime == null ||
+                                state.availableFromTime!.isEmpty
+                            ? 'Start time'
+                            : 'From ${state.availableFromTime}',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pickTime(
+                        context,
+                        isStart: false,
+                        initialValue: state.availableToTime,
+                      ),
+                      child: Text(
+                        state.availableToTime == null ||
+                                state.availableToTime!.isEmpty
+                            ? 'End time'
+                            : 'To ${state.availableToTime}',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if ((state.availableFromTime ?? '').isNotEmpty ||
+                  (state.availableToTime ?? '').isNotEmpty)
+                TextButton(
+                  onPressed: () =>
+                      context.read<AddMenuCubit>().onAvailableTimeChanged(
+                            availableFromTime: '',
+                            availableToTime: '',
+                          ),
+                  child: const Text('Clear time window'),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAvailableDate(
+      BuildContext context, String? currentValue) async {
+    final parsed = _parseDate(currentValue);
+    final now = DateTime.now();
+    final initialDate = parsed ?? DateTime(now.year, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: DateTime(now.year + 2),
+    );
+
+    if (!context.mounted || picked == null) {
+      return;
+    }
+
+    final formatted =
+        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+    context.read<AddMenuCubit>().onAvailableDateChanged(value: formatted);
+  }
+
+  Future<void> _pickTime(
+    BuildContext context, {
+    required bool isStart,
+    String? initialValue,
+  }) async {
+    final initialTime =
+        _parseTimeOfDay(initialValue) ?? const TimeOfDay(hour: 12, minute: 0);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (!context.mounted || picked == null) {
+      return;
+    }
+
+    final formatted =
+        '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+    context.read<AddMenuCubit>().onAvailableTimeChanged(
+          availableFromTime: isStart ? formatted : null,
+          availableToTime: isStart ? null : formatted,
+        );
+  }
+
+  DateTime? _parseDate(String? value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    final parts = value.split('-');
+    if (parts.length != 3) {
+      return null;
+    }
+
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) {
+      return null;
+    }
+
+    return DateTime(year, month, day);
+  }
+
+  TimeOfDay? _parseTimeOfDay(String? value) {
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    final parts = value.split(':');
+    if (parts.length < 2) {
+      return null;
+    }
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) {
+      return null;
+    }
+
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+}
+
 /////
 
 class _UploadButton extends StatefulWidget {
@@ -1238,8 +1468,7 @@ class _UploadbuttonState extends State<_UploadButton> {
 
   void _openGallery(BuildContext context) async {
     final cubit = context.read<AddMenuCubit>();
-    final picture =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
       if (!context.mounted || picture == null) {
@@ -1270,5 +1499,3 @@ class _UploadbuttonState extends State<_UploadButton> {
     }
   }
 }
-
-

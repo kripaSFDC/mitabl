@@ -68,6 +68,7 @@ Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('thro
 
 Route::post('password/reset', [ResetPasswordController::class, 'sendResetLinkResponse']);
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handle']);
+Route::get('v2/payments/payment-method-entry', [V2PaymentsController::class, 'paymentMethodForm']);
 
 
 Route::post('preregister', [PreRegistrationController::class, 'store'])->middleware('throttle:pre-register-intake');
@@ -86,6 +87,7 @@ Route::get('/mobcontact', function () {
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
+Route::post('orders', [OrderController::class, 'store'])->middleware(['auth:api', 'api.user.active', 'customer']);
 
 $registerLegacyMobileRoutes = function (): void {
     Route::post('editprofile', [UserController::class, 'update']);
@@ -97,15 +99,15 @@ $registerLegacyMobileRoutes = function (): void {
         Route::post('mikitchn/editkitchen', [MikitchnController::class, 'updateKitchen']);
         Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
         Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
+        Route::get('mikitchn/dine-in-slots', [MikitchnController::class, 'getMyDineInSlots']);
         Route::post('food/add', [FoodsController::class, 'createFood']);
         Route::post('food/editfood', [FoodsController::class, 'updateFood']);
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
         Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
         Route::get('getprofile', [UserController::class, 'myProfile']);
-        Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
+        Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrders']);
         Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
         Route::get('allorders', [OrderController::class, 'allOrders']);
-        Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
         Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);
     });
 
@@ -121,8 +123,10 @@ $registerLegacyMobileRoutes = function (): void {
 
 
 Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
-    Route::get('mob-contact', [UserController::class, 'mobileContact']);
+	Route::get('mob-contact', [UserController::class, 'mobileContact']);
     Route::post('logout', [UserController::class, 'logout']);
+    Route::middleware('customer')->post('orders', [OrderController::class, 'store']);
+    Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
 
     // Legacy-mobile compatibility aliases retained under /v2 during migration.
     $registerLegacyMobileRoutes();
@@ -130,10 +134,11 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 	Route::prefix('account')->group(function () {
 			Route::get('profile', [V2AccountController::class, 'show']);
             Route::middleware('customer')->group(function () {
-                Route::get('orders', [V2AccountFoodieController::class, 'orders']);
-                Route::get('favorites', [V2AccountFoodieController::class, 'favorites']);
-                Route::post('favorites/toggle', [V2AccountFoodieController::class, 'toggleFavorite']);
-                Route::get('payments/history', [V2AccountFoodieController::class, 'paymentHistory']);
+            Route::get('orders', [V2AccountFoodieController::class, 'orders']);
+            Route::get('favorites', [V2AccountFoodieController::class, 'favorites']);
+            Route::post('favorites/toggle', [V2AccountFoodieController::class, 'toggleFavorite']);
+            Route::get('payments/history', [V2AccountFoodieController::class, 'paymentHistory']);
+            Route::post('orders', [OrderController::class, 'store']);
             });
 			Route::put('profile', [V2AccountController::class, 'update']);
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
@@ -153,7 +158,10 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::get('nearest', [V2DiscoveryController::class, 'nearest']);
 		Route::get('top-rated', [V2DiscoveryController::class, 'topRated']);
 		Route::get('recommended', [V2DiscoveryController::class, 'recommended']);
+		Route::get('search', [V2DiscoveryController::class, 'search']);
 		Route::get('restaurants/{id}', [V2DiscoveryController::class, 'show']);
+		Route::get('restaurants/{id}/menu', [V2DiscoveryController::class, 'menu']);
+		Route::get('restaurants/{id}/dine-in-slots', [V2DiscoveryController::class, 'dineInSlots']);
 	});
 
 	Route::prefix('payments')->group(function () {
@@ -162,16 +170,14 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('checkout-session', [V2PaymentsController::class, 'checkoutSession']);
 		Route::post('intent', [V2PaymentsController::class, 'createIntent']);
 		Route::post('intent/confirm', [V2PaymentsController::class, 'confirmIntent']);
-		Route::group(function (): void {
-			Route::post('vendor/bank-account', [UserController::class, 'addBankAccToVendor']);
-			Route::get('vendor/bank-account', [UserController::class, 'getVendorBankAcc']);
-			Route::get('vendor/bank-account/id', [UserController::class, 'getBankAccFromConect']);
-			Route::get('vendor/account', [UserController::class, 'retrieveAccount']);
-			Route::get('vendor/onboarding-link', [UserController::class, 'onboardingLink']);
-			Route::get('vendor/login-link', [UserController::class, 'createAccLoginLink']);
-			Route::get('vendor/account/completed', [UserController::class, 'accountCompletionStatus']);
-			Route::post('vendor/account/refresh', [UserController::class, 'updateConnectedAccount']);
-		});
+		Route::post('vendor/bank-account', [UserController::class, 'addBankAccToVendor']);
+		Route::get('vendor/bank-account', [UserController::class, 'getVendorBankAcc']);
+		Route::get('vendor/bank-account/id', [UserController::class, 'getBankAccFromConect']);
+		Route::get('vendor/account', [UserController::class, 'retrieveAccount']);
+		Route::get('vendor/onboarding-link', [UserController::class, 'onboardingLink']);
+		Route::get('vendor/login-link', [UserController::class, 'createAccLoginLink']);
+		Route::get('vendor/account/completed', [UserController::class, 'accountCompletionStatus']);
+		Route::post('vendor/account/refresh', [UserController::class, 'updateConnectedAccount']);
 		Route::post('vendor-transfer', [V2PaymentsController::class, 'vendorTransfer']);
 	});
 

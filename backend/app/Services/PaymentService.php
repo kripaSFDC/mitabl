@@ -7,6 +7,7 @@ use App\Models\Mikitchn;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Stripe\Stripe as StripeBase;
 use Stripe\StripeClient;
@@ -137,17 +138,60 @@ class PaymentService
 
     public function createPaymentIntent(Order $order)
     {
-        $orderUser = $order->relationLoaded('user') ? $order->user : User::with('customer')->find($order->user_id);
-        $customerId = optional(optional($orderUser)->customer)->account_id;
-        if (! $customerId) {
-            throw new RuntimeException('Order customer Stripe account not found.');
+        return $this->createPaymentIntentForCustomer($order, null);
+    }
+
+    public function initializeOrderPaymentIntent(
+        Order $order,
+        User $user,
+        ?string $cardReference = null,
+        ?string $paymentMethodId = null
+    ): array {
+        $selection = $this->resolvePaymentMethodForIntent($user, $cardReference, $paymentMethodId);
+
+        $payment = DB::transaction(function () use ($order, $selection): Payment {
+            $payment = Payment::query()->lockForUpdate()->where('order_id', $order->id)->first();
+            $shouldCreateIntent = ! $payment
+                || ! $payment->payment_id
+                || (bool) $payment->confirm
+                || trim((string) $payment->status) === 'canceled';
+
+            $intent = null;
+            if ($shouldCreateIntent) {
+                $intent = $this->createPaymentIntentForCustomer($order, $selection['customer_id']);
+            }
+
+            return Payment::query()->updateOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'payment_id' => (string) ($intent->id ?? $payment?->payment_id ?? ''),
+                    'card_id' => (string) ($selection['payment_method_id'] ?? ''),
+                    'amount' => (float) $order->total_price,
+                    'confirm' => 0,
+                    'confirm_date_time' => null,
+                    'status' => (string) ($intent->status ?? $payment?->status ?? 'requires_payment_method'),
+                ]
+            );
+        });
+
+        return [
+            'payment' => $payment,
+            'selection' => $selection,
+        ];
+    }
+
+    public function createPaymentIntentForCustomer(Order $order, ?string $customerId = null)
+    {
+        $resolvedCustomerId = $customerId;
+        if ($resolvedCustomerId === null) {
+            $orderUser = $order->relationLoaded('user') ? $order->user : User::with('customer')->find($order->user_id);
+            $resolvedCustomerId = optional(optional($orderUser)->customer)->account_id;
         }
 
-        return $this->stripe()->paymentIntents->create([
+        $payload = [
             'amount' => (int) round(((float) $order->total_price) * 100),
             'currency' => $this->currency,
             'payment_method_types' => ['card'],
-            'customer' => $customerId,
             'capture_method' => 'automatic',
             'metadata' => [
                 'order_id' => (string) $order->id,
@@ -159,12 +203,70 @@ class PaymentService
                     'request_three_d_secure' => 'automatic',
                 ],
             ],
-        ]);
+        ];
+
+        if ($resolvedCustomerId !== null && trim($resolvedCustomerId) !== '') {
+            $payload['customer'] = $resolvedCustomerId;
+        }
+
+        return $this->stripe()->paymentIntents->create($payload);
     }
 
     public function confirmPaymentIntent(Payment $payment)
     {
+        if (trim((string) $payment->card_id) === '') {
+            throw new RuntimeException('A payment method must be selected before confirming this payment intent.');
+        }
+
         return $this->stripe()->paymentIntents->confirm($payment->payment_id, ['payment_method' => $payment->card_id]);
+    }
+
+    public function resolvePaymentMethodForIntent(User $user, ?string $cardReference = null, ?string $paymentMethodId = null): array
+    {
+        $customerId = optional($user->customer)->account_id;
+        if (! $customerId) {
+            throw new RuntimeException('Customer Stripe account not found.');
+        }
+
+        $cardReference = trim((string) $cardReference);
+        $paymentMethodId = trim((string) $paymentMethodId);
+
+        if ($cardReference !== '' && $paymentMethodId !== '') {
+            throw new RuntimeException('Provide either card_id or payment_method_id, not both.');
+        }
+
+        if ($cardReference !== '') {
+            return [
+                'payment_method_id' => $this->resolveCustomerPaymentMethodId($user, $cardReference),
+                'customer_id' => $customerId,
+                'mode' => 'saved_card',
+            ];
+        }
+
+        if ($paymentMethodId === '') {
+            return [
+                'payment_method_id' => null,
+                'customer_id' => $customerId,
+                'mode' => 'unspecified',
+            ];
+        }
+
+        if (! str_starts_with($paymentMethodId, 'pm_')) {
+            throw new RuntimeException('A valid Stripe payment_method_id (pm_...) is required.');
+        }
+
+        $paymentMethod = $this->stripe()->paymentMethods->retrieve($paymentMethodId, []);
+        $attachedCustomer = trim((string) ($paymentMethod->customer ?? ''));
+
+        if ($attachedCustomer !== '' && $attachedCustomer !== $customerId) {
+            throw new RuntimeException('Selected payment method is already attached to another customer.');
+        }
+
+        return [
+            'payment_method_id' => $paymentMethodId,
+            'customer_id' => $attachedCustomer === $customerId ? $customerId : null,
+            'mode' => $attachedCustomer === $customerId ? 'saved_card' : 'one_time',
+        ];
     }
 
     public function resolveCustomerPaymentMethodId(User $user, string $cardReference): string

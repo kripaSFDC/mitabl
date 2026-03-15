@@ -15,16 +15,24 @@ class BookingsCubit extends Cubit<BookingsState> {
 
   final BookingRepository? bookingRepository;
 
-  onOrderCompleteDecline({bool? isCompleted, dynamic orderId}) async {
+  Future<void> updateOrderWorkflowStatus({
+    required dynamic orderId,
+    required String status,
+    String? cancelComment,
+  }) async {
     try {
       emit(state.copyWith(
           orderCompleteCancelStatus: FormzStatus.submissionInProgress));
-      Map<String, dynamic>? map = {};
 
-      map['order_id'] = orderId.toString();
-      map['status'] = isCompleted! ? '1' : '0';
+      final map = <String, dynamic>{
+        'order_id': orderId.toString(),
+        'status': status,
+      };
+      if ((cancelComment ?? '').trim().isNotEmpty) {
+        map['cancel_comment'] = cancelComment!.trim();
+      }
 
-      var response = await bookingRepository!.updateOrderStatus(data: map);
+      final response = await bookingRepository!.updateOrderStatus(data: map);
       if (response.statusCode == 200) {
         navigatorKey.currentState!.pop();
         emit(state.copyWith(
@@ -35,9 +43,17 @@ class BookingsCubit extends Cubit<BookingsState> {
             orderCompleteCancelStatus: FormzStatus.submissionFailure));
       }
     } on Exception {
-      emit(
-          state.copyWith(orderCompleteCancelStatus: FormzStatus.submissionFailure));
+      emit(state.copyWith(
+          orderCompleteCancelStatus: FormzStatus.submissionFailure));
     }
+  }
+
+  onOrderCompleteDecline({bool? isCompleted, dynamic orderId}) async {
+    return updateOrderWorkflowStatus(
+      orderId: orderId,
+      status: isCompleted! ? '1' : '4',
+      cancelComment: isCompleted ? null : 'Cancelled by miCook',
+    );
   }
 
   getBookings() async {
