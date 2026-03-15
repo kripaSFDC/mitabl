@@ -66,7 +66,8 @@ void main() {
   });
 
   group('MiOrdersRepository', () {
-    test('fetchOrdersHistory hits expected endpoint and returns empty list', () async {
+    test('fetchOrdersHistory hits expected endpoint and returns empty list',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -74,7 +75,8 @@ void main() {
       });
 
       final repository = MiOrdersRepository(httpClient: client);
-      final records = await repository.fetchOrdersHistory(userModel: _buildUser());
+      final records =
+          await repository.fetchOrdersHistory(userModel: _buildUser());
 
       expect(records, isEmpty);
       expect(
@@ -85,7 +87,8 @@ void main() {
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
     });
 
-    test('fetchOrdersHistory parses nested orders list payload shape', () async {
+    test('fetchOrdersHistory parses nested orders list payload shape',
+        () async {
       final client = MockClient((_) async {
         return http.Response(
           jsonEncode({
@@ -100,16 +103,17 @@ void main() {
       });
 
       final repository = MiOrdersRepository(httpClient: client);
-      final records = await repository.fetchOrdersHistory(userModel: _buildUser());
+      final records =
+          await repository.fetchOrdersHistory(userModel: _buildUser());
 
       expect(records, hasLength(1));
       expect(records.first['id'], 'ord-1');
     });
 
-
     test('fetchOrdersHistory throws typed exception for 403', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Forbidden from orders'}), 403);
+        return http.Response(
+            jsonEncode({'isError': 'Forbidden from orders'}), 403);
       });
       final repository = MiOrdersRepository(httpClient: client);
 
@@ -118,14 +122,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 403)
-              .having((error) => error.message, 'message', 'Forbidden from orders'),
+              .having(
+                  (error) => error.message, 'message', 'Forbidden from orders'),
         ),
       );
     });
 
     test('fetchOrdersHistory throws typed exception for 422', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'message': 'Invalid pagination'}), 422);
+        return http.Response(
+            jsonEncode({'message': 'Invalid pagination'}), 422);
       });
       final repository = MiOrdersRepository(httpClient: client);
 
@@ -134,15 +140,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 422)
-              .having((error) => error.message, 'message', 'Invalid pagination'),
+              .having(
+                  (error) => error.message, 'message', 'Invalid pagination'),
         ),
       );
     });
-
   });
 
   group('FavouritesRepository', () {
-    test('fetchFavourites hits expected endpoint and returns empty list', () async {
+    test('fetchFavourites hits expected endpoint and returns empty list',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -183,45 +190,48 @@ void main() {
       expect(capturedRequest.bodyFields['restaurant_id'], 'kitchen-42');
     });
 
-
-
-
-
     test('toggleFavourite throws typed exception for 403', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Not allowed to change favourite'}), 403);
+        return http.Response(
+            jsonEncode({'isError': 'Not allowed to change favourite'}), 403);
       });
       final repository = FavouritesRepository(httpClient: client);
 
       expect(
-        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        repository.toggleFavourite(
+            userModel: _buildUser(), targetId: 'kitchen-42'),
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 403)
-              .having((error) => error.message, 'message', 'Not allowed to change favourite'),
+              .having((error) => error.message, 'message',
+                  'Not allowed to change favourite'),
         ),
       );
     });
 
     test('toggleFavourite throws typed exception for 422', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'message': 'Invalid favourite target'}), 422);
+        return http.Response(
+            jsonEncode({'message': 'Invalid favourite target'}), 422);
       });
       final repository = FavouritesRepository(httpClient: client);
 
       expect(
-        repository.toggleFavourite(userModel: _buildUser(), targetId: 'kitchen-42'),
+        repository.toggleFavourite(
+            userModel: _buildUser(), targetId: 'kitchen-42'),
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 422)
-              .having((error) => error.message, 'message', 'Invalid favourite target'),
+              .having((error) => error.message, 'message',
+                  'Invalid favourite target'),
         ),
       );
     });
 
     test('fetchFavourites throws typed exception for 403', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Forbidden from favourites'}), 403);
+        return http.Response(
+            jsonEncode({'isError': 'Forbidden from favourites'}), 403);
       });
       final repository = FavouritesRepository(httpClient: client);
 
@@ -230,14 +240,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 403)
-              .having((error) => error.message, 'message', 'Forbidden from favourites'),
+              .having((error) => error.message, 'message',
+                  'Forbidden from favourites'),
         ),
       );
     });
 
     test('fetchFavourites throws typed exception for 422', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'message': 'Invalid favourites request'}), 422);
+        return http.Response(
+            jsonEncode({'message': 'Invalid favourites request'}), 422);
       });
       final repository = FavouritesRepository(httpClient: client);
 
@@ -246,12 +258,14 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 422)
-              .having((error) => error.message, 'message', 'Invalid favourites request'),
+              .having((error) => error.message, 'message',
+                  'Invalid favourites request'),
         ),
       );
     });
 
-    test('fetchFavourites throws typed exception for non-200 response', () async {
+    test('fetchFavourites throws typed exception for non-200 response',
+        () async {
       final client = MockClient((_) async {
         return http.Response(jsonEncode({'message': 'Temporary failure'}), 500);
       });
@@ -266,10 +280,46 @@ void main() {
         ),
       );
     });
+
+    test('cancelOrder posts required cancellation payload', () async {
+      late http.Request capturedRequest;
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'data': {'order_id': 88, 'status': 4}
+          }),
+          200,
+        );
+      });
+
+      final repository = MiOrdersRepository(httpClient: client);
+      final result = await repository.cancelOrder(
+        userModel: _buildUser(),
+        orderId: 88,
+        cancelComment: 'Changed my mind',
+      );
+
+      expect(
+        capturedRequest.url.toString(),
+        'https://api.example.com/api/v2/updateorderstatus',
+      );
+      expect(capturedRequest.method, 'POST');
+      expect(
+        jsonDecode(capturedRequest.body),
+        {
+          'order_id': 88,
+          'status': 4,
+          'cancel_comment': 'Changed my mind',
+        },
+      );
+      expect(result['status'], 4);
+    });
   });
 
   group('PaymentsRepository', () {
-    test('fetchPaymentsHistory hits expected endpoint and returns empty list', () async {
+    test('fetchPaymentsHistory hits expected endpoint and returns empty list',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -277,7 +327,8 @@ void main() {
       });
 
       final repository = PaymentsRepository(httpClient: client);
-      final records = await repository.fetchPaymentsHistory(userModel: _buildUser());
+      final records =
+          await repository.fetchPaymentsHistory(userModel: _buildUser());
 
       expect(records, isEmpty);
       expect(
@@ -288,7 +339,8 @@ void main() {
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
     });
 
-    test('fetchSavedCards hits expected endpoint and returns empty list', () async {
+    test('fetchSavedCards hits expected endpoint and returns empty list',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -307,11 +359,10 @@ void main() {
       expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
     });
 
-
-
     test('fetchPaymentsHistory throws typed exception for 403', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Forbidden from payments'}), 403);
+        return http.Response(
+            jsonEncode({'isError': 'Forbidden from payments'}), 403);
       });
       final repository = PaymentsRepository(httpClient: client);
 
@@ -320,14 +371,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 403)
-              .having((error) => error.message, 'message', 'Forbidden from payments'),
+              .having((error) => error.message, 'message',
+                  'Forbidden from payments'),
         ),
       );
     });
 
     test('fetchPaymentsHistory throws typed exception for 422', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'message': 'Unsupported payment filter'}), 422);
+        return http.Response(
+            jsonEncode({'message': 'Unsupported payment filter'}), 422);
       });
       final repository = PaymentsRepository(httpClient: client);
 
@@ -336,16 +389,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 422)
-              .having((error) => error.message, 'message', 'Unsupported payment filter'),
+              .having((error) => error.message, 'message',
+                  'Unsupported payment filter'),
         ),
       );
     });
 
-
-
     test('fetchSavedCards throws typed exception for 403', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Forbidden from cards'}), 403);
+        return http.Response(
+            jsonEncode({'isError': 'Forbidden from cards'}), 403);
       });
       final repository = PaymentsRepository(httpClient: client);
 
@@ -354,14 +407,16 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 403)
-              .having((error) => error.message, 'message', 'Forbidden from cards'),
+              .having(
+                  (error) => error.message, 'message', 'Forbidden from cards'),
         ),
       );
     });
 
     test('fetchSavedCards throws typed exception for 422', () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'message': 'Invalid cards request'}), 422);
+        return http.Response(
+            jsonEncode({'message': 'Invalid cards request'}), 422);
       });
       final repository = PaymentsRepository(httpClient: client);
 
@@ -370,7 +425,8 @@ void main() {
         throwsA(
           isA<RepositoryHttpException>()
               .having((error) => error.statusCode, 'statusCode', 422)
-              .having((error) => error.message, 'message', 'Invalid cards request'),
+              .having(
+                  (error) => error.message, 'message', 'Invalid cards request'),
         ),
       );
     });
@@ -424,7 +480,8 @@ void main() {
       expect(card['stripe_card_id'], 'pm_saved_123');
     });
 
-    test('createCardCheckoutSession extracts hosted url from nested payload', () async {
+    test('createCardCheckoutSession extracts hosted url from nested payload',
+        () async {
       final client = MockClient((_) async {
         return http.Response(
           jsonEncode({
@@ -486,7 +543,8 @@ void main() {
       expect(foods.first.takeAwayAvailable, isFalse);
     });
 
-    test('placeOrder posts expected payload without client-calculated totals', () async {
+    test('placeOrder posts expected payload without client-calculated totals',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -525,6 +583,7 @@ void main() {
           ),
         ],
         persons: null,
+        dineInSlotId: null,
       );
 
       expect(result.orderId, 55);
@@ -548,9 +607,13 @@ void main() {
       );
     });
 
-    test('placeOrder throws typed exception for backend validation failure', () async {
+    test('placeOrder throws typed exception for backend validation failure',
+        () async {
       final client = MockClient((_) async {
-        return http.Response(jsonEncode({'isError': 'Selected kitchen is currently unavailable.'}), 422);
+        return http.Response(
+            jsonEncode(
+                {'isError': 'Selected kitchen is currently unavailable.'}),
+            422);
       });
 
       final repository = OrderingRepository(
@@ -580,6 +643,7 @@ void main() {
             ),
           ],
           persons: null,
+          dineInSlotId: null,
         ),
         throwsA(
           isA<RepositoryHttpException>()
@@ -593,7 +657,8 @@ void main() {
       );
     });
 
-    test('placeOrder can include a saved card reference for atomic checkout', () async {
+    test('placeOrder can include a saved card reference for atomic checkout',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;
@@ -632,6 +697,7 @@ void main() {
           ),
         ],
         persons: null,
+        dineInSlotId: null,
         paymentSelection: const OrderPaymentSelection.savedCard('14'),
       );
 
@@ -680,7 +746,8 @@ void main() {
       );
     });
 
-    test('attachPaymentMethodToOrder posts one-time payment method id', () async {
+    test('attachPaymentMethodToOrder posts one-time payment method id',
+        () async {
       late http.Request capturedRequest;
       final client = MockClient((request) async {
         capturedRequest = request;

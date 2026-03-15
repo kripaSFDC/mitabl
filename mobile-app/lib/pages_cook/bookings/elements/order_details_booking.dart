@@ -100,7 +100,8 @@ class OrderDetailsBookings extends StatelessWidget {
                                                 .appHeight(15),
                                             decoration: BoxDecoration(
                                               color: Theme.of(context)
-                                                  .colorScheme.surface,
+                                                  .colorScheme
+                                                  .surface,
                                               shape: BoxShape.circle,
                                             ),
                                           );
@@ -112,7 +113,8 @@ class OrderDetailsBookings extends StatelessWidget {
                                               .appHeight(15),
                                           decoration: BoxDecoration(
                                             color: Theme.of(context)
-                                                .colorScheme.surface,
+                                                .colorScheme
+                                                .surface,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -223,7 +225,8 @@ class OrderDetailsBookings extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   !routeArguments!.isUpcoming!
-                                      ? const Expanded(flex: 1, child: SizedBox())
+                                      ? const Expanded(
+                                          flex: 1, child: SizedBox())
                                       : const SizedBox(),
                                   !routeArguments!.isUpcoming!
                                       ? Container(
@@ -298,7 +301,7 @@ class OrderDetailsBookings extends StatelessWidget {
                           height: config.AppConfig(context).appHeight(3),
                         ),
                         SizedBox(
-                          height: config.AppConfig(context).appHeight(1 ),
+                          height: config.AppConfig(context).appHeight(1),
                         ),
                         IntrinsicHeight(
                           child: Row(
@@ -638,6 +641,51 @@ class OrderDetailsBookings extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    if (routeArguments!.bookings!.status !=
+                                        5) ...[
+                                      Container(
+                                        height: config.AppConfig(context)
+                                            .appHeight(6),
+                                        width: config.AppConfig(context)
+                                            .appWidth(80),
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(26.0),
+                                            color: const Color(0xffE9E9E9)),
+                                        child: MaterialButton(
+                                            height: config.AppConfig(context)
+                                                .appHeight(6),
+                                            minWidth: config.AppConfig(context)
+                                                .appWidth(100),
+                                            onPressed: () {
+                                              context
+                                                  .read<BookingsCubit>()
+                                                  .updateOrderWorkflowStatus(
+                                                    orderId: routeArguments!
+                                                        .bookings!.orderId!,
+                                                    status: '5',
+                                                  );
+                                            },
+                                            child: Text(
+                                              'MARK IN PROGRESS',
+                                              style: TextStyle(
+                                                fontSize:
+                                                    config.AppConfig(context)
+                                                        .appWidth(3.5),
+                                                fontFamily: config.FontFamily()
+                                                    .itcAvantGardeGothicStdFontFamily,
+                                                fontWeight:
+                                                    config.FontFamily().book,
+                                                color: config.AppColors()
+                                                    .colorPrimaryDark(1),
+                                              ),
+                                            )),
+                                      ),
+                                      SizedBox(
+                                        height: config.AppConfig(context)
+                                            .appHeight(2),
+                                      ),
+                                    ],
                                     Container(
                                       height: config.AppConfig(context)
                                           .appHeight(6),

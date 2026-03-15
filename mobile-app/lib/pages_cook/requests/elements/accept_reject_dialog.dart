@@ -16,10 +16,12 @@ class AcceptRejectDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cancelReasonController = TextEditingController();
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SizedBox(
-        height: config.AppConfig(context).appHeight(30),
+        height: config.AppConfig(context).appHeight(isAccept! ? 30 : 40),
         width: config.AppConfig(context).appWidth(90),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -67,6 +69,24 @@ class AcceptRejectDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+            if (!isAccept!) ...[
+              SizedBox(
+                height: config.AppConfig(context).appHeight(2),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: config.AppConfig(context).appWidth(8),
+                ),
+                child: TextField(
+                  controller: cancelReasonController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: 'Reason for decline',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
             SizedBox(
               height: config.AppConfig(context).appHeight(3),
             ),
@@ -86,8 +106,23 @@ class AcceptRejectDialog extends StatelessWidget {
                           height: config.AppConfig(context).appHeight(6),
                           minWidth: config.AppConfig(context).appWidth(100),
                           onPressed: () {
+                            final cancelComment =
+                                cancelReasonController.text.trim();
+                            if (!isAccept! && cancelComment.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please enter a reason for declining the order.',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
                             context.read<RequestsCubit>().onOrderAcceptDecline(
-                                isAccept: isAccept, orderId: id, isFromOrderView : isFromOrderView);
+                                isAccept: isAccept,
+                                orderId: id,
+                                isFromOrderView: isFromOrderView,
+                                cancelComment: cancelComment);
                           },
                           child: Text(
                             'YES',
