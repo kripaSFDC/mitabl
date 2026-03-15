@@ -151,6 +151,10 @@ class PaymentsController extends Controller
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
+        if ($request->filled('card_id') && $request->filled('payment_method_id')) {
+            return $this->responser([], 'Provide either card_id or payment_method_id, not both.', 422);
+        }
+
         $order = Order::find((int) $request->order_id);
         if (!$order) {
             return $this->responser([], 'Order not found please check order id.', 404);
@@ -206,6 +210,10 @@ class PaymentsController extends Controller
         ]);
         if ($validator->fails()) {
             return $this->responser([], $validator->errors()->first(), 422);
+        }
+
+        if ($request->filled('card_id') && $request->filled('payment_method_id')) {
+            return $this->responser([], 'Provide either card_id or payment_method_id, not both.', 422);
         }
 
         $payment = Payment::find((int) $request->payment_id);

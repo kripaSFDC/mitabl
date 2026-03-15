@@ -128,6 +128,30 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
         ]);
     }
 
+
+    public function test_create_intent_rejects_mixed_saved_card_and_one_time_payment_method_inputs(): void
+    {
+        [$foodie, $cook, $order] = $this->createOrderFixture();
+
+        DB::table('stripe_accounts')->insert([
+            'user_id' => $foodie->id,
+            'account_type' => 'customer',
+            'account_id' => 'cus_fixture_mixed',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->postJson('/api/v2/payments/intent', [
+            'order_id' => $order->id,
+            'card_id' => '15',
+            'payment_method_id' => 'pm_one_time_123',
+        ])
+            ->assertStatus(422)
+            ->assertJsonPath('isError', 'Provide either card_id or payment_method_id, not both.');
+    }
+
     public function test_foodie_can_cancel_requested_order_only_with_reason(): void
     {
         Queue::fake();
