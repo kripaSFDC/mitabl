@@ -174,7 +174,7 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 
 
 
-## Out-of-the-Box Improvement Suggestions
+## Changes Implemented
 
 ### A. Fix the Critical Blocker First (P0)
 
