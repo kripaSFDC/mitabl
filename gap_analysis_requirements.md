@@ -156,10 +156,10 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 
 ### 7b. Dine-in seats - 🟡 Partial
 
-| What exists                                                                              | Gap                                                                                                                                                                                                                                     |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What exists                                                                              | Gap                                                                                                                                                                                                         |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Mikitchn.no_of_seats` field exists and is set during `createKitchen` / `updateKitchen`. | **No enforcement at order creation time.** `OrderService::createOrder` does not check if `persons` exceeds `kitchen.no_of_seats`. A miFoodi could theoretically book more people than the kitchen capacity. |
-|                                                                                          | No real-time availability tracking - no check for concurrent bookings that might exceed capacity for the same date/time slot.                                                                                                           |
+|                                                                                          | No real-time availability tracking - no check for concurrent bookings that might exceed capacity for the same date/time slot.                                                                               |
 
 ### 7c. Dine-in timeslots - 🔴 Not implemented
 
@@ -168,26 +168,6 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 | Kitchen `Timing` model and `weektimings` relation store open/close hours per weekday. | **There is no time-slot system**. No `DineInSlot` model, no slot capacity, no slot booking. The order just carries a free-form `delivery_time_from` / `delivery_time_to` window.                            |
 | FAQ Q10 says "Choose the available date and time" implying a slot picker.             | No slot availability API exists. The mobile app has no slot picker UI. miFoodi cannot choose from available slots - they enter a time window manually (same pattern as the lat/lng location input problem). |
 
----
-
-## Summary Table
-
-| Req | Description                                     | Status                                                               |
-| --- | ----------------------------------------------- | -------------------------------------------------------------------- |
-| 1a  | Browse food menu (dishes + price) by kitchen    | 🟡 Kitchen browsable, but food items not included in detail API      |
-| 1b  | Place order as dine-in / take-away              | 🔴 Backend exists but no route; no mobile UI                         |
-| 2a  | Save credit/debit cards                         | 🟡 Backend ready; mobile read-only, no "add card" UI                 |
-| 2b  | Select saved card at checkout                   | 🔴 No checkout UI; intent API doesn't accept card selection          |
-| 2c  | One-time payment with different card            | 🔴 Not supported in API or UI                                        |
-| 3   | Cancel order before acceptance                  | 🟡 API exists but no guard against post-acceptance cancel            |
-| 4a  | miCook sees incoming orders                     | 🟢 Implemented                                                       |
-| 4b  | Accept order → payment deducted → status update | 🟡 Logic correct but depends on broken prereqs; no push notification |
-| 5   | miFoodi receives order confirmation + time      | 🔴 FCM exists but never triggered; no notification in lifecycle      |
-| 6   | miCook sees orders + pickup/dine-in time        | 🟢 Implemented (minor typo)                                          |
-| 7a  | Daily/weekly menu scheduling                    | 🔴 No scheduling model or UI                                         |
-| 7b  | Dine-in seat count                              | 🟡 Field exists, no capacity enforcement                             |
-| 7c  | Dine-in timeslots                               | 🔴 No slot system; no slot booking UI                                |
-
 
 
 ---
@@ -195,8 +175,6 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 
 
 ## Out-of-the-Box Improvement Suggestions
-
-> These are aligned with the platform philosophy from the public website and FAQ: *community-driven, authentic home-cooked meals, local discovery, trust, dine-in + take-away, safety/verification.*
 
 ### A. Fix the Critical Blocker First (P0)
 

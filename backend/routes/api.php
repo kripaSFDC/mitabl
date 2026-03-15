@@ -87,6 +87,7 @@ Route::get('/mobcontact', function () {
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');
+Route::post('orders', [OrderController::class, 'store'])->middleware(['auth:api', 'api.user.active', 'customer']);
 
 $registerLegacyMobileRoutes = function (): void {
     Route::post('editprofile', [UserController::class, 'update']);

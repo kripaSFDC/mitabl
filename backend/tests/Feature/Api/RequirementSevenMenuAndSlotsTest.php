@@ -333,6 +333,60 @@ class RequirementSevenMenuAndSlotsTest extends TestCase
         ]);
     }
 
+    public function test_kitchen_update_preserves_booked_dine_in_slots_when_dine_in_is_disabled(): void
+    {
+        Storage::fake('my_files');
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture(['dine_in' => 1, 'take_away' => 1]);
+
+        $slot = DineInSlot::query()->create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => now()->addDay()->dayOfWeek,
+            'start_time' => '18:00:00',
+            'end_time' => '19:00:00',
+            'seat_capacity' => 4,
+            'status' => 1,
+        ]);
+
+        DB::table('orders')->insert([
+            'mikitchn_id' => $kitchen->id,
+            'user_id' => $foodie->id,
+            'dine_in' => 1,
+            'take_away' => 0,
+            'persons' => 2,
+            'dine_in_slot_id' => $slot->id,
+            'delivery_date' => now()->addDay()->format('Y-m-d'),
+            'delivery_time_from' => '18:00:00',
+            'delivery_time_to' => '19:00:00',
+            'item_total_price' => 10,
+            'taxes' => 0,
+            'total_price' => 10,
+            'status' => 2,
+            'paid' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($cook, 'api')
+            ->post('/api/v2/mikitchn/editkitchen', [
+                'name' => $kitchen->name,
+                'address' => $kitchen->address,
+                'no_of_seats' => $kitchen->no_of_seats,
+                'timings' => $this->defaultKitchenTimingsJson(),
+                'phone' => $kitchen->phone,
+                'dine_in' => 0,
+                'take_away' => 1,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('dine_in_slots', [
+            'id' => $slot->id,
+            'status' => 0,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'dine_in_slot_id' => $slot->id,
+        ]);
+    }
+
     public function test_kitchen_update_rejects_overlapping_dine_in_slots(): void
     {
         Storage::fake('my_files');

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 class DiscoveryService
 {
@@ -216,11 +217,11 @@ class DiscoveryService
                 ]);
 
                 $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
-                return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page);
+                return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page, $term);
             }
 
-            [$kitchens, $totalCount] = $this->executePagedQuery($query, $limit, $page);
-            $kitchens->load([
+            $allMatchingKitchens = $query->get();
+            $allMatchingKitchens->load([
                 'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
                     $foodQuery->active()
                         ->searchTerm($term)
@@ -230,20 +231,9 @@ class DiscoveryService
                 },
             ]);
 
-            $this->applyScheduledFoodFilteringToKitchens($kitchens, $request);
-            $kitchens = $kitchens
-                ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
-                ->values()
-                ->each(function ($kitchen): void {
-                    $kitchen->makeHidden(['reviews', 'addedimage', 'certificate']);
-                });
+            $this->applyScheduledFoodFilteringToKitchens($allMatchingKitchens, $request);
 
-            $this->annotateFavorites($kitchens);
-
-            return [
-                'total_count' => $totalCount,
-                'kitchens' => RestaurantResource::collection($kitchens)->resolve(),
-            ];
+            return $this->buildFilteredSearchPayload($allMatchingKitchens, $limit, $page, $term);
         });
 
         $this->logMetrics('searchRestaurant', $start, $result['cache_hit']);
@@ -323,10 +313,10 @@ class DiscoveryService
             ->values();
     }
 
-    private function buildFilteredSearchPayload(Collection $kitchens, int $limit, int $page): array
+    private function buildFilteredSearchPayload(Collection $kitchens, int $limit, int $page, string $term): array
     {
         $filteredKitchens = $kitchens
-            ->filter(fn ($kitchen) => $kitchen->foods->isNotEmpty())
+            ->filter(fn ($kitchen) => $this->kitchenMatchesSearchTerm($kitchen, $term) || $kitchen->foods->isNotEmpty())
             ->values();
 
         $totalCount = $filteredKitchens->count();
@@ -348,6 +338,17 @@ class DiscoveryService
             'total_count' => $totalCount,
             'kitchens' => RestaurantResource::collection($pagedKitchens)->resolve(),
         ];
+    }
+
+    private function kitchenMatchesSearchTerm($kitchen, string $term): bool
+    {
+        $normalizedTerm = Str::lower(trim($term));
+        if ($normalizedTerm === '') {
+            return false;
+        }
+
+        return Str::contains(Str::lower((string) ($kitchen->name ?? '')), $normalizedTerm)
+            || Str::contains(Str::lower((string) ($kitchen->description ?? '')), $normalizedTerm);
     }
 
     private function remember(string $segment, Request $request, callable $callback): array

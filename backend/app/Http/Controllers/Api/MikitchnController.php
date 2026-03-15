@@ -303,7 +303,7 @@ class MikitchnController extends Controller
             }
 
             if ((int) $kitchen->dine_in !== 1) {
-                $kitchen->dineInSlots()->delete();
+                $this->dineInSlotService->clearKitchenSlots($kitchen);
             } elseif ($dineInSlots !== null) {
                 $this->dineInSlotService->syncKitchenSlots($kitchen, $dineInSlots);
             }

@@ -230,6 +230,33 @@ class DiscoveryMenuAccessTest extends TestCase
             ->assertJsonPath('data.kitchens.0.foods.0.food_name', 'Creamy Pasta');
     }
 
+    public function test_search_keeps_kitchen_name_matches_even_when_no_food_name_matches(): void
+    {
+        [$foodie, $matchingKitchen] = $this->createFoodieAndKitchen('search-name-foodie@example.test', 'Pasta Palace');
+
+        Foods::query()->create([
+            'restaurant_id' => $matchingKitchen->id,
+            'food_name' => 'Burger',
+            'pictures' => '[]',
+            'price' => 16.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Signature grill special',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->getJson('/api/v2/discovery/search?q=pasta')
+            ->assertOk()
+            ->assertJsonPath('data.total_count', 1)
+            ->assertJsonCount(1, 'data.kitchens')
+            ->assertJsonPath('data.kitchens.0.id', $matchingKitchen->id)
+            ->assertJsonCount(0, 'data.kitchens.0.foods');
+    }
+
     public function test_search_respects_per_dish_service_type_filters(): void
     {
         [$foodie, $matchingKitchen] = $this->createFoodieAndKitchen('search-filter-foodie@example.test', 'Filter Kitchen');

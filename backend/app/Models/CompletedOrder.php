@@ -9,6 +9,11 @@ class CompletedOrder extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'order_id',
+        'completed_date_time',
+    ];
+
     public function Order()
     {
         return $this->belongsTo(Order::class);

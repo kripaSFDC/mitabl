@@ -60,6 +60,41 @@ class OrderPlacementRouteTest extends TestCase
         );
     }
 
+    public function test_foodie_can_place_order_via_root_orders_route(): void
+    {
+        Notification::fake();
+        [$kitchen, $foodie, $food] = $this->seedOrderableKitchen();
+
+        $response = $this
+            ->actingAs($foodie, 'api')
+            ->postJson('/api/orders', [
+                'kitchen_id' => $kitchen->id,
+                'delivery_date' => now()->addDay()->format('Y-m-d'),
+                'delivery_time_from' => '12:00',
+                'delivery_time_to' => '13:00',
+                'taxes' => '0.00',
+                'dine_in' => 0,
+                'take_away' => 1,
+                'item_data' => json_encode([
+                    ['id' => $food->id, 'quantity' => 1],
+                ]),
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('isSuccess', true)
+            ->assertJsonPath('data.take_away', 1)
+            ->assertJsonPath('data.item_total_price', '25.00');
+
+        Notification::assertSentTo(
+            $kitchen->user,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'New order request from Foodie User!';
+            }
+        );
+    }
+
     public function test_foodie_can_place_order_via_account_orders_alias(): void
     {
         [$kitchen, $foodie, $food] = $this->seedOrderableKitchen();

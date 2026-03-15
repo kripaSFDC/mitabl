@@ -131,6 +131,7 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
     public function test_foodie_can_cancel_requested_order_only_with_reason(): void
     {
         Queue::fake();
+        Notification::fake();
         [$foodie, $cook, $order] = $this->createOrderFixture();
 
         $this->actingAs($foodie, 'api');
@@ -150,6 +151,14 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             'comment' => 'Plans changed before the kitchen accepted it.',
             'by_user' => 'customer',
         ]);
+
+        Notification::assertSentTo(
+            $cook,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Order cancelled by customer.';
+            }
+        );
     }
 
     public function test_order_creation_can_initialize_payment_atomically(): void
@@ -368,7 +377,10 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
 
         Notification::assertSentTo(
             $foodie,
-            PushOrderNotification::class
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Your order is confirmed! Come at '.now()->addDays(2)->format('d M Y').' 18:00-18:30.';
+            }
         );
     }
 
@@ -478,7 +490,73 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             'status' => Order::STATUS_IN_PROGRESS,
         ]);
 
-        Notification::assertSentTo($foodie, PushOrderNotification::class);
+        Notification::assertSentTo(
+            $foodie,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Your meal is ready for pickup.';
+            }
+        );
+    }
+
+    public function test_cook_can_decline_requested_order_and_notify_foodie_about_refund(): void
+    {
+        Queue::fake();
+        Notification::fake();
+        [$foodie, $cook, $order] = $this->createOrderFixture();
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_CANCELLED,
+            'cancel_comment' => 'Unable to fulfill this request.',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', Order::STATUS_CANCELLED);
+
+        Notification::assertSentTo(
+            $foodie,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Your order was declined. Full refund initiated.';
+            }
+        );
+    }
+
+    public function test_completed_order_notifies_both_parties_to_leave_a_review(): void
+    {
+        Notification::fake();
+        Queue::fake();
+        [$foodie, $cook, $order] = $this->createOrderFixture([
+            'status' => Order::STATUS_CONFIRMED,
+            'paid' => 1,
+        ]);
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_COMPLETED,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', Order::STATUS_COMPLETED);
+
+        Notification::assertSentTo(
+            $foodie,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Thanks for using mitabl! Leave a review.';
+            }
+        );
+
+        Notification::assertSentTo(
+            $cook,
+            PushOrderNotification::class,
+            function (PushOrderNotification $notification): bool {
+                return $notification->toDatabase()['message'] === 'Thanks for using mitabl! Leave a review.';
+            }
+        );
     }
 
     public function test_foodie_cannot_mark_order_in_progress(): void

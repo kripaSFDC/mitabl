@@ -53,23 +53,34 @@ class DineInSlotService
             $retainedSlotIds[] = (int) $slotModel->id;
         }
 
-        $kitchen->dineInSlots()
-            ->whereNotIn('id', $retainedSlotIds)
-            ->get()
-            ->each(function (DineInSlot $slot): void {
-                if ($slot->orders()->exists()) {
-                    $slot->status = 0;
-                    $slot->save();
-                    return;
-                }
+        $this->retireOrDeleteSlots(
+            $kitchen->dineInSlots()
+                ->whereNotIn('id', $retainedSlotIds)
+                ->get()
+        );
+    }
 
-                $slot->delete();
-            });
+    public function clearKitchenSlots(Mikitchn $kitchen): void
+    {
+        $this->retireOrDeleteSlots($kitchen->dineInSlots()->get());
     }
 
     private function slotFingerprint(int $dayOfWeek, string $startTime, string $endTime): string
     {
         return implode('|', [$dayOfWeek, $startTime, $endTime]);
+    }
+
+    private function retireOrDeleteSlots(Collection $slots): void
+    {
+        $slots->each(function (DineInSlot $slot): void {
+            if ($slot->orders()->exists()) {
+                $slot->status = 0;
+                $slot->save();
+                return;
+            }
+
+            $slot->delete();
+        });
     }
 
     public function getAvailabilityForDate(Mikitchn $kitchen, Carbon $date, ?int $persons = null): Collection
