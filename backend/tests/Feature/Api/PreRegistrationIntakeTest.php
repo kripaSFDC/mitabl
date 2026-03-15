@@ -18,9 +18,6 @@ class PreRegistrationIntakeTest extends TestCase
             'phone' => '+61 400 222 333',
             'city' => 'Sydney',
             'interested_as' => 'cook',
-            'source' => 'website',
-            'consent_to_contact' => true,
-            'communication_preference' => 'email',
         ]);
 
         $response->assertOk()
@@ -38,7 +35,7 @@ class PreRegistrationIntakeTest extends TestCase
         ]);
     }
 
-    public function test_preregister_endpoint_deduplicates_recent_new_or_contacted_leads(): void
+    public function test_preregister_endpoint_deduplicates_existing_leads(): void
     {
         $payload = [
             'first_name' => 'Sam',
@@ -47,6 +44,8 @@ class PreRegistrationIntakeTest extends TestCase
             'phone' => '+61 444 111 333',
             'interested_as' => 'both',
             'source' => 'campaign',
+            'notes' => 'attempted note injection',
+            'consent_to_contact' => true,
         ];
 
         $first = $this->postJson('/api/preregister', $payload);
@@ -57,4 +56,59 @@ class PreRegistrationIntakeTest extends TestCase
 
         $this->assertDatabaseCount('pre_registrations', 1);
     }
+
+    public function test_preregister_endpoint_forces_source_to_website_and_blocks_email_duplicates(): void
+    {
+        $this->postJson('/api/preregister', [
+            'first_name' => 'Taylor',
+            'last_name' => 'Original',
+            'email' => 'dupe@example.com',
+            'phone' => '+61 401 000 001',
+            'city' => 'Melbourne',
+            'interested_as' => 'foodie',
+            'source' => 'campaign',
+            'notes' => 'attempted note injection',
+            'consent_to_contact' => true,
+        ])->assertOk()->assertJsonPath('data.duplicate', false);
+
+        $second = $this->postJson('/api/preregister', [
+            'first_name' => 'Taylor',
+            'last_name' => 'Changed',
+            'email' => 'dupe@example.com',
+            'phone' => '+61 401 999 999',
+            'city' => 'Brisbane',
+            'interested_as' => 'cook',
+            'source' => 'referral',
+        ]);
+
+        $second->assertOk()->assertJsonPath('data.duplicate', true);
+
+        $this->assertDatabaseCount('pre_registrations', 1);
+        $this->assertDatabaseHas('pre_registrations', [
+            'email' => 'dupe@example.com',
+            'source' => 'website',
+            'notes' => null,
+            'consent_to_contact' => false,
+        ]);
+    }
+
+
+    public function test_preregister_endpoint_rate_limits_repeat_attempts(): void
+    {
+        $payload = [
+            'first_name' => 'Rate',
+            'last_name' => 'Limit',
+            'email' => 'ratelimit@example.com',
+            'phone' => '+61 400 777 999',
+            'interested_as' => 'foodie',
+        ];
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->postJson('/api/preregister', $payload)->assertOk();
+        }
+
+        $this->postJson('/api/preregister', $payload)->assertStatus(429);
+    }
+
+
 }
