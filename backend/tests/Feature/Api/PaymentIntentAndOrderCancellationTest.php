@@ -4,13 +4,16 @@ namespace Tests\Feature\Api;
 
 use App\Models\Mikitchn;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Notifications\PushOrderNotification;
 use App\Services\AccountProfileService;
 use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
 use Tests\TestCase;
@@ -65,6 +68,11 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             ->assertJsonPath('data.payment_intent_id', 'pi_saved_123')
             ->assertJsonPath('data.payment_method_id', 'pm_saved_123')
             ->assertJsonPath('data.selection_mode', 'saved_card');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'paymentmethod_id' => 'pm_saved_123',
+        ]);
     }
 
     public function test_create_intent_accepts_one_time_payment_method_reference(): void
@@ -113,6 +121,11 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             ->assertJsonPath('data.payment_intent_id', 'pi_one_time_123')
             ->assertJsonPath('data.payment_method_id', 'pm_one_time_123')
             ->assertJsonPath('data.selection_mode', 'one_time');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'paymentmethod_id' => 'pm_one_time_123',
+        ]);
     }
 
     public function test_foodie_can_cancel_requested_order_only_with_reason(): void
@@ -228,7 +241,10 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             })
             ->andReturn([
                 'payment' => null,
-                'selection' => ['mode' => 'saved_card'],
+                'selection' => [
+                    'mode' => 'saved_card',
+                    'payment_method_id' => 'pm_saved_15',
+                ],
             ]);
         $this->app->instance(PaymentService::class, $paymentService);
 
@@ -258,6 +274,11 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('data.order_id', 1);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => 1,
+            'paymentmethod_id' => 'pm_saved_15',
+        ]);
     }
 
     public function test_foodie_cannot_cancel_order_after_it_has_been_accepted(): void
@@ -289,6 +310,192 @@ class PaymentIntentAndOrderCancellationTest extends TestCase
             'id' => $order->id,
             'status' => Order::STATUS_CONFIRMED,
         ]);
+    }
+
+    public function test_cook_can_accept_order_with_time_override_and_notify_foodie(): void
+    {
+        Notification::fake();
+        [$foodie, $cook, $order] = $this->createOrderFixture();
+
+        Payment::query()->create([
+            'order_id' => $order->id,
+            'payment_id' => 'pi_accept_123',
+            'card_id' => 'pm_accept_123',
+            'amount' => 33,
+            'confirm' => 0,
+            'status' => 'requires_confirmation',
+        ]);
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->shouldReceive('confirmPaymentIntent')
+            ->once()
+            ->withArgs(function (Payment $payment): bool {
+                return $payment->payment_id === 'pi_accept_123'
+                    && $payment->card_id === 'pm_accept_123';
+            })
+            ->andReturn((object) ['status' => 'succeeded']);
+        $this->app->instance(PaymentService::class, $paymentService);
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_CONFIRMED,
+            'delivery_date' => now()->addDays(2)->format('Y-m-d'),
+            'delivery_time_from' => '18:00',
+            'delivery_time_to' => '18:30',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', Order::STATUS_CONFIRMED)
+            ->assertJsonPath('data.paid', 1)
+            ->assertJsonPath('data.date', now()->addDays(2)->format('d M Y'))
+            ->assertJsonPath('data.time_from', '18:00 pm')
+            ->assertJsonPath('data.time_to', '18:30 pm');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => Order::STATUS_CONFIRMED,
+            'paid' => 1,
+            'delivery_date' => now()->addDays(2)->format('Y-m-d'),
+            'delivery_time_from' => '18:00:00',
+            'delivery_time_to' => '18:30:00',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'confirm' => 1,
+            'status' => 'succeeded',
+        ]);
+
+        Notification::assertSentTo(
+            $foodie,
+            PushOrderNotification::class
+        );
+    }
+
+    public function test_cook_acceptance_can_initialize_missing_payment_from_order_reference(): void
+    {
+        [$foodie, $cook, $order] = $this->createOrderFixture([
+            'paymentmethod_id' => 'pm_order_saved_123',
+        ]);
+
+        DB::table('stripe_accounts')->insert([
+            'user_id' => $foodie->id,
+            'account_type' => 'customer',
+            'account_id' => 'cus_fixture_789',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->assertDatabaseCount('payments', 0);
+
+        $paymentService = Mockery::mock(PaymentService::class);
+        $paymentService->allows('initializeOrderPaymentIntent')
+            ->withArgs(function (Order $passedOrder, User $passedUser, ?string $cardReference, ?string $paymentMethodId) use ($order, $foodie): bool {
+                return (int) $passedOrder->id === (int) $order->id
+                    && (int) $passedUser->id === (int) $foodie->id
+                    && $cardReference === null
+                    && $paymentMethodId === 'pm_order_saved_123';
+            })
+            ->andReturn([
+                'payment' => Payment::query()->create([
+                    'order_id' => $order->id,
+                    'payment_id' => 'pi_fallback_123',
+                    'card_id' => 'pm_order_saved_123',
+                    'amount' => 33,
+                    'confirm' => 0,
+                    'status' => 'requires_confirmation',
+                ]),
+                'selection' => [
+                    'payment_method_id' => 'pm_order_saved_123',
+                    'customer_id' => 'cus_fixture_789',
+                    'mode' => 'saved_card',
+                ],
+            ]);
+        $paymentService->shouldReceive('confirmPaymentIntent')
+            ->once()
+            ->withArgs(function (Payment $payment): bool {
+                return $payment->payment_id === 'pi_fallback_123'
+                    && $payment->card_id === 'pm_order_saved_123';
+            })
+            ->andReturn((object) ['status' => 'succeeded']);
+        $this->app->instance(PaymentService::class, $paymentService);
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_CONFIRMED,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', Order::STATUS_CONFIRMED)
+            ->assertJsonPath('data.paid', 1);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'payment_id' => 'pi_fallback_123',
+            'card_id' => 'pm_order_saved_123',
+            'confirm' => 1,
+            'status' => 'succeeded',
+        ]);
+    }
+
+    public function test_cook_cannot_accept_order_without_any_payment_reference(): void
+    {
+        [$foodie, $cook, $order] = $this->createOrderFixture();
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_CONFIRMED,
+        ])
+            ->assertStatus(422)
+            ->assertJsonPath(
+                'isError',
+                'Payment intent has not been initialized for this order. miFoodi must select a payment method before miCook can accept.'
+            );
+    }
+
+    public function test_cook_can_move_confirmed_order_to_in_progress_and_notify_foodie(): void
+    {
+        Notification::fake();
+        [$foodie, $cook, $order] = $this->createOrderFixture([
+            'status' => Order::STATUS_CONFIRMED,
+            'paid' => 1,
+        ]);
+
+        $this->actingAs($cook, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_IN_PROGRESS,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', Order::STATUS_IN_PROGRESS);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => Order::STATUS_IN_PROGRESS,
+        ]);
+
+        Notification::assertSentTo($foodie, PushOrderNotification::class);
+    }
+
+    public function test_foodie_cannot_mark_order_in_progress(): void
+    {
+        [$foodie, $cook, $order] = $this->createOrderFixture([
+            'status' => Order::STATUS_CONFIRMED,
+            'paid' => 1,
+        ]);
+
+        $this->actingAs($foodie, 'api');
+
+        $this->postJson('/api/v2/updateorderstatus', [
+            'order_id' => $order->id,
+            'status' => Order::STATUS_IN_PROGRESS,
+        ])
+            ->assertStatus(403)
+            ->assertJsonPath('isError', 'Only the owning miCook can mark this order in progress.');
     }
 
     public function test_order_status_cannot_be_reverted_back_to_requested(): void

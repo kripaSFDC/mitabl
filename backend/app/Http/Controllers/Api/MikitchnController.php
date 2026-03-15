@@ -345,7 +345,7 @@ class MikitchnController extends Controller
 
         $upcoming = Order::where('mikitchn_id', $kitchen->id)
             ->where('delivery_date', '>=', $currntdate)
-            ->where('status', Order::STATUS_CONFIRMED)
+            ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS])
             ->count();
 
         $data = ['total_earning'=> $earnings, 'n_bookings' => $allOrders, 'n_upcoming_bookings' => $upcoming];

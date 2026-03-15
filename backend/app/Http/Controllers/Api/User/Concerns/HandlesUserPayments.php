@@ -193,7 +193,7 @@ trait HandlesUserPayments
         if ((int) $order->user_id !== (int) Auth::id()) {
             return $this->responser([], 'You are not authorized for this order.', 403);
         }
-        if ((int) $order->paid === 1 || in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_COMPLETED], true)) {
+        if ((int) $order->paid === 1 || in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS, Order::STATUS_COMPLETED], true)) {
             return $this->responser([], 'This order already has a finalized payment.', 422);
         }
 
@@ -206,6 +206,10 @@ trait HandlesUserPayments
             );
             $payment = $result['payment'];
             $selection = $result['selection'];
+            $order->paymentmethod_id = $selection['payment_method_id']
+                ?? $request->input('payment_method_id')
+                ?? $request->input('card_id');
+            $order->save();
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], $throwable->getMessage() ?: 'Unable to create payment intent.', 422);
@@ -255,6 +259,10 @@ trait HandlesUserPayments
                 $payment->card_id = (string) $selection['payment_method_id'];
                 $payment->save();
             }
+            $order->paymentmethod_id = $selection['payment_method_id']
+                ?? $request->input('payment_method_id')
+                ?? $request->input('card_id');
+            $order->save();
 
             $intent = $this->paymentService->confirmPaymentIntent($payment);
         } catch (Throwable $throwable) {

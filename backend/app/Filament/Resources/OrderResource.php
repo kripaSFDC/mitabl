@@ -470,6 +470,7 @@ class OrderResource extends Resource
             Order::STATUS_COMPLETED => 'Completed',
             Order::STATUS_REQUESTED => 'Requested',
             Order::STATUS_CONFIRMED => 'Confirmed',
+            Order::STATUS_IN_PROGRESS => 'In Progress',
             Order::STATUS_CANCELLED => 'Cancelled',
             Order::STATUS_LEGACY_CANCELLED => 'Cancelled (legacy: 0)',
             default => 'Unknown',
@@ -483,6 +484,7 @@ class OrderResource extends Resource
             Order::STATUS_COMPLETED => 'success',
             Order::STATUS_REQUESTED => 'warning',
             Order::STATUS_CONFIRMED => 'info',
+            Order::STATUS_IN_PROGRESS => 'primary',
             default => 'gray',
         };
     }
@@ -493,6 +495,7 @@ class OrderResource extends Resource
             Order::STATUS_COMPLETED => 'Completed',
             Order::STATUS_REQUESTED => 'Requested',
             Order::STATUS_CONFIRMED => 'Confirmed',
+            Order::STATUS_IN_PROGRESS => 'In Progress',
             Order::STATUS_CANCELLED => 'Cancelled',
         ];
 

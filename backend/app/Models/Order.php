@@ -18,6 +18,7 @@ class Order extends Model
     public const STATUS_REQUESTED = 2;
     public const STATUS_CONFIRMED = 3;
     public const STATUS_CANCELLED = 4;
+    public const STATUS_IN_PROGRESS = 5;
 
     protected $fillable = [
         'mikitchn_id',

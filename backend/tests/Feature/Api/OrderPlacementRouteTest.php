@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\PushOrderNotification;
 use Tests\TestCase;
 
 class OrderPlacementRouteTest extends TestCase
@@ -16,6 +18,7 @@ class OrderPlacementRouteTest extends TestCase
 
     public function test_foodie_can_place_order_via_root_v2_orders_route(): void
     {
+        Notification::fake();
         [$kitchen, $foodie, $food] = $this->seedOrderableKitchen();
 
         $response = $this
@@ -49,6 +52,11 @@ class OrderPlacementRouteTest extends TestCase
             'quantity' => 2,
             'price' => '50.00',
         ]);
+
+        Notification::assertSentTo(
+            $kitchen->user,
+            PushOrderNotification::class
+        );
     }
 
     public function test_foodie_can_place_order_via_account_orders_alias(): void

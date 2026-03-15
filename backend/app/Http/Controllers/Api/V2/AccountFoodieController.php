@@ -216,6 +216,7 @@ class AccountFoodieController extends Controller
             Order::STATUS_REQUESTED,
             Order::STATUS_CONFIRMED,
             Order::STATUS_CANCELLED,
+            Order::STATUS_IN_PROGRESS,
         ];
 
         foreach ($statuses as $status) {

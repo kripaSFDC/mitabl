@@ -45,7 +45,7 @@ class EditMikitchn extends EditRecord
 
         if ($nextStatus === 0) {
             $hasOpenBookings = $this->record->orders()
-                ->whereIn('status', [Order::STATUS_REQUESTED, Order::STATUS_CONFIRMED])
+                ->whereIn('status', [Order::STATUS_REQUESTED, Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS])
                 ->whereDate('delivery_date', '>=', Carbon::today()->toDateString())
                 ->exists();
 

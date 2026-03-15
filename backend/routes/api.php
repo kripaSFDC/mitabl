@@ -103,7 +103,7 @@ $registerLegacyMobileRoutes = function (): void {
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
         Route::post('food/status/{id}', [FoodsController::class, 'statusUpdate']);
         Route::get('getprofile', [UserController::class, 'myProfile']);
-        Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrderss']);
+        Route::get('kitchenupcomingorders', [OrderController::class, 'myUpcomingOrders']);
         Route::get('kitchenorderrequest', [OrderController::class, 'myRequestedOrders']);
         Route::get('allorders', [OrderController::class, 'allOrders']);
         Route::get('getdashboarddata', [MikitchnController::class, 'getDashboardData']);

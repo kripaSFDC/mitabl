@@ -389,7 +389,7 @@ class MikitchnResource extends Resource
                             }
 
                             $hasOpenBookings = $kitchen->orders()
-                                ->whereIn('status', [Order::STATUS_REQUESTED, Order::STATUS_CONFIRMED])
+                                ->whereIn('status', [Order::STATUS_REQUESTED, Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS])
                                 ->whereDate('delivery_date', '>=', Carbon::today()->toDateString())
                                 ->exists();
 

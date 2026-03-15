@@ -35,7 +35,7 @@ class OrderController extends Controller
         $this->accountProfileService = $accountProfileService;
     }
 
-    public function myUpcomingOrderss(Request $request)
+    public function myUpcomingOrders(Request $request)
     {
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
@@ -51,7 +51,7 @@ class OrderController extends Controller
         $orders = Order::with($this->orderListResourceRelations())
             ->where('mikitchn_id', $kitchen->id)
             ->where('delivery_date', '>=', $currntdate)
-            ->where('status', 3);
+            ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS]);
 
         if ($request->has('sortby')) {
             if ($request->sortby == 'take_away') {
@@ -104,10 +104,14 @@ class OrderController extends Controller
                 Order::STATUS_REQUESTED,
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_CANCELLED,
+                Order::STATUS_IN_PROGRESS,
             ])],
             'cancel_subject' => ['nullable', 'string', 'max:255'],
             'cancel_comment' => ['nullable', 'string', 'max:255'],
             'cancel_reason' => ['nullable', 'string', 'max:255'],
+            'delivery_date' => ['nullable', 'date_format:Y-m-d'],
+            'delivery_time_from' => ['nullable', 'date_format:H:i'],
+            'delivery_time_to' => ['nullable', 'date_format:H:i'],
         ]);
 
         if ($validator->fails()) {
@@ -153,12 +157,41 @@ class OrderController extends Controller
             }
         }
 
+        $hasAcceptanceWindowOverride = $request->filled('delivery_date')
+            || $request->filled('delivery_time_from')
+            || $request->filled('delivery_time_to');
+
+        if ($hasAcceptanceWindowOverride && $requestedStatus !== Order::STATUS_CONFIRMED) {
+            return $this->responser([], 'Delivery date/time can only be updated when miCook accepts the order.', 422);
+        }
+
+        if ($hasAcceptanceWindowOverride) {
+            $acceptanceWindowValidator = Validator::make($request->all(), [
+                'delivery_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+                'delivery_time_from' => ['required', 'date_format:H:i'],
+                'delivery_time_to' => ['required', 'date_format:H:i', 'after:delivery_time_from'],
+            ]);
+
+            if ($acceptanceWindowValidator->fails()) {
+                return $this->responser([], $acceptanceWindowValidator->errors()->first(), 422);
+            }
+        }
+
         if ($requestedStatus === Order::STATUS_COMPLETED) {
             if (! $actorIsCook) {
                 return $this->responser([], 'Only the owning miCook can complete this order.', 403);
             }
+            if (! in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS], true)) {
+                return $this->responser([], 'Only confirmed or in-progress orders can be completed.', 422);
+            }
+        }
+
+        if ($requestedStatus === Order::STATUS_IN_PROGRESS) {
+            if (! $actorIsCook) {
+                return $this->responser([], 'Only the owning miCook can mark this order in progress.', 403);
+            }
             if ((int) $order->status !== Order::STATUS_CONFIRMED) {
-                return $this->responser([], 'Only confirmed orders can be completed.', 422);
+                return $this->responser([], 'Only confirmed orders can be moved to in progress.', 422);
             }
         }
 
@@ -205,27 +238,38 @@ class OrderController extends Controller
         }
 
         if ($requestedStatus === Order::STATUS_CONFIRMED) {
-            if (! $order->payment) {
-                return $this->responser([], 'Payment record not found for this order.', 404);
-            }
             try {
-                $confirmPayment = $this->paymentService->confirmPaymentIntent($order->payment);
-                DB::transaction(function () use ($order, $confirmPayment): void {
+                $payment = $this->resolvePaymentForAcceptance($order);
+                $paymentAlreadyConfirmed = (bool) $payment->confirm
+                    || in_array(trim((string) $payment->status), ['succeeded', 'processing', 'requires_capture'], true);
+                $confirmPayment = $paymentAlreadyConfirmed
+                    ? (object) ['status' => $payment->status ?: 'succeeded']
+                    : $this->paymentService->confirmPaymentIntent($payment);
+                DB::transaction(function () use ($order, $confirmPayment, $hasAcceptanceWindowOverride, $request): void {
                     $payment = $order->payment()->lockForUpdate()->firstOrFail();
                     $payment->confirm = 1;
                     $payment->status = (string) ($confirmPayment->status ?? 'succeeded');
                     $payment->confirm_date_time = Carbon::now()->format('Y-m-d H:i:s');
                     $payment->save();
 
+                    if ($hasAcceptanceWindowOverride) {
+                        $order->delivery_date = $request->input('delivery_date');
+                        $order->delivery_time_from = Carbon::parse((string) $request->input('delivery_time_from'))->format('H:i:s');
+                        $order->delivery_time_to = Carbon::parse((string) $request->input('delivery_time_to'))->format('H:i:s');
+                    }
+
                     $order->paid = 1;
                     $order->status = Order::STATUS_CONFIRMED;
                     $order->save();
                 });
 
-                return $this->responser($order->fresh(), 'Order Updated successfully.');
+                return $this->responser(
+                    new OrderResource($order->fresh($this->orderDetailResourceRelations())),
+                    'Order Updated successfully.'
+                );
             } catch (Throwable $throwable) {
                 report($throwable);
-                return $this->responser([], 'Unable to confirm payment intent for this order.', 422);
+                return $this->responser([], $throwable->getMessage() ?: 'Unable to confirm payment intent for this order.', 422);
             }
         } elseif ($requestedStatus === Order::STATUS_COMPLETED) {
             CompletedOrder::query()->updateOrCreate(
@@ -349,12 +393,17 @@ class OrderController extends Controller
                 $order = $this->orderService->createOrder($user, $validated);
 
                 if ($shouldInitializePayment) {
-                    $this->paymentService->initializeOrderPaymentIntent(
+                    $result = $this->paymentService->initializeOrderPaymentIntent(
                         $order,
                         $user,
                         $cardReference,
                         $paymentMethodId
                     );
+
+                    $order->paymentmethod_id = $result['selection']['payment_method_id']
+                        ?? $paymentMethodId
+                        ?? $cardReference;
+                    $order->save();
                 }
 
                 return $order;
@@ -414,5 +463,47 @@ class OrderController extends Controller
         }
 
         return false;
+    }
+
+    private function resolvePaymentForAcceptance(Order $order)
+    {
+        $order->loadMissing(['payment', 'user.customer']);
+
+        $payment = $order->payment;
+        $paymentNeedsInitialization = ! $payment
+            || trim((string) $payment->payment_id) === ''
+            || trim((string) $payment->card_id) === ''
+            || trim((string) $payment->status) === 'canceled';
+
+        if (! $paymentNeedsInitialization) {
+            return $payment;
+        }
+
+        $paymentReference = trim((string) $order->paymentmethod_id);
+        if ($paymentReference === '') {
+            throw new \RuntimeException('Payment intent has not been initialized for this order. miFoodi must select a payment method before miCook can accept.');
+        }
+
+        $orderUser = $order->user;
+        if (! $orderUser) {
+            throw new \RuntimeException('Order owner not found for payment confirmation.');
+        }
+
+        $provisionError = $this->accountProfileService->ensureStripeAccountForRole($orderUser, 3);
+        if ($provisionError !== null) {
+            throw new \RuntimeException($provisionError);
+        }
+
+        $orderUser->unsetRelation('customer');
+        $orderUser->load('customer');
+
+        $result = $this->paymentService->initializeOrderPaymentIntent(
+            $order,
+            $orderUser,
+            str_starts_with($paymentReference, 'pm_') ? null : $paymentReference,
+            str_starts_with($paymentReference, 'pm_') ? $paymentReference : null
+        );
+
+        return $result['payment'];
     }
 }

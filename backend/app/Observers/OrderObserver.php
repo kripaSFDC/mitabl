@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PushOrderNotification;
+use Carbon\Carbon;
 use Throwable;
 use Auth;
 
@@ -24,10 +25,26 @@ class OrderObserver
      */
     public function created(Order $order)
     {
-        // $kitchen_id = $order->mikitchn_id;
-        // $kitchen = Mikitchn::find($kitchen_id)->user;
-        // $kMsg = 'new order '.$order->order_id.' added.';
-        // Notification::send($kitchen ,new PushOrderNotification($order,$kMsg));
+        $kitchenUser = optional(Mikitchn::find($order->mikitchn_id))->user;
+        if (! $kitchenUser) {
+            return;
+        }
+
+        $this->safeSendNotification(
+            $kitchenUser,
+            new PushOrderNotification(
+                $order,
+                'New '.$this->fulfillmentLabel($order).' order '.$order->order_id.' requested for '.$this->fulfillmentWindow($order).'.',
+                1
+            ),
+            'orders.kitchen_notification_failed',
+            [
+                'order_id' => $order->id,
+                'recipient_id' => $kitchenUser->id,
+                'status' => $order->status,
+                'event' => 'created',
+            ]
+        );
     }
 
     /**
@@ -68,32 +85,31 @@ class OrderObserver
             switch ($new_status) {
                 case Order::STATUS_LEGACY_CANCELLED:
                 case Order::STATUS_CANCELLED:
-
-                    // $cancelBy = CancelReason::where('order_id',$order->id)->get()->first();
-
-                    // print_r($cancelBy); die();
                     if ($actorRoleId === 3) {
                         $type = 3;
-                        $sMsg = 'your order '.$order->order_id.' was canceled by mifoodie';
-                         $user = $kitchenUser ? collect([$kitchenUser]) : collect();
+                        $sMsg = 'Order '.$order->order_id.' was cancelled by miFoodi.';
+                        $user = $kitchenUser ? collect([$kitchenUser]) : collect();
                     } else {
                         $type = 4;
-                        $sMsg = 'your order '.$order->order_id.' was canceled by micook'; 
+                        $sMsg = 'Your order '.$order->order_id.' was cancelled by miCook.';
                     }
 
                     break;
                 case Order::STATUS_COMPLETED:
                     $type = 5;
-                    $sMsg = 'your order '.$order->order_id.' is completed';
+                    $sMsg = 'Your order '.$order->order_id.' is completed.';
                     break;
                 case Order::STATUS_REQUESTED:
                     $type = 1;
-                    // $sMsg = 'your order '.$order->order_id.' has pending.';
                     $sMsg = '';
                     break;
                 case Order::STATUS_CONFIRMED:
                     $type = 2;
-                    $sMsg = 'your order '.$order->order_id.' is accepted';
+                    $sMsg = 'Your order '.$order->order_id.' is confirmed for '.$this->fulfillmentWindow($order).'.';
+                    break;
+                case Order::STATUS_IN_PROGRESS:
+                    $type = 2;
+                    $sMsg = 'Your order '.$order->order_id.' is now in progress for '.$this->fulfillmentWindow($order).'.';
                     break;
                 
                 default:
@@ -103,7 +119,7 @@ class OrderObserver
             }
             // die('jkfkd');
             if ((int) $new_status === Order::STATUS_REQUESTED) {
-                $kMsg = 'new order '.$order->order_id.' added';
+                $kMsg = 'New '.$this->fulfillmentLabel($order).' order '.$order->order_id.' requested for '.$this->fulfillmentWindow($order).'.';
 
                 
                 
@@ -201,5 +217,19 @@ class OrderObserver
                 'error' => $throwable->getMessage(),
             ]);
         }
+    }
+
+    private function fulfillmentLabel(Order $order): string
+    {
+        return (int) $order->dine_in === 1 ? 'dine-in' : 'pick-up';
+    }
+
+    private function fulfillmentWindow(Order $order): string
+    {
+        $date = Carbon::parse((string) $order->delivery_date)->format('d M Y');
+        $from = Carbon::parse((string) $order->delivery_time_from)->format('H:i');
+        $to = Carbon::parse((string) $order->delivery_time_to)->format('H:i');
+
+        return $this->fulfillmentLabel($order).' between '.$date.' '.$from.'-'.$to;
     }
 }

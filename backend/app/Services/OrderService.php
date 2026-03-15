@@ -129,6 +129,7 @@ class OrderService
             $order->taxes = $this->centsToMoney($taxesCents);
             $order->dine_in = $dineIn;
             $order->take_away = $takeAway;
+            $order->paymentmethod_id = $payload['payment_method_id'] ?? $payload['card_id'] ?? null;
 
             $discountAmountCents = 0;
             if ($this->completedOrderCountForUser($user->id, true) < 5) {
