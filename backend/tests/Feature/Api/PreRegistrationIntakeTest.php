@@ -18,9 +18,6 @@ class PreRegistrationIntakeTest extends TestCase
             'phone' => '+61 400 222 333',
             'city' => 'Sydney',
             'interested_as' => 'cook',
-            'source' => 'website',
-            'consent_to_contact' => true,
-            'communication_preference' => 'email',
         ]);
 
         $response->assertOk()
@@ -38,7 +35,7 @@ class PreRegistrationIntakeTest extends TestCase
         ]);
     }
 
-    public function test_preregister_endpoint_deduplicates_recent_new_or_contacted_leads(): void
+    public function test_preregister_endpoint_deduplicates_existing_leads(): void
     {
         $payload = [
             'first_name' => 'Sam',
@@ -47,6 +44,8 @@ class PreRegistrationIntakeTest extends TestCase
             'phone' => '+61 444 111 333',
             'interested_as' => 'both',
             'source' => 'campaign',
+            'notes' => 'attempted note injection',
+            'consent_to_contact' => true,
         ];
 
         $first = $this->postJson('/api/preregister', $payload);
@@ -68,6 +67,8 @@ class PreRegistrationIntakeTest extends TestCase
             'city' => 'Melbourne',
             'interested_as' => 'foodie',
             'source' => 'campaign',
+            'notes' => 'attempted note injection',
+            'consent_to_contact' => true,
         ])->assertOk()->assertJsonPath('data.duplicate', false);
 
         $second = $this->postJson('/api/preregister', [
@@ -86,7 +87,28 @@ class PreRegistrationIntakeTest extends TestCase
         $this->assertDatabaseHas('pre_registrations', [
             'email' => 'dupe@example.com',
             'source' => 'website',
+            'notes' => null,
+            'consent_to_contact' => false,
         ]);
     }
+
+
+    public function test_preregister_endpoint_rate_limits_repeat_attempts(): void
+    {
+        $payload = [
+            'first_name' => 'Rate',
+            'last_name' => 'Limit',
+            'email' => 'ratelimit@example.com',
+            'phone' => '+61 400 777 999',
+            'interested_as' => 'foodie',
+        ];
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->postJson('/api/preregister', $payload)->assertOk();
+        }
+
+        $this->postJson('/api/preregister', $payload)->assertStatus(429);
+    }
+
 
 }

@@ -82,9 +82,15 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('pre-register-intake', function (Request $request) {
             $email = strtolower(trim((string) $request->input('email', '')));
             $phone = preg_replace('/\D+/', '', (string) $request->input('phone', ''));
-            $keySeed = $email !== '' ? $email : ($phone !== '' ? $phone : (string) $request->ip());
+            $ip = (string) $request->ip();
+            $keySeed = $email !== '' ? $email : ($phone !== '' ? $phone : $ip);
 
-            return Limit::perMinute(10)->by('pre-register-intake:' . $keySeed);
+            return [
+                // Burst protection for a single identity attempting repeated form submits.
+                Limit::perMinute(6)->by('pre-register-intake:' . $keySeed),
+                // Backstop to slow spray attempts from a single source IP.
+                Limit::perHour(30)->by('pre-register-intake-hour-ip:' . $ip),
+            ];
         });
 
         RateLimiter::for('support-read', function (Request $request) {

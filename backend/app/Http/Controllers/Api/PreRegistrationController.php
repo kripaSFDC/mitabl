@@ -19,9 +19,6 @@ class PreRegistrationController extends Controller
             'phone' => ['nullable', 'string', 'max:40'],
             'city' => ['nullable', 'string', 'max:255'],
             'interested_as' => ['required', Rule::in(['cook', 'foodie', 'both'])],
-            'consent_to_contact' => ['nullable', 'boolean'],
-            'communication_preference' => ['nullable', Rule::in(['email', 'phone', 'either'])],
-            'notes' => ['nullable', 'string'],
         ]);
 
         if (empty($validated['email']) && empty($validated['phone'])) {
@@ -61,14 +58,10 @@ class PreRegistrationController extends Controller
             'last_name' => trim($validated['last_name']),
             'email' => $email,
             'phone' => $phone,
-            'city' => $validated['city'] ?? null,
+            'city' => isset($validated['city']) ? trim((string) $validated['city']) : null,
             'interested_as' => $validated['interested_as'],
             'source' => 'website',
             'status' => PreRegistration::STATUS_NEW,
-            'notes' => $validated['notes'] ?? null,
-            'consent_to_contact' => (bool) ($validated['consent_to_contact'] ?? false),
-            'communication_preference' => $validated['communication_preference'] ?? 'email',
-            'consent_captured_at' => ($validated['consent_to_contact'] ?? false) ? now() : null,
             'duplicate_fingerprint' => $fingerprint,
         ];
 
