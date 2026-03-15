@@ -374,7 +374,7 @@ const footer = ({ showStoreBadges }) => `
                             hasErrors = true;
                         }
 
-                        if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                        if (email && !email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {
                             const emailError = document.querySelector('label[for="email"]').nextElementSibling.nextElementSibling;
                             emailError.textContent = 'Please enter a valid email';
                             emailError.classList.remove('hidden');
