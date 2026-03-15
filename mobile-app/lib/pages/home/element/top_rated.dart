@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/model/top_rated_rest_response.dart';
 
 class TopRatedWidget extends StatefulWidget {
@@ -99,165 +101,180 @@ class _TopRatedWidgetState extends State<TopRatedWidget> {
               );
             }
 
-            return Container(
-              width: config.AppConfig(context).appWidth(80),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                color: Theme.of(context).primaryColor,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Row(
-                  children: [
-                    Stack(
-                      fit: StackFit.loose,
-                      alignment: AlignmentDirectional.bottomStart,
-                      children: <Widget>[
-                        ClipRRect(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                          child: CachedNetworkImage(
-                            imageUrl: _primaryImagePath(
-                                        items.elementAt(index)) !=
-                                    null
-                                ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath(items.elementAt(index))}'
-                                : '',
-                            progressIndicatorBuilder:
-                                (context, url, downloadProgress) =>
-                                    CircularProgressIndicator(
-                                        value: downloadProgress.progress),
-                            errorWidget: (context, url, error) => Container(
+            final item = items.elementAt(index);
+            return InkWell(
+              onTap: item.id == null
+                  ? null
+                  : () => Navigator.of(context).pushNamed(
+                        '/OrderMenu',
+                        arguments: RouteArguments(
+                          data: OrderRouteData(kitchenId: item.id),
+                        ),
+                      ),
+              borderRadius: BorderRadius.circular(10.0),
+              child: Container(
+                width: config.AppConfig(context).appWidth(80),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: Theme.of(context).primaryColor,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Row(
+                    children: [
+                      Stack(
+                        fit: StackFit.loose,
+                        alignment: AlignmentDirectional.bottomStart,
+                        children: <Widget>[
+                          ClipRRect(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            child: CachedNetworkImage(
+                              imageUrl: _primaryImagePath(item) != null
+                                  ? '${GlobalConfiguration().getValue<String>('image_base_url')}${_primaryImagePath(item)}'
+                                  : '',
+                              progressIndicatorBuilder:
+                                  (context, url, downloadProgress) =>
+                                      CircularProgressIndicator(
+                                          value: downloadProgress.progress),
+                              errorWidget: (context, url, error) => Container(
+                                  height:
+                                      config.AppConfig(context).appHeight(12),
+                                  width: config.AppConfig(context).appWidth(26),
+                                  padding: EdgeInsets.all(
+                                      config.AppConfig(context).appWidth(3)),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.rectangle,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: config.AppConfig(context).appWidth(8),
+                                  )),
+                              imageBuilder: (context, imageProvider) =>
+                                  Container(
                                 height: config.AppConfig(context).appHeight(12),
                                 width: config.AppConfig(context).appWidth(26),
-                                padding: EdgeInsets.all(
-                                    config.AppConfig(context).appWidth(3)),
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.rectangle,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: config.AppConfig(context).appWidth(8),
-                                )),
-                            imageBuilder: (context, imageProvider) => Container(
-                              height: config.AppConfig(context).appHeight(12),
-                              width: config.AppConfig(context).appWidth(26),
-                              decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: imageProvider,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10))),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Expanded(
-                        child: Padding(
-                      padding: const EdgeInsets.only(left: 4.0),
-                      child: Column(
-                        children: [
-                          Flexible(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    '${items.elementAt(index).name}',
-                                    overflow: TextOverflow.fade,
-                                    softWrap: false,
-                                    style: GoogleFonts.gothicA1(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: config.AppConfig(context)
-                                            .appWidth(3.4)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    '${items.elementAt(index).address}',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    // softWrap: false,
-                                    style: GoogleFonts.gothicA1(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: config.AppConfig(context)
-                                            .appWidth(2.7)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Flexible(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 4.0, top: 2, bottom: 2, right: 4.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/img/rating_icon.png',
-                                        height: config.AppConfig(context)
-                                            .appHeight(1.5),
-                                        width: config.AppConfig(context)
-                                            .appHeight(1.5),
-                                        fit: BoxFit.fitHeight,
-                                      ),
-                                      const SizedBox(
-                                        width: 2,
-                                      ),
-                                      Text(
-                                        _ratingValue(
-                                          items.elementAt(index).ratingCount,
-                                        ).toStringAsFixed(1),
-                                        style: GoogleFonts.gothicA1(
-                                          fontSize: config.AppConfig(context)
-                                              .appWidth(2.7),
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Image.asset(
-                                    'assets/img/heart_icon.png',
-                                    height: config.AppConfig(context)
-                                        .appHeight(1.5),
-                                    width: config.AppConfig(context)
-                                        .appHeight(1.7),
-                                    fit: BoxFit.fitHeight,
-                                  ),
-                                ],
+                                    image: DecorationImage(
+                                      image: imageProvider,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10))),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    )),
-                  ],
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 4.0),
+                          child: Column(
+                            children: [
+                              Flexible(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        '${item.name}',
+                                        overflow: TextOverflow.fade,
+                                        softWrap: false,
+                                        style: GoogleFonts.gothicA1(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: config.AppConfig(context)
+                                                .appWidth(3.4)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        '${item.address}',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.gothicA1(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: config.AppConfig(context)
+                                                .appWidth(2.7)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              Flexible(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 4.0,
+                                      top: 2,
+                                      bottom: 2,
+                                      right: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            'assets/img/rating_icon.png',
+                                            height: config.AppConfig(context)
+                                                .appHeight(1.5),
+                                            width: config.AppConfig(context)
+                                                .appHeight(1.5),
+                                            fit: BoxFit.fitHeight,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            _ratingValue(
+                                              item.ratingCount,
+                                            ).toStringAsFixed(1),
+                                            style: GoogleFonts.gothicA1(
+                                              fontSize: config.AppConfig(context)
+                                                  .appWidth(2.7),
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Image.asset(
+                                        'assets/img/heart_icon.png',
+                                        height: config.AppConfig(context)
+                                            .appHeight(1.5),
+                                        width: config.AppConfig(context)
+                                            .appHeight(1.7),
+                                        fit: BoxFit.fitHeight,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

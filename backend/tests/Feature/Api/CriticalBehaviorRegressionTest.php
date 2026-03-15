@@ -91,6 +91,235 @@ class CriticalBehaviorRegressionTest extends TestCase
         app(OrderService::class)->createOrder($customer, $payload);
     }
 
+    public function test_order_creation_rejects_dishes_unavailable_for_selected_service_type(): void
+    {
+        DB::table('roles')->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $cook = User::query()->create([
+            'first_name' => 'Cook',
+            'last_name' => 'User',
+            'email' => 'cook-service-type@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 2,
+            'phone' => '1111111111',
+            'address' => 'Cook Street',
+            'email_verified' => 1,
+        ]);
+
+        $customer = User::query()->create([
+            'first_name' => 'Foodie',
+            'last_name' => 'User',
+            'email' => 'foodie-service-type@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 3,
+            'phone' => '2222222222',
+            'address' => 'Foodie Street',
+            'email_verified' => 1,
+        ]);
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $cook->id,
+            'name' => 'Kitchen One',
+            'address' => 'Kitchen Street',
+            'phone' => '1234567890',
+            'no_of_seats' => 10,
+            'timings' => '{}',
+            'status' => 1,
+            'dine_in' => 1,
+            'take_away' => 1,
+        ]);
+
+        $food = Foods::query()->create([
+            'restaurant_id' => $kitchen->id,
+            'food_name' => 'Take Away Only Pasta',
+            'pictures' => '[]',
+            'price' => 25.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Good food',
+            'status' => 1,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $payload = [
+            'kitchen_id' => $kitchen->id,
+            'delivery_date' => now()->addDay()->format('Y-m-d'),
+            'delivery_time_from' => '12:00',
+            'delivery_time_to' => '13:00',
+            'item_total_price' => 25.00,
+            'taxes' => 0,
+            'total_price' => 25.00,
+            'dine_in' => 1,
+            'take_away' => 0,
+            'persons' => 2,
+            'item_data' => json_encode([
+                ['id' => $food->id, 'quantity' => 1, 'price' => 25.00],
+            ]),
+        ];
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('One or more selected dishes are not available for dine-in.');
+
+        app(OrderService::class)->createOrder($customer, $payload);
+    }
+
+    public function test_order_creation_rejects_inactive_kitchens(): void
+    {
+        DB::table('roles')->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $cook = User::query()->create([
+            'first_name' => 'Cook',
+            'last_name' => 'User',
+            'email' => 'cook-inactive-kitchen@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 2,
+            'phone' => '1111111111',
+            'address' => 'Cook Street',
+            'email_verified' => 1,
+        ]);
+
+        $customer = User::query()->create([
+            'first_name' => 'Foodie',
+            'last_name' => 'User',
+            'email' => 'foodie-inactive-kitchen@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 3,
+            'phone' => '2222222222',
+            'address' => 'Foodie Street',
+            'email_verified' => 1,
+        ]);
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $cook->id,
+            'name' => 'Inactive Kitchen',
+            'address' => 'Kitchen Street',
+            'phone' => '1234567890',
+            'no_of_seats' => 10,
+            'timings' => '{}',
+            'status' => 0,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $food = Foods::query()->create([
+            'restaurant_id' => $kitchen->id,
+            'food_name' => 'Packed Pasta',
+            'pictures' => '[]',
+            'price' => 25.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Good food',
+            'status' => 1,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $payload = [
+            'kitchen_id' => $kitchen->id,
+            'delivery_date' => now()->addDay()->format('Y-m-d'),
+            'delivery_time_from' => '12:00',
+            'delivery_time_to' => '13:00',
+            'item_total_price' => 25.00,
+            'taxes' => 0,
+            'total_price' => 25.00,
+            'dine_in' => 0,
+            'take_away' => 1,
+            'item_data' => json_encode([
+                ['id' => $food->id, 'quantity' => 1, 'price' => 25.00],
+            ]),
+        ];
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Selected kitchen is currently unavailable.');
+
+        app(OrderService::class)->createOrder($customer, $payload);
+    }
+
+    public function test_order_creation_accepts_duplicate_food_lines_for_same_dish(): void
+    {
+        DB::table('roles')->insert([
+            ['id' => 2, 'role' => 'Restaurant', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'role' => 'Foodie', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $cook = User::query()->create([
+            'first_name' => 'Cook',
+            'last_name' => 'User',
+            'email' => 'cook-duplicate-lines@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 2,
+            'phone' => '1111111111',
+            'address' => 'Cook Street',
+            'email_verified' => 1,
+        ]);
+
+        $customer = User::query()->create([
+            'first_name' => 'Foodie',
+            'last_name' => 'User',
+            'email' => 'foodie-duplicate-lines@example.test',
+            'password' => Hash::make('password123'),
+            'role_id' => 3,
+            'phone' => '2222222222',
+            'address' => 'Foodie Street',
+            'email_verified' => 1,
+        ]);
+
+        $kitchen = Mikitchn::query()->create([
+            'user_id' => $cook->id,
+            'name' => 'Kitchen One',
+            'address' => 'Kitchen Street',
+            'phone' => '1234567890',
+            'no_of_seats' => 10,
+            'timings' => '{}',
+            'status' => 1,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $food = Foods::query()->create([
+            'restaurant_id' => $kitchen->id,
+            'food_name' => 'Pasta',
+            'pictures' => '[]',
+            'price' => 25.00,
+            'cookingstyle' => 1,
+            'specialDiet' => '[]',
+            'description' => 'Good food',
+            'status' => 1,
+            'dine_in' => 0,
+            'take_away' => 1,
+        ]);
+
+        $order = app(OrderService::class)->createOrder($customer, [
+            'kitchen_id' => $kitchen->id,
+            'delivery_date' => now()->addDay()->format('Y-m-d'),
+            'delivery_time_from' => '12:00',
+            'delivery_time_to' => '13:00',
+            'item_total_price' => 75.00,
+            'taxes' => 0,
+            'total_price' => 25.00,
+            'dine_in' => 0,
+            'take_away' => 1,
+            'item_data' => json_encode([
+                ['id' => $food->id, 'quantity' => 1],
+                ['id' => $food->id, 'quantity' => 2],
+            ]),
+        ]);
+
+        $this->assertSame($kitchen->id, (int) $order->mikitchn_id);
+        $this->assertDatabaseCount('order_data', 2);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'item_total_price' => '75.00',
+        ]);
+    }
+
     public function test_customer_review_requires_linked_completed_order(): void
     {
         DB::table('roles')->insert([

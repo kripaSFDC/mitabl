@@ -88,7 +88,8 @@ class FoodsController extends Controller
             'specialDiet' => 'required|array|min:1',
             'specialDiet.*' => 'required|integer',
             'price' => 'required|numeric|gt:0',
-            
+            'dine_in' => 'nullable|integer|in:0,1',
+            'take_away' => 'nullable|integer|in:0,1',
         ]);
         // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
@@ -127,6 +128,23 @@ class FoodsController extends Controller
             return $this->responser([], 'Food item not found for this restaurant.', 404);
         }
         $foodId = null;
+        $dishDineIn = $request->has('dine_in')
+            ? (int) $request->dine_in
+            : (int) ($isUpdate ? $existFood?->dine_in : $restaurant->dine_in);
+        $dishTakeAway = $request->has('take_away')
+            ? (int) $request->take_away
+            : (int) ($isUpdate ? $existFood?->take_away : $restaurant->take_away);
+
+        if ($dishDineIn !== 1 && $dishTakeAway !== 1) {
+            return $this->responser([], 'At least one of dine_in or take_away must be enabled for a food item.', 422);
+        }
+        if ($dishDineIn === 1 && (int) $restaurant->dine_in !== 1) {
+            return $this->responser([], 'Food item cannot enable dine_in when the kitchen does not support dine-in.', 422);
+        }
+        if ($dishTakeAway === 1 && (int) $restaurant->take_away !== 1) {
+            return $this->responser([], 'Food item cannot enable take_away when the kitchen does not support take-away.', 422);
+        }
+
         if ($isUpdate) {
             Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->update([
                 'food_name' => $request->food_name,
@@ -135,6 +153,8 @@ class FoodsController extends Controller
                 'price' => $request->price,
                 'description' => $request->description,
                 'pictures' => json_encode($ImgaesKitch),
+                'dine_in' => $dishDineIn,
+                'take_away' => $dishTakeAway,
             ]);
             $msg = 'Food item Updated succesfully.';
             $foodId = $request->food_id;
@@ -158,6 +178,8 @@ class FoodsController extends Controller
                 'price' => $request->price,
                 'description' => $request->description,
                 'pictures' => json_encode($ImgaesKitch),
+                'dine_in' => $dishDineIn,
+                'take_away' => $dishTakeAway,
             ])->id;
             $msg = 'Food item created succesfully.';
         }

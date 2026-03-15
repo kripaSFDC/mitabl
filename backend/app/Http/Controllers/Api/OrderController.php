@@ -199,9 +199,9 @@ class OrderController extends Controller
             'delivery_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'delivery_time_from' => ['required', 'date_format:H:i'],
             'delivery_time_to' => ['required', 'date_format:H:i', 'after:delivery_time_from'],
-            'item_total_price' => ['required', 'numeric', 'min:0'],
+            'item_total_price' => ['nullable', 'numeric', 'min:0'],
             'taxes' => ['nullable', 'numeric', 'min:0'],
-            'total_price' => ['required', 'numeric', 'min:0'],
+            'total_price' => ['nullable', 'numeric', 'min:0'],
             'dine_in' => ['required', 'integer', Rule::in([0, 1])],
             'take_away' => ['required', 'integer', Rule::in([0, 1])],
             'persons' => ['nullable', 'integer', 'min:1'],
@@ -211,6 +211,10 @@ class OrderController extends Controller
 
         if ($validator->fails()) {
             return $this->responser([], $validator->errors()->first(), 422);
+        }
+
+        if (((int) $request->input('dine_in')) + ((int) $request->input('take_away')) !== 1) {
+            return $this->responser([], 'Exactly one of dine_in or take_away must be selected.', 422);
         }
 
         if ((int) $request->input('dine_in') === 1 && ! $request->filled('persons')) {

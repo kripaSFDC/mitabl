@@ -9,6 +9,7 @@ use App\Services\DiscoveryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class DiscoveryController extends Controller
 {
@@ -42,6 +43,10 @@ class DiscoveryController extends Controller
 
     public function show(Request $request, int $id)
     {
+        if ($response = $this->validateDiscoveryQuery($request, false)) {
+            return $response;
+        }
+
         $query = Mikitchn::query();
         $latInput = $request->query('lat');
         $lonInput = $request->query('lon');
@@ -55,7 +60,21 @@ class DiscoveryController extends Controller
         }
 
         $restaurant = $query
-            ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status', 'weektimings', 'user:id,first_name,last_name,avatar,role_id,description'])
+            ->with([
+                'addedimage:id,ref_id,model_name,path',
+                'certificate:id,mikitchn_id,abn,abn_gst,status',
+                'weektimings',
+                'user:id,first_name,last_name,avatar,role_id,description',
+                'foods' => function ($foodQuery) use ($request): void {
+                    $foodQuery->active()
+                        ->availableForOrderType(
+                            $request->has('dine_in') ? (int) $request->query('dine_in') : null,
+                            $request->has('take_away') ? (int) $request->query('take_away') : null
+                        )
+                        ->with('addedimage:id,ref_id,model_name,path')
+                        ->orderBy('food_name');
+                },
+            ])
             ->withAvg('reviews', 'rating')
             ->find($id);
 
@@ -85,5 +104,54 @@ class DiscoveryController extends Controller
         );
 
         return $this->responser(new RestaurantResource($restaurant), 'restaurant data.');
+    }
+
+    public function menu(Request $request, int $id)
+    {
+        if ($response = $this->validateDiscoveryQuery($request, false)) {
+            return $response;
+        }
+
+        if (! Mikitchn::query()->whereKey($id)->where('status', 1)->exists()) {
+            return $this->responser([], 'restaurant not found.', 404);
+        }
+
+        $data = $this->discoveryService->menu($request, $id)['data'];
+
+        return $this->responser($data, 'restaurant menu.');
+    }
+
+    public function search(Request $request)
+    {
+        if ($response = $this->validateDiscoveryQuery($request, true)) {
+            return $response;
+        }
+
+        $data = $this->discoveryService->search($request)['data'];
+
+        return $this->responser($data, 'restaurants search results.');
+    }
+
+    private function validateDiscoveryQuery(Request $request, bool $includeSearchTerm)
+    {
+        $rules = [
+            'dine_in' => ['nullable', 'integer', 'in:0,1'],
+            'take_away' => ['nullable', 'integer', 'in:0,1'],
+            'lat' => ['nullable', 'numeric', 'between:-90,90', 'required_with:lon'],
+            'lon' => ['nullable', 'numeric', 'between:-180,180', 'required_with:lat'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ];
+
+        if ($includeSearchTerm) {
+            $rules['q'] = ['nullable', 'string', 'max:255'];
+        }
+
+        $validator = Validator::make($request->query(), $rules);
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
+        }
+
+        return null;
     }
 }

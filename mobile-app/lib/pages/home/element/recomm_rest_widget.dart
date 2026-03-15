@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/recommended_rest_response.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/pages/ordering/order_session.dart';
 
 class RecommendedRestWidget extends StatefulWidget {
   const RecommendedRestWidget({super.key, this.recommendedResturant});
@@ -30,7 +32,18 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final kitchenId = widget.recommendedResturant?.id;
+    return InkWell(
+      onTap: kitchenId == null
+          ? null
+          : () => Navigator.of(context).pushNamed(
+                '/OrderMenu',
+                arguments: RouteArguments(
+                  data: OrderRouteData(kitchenId: kitchenId),
+                ),
+              ),
+      borderRadius: const BorderRadius.all(Radius.circular(10)),
+      child: Container(
         margin: const EdgeInsets.symmetric(vertical: 5.0),
         width: config.AppConfig(context).appWidth(100.0),
         decoration: BoxDecoration(
@@ -192,6 +205,8 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                   ),
                 ))
           ],
-        ));
+        ),
+      ),
+    );
   }
 }

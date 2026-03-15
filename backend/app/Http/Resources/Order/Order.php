@@ -2,12 +2,10 @@
 
 namespace App\Http\Resources\Order;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Order\OrderData as OrderDataResource;
 use App\Http\Resources\Order\CancelReason as CancelReasonResource;
 use Carbon\Carbon;
-use App\Models\Review;
 
 class Order extends JsonResource
 {
@@ -62,10 +60,10 @@ class Order extends JsonResource
                     'description' => $customer?->description,
                     'rating' => $customerRating,
                 ],
-            'date' => $this->delivery_date->format('d M Y'),
-            'time_from' => $this->delivery_time_from->format('H:i a'),
-            'time_to' => $this->delivery_time_to->format('H:i a'),
-            'created_at' => $this->created_at->format('d M Y'),
+            'date' => $this->formatValue($this->delivery_date, 'd M Y'),
+            'time_from' => $this->formatValue($this->delivery_time_from, 'H:i a'),
+            'time_to' => $this->formatValue($this->delivery_time_to, 'H:i a'),
+            'created_at' => $this->formatValue($this->created_at, 'd M Y'),
             'persons' => $this->persons,
             'message' => $this->message,
             'dine_in' => $this->dine_in,
@@ -83,5 +81,18 @@ class Order extends JsonResource
             'rating_by_customer' => ($this->review) ? $this->review->rating : null,
             'items' => OrderDataResource::collection($items)
         ];
+    }
+
+    private function formatValue(mixed $value, string $format): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format($format);
+        }
+
+        return Carbon::parse((string) $value)->format($format);
     }
 }

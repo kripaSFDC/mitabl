@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\OrderData;
 use App\Models\Foods;
+use App\Models\Mikitchn;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,26 @@ class OrderService
             $fromTime = Carbon::parse($payload['delivery_time_from'])->format('H:i:s');
             $toTime = Carbon::parse($payload['delivery_time_to'])->format('H:i:s');
             $kitchenId = (int) $payload['kitchen_id'];
+            $dineIn = (int) ($payload['dine_in'] ?? 0);
+            $takeAway = (int) ($payload['take_away'] ?? 0);
+
+            if (($dineIn + $takeAway) !== 1) {
+                throw new InvalidArgumentException('Exactly one of dine_in or take_away must be selected.');
+            }
+
+            $kitchen = Mikitchn::query()->select(['id', 'status', 'dine_in', 'take_away'])->find($kitchenId);
+            if (! $kitchen) {
+                throw new InvalidArgumentException('Selected kitchen does not exist.');
+            }
+            if ((int) $kitchen->status !== 1) {
+                throw new InvalidArgumentException('Selected kitchen is currently unavailable.');
+            }
+            if ($dineIn === 1 && (int) $kitchen->dine_in !== 1) {
+                throw new InvalidArgumentException('Selected kitchen does not offer dine-in orders.');
+            }
+            if ($takeAway === 1 && (int) $kitchen->take_away !== 1) {
+                throw new InvalidArgumentException('Selected kitchen does not offer take-away orders.');
+            }
 
             $normalizedItems = [];
             $foodIds = [];
@@ -51,15 +72,16 @@ class OrderService
                 $normalizedItems[] = ['food_id' => $foodId, 'quantity' => $quantity];
                 $foodIds[] = $foodId;
             }
+            $uniqueFoodIds = array_values(array_unique($foodIds));
 
             $foods = Foods::query()
-                ->select(['id', 'price'])
+                ->select(['id', 'price', 'dine_in', 'take_away', 'status'])
                 ->where('restaurant_id', $kitchenId)
-                ->whereIn('id', $foodIds)
+                ->whereIn('id', $uniqueFoodIds)
                 ->get()
                 ->keyBy('id');
 
-            if (count($foodIds) !== $foods->count()) {
+            if (count($uniqueFoodIds) !== $foods->count()) {
                 throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
             }
 
@@ -69,6 +91,15 @@ class OrderService
                 $food = $foods->get($item['food_id']);
                 if (! $food) {
                     throw new InvalidArgumentException('One or more items do not belong to the selected kitchen.');
+                }
+                if ((int) $food->status !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are currently unavailable.');
+                }
+                if ($dineIn === 1 && (int) $food->dine_in !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are not available for dine-in.');
+                }
+                if ($takeAway === 1 && (int) $food->take_away !== 1) {
+                    throw new InvalidArgumentException('One or more selected dishes are not available for take-away.');
                 }
 
                 $unitPriceCents = $this->moneyToCents($food->price, 'food price');
@@ -96,8 +127,8 @@ class OrderService
             $order->item_total_price = $this->centsToMoney($itemTotalCents);
             $order->promo_code = $payload['promo_code'] ?? null;
             $order->taxes = $this->centsToMoney($taxesCents);
-            $order->dine_in = $payload['dine_in'];
-            $order->take_away = $payload['take_away'];
+            $order->dine_in = $dineIn;
+            $order->take_away = $takeAway;
 
             $discountAmountCents = 0;
             if ($this->completedOrderCountForUser($user->id, true) < 5) {

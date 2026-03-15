@@ -28,7 +28,9 @@ class Food extends JsonResource
             'pictures' => $pictures,
             'price' => $this->price,
             'status' => $this->status,
-            'description' => $this->description
+            'dine_in' => (int) ($this->dine_in ?? 1),
+            'take_away' => (int) ($this->take_away ?? 1),
+            'description' => $this->description,
         ];
     }
 }

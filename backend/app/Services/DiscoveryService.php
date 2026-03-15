@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Http\Resources\Restaurant\Restaurant as RestaurantResource;
+use App\Http\Resources\Restaurant\Food as FoodResource;
+use App\Models\Foods;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
@@ -141,6 +143,89 @@ class DiscoveryService
         return ['data' => $result['payload']];
     }
 
+    public function menu(Request $request, int $restaurantId): array
+    {
+        $foods = Foods::query()
+            ->with('addedimage:id,ref_id,model_name,path')
+            ->forRestaurant($restaurantId)
+            ->active();
+
+        $this->applyFoodAvailabilityFilters($request, $foods);
+
+        return [
+            'data' => FoodResource::collection(
+                $foods->orderBy('food_name')->get()
+            )->resolve(),
+        ];
+    }
+
+    public function search(Request $request): array
+    {
+        $term = trim((string) $request->query('q', ''));
+        if ($term === '') {
+            return ['data' => ['total_count' => 0, 'kitchens' => []]];
+        }
+
+        $limit = min(max((int) ($request->query('limit', 10)), 1), 50);
+        $page = max((int) ($request->query('page', 1)), 1);
+        $likeTerm = '%' . $term . '%';
+        $dineIn = $request->has('dine_in') ? (int) $request->query('dine_in') : null;
+        $takeAway = $request->has('take_away') ? (int) $request->query('take_away') : null;
+
+        $query = $this->buildBaseDiscoveryQuery($request, true)
+            ->where('mikitchns.status', 1)
+            ->where(function ($subQuery) use ($likeTerm, $dineIn, $takeAway): void {
+                $subQuery->where('mikitchns.name', 'like', $likeTerm)
+                    ->orWhere('mikitchns.description', 'like', $likeTerm)
+                    ->orWhereExists(function ($foodQuery) use ($likeTerm, $dineIn, $takeAway): void {
+                        $foodQuery->selectRaw('1')
+                            ->from('foods')
+                            ->whereColumn('foods.restaurant_id', 'mikitchns.id')
+                            ->where('foods.status', 1)
+                            ->when($dineIn !== null, fn ($innerQuery) => $innerQuery->where('foods.dine_in', $dineIn))
+                            ->when($takeAway !== null, fn ($innerQuery) => $innerQuery->where('foods.take_away', $takeAway))
+                            ->where(function ($matchQuery) use ($likeTerm): void {
+                                $matchQuery->where('foods.food_name', 'like', $likeTerm)
+                                    ->orWhere('foods.description', 'like', $likeTerm);
+                            });
+                    });
+            });
+
+        if ($this->hasValidCoordinates($request)) {
+            $query->orderBy('distance', 'ASC');
+        } else {
+            $query->orderByDesc('reviews_avg_rating')
+                ->orderBy('mikitchns.name');
+        }
+
+        $start = microtime(true);
+        $result = $this->remember('search', $request, function () use ($query, $limit, $page, $term, $dineIn, $takeAway) {
+            [$kitchens, $totalCount] = $this->executePagedQuery($query, $limit, $page);
+
+            $kitchens->load([
+                'foods' => function ($foodQuery) use ($term, $dineIn, $takeAway): void {
+                    $foodQuery->active()
+                        ->searchTerm($term)
+                        ->availableForOrderType($dineIn, $takeAway)
+                        ->with('addedimage:id,ref_id,model_name,path')
+                        ->orderBy('food_name');
+                },
+            ]);
+
+            $kitchens = $kitchens->makeHidden(['reviews', 'addedimage', 'certificate']);
+            $this->annotateFavorites($kitchens);
+
+            return [
+                'total_count' => $totalCount,
+                'kitchens' => RestaurantResource::collection($kitchens)->resolve(),
+            ];
+        });
+
+        $this->logMetrics('searchRestaurant', $start, $result['cache_hit']);
+
+        return ['data' => $result['payload']];
+    }
+
     private function buildBaseDiscoveryQuery(Request $request, bool $withDistance)
     {
         $query = Mikitchn::query()->select(['mikitchns.*']);
@@ -177,6 +262,14 @@ class DiscoveryService
         if ($request->has('take_away')) {
             $query->where('mikitchns.take_away', $request->take_away);
         }
+    }
+
+    private function applyFoodAvailabilityFilters(Request $request, $query): void
+    {
+        $dineIn = $request->has('dine_in') ? (int) $request->query('dine_in') : null;
+        $takeAway = $request->has('take_away') ? (int) $request->query('take_away') : null;
+
+        $query->availableForOrderType($dineIn, $takeAway);
     }
 
     private function remember(string $segment, Request $request, callable $callback): array
