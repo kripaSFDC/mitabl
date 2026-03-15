@@ -156,10 +156,10 @@ Unlike generic food delivery apps (like UberEats or DoorDash) which focus purely
 
 ### 7b. Dine-in seats - 🟡 Partial
 
-| What exists                                                                              | Gap                                                                                                                                                                                                         |
-| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What exists                                                                              | Gap                                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Mikitchn.no_of_seats` field exists and is set during `createKitchen` / `updateKitchen`. | **No enforcement at order creation time.** `OrderService::createOrder` does not check if `persons` exceeds `kitchen.no_of_seats`. A miFoodi could theoretically book more people than the kitchen capacity. |
-|                                                                                          | No real-time availability tracking - no check for concurrent bookings that might exceed capacity for the same date/time slot.                                                                               |
+|                                                                                          | No real-time availability tracking - no check for concurrent bookings that might exceed capacity for the same date/time slot.                                                                                                           |
 
 ### 7c. Dine-in timeslots - 🔴 Not implemented
 
