@@ -404,8 +404,7 @@ const footer = ({ showStoreBadges }) => `
                             email: email || null,
                             phone: phone || null,
                             city: city || null,
-                            interested_as: interestedAs,
-                            source: 'website'
+                            interested_as: interestedAs
                         };
 
                         try {

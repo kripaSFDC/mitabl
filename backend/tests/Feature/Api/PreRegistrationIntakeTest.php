@@ -57,4 +57,36 @@ class PreRegistrationIntakeTest extends TestCase
 
         $this->assertDatabaseCount('pre_registrations', 1);
     }
+
+    public function test_preregister_endpoint_forces_source_to_website_and_blocks_email_duplicates(): void
+    {
+        $this->postJson('/api/preregister', [
+            'first_name' => 'Taylor',
+            'last_name' => 'Original',
+            'email' => 'dupe@example.com',
+            'phone' => '+61 401 000 001',
+            'city' => 'Melbourne',
+            'interested_as' => 'foodie',
+            'source' => 'campaign',
+        ])->assertOk()->assertJsonPath('data.duplicate', false);
+
+        $second = $this->postJson('/api/preregister', [
+            'first_name' => 'Taylor',
+            'last_name' => 'Changed',
+            'email' => 'dupe@example.com',
+            'phone' => '+61 401 999 999',
+            'city' => 'Brisbane',
+            'interested_as' => 'cook',
+            'source' => 'referral',
+        ]);
+
+        $second->assertOk()->assertJsonPath('data.duplicate', true);
+
+        $this->assertDatabaseCount('pre_registrations', 1);
+        $this->assertDatabaseHas('pre_registrations', [
+            'email' => 'dupe@example.com',
+            'source' => 'website',
+        ]);
+    }
+
 }

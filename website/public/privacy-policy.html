@@ -118,7 +118,9 @@
     <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/" aria-label="mitabl home" class="flex items-center gap-2 group">
-                <img src="/frontend/logo.png" alt="mitabl" class="h-8 w-auto group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+                <h2 class="text-brand-600 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 group-hover:scale-105 transition-transform duration-300">
+                    <span class="bg-brand-600 text-white px-2 py-0.5 rounded-lg shadow-md shadow-brand-500/20">mi</span>tabl
+                </h2>
             </a>
             
             <button id="mobile-menu-btn" class="md:hidden text-brand-900 focus:outline-none bg-white p-2 rounded-lg shadow-sm" aria-label="Toggle navigation menu">
@@ -240,7 +242,9 @@
         </div>
         
         <div class="flex items-center justify-center">
-            <img src="/frontend/logo.png" alt="mitabl" class="h-8 w-auto grayscale opacity-70">
+            <h2 class="text-gray-400 font-extrabold text-2xl tracking-tighter flex items-center justify-center gap-1 grayscale opacity-70">
+                <span class="bg-gray-400 text-white px-2 py-0.5 rounded-lg shadow-sm">mi</span>tabl
+            </h2>
         </div>
         
         <div class="flex justify-center md:justify-end gap-4 h-11">
@@ -300,36 +304,182 @@
                 });
             }
 
-            // Modal logic
-            const modal = document.getElementById('myModal');
-            const modalTriggers = document.querySelectorAll('.modal-trigger');
-            const modalCloseBtns = document.querySelectorAll('.modal-close, .modal');
-            const modalContent = document.querySelector('.modal-content');
+            // Pre-registration Modal logic
+            const preRegModal = document.getElementById('preRegistrationModal');
+            const preRegForm = document.getElementById('preRegistrationForm');
+            const registerInterestTriggers = document.querySelectorAll('.register-interest-trigger');
+            const modalCloseBtns = document.querySelectorAll('.modal-close');
+            const modalContentDiv = document.querySelector('.modal-content');
+            const formMessage = document.getElementById('formMessage');
 
-            if (modal) {
-                modalTriggers.forEach(trigger => {
+            if (preRegModal) {
+                registerInterestTriggers.forEach(trigger => {
                     trigger.addEventListener('click', (e) => {
                         e.preventDefault();
-                        modal.classList.remove('invisible', 'opacity-0');
-                        modal.classList.add('open');
-                        setTimeout(() => modal.classList.add('opacity-100'), 10);
+                        preRegModal.classList.remove('invisible', 'opacity-0');
+                        preRegModal.classList.add('open');
+                        setTimeout(() => preRegModal.classList.add('opacity-100'), 10);
                     });
                 });
                 
                 modalCloseBtns.forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        if (e.target === modal || btn.classList.contains('modal-close')) {
+                        if (e.target === preRegModal || btn.classList.contains('modal-close')) {
                             e.preventDefault();
-                            modal.classList.remove('opacity-100', 'open');
-                            setTimeout(() => modal.classList.add('invisible', 'opacity-0'), 300);
+                            closeModal();
                         }
                     });
                 });
                 
+                preRegModal.addEventListener('click', (e) => {
+                    if (e.target === preRegModal) {
+                        closeModal();
+                    }
+                });
+                
                 // Prevent click inside modal content from closing
-                if (modalContent) {
-                    modalContent.addEventListener('click', (e) => {
+                if (modalContentDiv) {
+                    modalContentDiv.addEventListener('click', (e) => {
                         e.stopPropagation();
+                    });
+                }
+
+                function closeModal() {
+                    preRegModal.classList.remove('opacity-100', 'open');
+                    setTimeout(() => {
+                        preRegModal.classList.add('invisible', 'opacity-0');
+                        preRegForm.reset();
+                        formMessage.classList.add('hidden');
+                        formMessage.innerHTML = '';
+                    }, 300);
+                }
+
+                // Form submission
+                if (preRegForm) {
+                    preRegForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        
+                        // Clear previous error messages
+                        document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
+                        formMessage.classList.add('hidden');
+
+                        const submitBtn = preRegForm.querySelector('button[type="submit"]');
+                        const firstName = document.getElementById('firstName').value.trim();
+                        const lastName = document.getElementById('lastName').value.trim();
+                        const email = document.getElementById('email').value.trim();
+                        const phone = document.getElementById('phone').value.trim();
+                        const city = document.getElementById('city').value.trim();
+                        const interestedAs = document.getElementById('interestedAs').value;
+
+                        // Client-side validation
+                        let hasErrors = false;
+
+                        if (!firstName) {
+                            document.querySelector('label[for="firstName"]').nextElementSibling.nextElementSibling.textContent = 'First name is required';
+                            document.querySelector('label[for="firstName"]').nextElementSibling.nextElementSibling.classList.remove('hidden');
+                            hasErrors = true;
+                        }
+
+                        if (!lastName) {
+                            document.querySelector('label[for="lastName"]').nextElementSibling.nextElementSibling.textContent = 'Last name is required';
+                            document.querySelector('label[for="lastName"]').nextElementSibling.nextElementSibling.classList.remove('hidden');
+                            hasErrors = true;
+                        }
+
+                        if (!email && !phone) {
+                            const emailError = document.querySelector('label[for="email"]').nextElementSibling.nextElementSibling;
+                            emailError.textContent = 'Either email or phone is required';
+                            emailError.classList.remove('hidden');
+                            hasErrors = true;
+                        }
+
+                        if (email && !email.match(/^[^s@]+@[^s@]+.[^s@]+$/)) {
+                            const emailError = document.querySelector('label[for="email"]').nextElementSibling.nextElementSibling;
+                            emailError.textContent = 'Please enter a valid email';
+                            emailError.classList.remove('hidden');
+                            hasErrors = true;
+                        }
+
+                        if (!interestedAs) {
+                            document.querySelector('label[for="interestedAs"]').nextElementSibling.nextElementSibling.textContent = 'Please select an option';
+                            document.querySelector('label[for="interestedAs"]').nextElementSibling.nextElementSibling.classList.remove('hidden');
+                            hasErrors = true;
+                        }
+
+                        if (hasErrors) {
+                            return;
+                        }
+
+                        // Disable submit button to prevent double submission
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.style.opacity = '0.6';
+                            submitBtn.style.cursor = 'not-allowed';
+                        }
+
+                        const formData = {
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email || null,
+                            phone: phone || null,
+                            city: city || null,
+                            interested_as: interestedAs
+                        };
+
+                        try {
+                            const response = await fetch('/api/preregister', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify(formData)
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                // Handle duplicate detection
+                                if (data.data && data.data.duplicate) {
+                                    formMessage.classList.remove('hidden');
+                                    formMessage.innerHTML = '<span class="text-blue-600 font-semibold">✓ Your interest has already been registered with us. Stay tuned!</span>';
+                                    formMessage.style.color = 'rgb(37, 99, 235)';
+                                } else {
+                                    formMessage.classList.remove('hidden');
+                                    formMessage.innerHTML = '<span class="text-green-600 font-semibold">✓ Registration received! We will be in touch soon.</span>';
+                                    formMessage.style.color = 'rgb(16, 185, 129)';
+                                }
+                                preRegForm.reset();
+                                setTimeout(() => closeModal(preRegModal), 2500);
+                            } else if (response.status === 429) {
+                                // Rate limit error
+                                formMessage.classList.remove('hidden');
+                                formMessage.innerHTML = '<span class="text-red-600">Too many registration attempts. Please try again in a few minutes.</span>';
+                                formMessage.style.color = 'rgb(239, 68, 68)';
+                            } else if (response.status === 422) {
+                                // Validation errors from backend
+                                if (data.isError) {
+                                    formMessage.classList.remove('hidden');
+                                    formMessage.innerHTML = '<span class="text-red-600">' + data.isError + '</span>';
+                                    formMessage.style.color = 'rgb(239, 68, 68)';
+                                }
+                            } else {
+                                formMessage.classList.remove('hidden');
+                                formMessage.innerHTML = '<span class="text-red-600">' + (data.isError || 'An error occurred. Please try again.') + '</span>';
+                                formMessage.style.color = 'rgb(239, 68, 68)';
+                            }
+                        } catch (error) {
+                            formMessage.classList.remove('hidden');
+                            formMessage.innerHTML = '<span class="text-red-600">Network error. Please check your connection and try again.</span>';
+                            formMessage.style.color = 'rgb(239, 68, 68)';
+                        } finally {
+                            // Re-enable submit button
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.style.opacity = '1';
+                                submitBtn.style.cursor = 'pointer';
+                            }
+                        }
                     });
                 }
             }

@@ -19,7 +19,6 @@ class PreRegistrationController extends Controller
             'phone' => ['nullable', 'string', 'max:40'],
             'city' => ['nullable', 'string', 'max:255'],
             'interested_as' => ['required', Rule::in(['cook', 'foodie', 'both'])],
-            'source' => ['nullable', 'string', 'max:50'],
             'consent_to_contact' => ['nullable', 'boolean'],
             'communication_preference' => ['nullable', Rule::in(['email', 'phone', 'either'])],
             'notes' => ['nullable', 'string'],
@@ -43,6 +42,20 @@ class PreRegistrationController extends Controller
             strtolower(trim($validated['interested_as'])),
         ]));
 
+        $duplicateQuery = PreRegistration::query()
+            ->where(function ($query) use ($email, $phone, $fingerprint): void {
+                if ($email !== null) {
+                    $query->where('email', $email);
+                }
+
+                if ($phone !== null) {
+                    $query->orWhere('phone', $phone);
+                }
+
+                // Backstop for rows that were created before contact normalization.
+                $query->orWhere('duplicate_fingerprint', $fingerprint);
+            });
+
         $payload = [
             'first_name' => trim($validated['first_name']),
             'last_name' => trim($validated['last_name']),
@@ -50,7 +63,7 @@ class PreRegistrationController extends Controller
             'phone' => $phone,
             'city' => $validated['city'] ?? null,
             'interested_as' => $validated['interested_as'],
-            'source' => $validated['source'] ?? 'website',
+            'source' => 'website',
             'status' => PreRegistration::STATUS_NEW,
             'notes' => $validated['notes'] ?? null,
             'consent_to_contact' => (bool) ($validated['consent_to_contact'] ?? false),
@@ -59,11 +72,8 @@ class PreRegistrationController extends Controller
             'duplicate_fingerprint' => $fingerprint,
         ];
 
-        $result = DB::transaction(function () use ($payload): array {
-            $duplicate = PreRegistration::query()
-                ->where('duplicate_fingerprint', $payload['duplicate_fingerprint'])
-                ->whereIn('status', [PreRegistration::STATUS_NEW, PreRegistration::STATUS_CONTACTED])
-                ->where('created_at', '>=', now()->subDays(30))
+        $result = DB::transaction(function () use ($payload, $duplicateQuery): array {
+            $duplicate = $duplicateQuery
                 ->latest('id')
                 ->first();
 
