@@ -96,6 +96,51 @@ void main() {
     expect(find.text('payments route'), findsOneWidget);
   });
 
+  testWidgets('register as micook CTA attempts onboarding and switch',
+      (tester) async {
+    final userRepository = _FakeUserRepository(
+      startCookOnboardingResponse: http.Response(
+        '{"data":{"role_transition":{"onboarding_required":false}}}',
+        200,
+      ),
+      switchResponse: http.Response(
+        '{"data":{"role":"Restaurant","role_id":2}}',
+        200,
+      ),
+    );
+
+    final authenticationRepository = AuthenticationRepository(
+      userRepository: userRepository,
+    );
+
+    await tester.pumpWidget(
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<UserRepository>.value(value: userRepository),
+          RepositoryProvider<AuthenticationRepository>.value(
+            value: authenticationRepository,
+          ),
+        ],
+        child: BlocProvider(
+          create: (context) => ProfileFoodieCubit(
+            userRepository: userRepository,
+            authenticationRepository: authenticationRepository,
+          ),
+          child: const MaterialApp(home: ProfileFoodiePage()),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.text('Register as micook'));
+    await tester.pump();
+
+    expect(userRepository.startCookOnboardingCalls, 1);
+    expect(userRepository.switchRoleCalls, 1);
+  });
+
   testWidgets('miorders page keeps empty-state for successful empty payload',
       (tester) async {
     await _pumpWithProviders(
@@ -304,16 +349,31 @@ Future<void> _pumpWithProviders(
 class _FakeUserRepository extends UserRepository {
   _FakeUserRepository({
     this.switchResponse,
+    this.startCookOnboardingResponse,
   });
 
   final http.Response? switchResponse;
+  final http.Response? startCookOnboardingResponse;
+  int switchRoleCalls = 0;
+  int startCookOnboardingCalls = 0;
 
   @override
   Future<UserModel?> getUser() async => null;
 
   @override
   Future<http.Response> switchRole({required int roleId}) async {
+    switchRoleCalls += 1;
     return switchResponse ?? http.Response('{"isError":"Unavailable"}', 422);
+  }
+
+  @override
+  Future<http.Response> startCookOnboarding() async {
+    startCookOnboardingCalls += 1;
+    return startCookOnboardingResponse ??
+        http.Response(
+          '{"data":{"role_transition":{"onboarding_required":false}}}',
+          200,
+        );
   }
 }
 

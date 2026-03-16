@@ -103,10 +103,6 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     return 'Register as mifoodi';
   }
 
-  bool _shouldRegisterMifoodi(ProfileCookState state) {
-    return !_mifoodiCtaState(state).exists;
-  }
-
   bool _mifoodiTransitionDisabled(ProfileCookState state) {
     return _mifoodiCtaState(state).disabled;
   }
@@ -181,7 +177,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         return;
       }
 
-      String message = 'Register as mifoodi from onboarding before switching roles.';
+      String message =
+          'We could not switch to mifoodi yet. Please try again shortly.';
       try {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final transitionMap = _extractRoleTransition(payload);
@@ -323,16 +320,6 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                               if (_mifoodiTransitionDisabled(state)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(_disabledMifoodiMessage())),
-                                );
-                                return;
-                              }
-                              if (_shouldRegisterMifoodi(state)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Register as mifoodi from onboarding to enable role switching.',
-                                    ),
-                                  ),
                                 );
                                 return;
                               }
