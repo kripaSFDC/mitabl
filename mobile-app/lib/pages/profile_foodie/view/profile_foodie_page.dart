@@ -167,11 +167,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return _micookCtaState(state).disabled;
   }
 
-  bool _shouldRegisterMicook(ProfileFoodieState state) {
-    final ctaState = _micookCtaState(state);
-    return !ctaState.exists;
-  }
-
   Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
     final data = payload['data'];
     if (data is Map<String, dynamic>) {
@@ -249,9 +244,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
       final activationPayload = _decodeResponsePayload(activationResponse.body);
       final transitionMap = _extractRoleTransition(activationPayload);
-      final onboardingRequired = _isOnboardingRequired(
-        transitionMap['onboarding_required'],
-      );
+      final onboardingRequired = _isOnboardingRequired(transitionMap);
 
       if (onboardingRequired) {
         await userRepository.refreshRoleMembershipState();
@@ -266,8 +259,18 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
 
       if (_isSuccessfulResponse(switchResponse.statusCode)) {
+        final switchPayload = _decodeResponsePayload(switchResponse.body);
+        final switchTransition = _extractRoleTransition(switchPayload);
+        final switchNeedsOnboarding = _isOnboardingRequired(switchTransition);
+
         await userRepository.refreshRoleMembershipState();
         if (!mounted) return;
+
+        if (switchNeedsOnboarding) {
+          await _continueCookOnboarding(switchTransition);
+          return;
+        }
+
         navigatorKey.currentState!.pushNamedAndRemoveUntil(
           '/DashboardCook',
           (route) => false,
@@ -435,16 +438,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             if (_micookTransitionDisabled(state)) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(_disabledMicookMessage())),
-                              );
-                              return;
-                            }
-                            if (_shouldRegisterMicook(state)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Register as micook from onboarding to enable role switching.',
-                                  ),
-                                ),
                               );
                               return;
                             }
