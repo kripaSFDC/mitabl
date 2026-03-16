@@ -66,7 +66,19 @@ class PlatformRuntimeConfigService
             Config::set($configPath, $value);
         }
 
+        $this->normalizeMailConfiguration();
+
         $this->refreshResolvedMailers();
+    }
+
+    private function normalizeMailConfiguration(): void
+    {
+        $defaultMailer = trim((string) config('mail.default', ''));
+        $smtpHost = trim((string) config('mail.mailers.smtp.host', ''));
+
+        if ($defaultMailer === 'smtp' && $smtpHost === '') {
+            Config::set('mail.default', 'log');
+        }
     }
 
     /**
