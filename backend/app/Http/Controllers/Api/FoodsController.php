@@ -131,6 +131,9 @@ class FoodsController extends Controller
          // die();
 
         $restaurant = $this->authenticatedUser()->restaurant;
+        if (! $restaurant) {
+            return $this->responser([], 'Kitchen profile is required before managing menu items.', 422);
+        }
 
         $kitchnExist = Mikitchn::find($restaurant->id);
 

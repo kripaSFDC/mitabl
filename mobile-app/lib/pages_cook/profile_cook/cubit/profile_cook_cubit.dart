@@ -28,25 +28,29 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
   }
 
   getCookProfile() async {
-    var response = await userRepository!.getCookProfile();
-    if (response.statusCode == 200) {
+    try {
+      var response = await userRepository!.getCookProfile();
+      if (response.statusCode != 200) {
+        Helper.showToast('Unable to load profile data.');
+        return;
+      }
+
       GetCookProfileModel cookProfile = GetCookProfileModel.fromJson(
         jsonDecode(response.body),
       );
 
       await userRepository!.syncAvailableRolesFromProfile(cookProfile.data);
 
-      // List<String>? value =
-      //     (jsonDecode(cookProfile.data!.kitchen!.images!) as List<dynamic>)
-      //         .cast<String>()
-      //         .toList();
-
-      // List<String>? value=[];
       final timingsJson = cookProfile.data?.kitchen?.timings;
-      final valueDays =
-          timingsJson != null && timingsJson.isNotEmpty
-          ? jsonDecode(timingsJson)
-          : <String, dynamic>{'days': []};
+      Map<String, dynamic> valueDays = <String, dynamic>{'days': []};
+      if (timingsJson != null && timingsJson.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(timingsJson);
+          if (decoded is Map<String, dynamic>) {
+            valueDays = decoded;
+          }
+        } catch (_) {}
+      }
       TimingModel timingModel = TimingModel.fromJson(valueDays);
 
       final firstName = Name.dirty(cookProfile.data?.firstName ?? '');
@@ -75,6 +79,8 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
           pathFiles: cookProfile.data?.kitchen?.images ?? const [],
         ),
       );
+    } catch (_) {
+      Helper.showToast('Unable to load profile data.');
     }
   }
 

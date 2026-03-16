@@ -9,6 +9,7 @@ use App\Models\UserRole;
 use App\Models\UserRoleOnboardingChecklist;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -284,30 +285,34 @@ class AccountProfileService
             'payout_setup' => (bool) ($user->vendor && $user->vendor->account_id),
         ];
 
-        $storedChecklist = UserRoleOnboardingChecklist::query()
-            ->firstOrCreate(
-                ['user_id' => $user->id, 'role_id' => 2],
-                [
-                    'vendor_account_completed' => false,
-                    'kitchen_profile_completed' => false,
-                    'certificate_completed' => false,
-                    'payout_setup_completed' => false,
-                ]
-            );
+        $effectiveChecklist = $inferredChecklist;
 
-        $effectiveChecklist = [
-            'vendor_account' => (bool) ($storedChecklist->vendor_account_completed || $inferredChecklist['vendor_account']),
-            'kitchen_profile' => (bool) ($storedChecklist->kitchen_profile_completed || $inferredChecklist['kitchen_profile']),
-            'certificate' => (bool) ($storedChecklist->certificate_completed || $inferredChecklist['certificate']),
-            'payout_setup' => (bool) ($storedChecklist->payout_setup_completed || $inferredChecklist['payout_setup']),
-        ];
+        if (Schema::hasTable('user_role_onboarding_checklists')) {
+            $storedChecklist = UserRoleOnboardingChecklist::query()
+                ->firstOrCreate(
+                    ['user_id' => $user->id, 'role_id' => 2],
+                    [
+                        'vendor_account_completed' => false,
+                        'kitchen_profile_completed' => false,
+                        'certificate_completed' => false,
+                        'payout_setup_completed' => false,
+                    ]
+                );
 
-        $storedChecklist->fill([
-            'vendor_account_completed' => $effectiveChecklist['vendor_account'],
-            'kitchen_profile_completed' => $effectiveChecklist['kitchen_profile'],
-            'certificate_completed' => $effectiveChecklist['certificate'],
-            'payout_setup_completed' => $effectiveChecklist['payout_setup'],
-        ])->save();
+            $effectiveChecklist = [
+                'vendor_account' => (bool) ($storedChecklist->vendor_account_completed || $inferredChecklist['vendor_account']),
+                'kitchen_profile' => (bool) ($storedChecklist->kitchen_profile_completed || $inferredChecklist['kitchen_profile']),
+                'certificate' => (bool) ($storedChecklist->certificate_completed || $inferredChecklist['certificate']),
+                'payout_setup' => (bool) ($storedChecklist->payout_setup_completed || $inferredChecklist['payout_setup']),
+            ];
+
+            $storedChecklist->fill([
+                'vendor_account_completed' => $effectiveChecklist['vendor_account'],
+                'kitchen_profile_completed' => $effectiveChecklist['kitchen_profile'],
+                'certificate_completed' => $effectiveChecklist['certificate'],
+                'payout_setup_completed' => $effectiveChecklist['payout_setup'],
+            ])->save();
+        }
 
         $missing = collect($effectiveChecklist)
             ->filter(fn (bool $completed): bool => ! $completed)
