@@ -35,15 +35,34 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return statusCode >= 200 && statusCode < 300;
   }
 
+  bool _isOnboardingRequired(dynamic onboardingRequired) {
+    if (onboardingRequired is bool) {
+      return onboardingRequired;
+    }
+
+    if (onboardingRequired is String) {
+      final normalized = onboardingRequired.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+
+    if (onboardingRequired is num) {
+      return onboardingRequired != 0;
+    }
+
+    return false;
+  }
+
   Map<String, dynamic> _decodeResponsePayload(String rawBody) {
     if (rawBody.trim().isEmpty) {
       return <String, dynamic>{};
     }
 
-    final payload = jsonDecode(rawBody);
-    if (payload is Map<String, dynamic>) {
-      return payload;
-    }
+    try {
+      final payload = jsonDecode(rawBody);
+      if (payload is Map<String, dynamic>) {
+        return payload;
+      }
+    } catch (_) {}
 
     return <String, dynamic>{};
   }
@@ -52,15 +71,11 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     String rawBody, {
     required String fallback,
   }) {
-    try {
-      final payload = jsonDecode(rawBody);
-      if (payload is Map<String, dynamic>) {
-        final serverMessage = payload['isError'] ?? payload['message'];
-        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
-          return serverMessage;
-        }
-      }
-    } catch (_) {}
+    final payload = _decodeResponsePayload(rawBody);
+    final serverMessage = payload['isError'] ?? payload['message'];
+    if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+      return serverMessage;
+    }
 
     return fallback;
   }
@@ -117,6 +132,13 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
     final routeData = currentUser?.data;
     if (routeData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please restart the app and try again to continue micook onboarding.',
+          ),
+        ),
+      );
       return;
     }
 
@@ -180,7 +202,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
       final activationPayload = _decodeResponsePayload(activationResponse.body);
       final transitionMap = _extractRoleTransition(activationPayload);
-      final onboardingRequired = transitionMap['onboarding_required'] == true;
+      final onboardingRequired = _isOnboardingRequired(
+        transitionMap['onboarding_required'],
+      );
 
       if (onboardingRequired) {
         await _continueCookOnboarding(transitionMap);
