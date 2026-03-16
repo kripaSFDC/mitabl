@@ -31,12 +31,19 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
 
       emit(
         state.copyWith(
-          firstName: Name.dirty(foodieProfile.data!.firstName!),
-          lastName: Name.dirty(foodieProfile.data!.lastName!),
+          firstName: Name.dirty(foodieProfile.data?.firstName ?? ''),
+          lastName: Name.dirty(foodieProfile.data?.lastName ?? ''),
           description: Name.dirty(foodieProfile.data!.description ?? ''),
-          phoneNo: Phone.dirty(foodieProfile.data!.phone!.toString()),
-          email: Email.dirty(foodieProfile.data!.email!.toString()),
+          phoneNo: Phone.dirty(foodieProfile.data?.phone?.toString() ?? ''),
+          email: Email.dirty(foodieProfile.data?.email?.toString() ?? ''),
           foodieProfile: foodieProfile,
+          status: Formz.validate([
+            Name.dirty(foodieProfile.data?.firstName ?? ''),
+            Name.dirty(foodieProfile.data?.lastName ?? ''),
+            Name.dirty(foodieProfile.data?.description ?? ''),
+            Phone.dirty(foodieProfile.data?.phone?.toString() ?? ''),
+            Email.dirty(foodieProfile.data?.email?.toString() ?? ''),
+          ]),
         ),
       );
     }
