@@ -7,43 +7,9 @@ use App\Models\Foods;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
 use Validator;
-use Storage,File;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Food as FoodResource;
-
-class FoodsController extends Controller
-{
-    /**
-     * @OA\Get(
-     *      path="/api/v1/restaurant/menu/{resturantId}",
-     *      operationId="restaurant Menu",
-     *      tags={"kitchen"},
-     *      summary="Restaurant Menu",
-     *      description="Returns Food data",
-     *      security={ {"Authorization": {} }},
-         * @OA\Parameter(
-         *          name="resturantId",
-         *          description="Resturant id",
-         *          required=true,
-         *          in="path",
-         *          @OA\Schema(
-         *              type="integer"
-         *          )
-         *      ),
-     *     @OA\Response(
-    *          response=201,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=200,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=422,
-    *          description="Unprocessable Entity",
 
 class FoodsController extends Controller
 {
@@ -157,8 +123,7 @@ class FoodsController extends Controller
             $delete_files = explode(',', $request->delete_images);
 
         }
-        $url = '';
-        $errors = $ImgaesKitch = $ImgaesKitchErrors = array();
+        $imagePaths = [];
         $specialdiets = json_encode(array_values(array_map('intval', (array) $request->specialDiet)));
 
          
@@ -177,6 +142,22 @@ class FoodsController extends Controller
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
         if ($isUpdate && ! $existFood) {
             return $this->responser([], 'Food item not found for this restaurant.', 404);
+        }
+
+        $imagePaths = $isUpdate
+            ? array_values(array_filter((array) ($existFood?->pictures ?? []), fn ($path): bool => is_string($path) && $path !== ''))
+            : [];
+
+        foreach ($files as $file) {
+            $upload = $this->uploadImage($file, 'food');
+            if (! (bool) ($upload['success'] ?? false)) {
+                return $this->responser([], (string) ($upload['msg'] ?? 'Unable to upload food image.'), 422);
+            }
+
+            $path = (string) ($upload['path'] ?? '');
+            if ($path !== '') {
+                $imagePaths[] = $path;
+            }
         }
         $foodId = null;
         $dishDineIn = $request->has('dine_in')
@@ -228,7 +209,7 @@ class FoodsController extends Controller
                 'specialDiet' => $specialdiets,
                 'price' => $request->price,
                 'description' => $request->description,
-                'pictures' => json_encode($ImgaesKitch),
+                'pictures' => json_encode($imagePaths),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
                 'available_date' => $availableDate,
@@ -247,9 +228,10 @@ class FoodsController extends Controller
             }
 
         } else {
-            if (!$request->hasFile('pictures')) {
-                return $this->responser([],'Pictures required.', 422);
+            if (! $request->hasFile('pictures')) {
+                return $this->responser([], 'Pictures required.', 422);
             }
+
             $foodId = Foods::create([
                 'restaurant_id' => $restaurant->id,
                 'food_name' => $request->food_name,
@@ -257,7 +239,7 @@ class FoodsController extends Controller
                 'specialDiet' => $specialdiets,
                 'price' => $request->price,
                 'description' => $request->description,
-                'pictures' => json_encode($ImgaesKitch),
+                'pictures' => json_encode($imagePaths),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
                 'available_date' => $availableDate,
@@ -265,20 +247,17 @@ class FoodsController extends Controller
                 'available_from_time' => $availableFromTime,
                 'available_to_time' => $availableToTime,
             ])->id;
-        if($food){
-            // delete related   
-            $images = $food->addedimage->pluck('path')->toArray();
-            if(!empty($images)) {
-                $food->addedimage()->delete();
-                Storage::disk('my_files')->delete($images);
-                File::delete($images);
 
-            }
-            $food->delete();
-            $data = new FoodResource($food);
-            return $this->responser($data,"Food item deleted succesfully.");
+            $msg = 'Food item added succesfully.';
         }
-        return $this->responser([],"Food item not exist.", 404);
+
+        $food = Foods::query()->find($foodId);
+        if (! $food) {
+            return $this->responser([], 'Food item not found after save.', 500);
+        }
+
+        $data = new FoodResource($food);
+
+        return $this->responser($data, $msg ?? 'Food item saved succesfully.');
     }
 }
-

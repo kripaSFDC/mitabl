@@ -65,7 +65,7 @@ class PolicyResource extends Resource
                             return json_encode($record?->definition ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
                         }),
                 ])
-                ->columns(2),
+                ->columns(['default' => 2]),
         ]);
     }
 
@@ -97,7 +97,7 @@ class PolicyResource extends Resource
                         blank: fn (Builder $query): Builder => $query
                     ),
                 Tables\Filters\SelectFilter::make('name')
-                    ->options(fn (): array => Policy::query()->select('name')->distinct()->pluck('name', 'name')->toArray()),
+                    ->options(Policy::query()->select('name')->distinct()->pluck('name', 'name')->toArray()),
             ])
             ->actions([
                 Action::make('publish')

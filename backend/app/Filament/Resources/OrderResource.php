@@ -63,7 +63,7 @@ class OrderResource extends Resource
                             ->label('Take-away')
                             ->inline(false),
                     ])
-                    ->columns(3),
+                    ->columns(['default' => 3]),
 
                 Forms\Components\Section::make('Delivery Window')
                     ->description('Scheduled delivery date and arrival window.')
@@ -78,7 +78,7 @@ class OrderResource extends Resource
                             ->label('Window End')
                             ->required(),
                     ])
-                    ->columns(3),
+                    ->columns(['default' => 3]),
 
                 Forms\Components\Section::make('Pricing & Refund')
                     ->description('Financial breakdown. Use the Refund action on the order row to issue refunds.')
@@ -104,7 +104,7 @@ class OrderResource extends Resource
                             ->suffix('%')
                             ->helperText('Set via Refund action — manual edits here are for corrections only.'),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 2]),
             ]);
     }
 
@@ -125,7 +125,11 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => static::formatStatus((int) $state))
-                    ->color(fn ($state): string => static::statusColor((int) $state)),
+                    ->colors([
+                        'warning' => [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_ACCEPTED, \App\Models\Order::STATUS_PICKUP],
+                        'success' => [\App\Models\Order::STATUS_COMPLETED],
+                        'danger' => [\App\Models\Order::STATUS_REJECTED, \App\Models\Order::STATUS_CANCELLED],
+                    ]),
                 Tables\Columns\TextColumn::make('Mikitchn.name')
                     ->label('Kitchen')
                     ->searchable()
@@ -154,7 +158,11 @@ class OrderResource extends Resource
                     ->label('Refund')
                     ->badge()
                     ->state(fn (Order $record): string => static::refundStateLabel($record))
-                    ->color(fn (Order $record): string => static::refundStateColor($record)),
+                    ->colors([
+                        'danger' => fn (Order $record): bool => $record->refunds->contains(fn ($refund) => $refund->status === 'failed'),
+                        'success' => fn (Order $record): bool => $record->refunds->contains(fn ($refund) => $refund->status === 'success'),
+                        'warning' => fn (Order $record): bool => $record->refunds->contains(fn ($refund) => $refund->status === 'pending'),
+                    ]),
                 Tables\Columns\TextColumn::make('refund_percentage')
                     ->label('Refund %')
                     ->formatStateUsing(fn ($state): string => $state === null ? '—' : ((int) $state) . '%')

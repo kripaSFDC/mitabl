@@ -120,10 +120,10 @@ class MifoodieResource extends Resource
                     Forms\Components\Placeholder::make('deleted_at')
                         ->content(fn (?User $record): string => (string) ($record?->deleted_at?->toDateTimeString() ?? '-')),
                 ])
-                ->columns(3)
+                ->columns(['default' => 3])
                 ->collapsible()
                 ->visible(fn (?User $record): bool => (bool) $record),
-        ])->columns(2);
+        ])->columns(['default' => 2]);
     }
 
     public static function table(Table $table): Table

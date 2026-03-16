@@ -62,7 +62,7 @@ class SupportTicketResource extends Resource
                         ->tel()
                         ->maxLength(40),
                 ])
-                ->columns(3),
+                ->columns(['default' => 3]),
 
             Forms\Components\Section::make('Ticket Details')
                 ->description('Classification and content of the support request. Set priority and status accurately — they drive SLA clock logic.')
@@ -130,7 +130,7 @@ class SupportTicketResource extends Resource
                         ))))
                         ->columnSpanFull(),
                 ])
-                ->columns(3),
+                ->columns(['default' => 3]),
 
             Forms\Components\Section::make('Assignment & Context')
                 ->description('Assign this ticket to an agent and optionally link to the related order or kitchen for cross-resource navigation.')
@@ -151,7 +151,7 @@ class SupportTicketResource extends Resource
                         ->numeric()
                         ->helperText('Enter the kitchen ID to cross-link with the Kitchens resource.'),
                 ])
-                ->columns(3)
+                ->columns(['default' => 3])
                 ->collapsible(),
         ]);
     }
@@ -201,24 +201,21 @@ class SupportTicketResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->title())
-                    ->color(fn (string $state): string => match ($state) {
-                        SupportTicket::STATUS_OPEN => 'info',
-                        SupportTicket::STATUS_IN_PROGRESS => 'warning',
-                        SupportTicket::STATUS_PENDING_USER => 'gray',
-                        SupportTicket::STATUS_RESOLVED => 'success',
-                        SupportTicket::STATUS_CLOSED => 'gray',
-                        SupportTicket::STATUS_SPAM => 'danger',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'info' => SupportTicket::STATUS_OPEN,
+                        'warning' => SupportTicket::STATUS_IN_PROGRESS,
+                        'gray' => [SupportTicket::STATUS_PENDING_USER, SupportTicket::STATUS_CLOSED],
+                        'success' => SupportTicket::STATUS_RESOLVED,
+                        'danger' => SupportTicket::STATUS_SPAM,
+                    ]),
                 Tables\Columns\TextColumn::make('priority')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'low' => 'gray',
-                        'normal' => 'info',
-                        'high' => 'warning',
-                        'urgent' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'gray' => 'low',
+                        'info' => 'normal',
+                        'warning' => 'high',
+                        'danger' => 'urgent',
+                    ]),
                 Tables\Columns\TextColumn::make('requester_name')
                     ->label('Requester')
                     ->placeholder('Guest')
@@ -236,22 +233,20 @@ class SupportTicketResource extends Resource
                     ->label('1st Response')
                     ->state(fn (SupportTicket $record): string => str($record->firstResponseSlaState())->replace('_', ' ')->title())
                     ->badge()
-                    ->color(fn (SupportTicket $record): string => match ($record->firstResponseSlaState()) {
-                        'breached' => 'danger',
-                        'at_risk' => 'warning',
-                        'met' => 'success',
-                        default => 'info',
-                    }),
+                    ->colors([
+                        'danger' => fn (SupportTicket $record): bool => $record->firstResponseSlaState() === 'breached',
+                        'warning' => fn (SupportTicket $record): bool => $record->firstResponseSlaState() === 'at_risk',
+                        'success' => fn (SupportTicket $record): bool => $record->firstResponseSlaState() === 'met',
+                    ]),
                 Tables\Columns\TextColumn::make('resolution_sla')
                     ->label('Resolution')
                     ->state(fn (SupportTicket $record): string => str($record->resolutionSlaState())->replace('_', ' ')->title())
                     ->badge()
-                    ->color(fn (SupportTicket $record): string => match ($record->resolutionSlaState()) {
-                        'breached' => 'danger',
-                        'at_risk' => 'warning',
-                        'met' => 'success',
-                        default => 'info',
-                    }),
+                    ->colors([
+                        'danger' => fn (SupportTicket $record): bool => $record->resolutionSlaState() === 'breached',
+                        'warning' => fn (SupportTicket $record): bool => $record->resolutionSlaState() === 'at_risk',
+                        'success' => fn (SupportTicket $record): bool => $record->resolutionSlaState() === 'met',
+                    ]),
                 Tables\Columns\TextColumn::make('assignee.name')
                     ->label('Assignee')
                     ->placeholder('Unassigned'),
@@ -384,7 +379,7 @@ class SupportTicketResource extends Resource
                         Forms\Components\Select::make('assignee_id')
                             ->label('Assign to')
                             ->required()
-                            ->options(fn (): array => AdminUser::query()->where('is_active', true)->pluck('name', 'id')->toArray()),
+                            ->options(AdminUser::query()->where('is_active', true)->pluck('name', 'id')->toArray()),
                         Forms\Components\Textarea::make('reason')
                             ->required()
                             ->maxLength(300),
@@ -502,7 +497,7 @@ class SupportTicketResource extends Resource
                             ->multiple()
                             ->preload()
                             ->searchable()
-                            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                            ->options(Tag::query()->orderBy('name')->pluck('name', 'id')->toArray())
                             ->default(fn (SupportTicket $record): array => $record->tags()->pluck('tags.id')->all()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {

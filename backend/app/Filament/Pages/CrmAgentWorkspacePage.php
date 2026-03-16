@@ -6,6 +6,7 @@ use App\Models\SupportTicket;
 use App\Models\Template;
 use App\Services\AdminAuditLogService;
 use App\Services\SupportTicketService;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -172,7 +173,7 @@ class CrmAgentWorkspacePage extends Page
 
         return Template::query()
             ->where('active', true)
-            ->where(function ($query): void {
+            ->where(function (Builder $query): void {
                 $query->where('channel', 'support')
                     ->orWhere('channel', 'support_ticket')
                     ->orWhereNull('channel');
@@ -210,7 +211,7 @@ class CrmAgentWorkspacePage extends Page
         $candidates = SupportTicket::query()
             ->where('id', '!=', $ticket->id)
             ->whereNull('merged_into_ticket_id')
-            ->where(function ($query) use ($ticket): void {
+            ->where(function (Builder $query) use ($ticket): void {
                 $query->where('requester_email', $ticket->requester_email)
                     ->orWhere('category', $ticket->category);
             })
@@ -219,7 +220,12 @@ class CrmAgentWorkspacePage extends Page
             ->get(['id', 'ticket_number', 'subject', 'status', 'resolution_summary', 'updated_at']);
 
         return $candidates->map(function (SupportTicket $candidate) use ($ticket): array {
-            similar_text(strtolower($ticket->subject), strtolower($candidate->subject), $percent);
+            $percent = 0.0;
+            similar_text(
+                strtolower((string) $ticket->subject),
+                strtolower((string) $candidate->subject),
+                $percent,
+            );
 
             return [
                 'id' => $candidate->id,

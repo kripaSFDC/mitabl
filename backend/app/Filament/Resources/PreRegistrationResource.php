@@ -45,7 +45,7 @@ class PreRegistrationResource extends Resource
                         ->maxLength(255)
                         ->helperText('Used for launch priority geo-routing.'),
                 ])
-                ->columns(2),
+                ->columns(['default' => 2]),
 
             Forms\Components\Section::make('Interest & Preferences')
                 ->description('What role the lead is interested in and how they prefer to be contacted.')
@@ -81,7 +81,7 @@ class PreRegistrationResource extends Resource
                         ->default(false)
                         ->helperText('Must be true before sending any outreach.'),
                 ])
-                ->columns(2),
+                ->columns(['default' => 2]),
 
             Forms\Components\Section::make('Pipeline Status')
                 ->description('Track where this lead is in the pre-launch funnel. Use row actions (Mark Contacted / Convert / Disqualify) for safe status transitions.')
@@ -101,7 +101,7 @@ class PreRegistrationResource extends Resource
                         ->columnSpanFull()
                         ->helperText('Internal notes visible to CRM agents only. Never shown to the lead.'),
                 ])
-                ->columns(1),
+                ->columns(['default' => 1]),
         ]);
     }
 
@@ -112,14 +112,13 @@ class PreRegistrationResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        PreRegistration::STATUS_NEW => 'info',
-                        PreRegistration::STATUS_CONTACTED => 'warning',
-                        PreRegistration::STATUS_CONVERTED => 'success',
-                        PreRegistration::STATUS_DISQUALIFIED => 'gray',
-                        PreRegistration::STATUS_SPAM => 'danger',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'info' => PreRegistration::STATUS_NEW,
+                        'warning' => PreRegistration::STATUS_CONTACTED,
+                        'success' => PreRegistration::STATUS_CONVERTED,
+                        'gray' => PreRegistration::STATUS_DISQUALIFIED,
+                        'danger' => PreRegistration::STATUS_SPAM,
+                    ]),
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('Name')
                     ->state(fn (PreRegistration $record): string => trim($record->first_name . ' ' . $record->last_name))
@@ -136,12 +135,11 @@ class PreRegistrationResource extends Resource
                 Tables\Columns\TextColumn::make('interested_as')
                     ->label('Interest')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'cook' => 'warning',
-                        'foodie' => 'info',
-                        'both' => 'success',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'warning' => 'cook',
+                        'info' => 'foodie',
+                        'success' => 'both',
+                    ]),
                 Tables\Columns\TextColumn::make('source')
                     ->badge()
                     ->color('gray'),

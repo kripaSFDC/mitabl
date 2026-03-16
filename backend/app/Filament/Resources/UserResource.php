@@ -71,7 +71,7 @@ class UserResource extends Resource
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->dehydrated(false),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 2]),
             ]);
     }
 
