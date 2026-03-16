@@ -93,8 +93,28 @@ class AddMenuCubit extends Cubit<AddMenuState> {
           ),
         );
       } else {
-        emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
-        Helper.showToast('Unable to load menu items.');
+        String message = 'Unable to load menu items.';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            message =
+                decoded['isError']?.toString() ??
+                decoded['message']?.toString() ??
+                message;
+          }
+        } catch (_) {}
+
+        if (response.statusCode >= 500) {
+          emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
+        } else {
+          emit(
+            state.copyWith(
+              foodMenu: FoodMenu(foodData: const []),
+              foodMenuStatus: FormzStatus.submissionSuccess,
+            ),
+          );
+        }
+        Helper.showToast(message);
       }
     } catch (e) {
       AppLogger.error('Unable to load menu items', e);
