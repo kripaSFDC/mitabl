@@ -41,21 +41,18 @@ class PushOrderNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Get the database representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @return array
      */
-
-    public function toDatabase()
+    public function toDatabase($notifiable = null): array
     {
-        $data =  [
+        return [
             'type' => $this->type,
             'order_id' => $this->order->id,
-            'message'=> $this->msg,
+            'message' => $this->msg,
         ];
-        return $data;
-
     }
 
     /**

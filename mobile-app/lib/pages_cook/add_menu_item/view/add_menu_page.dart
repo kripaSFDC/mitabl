@@ -425,32 +425,32 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   border: InputBorder.none,
                                   disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   errorBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   focusedErrorBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                 ),
@@ -794,32 +794,32 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   border: InputBorder.none,
                                   disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   errorBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   focusedErrorBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: const BorderSide(
-                                      color: const Color(0xFFFFFBF7),
+                                      color: Color(0xFFFFFBF7),
                                     ),
                                   ),
                                 ),
@@ -1000,24 +1000,24 @@ class _ItemNameState extends State<_ItemName> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -1074,24 +1074,24 @@ class _ItemPriceState extends State<_ItemPrice> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -1153,24 +1153,24 @@ class _ItemDescriptionState extends State<_ItemDescription> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -1450,7 +1450,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                             child: const Text(
                               "Gallery",
                               style: TextStyle(
-                                color: const Color(0xB3FFFBF7),
+                                color: Color(0xB3FFFBF7),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1463,7 +1463,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                             child: const Text(
                               "Camera",
                               style: TextStyle(
-                                color: const Color(0xB3FFFBF7),
+                                color: Color(0xB3FFFBF7),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

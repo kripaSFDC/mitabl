@@ -41,7 +41,7 @@ class FavouritesRepository {
     final records = _extractList(decoded, const ['items', 'data', 'favourites', 'results']);
     return records
         .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item as Map))
+        .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
   }
 

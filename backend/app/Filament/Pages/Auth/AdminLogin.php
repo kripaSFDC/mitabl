@@ -9,9 +9,7 @@ use Filament\Pages\Auth\Login;
 
 class AdminLogin extends Login
 {
-    /**
-     * @var view-string
-     */
+    /** @var string */
     protected static string $view = 'filament.auth.admin-login';
 
     public function mount(): void

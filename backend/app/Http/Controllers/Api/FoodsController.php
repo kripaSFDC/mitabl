@@ -44,6 +44,39 @@ class FoodsController extends Controller
     *      @OA\Response(
     *          response=422,
     *          description="Unprocessable Entity",
+
+class FoodsController extends Controller
+{
+    /**
+     * @OA\Get(
+     *      path="/api/v1/restaurant/menu/{resturantId}",
+     *      operationId="restaurant Menu",
+     *      tags={"kitchen"},
+     *      summary="Restaurant Menu",
+     *      description="Returns Food data",
+     *      security={ {"Authorization": {} }},
+         * @OA\Parameter(
+         *          name="resturantId",
+         *          description="Resturant id",
+         *          required=true,
+         *          in="path",
+         *          @OA\Schema(
+         *              type="integer"
+         *          )
+         *      ),
+     *     @OA\Response(
+    *          response=201,
+    *          description="All details fetched Successfully",
+    *          @OA\JsonContent()
+    *       ),
+    *      @OA\Response(
+    *          response=200,
+    *          description="All details fetched Successfully",
+    *          @OA\JsonContent()
+    *       ),
+    *      @OA\Response(
+    *          response=422,
+    *          description="Unprocessable Entity",
     *          @OA\JsonContent()
     *       ),
     *      @OA\Response(response=400, description="Bad request"),
@@ -54,7 +87,7 @@ class FoodsController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     
 
@@ -232,109 +265,6 @@ class FoodsController extends Controller
                 'available_from_time' => $availableFromTime,
                 'available_to_time' => $availableToTime,
             ])->id;
-            $msg = 'Food item created succesfully.';
-        }
-        $food = Foods::with('addedimage:id,ref_id,model_name,path')
-            ->where('id', $foodId)
-            ->first()
-            ->makeHidden(['addedimage']);
-        if (!empty($files)) {
-
-            $addedImages = $this->addImages($files,'kitchen/food','food',$foodId);
-
-        }
-        $return = [
-            'isSuccess' => true,
-            'status' => 200,
-            'message' => $msg,
-            'data' => $food
-        ];
-
-        if (!empty($ImgaesKitchErrors)) {
-            $return['isError'] = $ImgaesKitchErrors;
-        }
-
-
-        return response()->json($return, 200);
-    }
-
-    /**
-     * @OA\Get(
-     *      path="/api/v1/food/status/{id}",
-     *      operationId="change food item status",
-     *      tags={"kitchen"},
-     *      summary="change food item status",
-     *      description="Returns Food data",
-     *      security={ {"Authorization": {} }},
-         * @OA\Parameter(
-         *          name="id",
-         *          description="Food id",
-         *          required=true,
-         *          in="path",
-         *          @OA\Schema(
-         *              type="integer"
-         *          )
-         *      ),
-     *     @OA\Response(
-    *          response=201,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=200,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=422,
-    *          description="Unprocessable Entity",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(response=400, description="Bad request"),
-    *      @OA\Response(response=404, description="Resource Not Found"),
-     * )
-     */
-    public function statusUpdate($id)
-    {
-        $data = [];
-        $restaurant = Auth::user()->restaurant;
-        $foodModel = Foods::where('id', $id)
-            ->where('restaurant_id', optional($restaurant)->id)
-            ->first();
-
-        if($foodModel){
-            $staus = 1;
-            $fExist = Foods::where('id',$id)->where('restaurant_id', optional($restaurant)->id)->where('status',1)->first();
-            if ($fExist) {
-              $staus = 0;  
-            }
-            Foods::where('id',$id)->where('restaurant_id', optional($restaurant)->id)->update(['status' => $staus]);
-            // $food = Foods::where('id',$id)->get()->first();
-            $food = Foods::with('addedimage:id,ref_id,model_name,path')->where('id',$id)->where('restaurant_id', optional($restaurant)->id)->get();
-            $data = $food[0];
-            $msg = 'Food Status Updated Succesfully.'; 
-
-        } else {
-            $msg = 'Food Not Found.'; 
-        }
-
-        return $this->responser($data,$msg);
-
-    }
-    
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Foods  $foods
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Foods $foods,$id)
-    {
-
-        $restaurant = Auth::user()->restaurant;
-        $food = Foods::where('id', $id)
-            ->where('restaurant_id', optional($restaurant)->id)
-            ->first();
         if($food){
             // delete related   
             $images = $food->addedimage->pluck('path')->toArray();

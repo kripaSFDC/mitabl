@@ -41,7 +41,7 @@ class PaymentsRepository {
     final records = _extractList(decoded, const ['items', 'data', 'history', 'results']);
     return records
         .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item as Map))
+        .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
   }
 
@@ -67,7 +67,7 @@ class PaymentsRepository {
     final records = _extractList(decoded, const ['items', 'data', 'cards', 'results']);
     return records
         .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item as Map))
+        .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
   }
 

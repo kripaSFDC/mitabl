@@ -87,7 +87,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             height: config.AppConfig(context).appHeight(10),
                             width: config.AppConfig(context).appHeight(10),
                             colorFilter: const ColorFilter.mode(
-                              const Color(0xFFFFFBF7),
+                              Color(0xFFFFFBF7),
                               BlendMode.srcIn,
                             ),
                           ),
@@ -114,7 +114,7 @@ class _HomePageCookState extends State<HomePageCook> {
                               width: config.AppConfig(context).appWidth(100),
                               height: config.AppConfig(context).appHeight(15),
                               decoration: const BoxDecoration(
-                                color: const Color(0xFFFFFBF7),
+                                color: Color(0xFFFFFBF7),
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(16),
                                 ),
@@ -192,7 +192,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                         context,
                                       ).appHeight(10),
                                       colorFilter: const ColorFilter.mode(
-                                        const Color(0xFFFFFBF7),
+                                        Color(0xFFFFFBF7),
                                         BlendMode.srcIn,
                                       ),
                                     ),
@@ -226,7 +226,7 @@ class _HomePageCookState extends State<HomePageCook> {
                               width: config.AppConfig(context).appWidth(100),
                               height: config.AppConfig(context).appHeight(15),
                               decoration: const BoxDecoration(
-                                color: const Color(0xFFFFFBF7),
+                                color: Color(0xFFFFFBF7),
                                 borderRadius: BorderRadius.all(
                                   Radius.circular(16),
                                 ),
@@ -312,7 +312,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                         context,
                                       ).appHeight(10),
                                       colorFilter: const ColorFilter.mode(
-                                        const Color(0xFFFFFBF7),
+                                        Color(0xFFFFFBF7),
                                         BlendMode.srcIn,
                                       ),
                                     ),

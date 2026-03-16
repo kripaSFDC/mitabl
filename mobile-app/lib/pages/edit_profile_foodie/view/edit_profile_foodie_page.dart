@@ -274,7 +274,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                       child: const Text(
                                         "Gallery",
                                         style: TextStyle(
-                                          color: const Color(0xB3FFFBF7),
+                                          color: Color(0xB3FFFBF7),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -287,7 +287,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                       child: const Text(
                                         "Camera",
                                         style: TextStyle(
-                                          color: const Color(0xB3FFFBF7),
+                                          color: Color(0xB3FFFBF7),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -395,24 +395,24 @@ class _EmailState extends State<_Email> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -467,24 +467,24 @@ class _FirstNameState extends State<_FirstName> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -539,24 +539,24 @@ class _LastNameState extends State<_LastName> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -612,24 +612,24 @@ class _DescriptionState extends State<_Description> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -684,24 +684,24 @@ class _PhoneNoState extends State<_PhoneNo> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -750,7 +750,7 @@ class _UpdateButton extends StatelessWidget {
             child: state.statusUpload!.isSubmissionInProgress
                 ? const Center(
                     child: CupertinoActivityIndicator(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   )
                 : Text(

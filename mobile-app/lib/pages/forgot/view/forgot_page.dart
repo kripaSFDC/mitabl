@@ -282,32 +282,32 @@ class _EmailState extends State<_Email> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   border: InputBorder.none,
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                 ),

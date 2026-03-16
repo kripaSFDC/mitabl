@@ -275,7 +275,7 @@ class _HomePage extends State<HomePage> {
                   if (state.isLoadingMoreNearBy)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Center(
                           child: CupertinoActivityIndicator(
                             color: config.AppColors().hintTextBackgroundColor(

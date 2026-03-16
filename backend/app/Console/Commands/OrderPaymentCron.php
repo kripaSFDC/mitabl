@@ -50,5 +50,7 @@ class OrderPaymentCron extends Command
         foreach ($cOrders as $key => $cOrder) {
             event(new MakeOrderPaymentToVendor($cOrder));
         }
+
+        return 0;
     }
 }

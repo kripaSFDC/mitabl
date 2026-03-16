@@ -323,7 +323,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                             20,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: const Color(0xFFFFFBF7),
+                                            color: Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         border: InputBorder.none,
@@ -332,7 +332,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                             20,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: const Color(0xFFFFFBF7),
+                                            color: Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
@@ -340,7 +340,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                             20,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: const Color(0xFFFFFBF7),
+                                            color: Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
@@ -348,7 +348,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                             20,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: const Color(0xFFFFFBF7),
+                                            color: Color(0xFFFFFBF7),
                                           ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
@@ -356,7 +356,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                             20,
                                           ),
                                           borderSide: const BorderSide(
-                                            color: const Color(0xFFFFFBF7),
+                                            color: Color(0xFFFFFBF7),
                                           ),
                                         ),
                                       ),
@@ -499,32 +499,32 @@ class _TimingState extends State<_Timing> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   border: InputBorder.none,
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: const BorderSide(
-                      color: const Color(0xFFFFFBF7),
+                      color: Color(0xFFFFFBF7),
                     ),
                   ),
                 ),
@@ -1030,24 +1030,24 @@ class _KitchenNameState extends State<_KitchenName> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -1102,24 +1102,24 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
               filled: true,
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               border: InputBorder.none,
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
               ),
             ),
           ),
@@ -1237,24 +1237,24 @@ class _PhoneNoState extends State<_PhoneNo> {
       filled: true,
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+        borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
       ),
       border: InputBorder.none,
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+        borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+        borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+        borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: const Color(0xFFFFFBF7)),
+        borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
       ),
     );
   }
@@ -1313,7 +1313,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                             child: const Text(
                               "Gallery",
                               style: TextStyle(
-                                color: const Color(0xB3FFFBF7),
+                                color: Color(0xB3FFFBF7),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1326,7 +1326,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                             child: const Text(
                               "Camera",
                               style: TextStyle(
-                                color: const Color(0xB3FFFBF7),
+                                color: Color(0xB3FFFBF7),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

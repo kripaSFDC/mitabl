@@ -96,7 +96,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                 ),
                                 child: const Icon(
                                   Icons.person,
-                                  color: const Color(0xFFFFFBF7),
+                                  color: Color(0xFFFFFBF7),
                                 ),
                               ),
                               imageBuilder: (context, imageProvider) =>
