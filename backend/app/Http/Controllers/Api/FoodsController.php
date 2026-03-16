@@ -7,7 +7,6 @@ use App\Models\Foods;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
 use Validator;
-use Storage,File;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Food as FoodResource;
@@ -124,8 +123,7 @@ class FoodsController extends Controller
             $delete_files = explode(',', $request->delete_images);
 
         }
-        $url = '';
-        $errors = $ImgaesKitch = $ImgaesKitchErrors = array();
+        $imagePaths = [];
         $specialdiets = json_encode(array_values(array_map('intval', (array) $request->specialDiet)));
 
          
@@ -144,6 +142,22 @@ class FoodsController extends Controller
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
         if ($isUpdate && ! $existFood) {
             return $this->responser([], 'Food item not found for this restaurant.', 404);
+        }
+
+        $imagePaths = $isUpdate
+            ? array_values(array_filter((array) ($existFood?->pictures ?? []), fn ($path): bool => is_string($path) && $path !== ''))
+            : [];
+
+        foreach ($files as $file) {
+            $upload = $this->uploadImage($file, 'food');
+            if (! (bool) ($upload['success'] ?? false)) {
+                return $this->responser([], (string) ($upload['msg'] ?? 'Unable to upload food image.'), 422);
+            }
+
+            $path = (string) ($upload['path'] ?? '');
+            if ($path !== '') {
+                $imagePaths[] = $path;
+            }
         }
         $foodId = null;
         $dishDineIn = $request->has('dine_in')
@@ -195,7 +209,7 @@ class FoodsController extends Controller
                 'specialDiet' => $specialdiets,
                 'price' => $request->price,
                 'description' => $request->description,
-                'pictures' => json_encode($ImgaesKitch),
+                'pictures' => json_encode($imagePaths),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
                 'available_date' => $availableDate,
@@ -225,7 +239,7 @@ class FoodsController extends Controller
                 'specialDiet' => $specialdiets,
                 'price' => $request->price,
                 'description' => $request->description,
-                'pictures' => json_encode($ImgaesKitch),
+                'pictures' => json_encode($imagePaths),
                 'dine_in' => $dishDineIn,
                 'take_away' => $dishTakeAway,
                 'available_date' => $availableDate,
