@@ -202,10 +202,30 @@ class UserRepository {
                       data['user']['role_id'])
                   : null);
 
+          List<profile_model.AvailableRoleMembership>? availableRoles;
+          final dataAvailableRoles = data['available_roles'];
+          if (dataAvailableRoles is List) {
+            availableRoles = dataAvailableRoles
+                .whereType<Map<String, dynamic>>()
+                .map(profile_model.AvailableRoleMembership.fromJson)
+                .toList();
+          } else if (data['user'] is Map<String, dynamic>) {
+            final userData = data['user'] as Map<String, dynamic>;
+            final userAvailableRoles =
+                userData['data']?['available_roles'] ?? userData['available_roles'];
+            if (userAvailableRoles is List) {
+              availableRoles = userAvailableRoles
+                  .whereType<Map<String, dynamic>>()
+                  .map(profile_model.AvailableRoleMembership.fromJson)
+                  .toList();
+            }
+          }
+
           try {
-            await syncCurrentUserRole(
+            await syncCurrentUserRoleState(
               roleName: roleName,
               roleId: resolvedRoleId,
+              availableRoles: availableRoles,
             );
           } catch (e) {
             AppLogger.error(

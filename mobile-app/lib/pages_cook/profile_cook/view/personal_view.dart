@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -22,10 +23,25 @@ class PersonalTabView extends StatefulWidget {
   State<PersonalTabView> createState() => _PersonalTabViewState();
 }
 
+class _RoleCtaState {
+  final bool exists;
+  final bool active;
+  final bool onboarding;
+  final bool disabled;
+
+  const _RoleCtaState({
+    required this.exists,
+    required this.active,
+    required this.onboarding,
+    required this.disabled,
+  });
+}
+
 class _PersonalTabViewState extends State<PersonalTabView> {
+
   bool _switchingRole = false;
 
-  dynamic _targetMifoodiRole(ProfileCookState state) {
+  AvailableRoleMembership? _targetMifoodiRole(ProfileCookState state) {
     final availableRoles = state.cookProfile?.data?.availableRoles ?? const [];
     for (final role in availableRoles) {
       final normalizedRole = role.role?.trim().toLowerCase();
@@ -39,22 +55,48 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     return null;
   }
 
-  String _mifoodiCtaText(ProfileCookState state) {
-    final role = _targetMifoodiRole(state);
-    if (role == null) {
-      return 'Register as mifoodi';
+  _RoleCtaState _mifoodiCtaState(ProfileCookState state) {
+    final availableRole = _targetMifoodiRole(state);
+    if (availableRole != null) {
+      final status = availableRole.status?.trim().toLowerCase();
+      return _RoleCtaState(
+        exists: true,
+        active: status == 'active',
+        onboarding: availableRole.onboarding,
+        disabled: status == 'disabled',
+      );
     }
 
-    final status = role.status?.toLowerCase();
-    if (status == 'disabled') {
+    final membership = state.cookProfile?.data?.foodieRoleMembership;
+    if (membership != null) {
+      return _RoleCtaState(
+        exists: membership.exists,
+        active: membership.active,
+        onboarding: membership.onboardingRequired,
+        disabled: membership.isDisabled,
+      );
+    }
+
+    return const _RoleCtaState(
+      exists: false,
+      active: false,
+      onboarding: false,
+      disabled: false,
+    );
+  }
+
+  String _mifoodiCtaText(ProfileCookState state) {
+    final ctaState = _mifoodiCtaState(state);
+    if (ctaState.disabled) {
       return 'mifoodi disabled';
     }
-
-    if (role.onboarding) {
+    if (!ctaState.exists) {
+      return 'Register as mifoodi';
+    }
+    if (ctaState.onboarding) {
       return 'Continue mifoodi setup';
     }
-
-    if (status == 'active') {
+    if (ctaState.active) {
       return 'Switch to mifoodi';
     }
 
@@ -62,16 +104,11 @@ class _PersonalTabViewState extends State<PersonalTabView> {
   }
 
   bool _shouldRegisterMifoodi(ProfileCookState state) {
-    final role = _targetMifoodiRole(state);
-    if (role == null) return true;
-
-    final status = role.status?.toLowerCase();
-    return !(status == 'active' || role.onboarding || status == 'disabled');
+    return !_mifoodiCtaState(state).exists;
   }
 
   bool _mifoodiTransitionDisabled(ProfileCookState state) {
-    final role = _targetMifoodiRole(state);
-    return role?.status?.toLowerCase() == 'disabled';
+    return _mifoodiCtaState(state).disabled;
   }
 
   String _disabledMifoodiMessage() {
@@ -127,6 +164,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         final onboardingRequired = _isOnboardingRequired(transitionMap);
 
         if (onboardingRequired) {
+          await userRepository.refreshRoleMembershipState();
+          if (!mounted) return;
           final step = transitionMap['next_required_step']?.toString();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(_mifoodiStepDescription(step))),

@@ -9,6 +9,7 @@ import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/pages/common/view/faq_webview_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -25,6 +26,21 @@ class ProfileFoodiePage extends StatefulWidget {
 
   @override
   State<ProfileFoodiePage> createState() => _ProfileFoodiePageState();
+}
+
+
+class _RoleCtaState {
+  final bool exists;
+  final bool active;
+  final bool onboarding;
+  final bool disabled;
+
+  const _RoleCtaState({
+    required this.exists,
+    required this.active,
+    required this.onboarding,
+    required this.disabled,
+  });
 }
 
 class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
@@ -63,7 +79,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return fallback;
   }
 
-  dynamic _targetMicookRole(ProfileFoodieState state) {
+  AvailableRoleMembership? _targetMicookRole(ProfileFoodieState state) {
     final availableRoles = state.foodieProfile?.data?.availableRoles ?? const [];
     for (final role in availableRoles) {
       final normalizedRole = role.role?.trim().toLowerCase();
@@ -77,6 +93,36 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       }
     }
     return null;
+  }
+
+  _RoleCtaState _micookCtaState(ProfileFoodieState state) {
+    final availableRole = _targetMicookRole(state);
+    if (availableRole != null) {
+      final status = availableRole.status?.trim().toLowerCase();
+      return _RoleCtaState(
+        exists: true,
+        active: status == 'active',
+        onboarding: availableRole.onboarding,
+        disabled: status == 'disabled',
+      );
+    }
+
+    final membership = state.foodieProfile?.data?.cookRoleMembership;
+    if (membership != null) {
+      return _RoleCtaState(
+        exists: membership.exists,
+        active: membership.active,
+        onboarding: membership.onboardingRequired,
+        disabled: membership.isDisabled,
+      );
+    }
+
+    return const _RoleCtaState(
+      exists: false,
+      active: false,
+      onboarding: false,
+      disabled: false,
+    );
   }
 
   bool _isOnboardingRequired(Map<String, dynamic> transition) {
@@ -109,26 +155,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   }
 
   String _micookCtaText(ProfileFoodieState state) {
-    final role = _targetMicookRole(state);
-    if (role == null) return 'Register as micook';
-
-    final status = role.status?.toLowerCase();
-    if (status == 'disabled') return 'micook disabled';
-    if (role.onboarding) return 'Continue micook setup';
-    if (status == 'active') return 'Switch to micook';
+    final ctaState = _micookCtaState(state);
+    if (ctaState.disabled) return 'micook disabled';
+    if (!ctaState.exists) return 'Register as micook';
+    if (ctaState.onboarding) return 'Continue micook setup';
+    if (ctaState.active) return 'Switch to micook';
     return 'Register as micook';
   }
 
   bool _micookTransitionDisabled(ProfileFoodieState state) {
-    final role = _targetMicookRole(state);
-    return role?.status?.toLowerCase() == 'disabled';
+    return _micookCtaState(state).disabled;
   }
 
   bool _shouldRegisterMicook(ProfileFoodieState state) {
-    final role = _targetMicookRole(state);
-    if (role == null) return true;
-    final status = role.status?.toLowerCase();
-    return !(status == 'active' || role.onboarding || status == 'disabled');
+    final ctaState = _micookCtaState(state);
+    return !ctaState.exists;
   }
 
   Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
@@ -213,6 +254,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       );
 
       if (onboardingRequired) {
+        await userRepository.refreshRoleMembershipState();
+        if (!mounted) return;
         await _continueCookOnboarding(transitionMap);
         return;
       }
