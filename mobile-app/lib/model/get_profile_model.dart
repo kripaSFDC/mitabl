@@ -38,6 +38,8 @@ class Data {
   String? address;
   String? role;
   Kitchen? kitchen;
+  RoleMembership? cookRoleMembership;
+  RoleMembership? foodieRoleMembership;
 
   Data(
       {this.id,
@@ -51,7 +53,9 @@ class Data {
       this.phone,
       this.address,
       this.role,
-      this.kitchen});
+      this.kitchen,
+      this.cookRoleMembership,
+      this.foodieRoleMembership});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = _asInt(json['id']);
@@ -67,6 +71,21 @@ class Data {
     role = json['role'];
     kitchen =
         json['kitchen'] != null ? Kitchen.fromJson(json['kitchen']) : null;
+    cookRoleMembership = RoleMembership.fromProfileJson(
+      json,
+      roleAliases: const [
+        'micook',
+        'mikitchn',
+        'cook',
+        'restaurant',
+        'vendor',
+        '2',
+      ],
+    );
+    foodieRoleMembership = RoleMembership.fromProfileJson(
+      json,
+      roleAliases: const ['mifoodi', 'foodi', 'foodie', '3'],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -85,7 +104,94 @@ class Data {
     if (kitchen != null) {
       data['kitchen'] = kitchen!.toJson();
     }
+    if (cookRoleMembership != null) {
+      data['cook_role_membership'] = cookRoleMembership!.toJson();
+    }
+    if (foodieRoleMembership != null) {
+      data['foodie_role_membership'] = foodieRoleMembership!.toJson();
+    }
     return data;
+  }
+}
+
+class RoleMembership {
+  final bool exists;
+  final bool active;
+  final bool onboardingRequired;
+  final String? nextRequiredStep;
+
+  const RoleMembership({
+    required this.exists,
+    required this.active,
+    required this.onboardingRequired,
+    this.nextRequiredStep,
+  });
+
+  factory RoleMembership.fromJson(Map<String, dynamic> json) {
+    final onboardingRequired = _asBool(
+      json['onboarding_required'] ??
+          json['is_onboarding'] ??
+          json['onboarding'],
+    );
+
+    final active = _asBool(json['active'] ?? json['is_active']) ||
+        (json['status']?.toString().toLowerCase() == 'active');
+
+    final exists = _asBool(
+          json['exists'] ?? json['has_membership'] ?? json['registered'],
+        ) ||
+        active ||
+        onboardingRequired;
+
+    return RoleMembership(
+      exists: exists,
+      active: active,
+      onboardingRequired: onboardingRequired,
+      nextRequiredStep: json['next_required_step']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'exists': exists,
+      'active': active,
+      'onboarding_required': onboardingRequired,
+      'next_required_step': nextRequiredStep,
+    };
+  }
+
+  static RoleMembership? fromProfileJson(
+    Map<String, dynamic> profileJson, {
+    required List<String> roleAliases,
+  }) {
+    final normalizedAliases = roleAliases.map((e) => e.toLowerCase()).toSet();
+    final containers = [
+      profileJson['role_statuses'],
+      profileJson['role_memberships'],
+      profileJson['roles'],
+      profileJson['memberships'],
+    ];
+
+    for (final container in containers) {
+      if (container is! Map<String, dynamic>) continue;
+      for (final entry in container.entries) {
+        if (!normalizedAliases.contains(entry.key.toLowerCase())) continue;
+        final membership = entry.value;
+        if (membership is Map<String, dynamic>) {
+          return RoleMembership.fromJson(membership);
+        }
+      }
+    }
+
+    for (final alias in normalizedAliases) {
+      final directMembership = profileJson['${alias}_membership'] ??
+          profileJson['${alias}_role_membership'];
+      if (directMembership is Map<String, dynamic>) {
+        return RoleMembership.fromJson(directMembership);
+      }
+    }
+
+    return null;
   }
 }
 
@@ -384,4 +490,14 @@ double? _asDouble(dynamic value) {
   if (value is bool) return value ? 1.0 : 0.0;
   if (value is String) return double.tryParse(value);
   return null;
+}
+
+bool _asBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'true' || normalized == '1' || normalized == 'yes';
+  }
+  return false;
 }

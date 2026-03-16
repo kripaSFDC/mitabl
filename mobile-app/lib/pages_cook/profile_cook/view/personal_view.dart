@@ -25,6 +25,64 @@ class PersonalTabView extends StatefulWidget {
 class _PersonalTabViewState extends State<PersonalTabView> {
   bool _switchingRole = false;
 
+  String _mifoodiCtaText(ProfileCookState state) {
+    final membership = state.cookProfile?.data?.foodieRoleMembership;
+    if (membership == null) {
+      return 'Switch to mifoodi';
+    }
+
+    if (membership.exists == false) {
+      return 'Register as mifoodi';
+    }
+
+    if (membership.onboardingRequired) {
+      return 'Continue mifoodi setup';
+    }
+
+    if (membership.active) {
+      return 'Switch to mifoodi';
+    }
+
+    return 'Continue mifoodi setup';
+  }
+
+  bool _shouldRegisterMifoodi(ProfileCookState state) {
+    final membership = state.cookProfile?.data?.foodieRoleMembership;
+    return membership != null && membership.exists == false;
+  }
+
+  String _mifoodiStepDescription(String? step) {
+    switch (step) {
+      case 'profile':
+        return 'Complete your mifoodi profile details to continue.';
+      case 'phone_verification':
+        return 'Verify your phone number to continue as mifoodi.';
+      default:
+        return 'Complete your remaining mifoodi setup steps to continue.';
+    }
+  }
+
+  Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
+    final data = payload['data'];
+    final transition = data is Map<String, dynamic>
+        ? data['role_transition']
+        : null;
+    return transition is Map<String, dynamic>
+        ? transition
+        : <String, dynamic>{};
+  }
+
+  bool _isOnboardingRequired(Map<String, dynamic> transition) {
+    final value = transition['onboarding_required'];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+    return false;
+  }
+
   Future<void> _switchToMifoodi() async {
     if (_switchingRole) return;
 
@@ -37,19 +95,36 @@ class _PersonalTabViewState extends State<PersonalTabView> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        navigatorKey.currentState!.pushNamedAndRemoveUntil(
-          '/HomePage',
-          (route) => false,
-        );
+        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final transitionMap = _extractRoleTransition(payload);
+        final onboardingRequired = _isOnboardingRequired(transitionMap);
+
+        if (onboardingRequired) {
+          final step = transitionMap['next_required_step']?.toString();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_mifoodiStepDescription(step))),
+          );
+        } else {
+          navigatorKey.currentState!.pushNamedAndRemoveUntil(
+            '/HomePage',
+            (route) => false,
+          );
+        }
         return;
       }
 
-      String message = 'mifoodi profile is not available for this account.';
+      String message = 'Register as mifoodi to continue.';
       try {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final serverMessage = payload['isError'] ?? payload['message'];
-        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
-          message = serverMessage;
+        final transitionMap = _extractRoleTransition(payload);
+        if (_isOnboardingRequired(transitionMap)) {
+          final step = transitionMap['next_required_step']?.toString();
+          message = _mifoodiStepDescription(step);
+        } else {
+          final serverMessage = payload['isError'] ?? payload['message'];
+          if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+            message = serverMessage;
+          }
         }
       } catch (_) {}
 
@@ -174,7 +249,21 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     ListTile(
-                      onTap: _switchingRole ? null : _switchToMifoodi,
+                      onTap: _switchingRole
+                          ? null
+                          : () {
+                              if (_shouldRegisterMifoodi(state)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Register as mifoodi to continue.',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              _switchToMifoodi();
+                            },
                       minVerticalPadding: 0,
                       contentPadding: EdgeInsets.zero,
                       leading: Row(
@@ -188,7 +277,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                             width: config.AppConfig(context).appWidth(4),
                           ),
                           Text(
-                            'switch to mifoodi',
+                            _mifoodiCtaText(state),
                             style: GoogleFonts.gothicA1(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: config.AppConfig(context).appWidth(5),
