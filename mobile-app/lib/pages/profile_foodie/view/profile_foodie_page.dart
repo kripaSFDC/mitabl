@@ -114,8 +114,29 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       case 'vendor_account':
         return 'Please complete payout account setup to continue as micook.';
       default:
-        return 'Your micook onboarding is not complete yet. Continue setup to proceed.';
+        return 'Complete your remaining micook setup steps in your profile to continue.';
     }
+  }
+
+  Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
+    final data = payload['data'];
+    final transition = data is Map<String, dynamic>
+        ? data['role_transition']
+        : null;
+    return transition is Map<String, dynamic>
+        ? transition
+        : <String, dynamic>{};
+  }
+
+  bool _isOnboardingRequired(Map<String, dynamic> transition) {
+    final value = transition['onboarding_required'];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+    return false;
   }
 
   Future<void> _continueCookOnboarding(Map<String, dynamic> transition) async {
@@ -378,7 +399,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                     ),
                   ),
                   ListTile(
-                    onTap: _switchingRole ? null : _switchToMicook,
+                    onTap: _switchingRole
+                        ? null
+                        : () {
+                            if (_shouldRegisterMicook(state)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Register as micook to continue.',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            _switchToMicook();
+                          },
                     minVerticalPadding: 0,
                     contentPadding: EdgeInsets.zero,
                     leading: Row(
@@ -390,7 +425,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         ),
                         SizedBox(width: config.AppConfig(context).appWidth(4)),
                         Text(
-                          'switch to micook',
+                          _micookCtaText(state),
                           style: GoogleFonts.gothicA1(
                             color: Theme.of(context).primaryColorDark,
                             fontSize: config.AppConfig(context).appWidth(5),
