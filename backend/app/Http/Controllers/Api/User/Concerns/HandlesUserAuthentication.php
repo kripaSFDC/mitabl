@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -457,6 +458,10 @@ trait HandlesUserAuthentication
 
     private function canUseActiveRole(User $user): bool
     {
+        if (! $this->supportsUserRolesTable()) {
+            return true;
+        }
+
         $membership = $user->roleMembershipFor((int) $user->role_id);
 
         if (! $membership) {
@@ -494,15 +499,18 @@ trait HandlesUserAuthentication
         $this->ensureActiveRoleMembership($user);
         $roleName = $this->resolveMobileRoleName($user) ?? 'Unknown';
 
-        $memberships = $user->roleMemberships()->with('role')->get();
-        $availableRoles = $memberships->map(function (UserRole $membership): array {
-            return [
-                'role_id' => (int) $membership->role_id,
-                'role' => optional($membership->role)->role,
-                'status' => $membership->status,
-                'onboarding' => $membership->status === UserRole::STATUS_ONBOARDING,
-            ];
-        })->values();
+        $availableRoles = collect();
+        if ($this->supportsUserRolesTable()) {
+            $memberships = $user->roleMemberships()->with('role')->get();
+            $availableRoles = $memberships->map(function (UserRole $membership): array {
+                return [
+                    'role_id' => (int) $membership->role_id,
+                    'role' => optional($membership->role)->role,
+                    'status' => $membership->status,
+                    'onboarding' => $membership->status === UserRole::STATUS_ONBOARDING,
+                ];
+            })->values();
+        }
 
         $data = [
             'id' => $user->id,
@@ -523,10 +531,25 @@ trait HandlesUserAuthentication
 
     private function ensureActiveRoleMembership(User $user): void
     {
+        if (! $this->supportsUserRolesTable()) {
+            return;
+        }
+
         UserRole::query()->firstOrCreate(
             ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
             ['status' => UserRole::STATUS_ACTIVE]
         );
+    }
+
+    private function supportsUserRolesTable(): bool
+    {
+        static $supportsTable = null;
+
+        if ($supportsTable !== null) {
+            return $supportsTable;
+        }
+
+        return $supportsTable = Schema::hasTable('user_roles');
     }
 
     private function resolveMobileRoleName(User $user): ?string
