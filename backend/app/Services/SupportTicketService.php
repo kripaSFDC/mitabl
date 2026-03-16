@@ -963,7 +963,9 @@ class SupportTicketService
             return false;
         }
 
+        $percent = 0.0;
         similar_text($left, $right, $percent);
+
         return $percent >= 85.0;
     }
 

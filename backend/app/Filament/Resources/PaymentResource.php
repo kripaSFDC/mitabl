@@ -42,9 +42,9 @@ class PaymentResource extends Resource
                     ->badge()
                     ->sortable()
                     ->colors([
-                        'success' => ['succeeded', 'paid', 'captured'],
-                        'warning' => ['pending', 'processing'],
-                        'danger' => ['failed', 'cancelled', 'refunded'],
+                        'success' => fn (string $state): bool => in_array(strtolower($state), ['succeeded', 'paid', 'captured'], true),
+                        'warning' => fn (string $state): bool => in_array(strtolower($state), ['pending', 'processing'], true),
+                        'danger' => fn (string $state): bool => in_array(strtolower($state), ['failed', 'cancelled', 'refunded'], true),
                     ]),
                 Tables\Columns\IconColumn::make('confirm')
                     ->label('Confirmed')

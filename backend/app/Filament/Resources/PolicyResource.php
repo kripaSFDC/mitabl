@@ -97,7 +97,7 @@ class PolicyResource extends Resource
                         blank: fn (Builder $query): Builder => $query
                     ),
                 Tables\Filters\SelectFilter::make('name')
-                    ->options(fn (): array => Policy::query()->select('name')->distinct()->pluck('name', 'name')->toArray()),
+                    ->options(Policy::query()->select('name')->distinct()->pluck('name', 'name')->toArray()),
             ])
             ->actions([
                 Action::make('publish')

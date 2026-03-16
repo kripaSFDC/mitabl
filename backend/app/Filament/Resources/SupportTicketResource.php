@@ -379,7 +379,7 @@ class SupportTicketResource extends Resource
                         Forms\Components\Select::make('assignee_id')
                             ->label('Assign to')
                             ->required()
-                            ->options(fn (): array => AdminUser::query()->where('is_active', true)->pluck('name', 'id')->toArray()),
+                            ->options(AdminUser::query()->where('is_active', true)->pluck('name', 'id')->toArray()),
                         Forms\Components\Textarea::make('reason')
                             ->required()
                             ->maxLength(300),
@@ -497,7 +497,7 @@ class SupportTicketResource extends Resource
                             ->multiple()
                             ->preload()
                             ->searchable()
-                            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                            ->options(Tag::query()->orderBy('name')->pluck('name', 'id')->toArray())
                             ->default(fn (SupportTicket $record): array => $record->tags()->pluck('tags.id')->all()),
                     ])
                     ->action(function (SupportTicket $record, array $data): void {

@@ -44,39 +44,6 @@ class FoodsController extends Controller
     *      @OA\Response(
     *          response=422,
     *          description="Unprocessable Entity",
-
-class FoodsController extends Controller
-{
-    /**
-     * @OA\Get(
-     *      path="/api/v1/restaurant/menu/{resturantId}",
-     *      operationId="restaurant Menu",
-     *      tags={"kitchen"},
-     *      summary="Restaurant Menu",
-     *      description="Returns Food data",
-     *      security={ {"Authorization": {} }},
-         * @OA\Parameter(
-         *          name="resturantId",
-         *          description="Resturant id",
-         *          required=true,
-         *          in="path",
-         *          @OA\Schema(
-         *              type="integer"
-         *          )
-         *      ),
-     *     @OA\Response(
-    *          response=201,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=200,
-    *          description="All details fetched Successfully",
-    *          @OA\JsonContent()
-    *       ),
-    *      @OA\Response(
-    *          response=422,
-    *          description="Unprocessable Entity",
     *          @OA\JsonContent()
     *       ),
     *      @OA\Response(response=400, description="Bad request"),
@@ -247,9 +214,10 @@ class FoodsController extends Controller
             }
 
         } else {
-            if (!$request->hasFile('pictures')) {
-                return $this->responser([],'Pictures required.', 422);
+            if (! $request->hasFile('pictures')) {
+                return $this->responser([], 'Pictures required.', 422);
             }
+
             $foodId = Foods::create([
                 'restaurant_id' => $restaurant->id,
                 'food_name' => $request->food_name,
@@ -265,20 +233,17 @@ class FoodsController extends Controller
                 'available_from_time' => $availableFromTime,
                 'available_to_time' => $availableToTime,
             ])->id;
-        if($food){
-            // delete related   
-            $images = $food->addedimage->pluck('path')->toArray();
-            if(!empty($images)) {
-                $food->addedimage()->delete();
-                Storage::disk('my_files')->delete($images);
-                File::delete($images);
 
-            }
-            $food->delete();
-            $data = new FoodResource($food);
-            return $this->responser($data,"Food item deleted succesfully.");
+            $msg = 'Food item added succesfully.';
         }
-        return $this->responser([],"Food item not exist.", 404);
+
+        $food = Foods::query()->find($foodId);
+        if (! $food) {
+            return $this->responser([], 'Food item not found after save.', 500);
+        }
+
+        $data = new FoodResource($food);
+
+        return $this->responser($data, $msg ?? 'Food item saved succesfully.');
     }
 }
-

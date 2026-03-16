@@ -120,7 +120,7 @@ class TemplateResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('active')->label('Published'),
                 Tables\Filters\SelectFilter::make('channel')
-                    ->options(fn (): array => Template::query()->select('channel')->distinct()->pluck('channel', 'channel')->toArray()),
+                    ->options(Template::query()->select('channel')->distinct()->pluck('channel', 'channel')->toArray()),
             ])
             ->actions([
                 Action::make('publish')
