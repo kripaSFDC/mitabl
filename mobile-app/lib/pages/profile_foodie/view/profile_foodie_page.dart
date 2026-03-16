@@ -45,6 +45,7 @@ class _RoleCtaState {
 
 class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
   bool _switchingRole = false;
 
   @override
@@ -54,15 +55,50 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   }
 
   Future<void> _loadBiometricPreference() async {
-    final enabled = await BiometricService.instance.isEnabled();
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
+    try {
+      final biometricService = BiometricService.instance;
+      final available = await biometricService.isAvailable();
+      final enabled = available ? await biometricService.isEnabled() : false;
+
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = available;
+        _biometricEnabled = enabled;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = false;
+        _biometricEnabled = false;
+      });
+    }
   }
 
   Future<void> _onBiometricChanged(bool enabled) async {
-    await BiometricService.instance.setEnabled(enabled);
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
+    if (enabled && !_biometricAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Biometric authentication is not available on this device.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await BiometricService.instance.setEnabled(enabled);
+      if (!mounted) return;
+      setState(() => _biometricEnabled = enabled);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to update biometric preference right now.'),
+        ),
+      );
+    }
   }
 
   bool _isSuccessfulResponse(int statusCode) {
@@ -755,7 +791,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 inactiveTrackColor: Theme.of(
                                   context,
                                 ).primaryColorDark,
-                                onChanged: _onBiometricChanged,
+                                onChanged: _biometricAvailable
+                                    ? _onBiometricChanged
+                                    : null,
                               ),
                             ),
                           ),
