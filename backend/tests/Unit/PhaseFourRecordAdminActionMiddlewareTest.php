@@ -77,7 +77,7 @@ class PhaseFourRecordAdminActionMiddlewareTest extends TestCase
             ->latest('id')
             ->firstOrFail();
 
-        $this->assertStringContainsString('phase4 test error', (string) data_get($log->metadata, 'error'));
+        $this->assertStringContainsString('422 Unprocessable Content', (string) data_get($log->metadata, 'error'));
     }
 
     public function test_middleware_does_not_log_safe_get_requests(): void

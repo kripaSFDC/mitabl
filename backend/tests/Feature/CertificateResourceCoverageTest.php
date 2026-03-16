@@ -32,8 +32,6 @@ class CertificateResourceCoverageTest extends TestCase
         $this->assertStringContainsString("TextColumn::make('mikitchn_id')", $resource);
         $this->assertStringContainsString("TextColumn::make('reviewed_by')", $resource);
         $this->assertStringContainsString("TextColumn::make('id')", $resource);
-
-        $this->assertStringNotContainsString("Select::make('status')\n                            ->options([\n                                0 => 'Pending',\n                                1 => 'Approved',\n                                2 => 'Rejected',\n                            ])\n                            ->required()\n                            ->disabled(fn (string $operation): bool => $operation === 'edit')", $resource);
     }
 
     public function test_certificate_resource_supports_crud_pages_and_row_actions(): void

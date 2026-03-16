@@ -5,8 +5,8 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\RateLimiter;
 use Throwable;
 
 class RouteServiceProvider extends ServiceProvider
@@ -40,7 +40,7 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(function (): void {
             /** @var Router $router */
-            $router = $this->app->make('router');
+            $router = $this->app->make(Router::class);
 
             $router->prefix('api')
                 ->middleware('api')
