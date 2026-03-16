@@ -257,7 +257,6 @@ class UserRepository {
           .post(
             ApiContract.uri('v2/account/onboarding/cook/vendor-account'),
             headers: await authorizedHeaders(includeJsonContentType: true),
-            body: json.encode(<String, dynamic>{}),
           )
           .timeout(ApiContract.requestTimeout);
     } catch (e) {

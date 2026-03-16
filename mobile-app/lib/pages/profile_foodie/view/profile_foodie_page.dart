@@ -31,6 +31,64 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
   bool _switchingRole = false;
 
+  bool _isSuccessfulResponse(int statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+  }
+
+  Map<String, dynamic> _decodeResponsePayload(String rawBody) {
+    if (rawBody.trim().isEmpty) {
+      return <String, dynamic>{};
+    }
+
+    final payload = jsonDecode(rawBody);
+    if (payload is Map<String, dynamic>) {
+      return payload;
+    }
+
+    return <String, dynamic>{};
+  }
+
+  String _extractResponseMessage(
+    String rawBody, {
+    required String fallback,
+  }) {
+    try {
+      final payload = jsonDecode(rawBody);
+      if (payload is Map<String, dynamic>) {
+        final serverMessage = payload['isError'] ?? payload['message'];
+        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+          return serverMessage;
+        }
+      }
+    } catch (_) {}
+
+    return fallback;
+  }
+
+  Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
+    final data = payload['data'];
+    if (data is Map<String, dynamic>) {
+      final directTransition = data['role_transition'];
+      if (directTransition is Map<String, dynamic>) {
+        return directTransition;
+      }
+
+      final onboarding = data['onboarding'];
+      if (onboarding is Map<String, dynamic>) {
+        final onboardingTransition = onboarding['role_transition'];
+        if (onboardingTransition is Map<String, dynamic>) {
+          return onboardingTransition;
+        }
+
+        return onboarding;
+      }
+
+      return data;
+    }
+
+    return payload;
+  }
+
   String _onboardingStepDescription(String? step) {
     switch (step) {
       case 'kitchen_profile':
@@ -52,20 +110,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
     if (!mounted) return;
 
-    final routeData = currentUser?.data;
-    if (routeData != null) {
-      navigatorKey.currentState!.pushNamedAndRemoveUntil(
-        '/CookProfile',
-        (route) => false,
-        arguments: RouteArguments(data: routeData),
-      );
-      return;
-    }
-
     final step = transition['next_required_step']?.toString();
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(_onboardingStepDescription(step))));
+
+    final routeData = currentUser?.data;
+    if (routeData == null) {
+      return;
+    }
+
+    navigatorKey.currentState!.pushNamedAndRemoveUntil(
+      '/CookProfile',
+      (route) => false,
+      arguments: RouteArguments(data: routeData),
+    );
   }
 
   @override
@@ -108,32 +167,19 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       final activationResponse = await userRepository.startCookOnboarding();
       if (!mounted) return;
 
-      if (activationResponse.statusCode != 200) {
-        String message = 'micook profile is not available for this account.';
-        try {
-          final payload =
-              jsonDecode(activationResponse.body) as Map<String, dynamic>;
-          final serverMessage = payload['isError'] ?? payload['message'];
-          if (serverMessage is String && serverMessage.trim().isNotEmpty) {
-            message = serverMessage;
-          }
-        } catch (_) {}
-
+      if (!_isSuccessfulResponse(activationResponse.statusCode)) {
+        final message = _extractResponseMessage(
+          activationResponse.body,
+          fallback: 'micook profile is not available for this account.',
+        );
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
         return;
       }
 
-      final activationPayload =
-          jsonDecode(activationResponse.body) as Map<String, dynamic>;
-      final activationData = activationPayload['data'];
-      final transition = activationData is Map<String, dynamic>
-          ? activationData['role_transition']
-          : null;
-      final transitionMap = transition is Map<String, dynamic>
-          ? transition
-          : <String, dynamic>{};
+      final activationPayload = _decodeResponsePayload(activationResponse.body);
+      final transitionMap = _extractRoleTransition(activationPayload);
       final onboardingRequired = transitionMap['onboarding_required'] == true;
 
       if (onboardingRequired) {
@@ -146,7 +192,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       );
       if (!mounted) return;
 
-      if (switchResponse.statusCode == 200) {
+      if (_isSuccessfulResponse(switchResponse.statusCode)) {
         navigatorKey.currentState!.pushNamedAndRemoveUntil(
           '/DashboardCook',
           (route) => false,
@@ -154,15 +200,10 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
         return;
       }
 
-      String message = 'Unable to switch to micook right now. Please try again.';
-      try {
-        final payload = jsonDecode(switchResponse.body) as Map<String, dynamic>;
-        final serverMessage = payload['isError'] ?? payload['message'];
-        if (serverMessage is String && serverMessage.trim().isNotEmpty) {
-          message = serverMessage;
-        }
-      } catch (_) {}
-
+      final message = _extractResponseMessage(
+        switchResponse.body,
+        fallback: 'Unable to switch to micook right now. Please try again.',
+      );
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
