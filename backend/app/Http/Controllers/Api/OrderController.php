@@ -380,11 +380,10 @@ class OrderController extends Controller
                 ->where('status', 1)
                 ->first();
 
-            $invalidWindow = false;
-            if ($promoCode instanceof PromoCode) {
-                $invalidWindow = ($promoCode->starts_at && now()->lt($promoCode->starts_at))
-                    || ($promoCode->ends_at && now()->gt($promoCode->ends_at));
-            }
+            $startsAt = $promoCode instanceof PromoCode ? $promoCode->starts_at : null;
+            $endsAt = $promoCode instanceof PromoCode ? $promoCode->ends_at : null;
+            $invalidWindow = ($startsAt !== null && now()->lt($startsAt))
+                || ($endsAt !== null && now()->gt($endsAt));
 
             if (! ($promoCode instanceof PromoCode) || $invalidWindow) {
                 return $this->responser([], 'Promo code is invalid, inactive, or expired', 422);
@@ -393,6 +392,7 @@ class OrderController extends Controller
 
         $user = $this->authenticatedUser('api');
         try {
+            /** @var array<string, mixed> $validated */
             $validated = $validator->validated();
             $cardReference = $validated['card_id'] ?? null;
             $paymentMethodId = $validated['payment_method_id'] ?? null;
@@ -413,6 +413,7 @@ class OrderController extends Controller
                 $order = $this->orderService->createOrder($user, $validated);
 
                 if ($shouldInitializePayment) {
+                    /** @var array{payment:\App\Models\Payment, selection:array<string, mixed>} $result */
                     $result = $this->paymentService->initializeOrderPaymentIntent(
                         $order,
                         $user,
@@ -472,9 +473,6 @@ class OrderController extends Controller
     private function canManageOrder(Order $order): bool
     {
         $user = $this->authenticatedUser('api');
-        if (! $user) {
-            return false;
-        }
 
         if ((int) $user->id === (int) $order->user_id) {
             return true;
@@ -519,6 +517,7 @@ class OrderController extends Controller
         $orderUser->unsetRelation('customer');
         $orderUser->load('customer');
 
+        /** @var array{payment:\App\Models\Payment, selection:array<string, mixed>} $result */
         $result = $this->paymentService->initializeOrderPaymentIntent(
             $order,
             $orderUser,

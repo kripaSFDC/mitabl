@@ -26,7 +26,7 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  \App\Events\MakeOrderPaymentToVendor  $event
+     * @param  MakeOrderPaymentToVendor  $event
      * @return void
      */
     public function handle(MakeOrderPaymentToVendor $event)

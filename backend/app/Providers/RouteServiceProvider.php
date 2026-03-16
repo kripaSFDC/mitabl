@@ -6,7 +6,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 use Throwable;
 
 class RouteServiceProvider extends ServiceProvider
@@ -39,14 +39,11 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function (): void {
-            /** @var Router $router */
-            $router = $this->app->make('router');
-
-            $router->prefix('api')
+            Route::prefix('api')
                 ->middleware('api')
                 ->group(base_path('routes/api.php'));
 
-            $router->middleware('web')
+            Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
     }
