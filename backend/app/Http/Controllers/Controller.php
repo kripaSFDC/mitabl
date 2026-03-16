@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Carbon\Carbon;
 use App\Models\Image;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -30,6 +31,17 @@ use File,DateTime;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    protected function authenticatedUser(?string $guard = null): User
+    {
+        $user = $guard === null
+            ? Auth::user()
+            : Auth::guard($guard)->user();
+
+        abort_unless($user instanceof User, 401, 'Unauthenticated.');
+
+        return $user;
+    }
 
     public static function responser($data, $msg, int $status = 200)
     {

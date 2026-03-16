@@ -7,7 +7,6 @@ use App\Models\Foods;
 use App\Models\Mikitchn;
 use Illuminate\Http\Request;
 use Validator;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Http\Resources\Restaurant\Food as FoodResource;
 
@@ -131,7 +130,7 @@ class FoodsController extends Controller
          // print_r($delete_files); 
          // die();
 
-        $restaurant = Auth::user()->restaurant;
+        $restaurant = $this->authenticatedUser()->restaurant;
 
         $kitchnExist = Mikitchn::find($restaurant->id);
 

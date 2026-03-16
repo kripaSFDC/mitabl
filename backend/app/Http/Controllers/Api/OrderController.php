@@ -40,7 +40,7 @@ class OrderController extends Controller
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         $currntdate = date('Y-m-d');
-        $kitchen = Auth::guard('api')->user()->restaurant;
+        $kitchen = $this->authenticatedUser('api')->restaurant;
 
         if (! $kitchen) {
             $data['total_count'] = 0;
@@ -77,13 +77,13 @@ class OrderController extends Controller
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
 
-        if (! Auth::guard('api')->user()->restaurant) {
+        if (! $this->authenticatedUser('api')->restaurant) {
             $data['total_count'] = 0;
             $data['bookings'] = [];
             return $this->responser($data, 'No Requested Orders');
         }
 
-        $orders = Auth::guard('api')->user()->restaurant->orders()->with($this->orderListResourceRelations())->where('status', 2);
+        $orders = $this->authenticatedUser('api')->restaurant->orders()->with($this->orderListResourceRelations())->where('status', 2);
         $ordersPage = $orders->orderBy('id', 'desc')->paginate($limit);
         $ordersPage->getCollection()->makeHidden('orderdata');
         $data = [
@@ -131,7 +131,7 @@ class OrderController extends Controller
         if ($requestedStatus === Order::STATUS_LEGACY_CANCELLED) {
             $requestedStatus = Order::STATUS_CANCELLED;
         }
-        $actor = Auth::guard('api')->user();
+        $actor = $this->authenticatedUser('api');
         $actorIsFoodie = (int) $actor->id === (int) $order->user_id;
         $actorIsCook = (int) $actor->role_id === 2
             && $actor->restaurant
@@ -293,7 +293,7 @@ class OrderController extends Controller
     {
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
-        $kitchen = Auth::guard('api')->user()->restaurant;
+        $kitchen = $this->authenticatedUser('api')->restaurant;
 
         if (! $kitchen) {
             $data['total_count'] = 0;
@@ -389,7 +389,7 @@ class OrderController extends Controller
             }
         }
 
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         try {
             $validated = $validator->validated();
             $cardReference = $validated['card_id'] ?? null;
@@ -469,7 +469,7 @@ class OrderController extends Controller
 
     private function canManageOrder(Order $order): bool
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         if (! $user) {
             return false;
         }

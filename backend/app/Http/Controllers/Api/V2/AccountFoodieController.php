@@ -89,7 +89,7 @@ class AccountFoodieController extends Controller
 
         $limit = (int) ($request->query('limit', 10));
         $page = (int) ($request->query('page', 1));
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
 
         $paginator = $user->getFavoriteItems(Mikitchn::class)
             ->with(['addedimage:id,ref_id,model_name,path', 'certificate:id,mikitchn_id,abn,abn_gst,status'])
@@ -118,7 +118,7 @@ class AccountFoodieController extends Controller
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $kitchen = Mikitchn::query()->find((int) $request->input('restaurant_id'));
 
         if (! $kitchen) {

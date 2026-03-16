@@ -15,7 +15,7 @@ class FcmController extends Controller
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
         $page = max(((int) ($queryparams['page'] ?? 1)) - 1, 0);
 
-        $notifications = Auth::user()->notifications()
+        $notifications = $this->authenticatedUser()->notifications()
                         ->select('data','created_at');
         $data['total_count'] = $notifications->count();
 

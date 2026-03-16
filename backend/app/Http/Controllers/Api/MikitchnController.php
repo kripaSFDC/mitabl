@@ -110,7 +110,7 @@ class MikitchnController extends Controller
     */
     public function createKitchen(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         if (Mikitchn::query()->where('user_id', $user->id)->exists()) {
             return $this->responser([], 'Kitchen already exists. Use editkitchen endpoint.', 409);
         }
@@ -120,7 +120,7 @@ class MikitchnController extends Controller
 
     public function updateKitchen(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         if (! Mikitchn::query()->where('user_id', $user->id)->exists()) {
             return $this->responser([], 'Kitchen not found for this user.', 404);
         }
@@ -149,7 +149,7 @@ class MikitchnController extends Controller
         if($validator->fails()){
             return $this->responser([],$validator->errors()->first(), 422);
         }
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $existKitchen = Mikitchn::where('user_id',$user->id)->first();
 
         $decodedTimings = json_decode((string) $request->timings);
@@ -395,7 +395,7 @@ class MikitchnController extends Controller
     }
 
     public function getMyMenu(){
-        $mikitchen = Auth::user()->restaurant;
+        $mikitchen = $this->authenticatedUser()->restaurant;
         $data = []; $msg = 'Menu Foods Not Found';
         if ($mikitchen) {
             $foods = Foods::with('addedimage:id,ref_id,model_name,path')
@@ -426,7 +426,7 @@ class MikitchnController extends Controller
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        $kitchen = Auth::user()->restaurant;
+        $kitchen = $this->authenticatedUser()->restaurant;
         if (! $kitchen) {
             return $this->responser([], 'Kitchen not found for this user.', 404);
         }
@@ -476,7 +476,7 @@ class MikitchnController extends Controller
             now()->addMinutes(30),
             function (): float {
                 try {
-                    $transfers = $this->paymentService->getVendorLifetimeAmount(Auth::user(), 3, 50);
+                    $transfers = $this->paymentService->getVendorLifetimeAmount($this->authenticatedUser(), 3, 50);
                 } catch (Throwable $throwable) {
                     report($throwable);
                     return 0.0;
@@ -499,14 +499,14 @@ class MikitchnController extends Controller
             Order::STATUS_COMPLETED,
             Order::STATUS_CANCELLED,
         ];
-        $kitchen = Auth::guard('api')->user()->restaurant;
+        $kitchen = $this->authenticatedUser('api')->restaurant;
 
         if (!$kitchen) {
             return $this->responser(['total_earning'=> 0, 'n_bookings' => 0, 'n_upcoming_bookings' => 0], 'kitchen dashboard data.');
         }
         $orders = Order::where('mikitchn_id',$kitchen->id);
         $earnings = 0;
-        if (Auth::user()->vendor && Auth::user()->vendor->account_id) {
+        if ($this->authenticatedUser()->vendor && $this->authenticatedUser()->vendor->account_id) {
             $earnings = $this->getVendorEarnings();
         }
 

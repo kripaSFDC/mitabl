@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\User as UserResource;
 use App\Services\AccountProfileService;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -16,12 +15,12 @@ class AccountController extends Controller
 
     public function show(Request $request)
     {
-        return $this->responser(new UserResource(Auth::user()), 'User');
+        return $this->responser(new UserResource($this->authenticatedUser()), 'User');
     }
 
     public function update(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->updateProfile($user, $request, [$this, 'uploadImage']);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -32,7 +31,7 @@ class AccountController extends Controller
 
     public function switchRole(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->switchRole($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -47,7 +46,7 @@ class AccountController extends Controller
 
     public function startCookOnboarding(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->startCookOnboarding($user);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -63,7 +62,7 @@ class AccountController extends Controller
 
     public function completeCookVendorAccountStep(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->completeCookVendorAccountStep($user);
 
         return $this->responser([
@@ -76,7 +75,7 @@ class AccountController extends Controller
 
     public function changePassword(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $result = $this->accountProfileService->changePassword($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -87,7 +86,7 @@ class AccountController extends Controller
 
     public function updateDeviceToken(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->updateDeviceToken($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -98,7 +97,7 @@ class AccountController extends Controller
 
     public function notificationsToggle(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $this->accountProfileService->toggleNotifications($user);
         
         return $this->responser(['updated' => true], 'User notifications updated successfully.');
@@ -106,7 +105,7 @@ class AccountController extends Controller
 
     public function updateNotificationPreferences(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->updateNotificationPreferences($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -117,7 +116,7 @@ class AccountController extends Controller
 
     public function mobileContact(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $rspn = $this->accountProfileService->mobileContact($user);
         return $this->responser($rspn,'User details.');
     }

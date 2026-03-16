@@ -107,7 +107,7 @@ class DiscoveryController extends Controller
 
         $restaurant->setAttribute(
             'is_favourited',
-            Auth::guard('api')->check() ? Auth::guard('api')->user()->hasFavorited($restaurant) : false
+            Auth::guard('api')->check() ? $this->authenticatedUser('api')->hasFavorited($restaurant) : false
         );
         if ($restaurant->relationLoaded('foods')) {
             $restaurant->setRelation('foods', collect($restaurant->foods)->filter(function ($food) use ($request) {
