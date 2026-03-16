@@ -10,22 +10,24 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('user_roles', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('role_id');
-            $table->enum('status', [
-                UserRole::STATUS_ACTIVE,
-                UserRole::STATUS_ONBOARDING,
-                UserRole::STATUS_DISABLED,
-            ])->default(UserRole::STATUS_ACTIVE);
-            $table->timestamps();
+        if (! Schema::hasTable('user_roles')) {
+            Schema::create('user_roles', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedInteger('role_id');
+                $table->enum('status', [
+                    UserRole::STATUS_ACTIVE,
+                    UserRole::STATUS_ONBOARDING,
+                    UserRole::STATUS_DISABLED,
+                ])->default(UserRole::STATUS_ACTIVE);
+                $table->timestamps();
 
-            $table->unique(['user_id', 'role_id']);
-            $table->index(['user_id', 'status']);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
-        });
+                $table->unique(['user_id', 'role_id']);
+                $table->index(['user_id', 'status']);
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+                $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
+            });
+        }
 
         DB::table('users')
             ->select(['id as user_id', 'role_id'])
