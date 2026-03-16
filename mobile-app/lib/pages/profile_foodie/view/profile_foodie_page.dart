@@ -519,35 +519,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                             ),
                           ),
                           ListTile(
-                            minVerticalPadding: 0,
-                            contentPadding: EdgeInsets.zero,
-                            leading: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  'assets/img/my_partners.png',
-                                  height: config.AppConfig(
-                                    context,
-                                  ).appHeight(4),
-                                ),
-                                SizedBox(
-                                  width: config.AppConfig(context).appWidth(4),
-                                ),
-                                Text(
-                                  'my partners',
-                                  style: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4.5),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          ListTile(
                             onTap: () {
                               navigatorKey.currentState!.pushNamed(
                                 '/SettingsCook',

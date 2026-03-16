@@ -14,31 +14,13 @@ class FaqWebviewPage extends StatefulWidget {
 
 class _FaqWebviewPageState extends State<FaqWebviewPage> {
   static final Uri _faqUri = Uri.parse('https://mitabl.com/faq');
-  static const Set<String> _allowedHosts = {'mitabl.com', 'www.mitabl.com'};
-
   late final WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.disabled)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) {
-            final uri = Uri.tryParse(request.url);
-            if (uri == null) {
-              return NavigationDecision.prevent;
-            }
-
-            final isHttps = uri.scheme == 'https';
-            final isAllowedHost = _allowedHosts.contains(uri.host);
-            return isHttps && isAllowedHost
-                ? NavigationDecision.navigate
-                : NavigationDecision.prevent;
-          },
-        ),
-      )
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(_faqUri);
   }
 
