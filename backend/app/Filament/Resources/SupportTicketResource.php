@@ -47,7 +47,7 @@ class SupportTicketResource extends Resource
                         ->searchable()
                         ->preload()
                         ->nullable()
-                        ->columnSpan(2),
+                        ->columnSpan(['default' => 2]),
                     Forms\Components\TextInput::make('requester_name')
                         ->label('Name')
                         ->maxLength(255),
@@ -358,7 +358,7 @@ class SupportTicketResource extends Resource
                     ->label('Assign to me')
                     ->icon('heroicon-o-user-plus')
                     ->color('info')
-                    ->keyBindings(['mod+a'])
+                    ->keyBindings('mod+a')
                     ->visible(fn (SupportTicket $record): bool => static::canAssign() && ! $record->isTerminal())
                     ->action(function (SupportTicket $record): void {
                         try {
@@ -406,7 +406,7 @@ class SupportTicketResource extends Resource
                     ->label('Reply')
                     ->icon('heroicon-o-chat-bubble-left-right')
                     ->color('success')
-                    ->keyBindings(['mod+r'])
+                    ->keyBindings('mod+r')
                     ->visible(fn (SupportTicket $record): bool => static::canRespond() && ! $record->isTerminal())
                     ->form([
                         Forms\Components\Textarea::make('message')
@@ -527,7 +527,7 @@ class SupportTicketResource extends Resource
                     ->label('Resolve')
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
-                    ->keyBindings(['mod+shift+r'])
+                    ->keyBindings('mod+shift+r')
                     ->visible(fn (SupportTicket $record): bool => static::canResolve() && in_array($record->status, [
                         SupportTicket::STATUS_OPEN,
                         SupportTicket::STATUS_IN_PROGRESS,

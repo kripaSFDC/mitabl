@@ -234,7 +234,7 @@ class CertificateResource extends Resource
                     ->modalHeading(fn (Certificate $record): string => 'Certificate Review: ' . (string) ($record->certificate_no ?: '#'.$record->id))
                     ->modalSubmitAction(false)
                     ->form([
-                        Forms\Components\Grid::make(2)->schema([
+                        Forms\Components\Grid::make()->columns(['default' => 2])->schema([
                             Forms\Components\Placeholder::make('kitchen')
                                 ->label('Kitchen')
                                 ->content(fn (Certificate $record): string => (string) ($record->mikitchn->name ?? '-')),

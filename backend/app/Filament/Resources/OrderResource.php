@@ -126,9 +126,11 @@ class OrderResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn ($state): string => static::formatStatus((int) $state))
                     ->colors([
-                        'warning' => [\App\Models\Order::STATUS_PENDING, \App\Models\Order::STATUS_ACCEPTED, \App\Models\Order::STATUS_PICKUP],
+                        'warning' => [\App\Models\Order::STATUS_REQUESTED],
+                        'info' => [\App\Models\Order::STATUS_CONFIRMED],
+                        'primary' => [\App\Models\Order::STATUS_IN_PROGRESS],
                         'success' => [\App\Models\Order::STATUS_COMPLETED],
-                        'danger' => [\App\Models\Order::STATUS_REJECTED, \App\Models\Order::STATUS_CANCELLED],
+                        'danger' => [\App\Models\Order::STATUS_CANCELLED, \App\Models\Order::STATUS_LEGACY_CANCELLED],
                     ]),
                 Tables\Columns\TextColumn::make('Mikitchn.name')
                     ->label('Kitchen')
@@ -218,7 +220,7 @@ class OrderResource extends Resource
                     ->modalHeading(fn (Order $record): string => 'Order #' . $record->id)
                     ->modalSubmitAction(false)
                     ->form([
-                        Forms\Components\Grid::make(2)->schema([
+                        Forms\Components\Grid::make()->columns(['default' => 2])->schema([
                             Forms\Components\Placeholder::make('kitchen')
                                 ->label('Kitchen')
                                 ->content(fn (Order $record): string => (string) (optional($record->Mikitchn)->name ?? '-')),

@@ -309,8 +309,8 @@ class PlatformSettingsPage extends Page implements HasForms
                         $changedKeys[] = $record->key;
                     }
 
-                    $existingById->put((int) $record->id, $record);
-                    $existingByKey->put(strtolower((string) $record->key), $record);
+                    $existingById[(int) $record->id] = $record;
+                    $existingByKey[strtolower((string) $record->key)] = $record;
                 }
             });
         } catch (ValidationException $exception) {
@@ -395,6 +395,7 @@ class PlatformSettingsPage extends Page implements HasForms
         }
 
         DB::transaction(function () use ($request): void {
+            /** @var PlatformSetting $setting */
             $setting = PlatformSetting::query()->firstOrNew([
                 'key' => $request->setting_key,
             ]);
@@ -704,7 +705,7 @@ class PlatformSettingsPage extends Page implements HasForms
             if ($existingByKey->has($key)) {
                 /** @var PlatformSetting $record */
                 $record = $existingByKey->get($key);
-                $retained->push((int) $record->id);
+                $retained[] = (int) $record->id;
             }
         }
 

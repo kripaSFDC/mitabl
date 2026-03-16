@@ -39,10 +39,7 @@ class SecurityAdminPage extends Page
 
         $this->dormantAdmins = AdminUser::query()
             ->where('is_active', true)
-            ->where(function (Builder $query) use ($cutoff): void {
-                $query->whereNull('last_login_at')
-                    ->orWhere('last_login_at', '<', $cutoff);
-            })
+            ->whereRaw("(last_login_at IS NULL OR last_login_at < ?)", [$cutoff])
             ->orderBy('last_login_at')
             ->get(['id', 'name', 'email', 'last_login_at'])
             ->map(function (AdminUser $admin): array {

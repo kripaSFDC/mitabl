@@ -36,6 +36,7 @@ class ActivateDuePoliciesCommand extends Command
                     ->lockForUpdate()
                     ->get(['id']);
 
+                /** @var Policy|null $target */
                 $target = Policy::query()
                     ->where('name', $name)
                     ->where('active', false)
@@ -49,6 +50,7 @@ class ActivateDuePoliciesCommand extends Command
                     return;
                 }
 
+                /** @var Policy|null $previousActive */
                 $previousActive = Policy::query()
                     ->where('name', $name)
                     ->where('active', true)

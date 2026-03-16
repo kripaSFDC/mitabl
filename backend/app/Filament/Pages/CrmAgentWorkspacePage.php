@@ -36,8 +36,10 @@ class CrmAgentWorkspacePage extends Page
     {
         $this->loadQueue();
 
-        if ($this->selectedTicketId === null && count($this->queue) > 0) {
-            $this->selectTicket((int) $this->queue[0]['id']);
+        $queue = $this->queue;
+        if ($this->selectedTicketId === null && count($queue) > 0) {
+            $first = (array) $queue[0];
+            $this->selectTicket((int) ($first['id'] ?? 0));
         }
     }
 
@@ -173,11 +175,7 @@ class CrmAgentWorkspacePage extends Page
 
         return Template::query()
             ->where('active', true)
-            ->where(function (Builder $query): void {
-                $query->where('channel', 'support')
-                    ->orWhere('channel', 'support_ticket')
-                    ->orWhereNull('channel');
-            })
+            ->whereRaw("(channel IN ('support', 'support_ticket') OR channel IS NULL)")
             ->limit(40)
             ->get()
             ->map(function (Template $template) use ($hints): array {
@@ -211,10 +209,7 @@ class CrmAgentWorkspacePage extends Page
         $candidates = SupportTicket::query()
             ->where('id', '!=', $ticket->id)
             ->whereNull('merged_into_ticket_id')
-            ->where(function (Builder $query) use ($ticket): void {
-                $query->where('requester_email', $ticket->requester_email)
-                    ->orWhere('category', $ticket->category);
-            })
+            ->whereRaw("(requester_email = ? OR category = ?)", [$ticket->requester_email, $ticket->category])
             ->latest('updated_at')
             ->limit(25)
             ->get(['id', 'ticket_number', 'subject', 'status', 'resolution_summary', 'updated_at']);
