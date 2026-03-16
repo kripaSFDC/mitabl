@@ -259,8 +259,18 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
 
       if (_isSuccessfulResponse(switchResponse.statusCode)) {
+        final switchPayload = _decodeResponsePayload(switchResponse.body);
+        final switchTransition = _extractRoleTransition(switchPayload);
+        final switchNeedsOnboarding = _isOnboardingRequired(switchTransition);
+
         await userRepository.refreshRoleMembershipState();
         if (!mounted) return;
+
+        if (switchNeedsOnboarding) {
+          await _continueCookOnboarding(switchTransition);
+          return;
+        }
+
         navigatorKey.currentState!.pushNamedAndRemoveUntil(
           '/DashboardCook',
           (route) => false,

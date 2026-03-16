@@ -141,6 +141,64 @@ void main() {
     expect(userRepository.switchRoleCalls, 1);
   });
 
+  testWidgets('register as micook CTA keeps onboarding flow when switch still needs setup',
+      (tester) async {
+    final userRepository = _FakeUserRepository(
+      userToReturn: UserModel.fromJson({
+        'data': {
+          'access_token': 'token',
+          'token_type': 'Bearer',
+          'user': {'id': 1, 'role': 'Foodie', 'role_id': 3}
+        }
+      }),
+      startCookOnboardingResponse: http.Response(
+        '{"data":{"role_transition":{"onboarding_required":false}}}',
+        200,
+      ),
+      switchResponse: http.Response(
+        '{"data":{"role_transition":{"onboarding_required":true,"next_required_step":"vendor_account"}}}',
+        200,
+      ),
+    );
+
+    final authenticationRepository = AuthenticationRepository(
+      userRepository: userRepository,
+    );
+
+    await tester.pumpWidget(
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<UserRepository>.value(value: userRepository),
+          RepositoryProvider<AuthenticationRepository>.value(
+            value: authenticationRepository,
+          ),
+        ],
+        child: BlocProvider(
+          create: (context) => ProfileFoodieCubit(
+            userRepository: userRepository,
+            authenticationRepository: authenticationRepository,
+          ),
+          child: MaterialApp(
+            routes: {
+              '/CookProfile': (_) => const Scaffold(body: Text('cook profile')),
+            },
+            home: const ProfileFoodiePage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.text('Register as micook'));
+    await tester.pumpAndSettle();
+
+    expect(userRepository.startCookOnboardingCalls, 1);
+    expect(userRepository.switchRoleCalls, 1);
+    expect(find.text('cook profile'), findsOneWidget);
+  });
+
   testWidgets('miorders page keeps empty-state for successful empty payload',
       (tester) async {
     await _pumpWithProviders(
@@ -350,15 +408,17 @@ class _FakeUserRepository extends UserRepository {
   _FakeUserRepository({
     this.switchResponse,
     this.startCookOnboardingResponse,
+    this.userToReturn,
   });
 
   final http.Response? switchResponse;
   final http.Response? startCookOnboardingResponse;
+  final UserModel? userToReturn;
   int switchRoleCalls = 0;
   int startCookOnboardingCalls = 0;
 
   @override
-  Future<UserModel?> getUser() async => null;
+  Future<UserModel?> getUser() async => userToReturn;
 
   @override
   Future<http.Response> switchRole({required int roleId}) async {
