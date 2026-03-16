@@ -7,6 +7,7 @@ import 'package:mitabl_user/helper/app_logger.dart';
 import 'package:mitabl_user/repos/auth_headers.dart' as auth_headers;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/get_profile_model.dart' as profile_model;
 import '../model/user_model.dart';
 
 class UserRepository {
@@ -265,7 +266,12 @@ class UserRepository {
     }
   }
 
-  Future<void> syncCurrentUserRole({String? roleName, dynamic roleId}) async {
+
+  Future<void> syncCurrentUserRoleState({
+    String? roleName,
+    dynamic roleId,
+    List<profile_model.AvailableRoleMembership>? availableRoles,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final secureJson = await _secureStorage.read(key: _secureCurrentUserKey);
     final storedJson = secureJson ?? prefs.getString('current_user');
@@ -298,10 +304,42 @@ class UserRepository {
       user['role_id'] = parsedRoleId;
     }
 
+    if (availableRoles != null) {
+      user['available_roles'] =
+          availableRoles.map((role) => role.toJson()).toList();
+    }
+
     final normalized = json.encode(root);
     await _secureStorage.write(key: _secureCurrentUserKey, value: normalized);
     await prefs.remove('current_user');
     await updateUserInstance();
+  }
+
+  Future<void> syncAvailableRolesFromProfile(profile_model.Data? profileData) async {
+    if (profileData == null) return;
+    await syncCurrentUserRoleState(
+      roleName: profileData.role,
+      roleId: profileData.roleId,
+      availableRoles: profileData.availableRoles,
+    );
+  }
+
+  Future<void> refreshRoleMembershipState() async {
+    try {
+      final response = await getCookProfile();
+      if (response.statusCode != 200) {
+        return;
+      }
+      final profile =
+          profile_model.GetCookProfileModel.fromJson(jsonDecode(response.body));
+      await syncAvailableRolesFromProfile(profile.data);
+    } catch (e) {
+      AppLogger.error('Failed to refresh role membership state', e);
+    }
+  }
+
+  Future<void> syncCurrentUserRole({String? roleName, dynamic roleId}) async {
+    await syncCurrentUserRoleState(roleName: roleName, roleId: roleId);
   }
 
   Future<http.Response> deleteAccount() async {

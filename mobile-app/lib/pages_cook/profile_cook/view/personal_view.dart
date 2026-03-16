@@ -25,30 +25,57 @@ class PersonalTabView extends StatefulWidget {
 class _PersonalTabViewState extends State<PersonalTabView> {
   bool _switchingRole = false;
 
-  String _mifoodiCtaText(ProfileCookState state) {
-    final membership = state.cookProfile?.data?.foodieRoleMembership;
-    if (membership == null) {
-      return 'Switch to mifoodi';
+  dynamic _targetMifoodiRole(ProfileCookState state) {
+    final availableRoles = state.cookProfile?.data?.availableRoles ?? const [];
+    for (final role in availableRoles) {
+      final normalizedRole = role.role?.trim().toLowerCase();
+      if (role.roleId == AppConstants.FOODI ||
+          normalizedRole == 'mifoodi' ||
+          normalizedRole == 'foodie' ||
+          normalizedRole == 'foodi') {
+        return role;
+      }
     }
+    return null;
+  }
 
-    if (membership.exists == false) {
+  String _mifoodiCtaText(ProfileCookState state) {
+    final role = _targetMifoodiRole(state);
+    if (role == null) {
       return 'Register as mifoodi';
     }
 
-    if (membership.onboardingRequired) {
+    final status = role.status?.toLowerCase();
+    if (status == 'disabled') {
+      return 'mifoodi disabled';
+    }
+
+    if (role.onboarding) {
       return 'Continue mifoodi setup';
     }
 
-    if (membership.active) {
+    if (status == 'active') {
       return 'Switch to mifoodi';
     }
 
-    return 'Continue mifoodi setup';
+    return 'Register as mifoodi';
   }
 
   bool _shouldRegisterMifoodi(ProfileCookState state) {
-    final membership = state.cookProfile?.data?.foodieRoleMembership;
-    return membership != null && membership.exists == false;
+    final role = _targetMifoodiRole(state);
+    if (role == null) return true;
+
+    final status = role.status?.toLowerCase();
+    return !(status == 'active' || role.onboarding || status == 'disabled');
+  }
+
+  bool _mifoodiTransitionDisabled(ProfileCookState state) {
+    final role = _targetMifoodiRole(state);
+    return role?.status?.toLowerCase() == 'disabled';
+  }
+
+  String _disabledMifoodiMessage() {
+    return 'mifoodi access is currently disabled. Please contact support for help.';
   }
 
   String _mifoodiStepDescription(String? step) {
@@ -105,6 +132,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
             SnackBar(content: Text(_mifoodiStepDescription(step))),
           );
         } else {
+          await userRepository.refreshRoleMembershipState();
+          if (!mounted) return;
           navigatorKey.currentState!.pushNamedAndRemoveUntil(
             '/HomePage',
             (route) => false,
@@ -113,7 +142,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         return;
       }
 
-      String message = 'Register as mifoodi to continue.';
+      String message = 'Register as mifoodi from onboarding before switching roles.';
       try {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final transitionMap = _extractRoleTransition(payload);
@@ -252,11 +281,17 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                       onTap: _switchingRole
                           ? null
                           : () {
+                              if (_mifoodiTransitionDisabled(state)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(_disabledMifoodiMessage())),
+                                );
+                                return;
+                              }
                               if (_shouldRegisterMifoodi(state)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Register as mifoodi to continue.',
+                                      'Register as mifoodi from onboarding to enable role switching.',
                                     ),
                                   ),
                                 );

@@ -40,6 +40,7 @@ class Data {
   Kitchen? kitchen;
   RoleMembership? cookRoleMembership;
   RoleMembership? foodieRoleMembership;
+  List<AvailableRoleMembership> availableRoles;
 
   Data(
       {this.id,
@@ -55,7 +56,8 @@ class Data {
       this.role,
       this.kitchen,
       this.cookRoleMembership,
-      this.foodieRoleMembership});
+      this.foodieRoleMembership,
+      this.availableRoles = const []});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = _asInt(json['id']);
@@ -71,6 +73,17 @@ class Data {
     role = json['role'];
     kitchen =
         json['kitchen'] != null ? Kitchen.fromJson(json['kitchen']) : null;
+
+    final availableRolesJson = json['available_roles'];
+    if (availableRolesJson is List) {
+      availableRoles = availableRolesJson
+          .whereType<Map<String, dynamic>>()
+          .map(AvailableRoleMembership.fromJson)
+          .toList();
+    } else {
+      availableRoles = const [];
+    }
+
     cookRoleMembership = RoleMembership.fromProfileJson(
       json,
       roleAliases: const [
@@ -110,6 +123,8 @@ class Data {
     if (foodieRoleMembership != null) {
       data['foodie_role_membership'] = foodieRoleMembership!.toJson();
     }
+    data['available_roles'] =
+        availableRoles.map((role) => role.toJson()).toList();
     return data;
   }
 }
@@ -119,13 +134,17 @@ class RoleMembership {
   final bool active;
   final bool onboardingRequired;
   final String? nextRequiredStep;
+  final String? status;
 
   const RoleMembership({
     required this.exists,
     required this.active,
     required this.onboardingRequired,
     this.nextRequiredStep,
+    this.status,
   });
+
+  bool get isDisabled => status?.toLowerCase() == 'disabled';
 
   factory RoleMembership.fromJson(Map<String, dynamic> json) {
     final onboardingRequired = _asBool(
@@ -148,6 +167,7 @@ class RoleMembership {
       active: active,
       onboardingRequired: onboardingRequired,
       nextRequiredStep: json['next_required_step']?.toString(),
+      status: json['status']?.toString(),
     );
   }
 
@@ -157,6 +177,7 @@ class RoleMembership {
       'active': active,
       'onboarding_required': onboardingRequired,
       'next_required_step': nextRequiredStep,
+      'status': status,
     };
   }
 
@@ -183,6 +204,20 @@ class RoleMembership {
       }
     }
 
+
+    final availableRoles = profileJson['available_roles'];
+    if (availableRoles is List) {
+      for (final item in availableRoles) {
+        if (item is! Map<String, dynamic>) continue;
+        final roleValue = item['role']?.toString().toLowerCase();
+        final roleId = item['role_id']?.toString().toLowerCase();
+        if (normalizedAliases.contains(roleValue) ||
+            (roleId != null && normalizedAliases.contains(roleId))) {
+          return RoleMembership.fromJson(item);
+        }
+      }
+    }
+
     for (final alias in normalizedAliases) {
       final directMembership = profileJson['${alias}_membership'] ??
           profileJson['${alias}_role_membership'];
@@ -192,6 +227,42 @@ class RoleMembership {
     }
 
     return null;
+  }
+}
+
+
+class AvailableRoleMembership {
+  final int? roleId;
+  final String? role;
+  final String? status;
+  final bool onboarding;
+
+  const AvailableRoleMembership({
+    this.roleId,
+    this.role,
+    this.status,
+    this.onboarding = false,
+  });
+
+  bool get isDisabled => status?.toLowerCase() == 'disabled';
+  bool get isActive => status?.toLowerCase() == 'active';
+
+  factory AvailableRoleMembership.fromJson(Map<String, dynamic> json) {
+    return AvailableRoleMembership(
+      roleId: _asInt(json['role_id']),
+      role: json['role']?.toString(),
+      status: json['status']?.toString(),
+      onboarding: _asBool(json['onboarding'] ?? json['onboarding_required']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'role_id': roleId,
+      'role': role,
+      'status': status,
+      'onboarding': onboarding,
+    };
   }
 }
 

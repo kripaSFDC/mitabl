@@ -35,23 +35,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return statusCode >= 200 && statusCode < 300;
   }
 
-  bool _isOnboardingRequired(dynamic onboardingRequired) {
-    if (onboardingRequired is bool) {
-      return onboardingRequired;
-    }
-
-    if (onboardingRequired is String) {
-      final normalized = onboardingRequired.trim().toLowerCase();
-      return normalized == 'true' || normalized == '1' || normalized == 'yes';
-    }
-
-    if (onboardingRequired is num) {
-      return onboardingRequired != 0;
-    }
-
-    return false;
-  }
-
   Map<String, dynamic> _decodeResponsePayload(String rawBody) {
     if (rawBody.trim().isEmpty) {
       return <String, dynamic>{};
@@ -80,6 +63,74 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     return fallback;
   }
 
+  dynamic _targetMicookRole(ProfileFoodieState state) {
+    final availableRoles = state.foodieProfile?.data?.availableRoles ?? const [];
+    for (final role in availableRoles) {
+      final normalizedRole = role.role?.trim().toLowerCase();
+      if (role.roleId == AppConstants.COOK ||
+          normalizedRole == 'micook' ||
+          normalizedRole == 'mikitchn' ||
+          normalizedRole == 'cook' ||
+          normalizedRole == 'restaurant' ||
+          normalizedRole == 'vendor') {
+        return role;
+      }
+    }
+    return null;
+  }
+
+  bool _isOnboardingRequired(Map<String, dynamic> transition) {
+    final value = transition['onboarding_required'];
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+    return false;
+  }
+
+  String _onboardingStepDescription(String? step) {
+    switch (step) {
+      case 'kitchen_profile':
+        return 'Complete your mikitchn profile to continue micook setup.';
+      case 'certificate':
+        return 'Upload your kitchen certification to continue micook setup.';
+      case 'payout_setup':
+      case 'vendor_account':
+        return 'Finish payout account setup to continue micook setup.';
+      default:
+        return 'Continue micook setup from your profile to unlock switching.';
+    }
+  }
+
+  String _disabledMicookMessage() {
+    return 'micook access is currently disabled. Please contact support for reactivation.';
+  }
+
+  String _micookCtaText(ProfileFoodieState state) {
+    final role = _targetMicookRole(state);
+    if (role == null) return 'Register as micook';
+
+    final status = role.status?.toLowerCase();
+    if (status == 'disabled') return 'micook disabled';
+    if (role.onboarding) return 'Continue micook setup';
+    if (status == 'active') return 'Switch to micook';
+    return 'Register as micook';
+  }
+
+  bool _micookTransitionDisabled(ProfileFoodieState state) {
+    final role = _targetMicookRole(state);
+    return role?.status?.toLowerCase() == 'disabled';
+  }
+
+  bool _shouldRegisterMicook(ProfileFoodieState state) {
+    final role = _targetMicookRole(state);
+    if (role == null) return true;
+    final status = role.status?.toLowerCase();
+    return !(status == 'active' || role.onboarding || status == 'disabled');
+  }
+
   Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
     final data = payload['data'];
     if (data is Map<String, dynamic>) {
@@ -102,41 +153,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     }
 
     return payload;
-  }
-
-  String _onboardingStepDescription(String? step) {
-    switch (step) {
-      case 'kitchen_profile':
-        return 'Please set up your mikitchn profile to continue as micook.';
-      case 'certificate':
-        return 'Please upload your kitchen certification to continue as micook.';
-      case 'payout_setup':
-      case 'vendor_account':
-        return 'Please complete payout account setup to continue as micook.';
-      default:
-        return 'Complete your remaining micook setup steps in your profile to continue.';
-    }
-  }
-
-  Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
-    final data = payload['data'];
-    final transition = data is Map<String, dynamic>
-        ? data['role_transition']
-        : null;
-    return transition is Map<String, dynamic>
-        ? transition
-        : <String, dynamic>{};
-  }
-
-  bool _isOnboardingRequired(Map<String, dynamic> transition) {
-    final value = transition['onboarding_required'];
-    if (value is bool) return value;
-    if (value is num) return value != 0;
-    if (value is String) {
-      final normalized = value.trim().toLowerCase();
-      return normalized == 'true' || normalized == '1' || normalized == 'yes';
-    }
-    return false;
   }
 
   Future<void> _continueCookOnboarding(Map<String, dynamic> transition) async {
@@ -170,37 +186,6 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadBiometricPreference();
-  }
-
-  Future<void> _loadBiometricPreference() async {
-    final enabled = await BiometricService.instance.isEnabled();
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
-  }
-
-  Future<void> _onBiometricChanged(bool enabled) async {
-    final available = await BiometricService.instance.isAvailable();
-    if (!available && enabled) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Biometric authentication is not available on this device.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    await BiometricService.instance.setEnabled(enabled);
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
-  }
-
   Future<void> _switchToMicook() async {
     if (_switchingRole) return;
 
@@ -213,7 +198,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!_isSuccessfulResponse(activationResponse.statusCode)) {
         final message = _extractResponseMessage(
           activationResponse.body,
-          fallback: 'micook profile is not available for this account.',
+          fallback: 'Register as micook to begin onboarding before switching.',
         );
         ScaffoldMessenger.of(
           context,
@@ -238,6 +223,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
       if (!mounted) return;
 
       if (_isSuccessfulResponse(switchResponse.statusCode)) {
+        await userRepository.refreshRoleMembershipState();
+        if (!mounted) return;
         navigatorKey.currentState!.pushNamedAndRemoveUntil(
           '/DashboardCook',
           (route) => false,
@@ -247,7 +234,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
       final message = _extractResponseMessage(
         switchResponse.body,
-        fallback: 'Unable to switch to micook right now. Please try again.',
+        fallback: 'We could not switch to micook yet. Complete remaining setup steps and try again.',
       );
       ScaffoldMessenger.of(
         context,
@@ -402,11 +389,17 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                     onTap: _switchingRole
                         ? null
                         : () {
+                            if (_micookTransitionDisabled(state)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(_disabledMicookMessage())),
+                              );
+                              return;
+                            }
                             if (_shouldRegisterMicook(state)) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Register as micook to continue.',
+                                    'Register as micook from onboarding to enable role switching.',
                                   ),
                                 ),
                               );

@@ -54,8 +54,15 @@ class User {
   String? name;
   String? role;
   int? roleId;
+  List<AvailableRole> availableRoles;
 
-  User({this.id, this.name, this.role, this.roleId});
+  User({
+    this.id,
+    this.name,
+    this.role,
+    this.roleId,
+    this.availableRoles = const [],
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -67,6 +74,16 @@ class User {
     } else if (roleIdValue is String) {
       roleId = int.tryParse(roleIdValue);
     }
+
+    final rolesJson = json['available_roles'];
+    if (rolesJson is List) {
+      availableRoles = rolesJson
+          .whereType<Map<String, dynamic>>()
+          .map(AvailableRole.fromJson)
+          .toList();
+    } else {
+      availableRoles = const [];
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -75,6 +92,56 @@ class User {
     data['name'] = name;
     data['role'] = role;
     data['role_id'] = roleId;
+    data['available_roles'] = availableRoles.map((role) => role.toJson()).toList();
     return data;
+  }
+}
+
+class AvailableRole {
+  int? roleId;
+  String? role;
+  String? status;
+  bool onboarding;
+
+  AvailableRole({
+    this.roleId,
+    this.role,
+    this.status,
+    this.onboarding = false,
+  });
+
+  factory AvailableRole.fromJson(Map<String, dynamic> json) {
+    final roleIdValue = json['role_id'];
+    int? parsedRoleId;
+    if (roleIdValue is int) {
+      parsedRoleId = roleIdValue;
+    } else if (roleIdValue is String) {
+      parsedRoleId = int.tryParse(roleIdValue);
+    }
+
+    final onboardingValue = json['onboarding'] ?? json['onboarding_required'];
+    final onboarding = onboardingValue is bool
+        ? onboardingValue
+        : onboardingValue is num
+        ? onboardingValue != 0
+        : onboardingValue is String
+        ? ['true', '1', 'yes'].contains(onboardingValue.trim().toLowerCase())
+        : false;
+
+    return AvailableRole(
+      roleId: parsedRoleId,
+      role: json['role']?.toString(),
+      status: json['status']?.toString(),
+      onboarding: onboarding,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'role_id': roleId,
+      'role': role,
+      'status': status,
+      'onboarding': onboarding,
+    };
   }
 }
