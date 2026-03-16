@@ -47,6 +47,24 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
   bool _switchingRole = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricPreference();
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    final enabled = await BiometricService.instance.isEnabled();
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
+  }
+
+  Future<void> _onBiometricChanged(bool enabled) async {
+    await BiometricService.instance.setEnabled(enabled);
+    if (!mounted) return;
+    setState(() => _biometricEnabled = enabled);
+  }
+
   bool _isSuccessfulResponse(int statusCode) {
     return statusCode >= 200 && statusCode < 300;
   }
