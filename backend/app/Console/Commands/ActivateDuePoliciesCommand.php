@@ -26,6 +26,10 @@ class ActivateDuePoliciesCommand extends Command
             ->pluck('name');
 
         foreach ($names as $name) {
+            if (! is_string($name) || $name === '') {
+                continue;
+            }
+
             DB::transaction(function () use ($name, &$activated): void {
                 Policy::query()
                     ->where('name', $name)

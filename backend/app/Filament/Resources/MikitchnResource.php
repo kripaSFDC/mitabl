@@ -61,7 +61,7 @@ class MikitchnResource extends Resource
                             ->columnSpanFull()
                             ->helperText('Short description shown on the kitchen profile card.'),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 2]),
 
                 Forms\Components\Section::make('Geo & Capacity')
                     ->description('GPS coordinates are required for proximity search. Seats are the max dine-in capacity.')
@@ -90,7 +90,7 @@ class MikitchnResource extends Resource
                             ->columnSpanFull()
                             ->helperText('Store schedule payload exactly as provided by operations/mobile.'),
                     ])
-                    ->columns(3),
+                    ->columns(['default' => 3]),
 
                 Forms\Components\Section::make('Service & Status')
                     ->description('Control which service modes are offered and whether the kitchen is active on the platform. Activation requires an approved certificate.')
@@ -114,7 +114,7 @@ class MikitchnResource extends Resource
                             ->required()
                             ->helperText('Use the Activate/Deactivate row actions on the list for safe status transitions.'),
                     ])
-                    ->columns(4),
+                    ->columns(['default' => 4]),
 
                 Forms\Components\Section::make('Certificate Review')
                     ->description('Read-only summary of the current certificate attached to this kitchen. Use the Review Certificate row action on the Certificates resource for approve/reject.')
@@ -147,7 +147,7 @@ class MikitchnResource extends Resource
                                 return 'Go to the Certificates resource → find this kitchen → use the Review Workspace action.';
                             }),
                     ])
-                    ->columns(3)
+                    ->columns(['default' => 3])
                     ->collapsible()
                     ->visible(fn (?Mikitchn $record): bool => (bool) $record),
 
@@ -163,7 +163,7 @@ class MikitchnResource extends Resource
                         Forms\Components\Placeholder::make('updated_at')
                             ->content(fn (?Mikitchn $record): string => (string) ($record?->updated_at?->toDateTimeString() ?? '-')),
                     ])
-                    ->columns(3)
+                    ->columns(['default' => 3])
                     ->collapsible()
                     ->visible(fn (?Mikitchn $record): bool => (bool) $record),
             ]);
@@ -184,7 +184,10 @@ class MikitchnResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => (int) $state === 1 ? 'Active' : 'Inactive')
-                    ->color(fn ($state): string => (int) $state === 1 ? 'success' : 'gray'),
+                    ->colors([
+                        'success' => 1,
+                        'gray' => 0,
+                    ]),
                 Tables\Columns\TextColumn::make('certificate_status')
                     ->label('Certificate')
                     ->state(function (Mikitchn $record): string {
@@ -198,14 +201,11 @@ class MikitchnResource extends Resource
                         };
                     })
                     ->badge()
-                    ->color(function (string $state): string {
-                        return match ($state) {
-                            'Approved' => 'success',
-                            'Rejected' => 'danger',
-                            'Pending' => 'warning',
-                            default => 'gray',
-                        };
-                    }),
+                    ->colors([
+                        'success' => 'Approved',
+                        'danger' => 'Rejected',
+                        'warning' => 'Pending',
+                    ]),
                 Tables\Columns\TextColumn::make('user.first_name')
                     ->label('Cook')
                     ->formatStateUsing(fn (?string $state, Mikitchn $record): string => trim((optional($record->user)->first_name ?? '') . ' ' . (optional($record->user)->last_name ?? '')))

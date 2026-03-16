@@ -61,7 +61,7 @@ class CertificateResource extends Resource
                             ])
                             ->required(),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 2]),
 
                 Forms\Components\Section::make('Certificate & Review')
                     ->description('Document reference and the current review outcome. Use the Approve / Reject row actions for safe status transitions with audit trail.')
@@ -91,7 +91,7 @@ class CertificateResource extends Resource
                             ->helperText('Provide reason when status is Rejected. Emailed to the cook.')
                             ->visible(fn (Forms\Get $get): bool => (int) $get('status') === 2),
                     ])
-                    ->columns(2),
+                    ->columns(['default' => 2]),
 
                 Forms\Components\Section::make('System Fields')
                     ->schema([
@@ -110,7 +110,7 @@ class CertificateResource extends Resource
                         Forms\Components\Placeholder::make('updated_at')
                             ->content(fn (?Certificate $record): string => (string) ($record?->updated_at?->toDateTimeString() ?? '-')),
                     ])
-                    ->columns(3)
+                    ->columns(['default' => 3])
                     ->collapsible()
                     ->visible(fn (?Certificate $record): bool => (bool) $record),
             ]);
@@ -129,12 +129,11 @@ class CertificateResource extends Resource
                         2 => 'Rejected',
                         default => 'Unknown',
                     })
-                    ->color(fn (int $state): string => match ($state) {
-                        0 => 'warning',
-                        1 => 'success',
-                        2 => 'danger',
-                        default => 'gray',
-                    })
+                    ->colors([
+                        'warning' => 0,
+                        'success' => 1,
+                        'danger' => 2,
+                    ])
                     ->sortable(),
                 Tables\Columns\TextColumn::make('certificate_no')
                     ->label('Certificate #')
@@ -169,7 +168,10 @@ class CertificateResource extends Resource
                     ->label('GST')
                     ->formatStateUsing(fn (?int $state): string => (int) $state === 1 ? 'Yes' : 'No')
                     ->badge()
-                    ->color(fn (?int $state): string => (int) $state === 1 ? 'success' : 'gray')
+                    ->colors([
+                        'success' => 1,
+                        'gray' => 0,
+                    ])
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('rejection_reason')
                     ->limit(45)

@@ -58,7 +58,7 @@ class PromoCodeResource extends Resource
                             ->default(true)
                             ->helperText('Use the Activate / Deactivate row actions for safe status transitions with audit log.'),
                     ])
-                    ->columns(3),
+                    ->columns(['default' => 3]),
 
                 Forms\Components\Section::make('Validity Window')
                     ->description('Optionally restrict the code to a specific date range. Outside this window the code will be rejected at checkout even if Active.')
@@ -74,7 +74,7 @@ class PromoCodeResource extends Resource
                             ->after('starts_at')
                             ->helperText('Leave empty for no expiry.'),
                     ])
-                    ->columns(2)
+                    ->columns(['default' => 2])
                     ->collapsible(),
             ]);
     }
@@ -87,7 +87,10 @@ class PromoCodeResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->formatStateUsing(fn ($state): string => (int) $state === 1 ? 'Active' : 'Inactive')
-                    ->color(fn ($state): string => (int) $state === 1 ? 'success' : 'gray'),
+                    ->colors([
+                        'success' => 1,
+                        'gray' => 0,
+                    ]),
                 Tables\Columns\TextColumn::make('code')
                     ->searchable()
                     ->sortable()

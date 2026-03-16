@@ -58,7 +58,7 @@ class TemplateResource extends Resource
                         ->content(fn (?Template $record): string => $record ? 'v' . $record->version : 'New template')
                         ->visible(fn (?Template $record): bool => $record !== null),
                 ])
-                ->columns(2),
+                ->columns(['default' => 2]),
 
             Forms\Components\Section::make('Template Body')
                 ->description('JSON payload defining the template content and variable placeholders. Use {{ variable }} syntax for interpolated values. Click "Create new draft" on the list to version this template safely.')
@@ -74,7 +74,7 @@ class TemplateResource extends Resource
                             return json_encode($record?->body ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
                         }),
                 ])
-                ->columns(1),
+                ->columns(['default' => 1]),
         ]);
     }
 
@@ -94,12 +94,11 @@ class TemplateResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('channel')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'email' => 'info',
-                        'notification' => 'warning',
-                        'system' => 'gray',
-                        default => 'gray',
-                    })
+                    ->colors([
+                        'info' => 'email',
+                        'warning' => 'notification',
+                        'gray' => 'system',
+                    ])
                     ->sortable(),
                 Tables\Columns\TextColumn::make('version')
                     ->badge()

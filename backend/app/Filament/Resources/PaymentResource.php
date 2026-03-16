@@ -41,12 +41,11 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable()
-                    ->color(fn (string $state): string => match (strtolower($state)) {
-                        'succeeded', 'paid', 'captured' => 'success',
-                        'pending', 'processing' => 'warning',
-                        'failed', 'cancelled', 'refunded' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'success' => ['succeeded', 'paid', 'captured'],
+                        'warning' => ['pending', 'processing'],
+                        'danger' => ['failed', 'cancelled', 'refunded'],
+                    ]),
                 Tables\Columns\IconColumn::make('confirm')
                     ->label('Confirmed')
                     ->boolean(),
@@ -89,11 +88,10 @@ class PaymentResource extends Resource
 
                         return 'Not Refunded';
                     })
-                    ->color(fn (string $state): string => match ($state) {
-                        'Full Refunded' => 'success',
-                        'Partial Refunded' => 'warning',
-                        default => 'gray',
-                    }),
+                    ->colors([
+                        'success' => 'Full Refunded',
+                        'warning' => 'Partial Refunded',
+                    ]),
                 Tables\Columns\TextColumn::make('card_id')
                     ->label('Card')
                     ->formatStateUsing(function (?string $state): string {
@@ -138,14 +136,12 @@ class PaymentResource extends Resource
                 Tables\Filters\TernaryFilter::make('confirm')
                     ->label('Confirmed'),
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(function (): array {
-                        return Payment::query()
-                            ->select('status')
-                            ->distinct()
-                            ->orderBy('status')
-                            ->pluck('status', 'status')
-                            ->toArray();
-                    }),
+                    ->options(Payment::query()
+                        ->select('status')
+                        ->distinct()
+                        ->orderBy('status')
+                        ->pluck('status', 'status')
+                        ->toArray()),
             ])
             ->actions([
                 Action::make('open_in_stripe')

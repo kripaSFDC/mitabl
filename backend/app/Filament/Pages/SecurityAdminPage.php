@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\AdminUser;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Role;
 
 class SecurityAdminPage extends Page
@@ -38,7 +39,7 @@ class SecurityAdminPage extends Page
 
         $this->dormantAdmins = AdminUser::query()
             ->where('is_active', true)
-            ->where(function ($query) use ($cutoff) {
+            ->where(function (Builder $query) use ($cutoff): void {
                 $query->whereNull('last_login_at')
                     ->orWhere('last_login_at', '<', $cutoff);
             })
@@ -57,7 +58,7 @@ class SecurityAdminPage extends Page
         $adminsTotal = AdminUser::query()->count();
         $adminsActive = AdminUser::query()->where('is_active', true)->count();
         $iamManagers = AdminUser::query()
-            ->whereHas('roles', fn ($query) => $query->where('name', 'super_admin')->orWhere('name', 'platform_admin'))
+            ->whereHas('roles', fn (Builder $query): Builder => $query->where('name', 'super_admin')->orWhere('name', 'platform_admin'))
             ->count();
         $definedRoles = Role::query()->where('guard_name', 'admin')->count();
 

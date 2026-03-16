@@ -113,7 +113,7 @@ class PlatformSettingsPage extends Page implements HasForms
                                     ->helperText(fn (Forms\Get $get): string => 'Must be valid JSON. ' . $this->settingHelpForKey((string) $get('key')))
                                     ->visible(fn (Forms\Get $get): bool => $get('value_type') === 'json'),
                             ])
-                            ->columns(2)
+                            ->columns(['default' => 2])
                             ->collapsible()
                             ->cloneable()
                             ->reorderable(false),

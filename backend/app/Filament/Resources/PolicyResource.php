@@ -65,7 +65,7 @@ class PolicyResource extends Resource
                             return json_encode($record?->definition ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
                         }),
                 ])
-                ->columns(2),
+                ->columns(['default' => 2]),
         ]);
     }
 
