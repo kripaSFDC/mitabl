@@ -375,6 +375,7 @@ class OrderController extends Controller
         }
 
         if ($request->filled('promo_code')) {
+            /** @var PromoCode|null $promoCode */
             $promoCode = PromoCode::query()
                 ->where('id', (int) $request->input('promo_code'))
                 ->where('status', 1)
@@ -390,10 +391,11 @@ class OrderController extends Controller
             }
         }
 
+        /** @var \App\Models\User $user */
         $user = $this->authenticatedUser('api');
         try {
             /** @var array<string, mixed> $validated */
-            $validated = $validator->validated();
+            $validated = (array) $validator->validated();
             $cardReference = $validated['card_id'] ?? null;
             $paymentMethodId = $validated['payment_method_id'] ?? null;
             $shouldInitializePayment = trim((string) $cardReference) !== ''
@@ -504,6 +506,7 @@ class OrderController extends Controller
             throw new \RuntimeException('Payment intent has not been initialized for this order. miFoodi must select a payment method before miCook can accept.');
         }
 
+        /** @var \App\Models\User|null $orderUser */
         $orderUser = $order->user;
         if (! $orderUser) {
             throw new \RuntimeException('Order owner not found for payment confirmation.');
