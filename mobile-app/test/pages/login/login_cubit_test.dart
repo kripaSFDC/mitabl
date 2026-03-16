@@ -122,6 +122,45 @@ void main() {
       wait: const Duration(milliseconds: 500),
     );
 
+
+    test('normalizes login payload before sending it to backend', () async {
+      final capturedBodies = <Map<String, dynamic>>[];
+      final mockUserRepo = _MockUserRepository();
+      when(() => mockUserRepo.setCurrentUser(any())).thenAnswer((_) async {});
+
+      final cubit = _buildCubit(
+        mockClient: MockClient((request) async {
+          capturedBodies.add(
+            jsonDecode(request.body) as Map<String, dynamic>,
+          );
+          return http.Response(
+            jsonEncode({
+              'response_code': 200,
+              'isSuccess': true,
+              'data': {
+                'access_token': 'token-abc',
+                'token_type': 'bearer',
+                'user': {'id': 1, 'role': 'Foodie'},
+              },
+            }),
+            200,
+          );
+        }),
+        userRepo: mockUserRepo,
+      );
+
+      cubit.onEmailChanged(value: '  TEST@Example.com  ');
+      cubit.onPasswordChanged(value: '  Password1!  ');
+      await Future.microtask(cubit.doLogin);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(capturedBodies, hasLength(1));
+      expect(capturedBodies.first['email'], 'test@example.com');
+      expect(capturedBodies.first['username'], 'test@example.com');
+      expect(capturedBodies.first['password'], 'Password1!');
+
+      await cubit.close();
+    });
     blocTest<LoginCubit, LoginState>(
       'emits submissionFailure with offline message when device is offline',
       build: () => _buildCubit(
