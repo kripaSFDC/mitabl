@@ -40,20 +40,37 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
       //         .toList();
 
       // List<String>? value=[];
-      var valueDays = (jsonDecode(cookProfile.data!.kitchen!.timings!));
+      final timingsJson = cookProfile.data?.kitchen?.timings;
+      final valueDays =
+          timingsJson != null && timingsJson.isNotEmpty
+          ? jsonDecode(timingsJson)
+          : <String, dynamic>{'days': []};
       TimingModel timingModel = TimingModel.fromJson(valueDays);
+
+      final firstName = Name.dirty(cookProfile.data?.firstName ?? '');
+      final lastName = Name.dirty(cookProfile.data?.lastName ?? '');
+      final description = Name.dirty(cookProfile.data?.description ?? '');
+      final phone = Phone.dirty(cookProfile.data?.phone?.toString() ?? '');
+      final email = Email.dirty(cookProfile.data?.email?.toString() ?? '');
 
       emit(
         state.copyWith(
-          daysTiming: timingModel.days!,
-          daysTimingOriginal: timingModel.days!,
-          firstName: Name.dirty(cookProfile.data!.firstName!),
-          lastName: Name.dirty(cookProfile.data!.lastName!),
-          description: Name.dirty(cookProfile.data!.description ?? ''),
-          phoneNo: Phone.dirty(cookProfile.data!.phone!.toString()),
-          email: Email.dirty(cookProfile.data!.email!.toString()),
+          daysTiming: timingModel.days ?? const [],
+          daysTimingOriginal: timingModel.days ?? const [],
+          firstName: firstName,
+          lastName: lastName,
+          description: description,
+          phoneNo: phone,
+          email: email,
+          status: Formz.validate([
+            firstName,
+            lastName,
+            description,
+            phone,
+            email,
+          ]),
           cookProfile: cookProfile,
-          pathFiles: cookProfile.data!.kitchen!.images,
+          pathFiles: cookProfile.data?.kitchen?.images ?? const [],
         ),
       );
     }

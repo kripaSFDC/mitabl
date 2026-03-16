@@ -160,11 +160,18 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                     children: [
                       BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
                         builder: (context, state) {
-                          return state.avatarPath!.isNotEmpty
+                          final avatarPath = state.avatarPath ?? '';
+                          final remoteAvatar = state.foodieProfile?.data?.avatar;
+                          final imageUrl =
+                              remoteAvatar != null && remoteAvatar.isNotEmpty
+                              ? "${GlobalConfiguration().getValue<String>('base_url')}/$remoteAvatar"
+                              : '';
+
+                          return avatarPath.isNotEmpty
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
                                   child: Image.file(
-                                    File(state.avatarPath!),
+                                    File(avatarPath),
                                     fit: BoxFit.cover,
                                     height: config.AppConfig(
                                       context,
@@ -174,9 +181,25 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                     ).appWidth(18),
                                   ),
                                 )
+                              : imageUrl.isEmpty
+                              ? Container(
+                                  height: config.AppConfig(context).appWidth(18),
+                                  width: config.AppConfig(context).appWidth(18),
+                                  padding: EdgeInsets.all(
+                                    config.AppConfig(context).appWidth(3),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: const Color(0xFFFFFBF7),
+                                    size: config.AppConfig(context).appWidth(8),
+                                  ),
+                                )
                               : CachedNetworkImage(
-                                  imageUrl:
-                                      "${GlobalConfiguration().getValue<String>('base_url')}/${state.foodieProfile!.data!.avatar}",
+                                  imageUrl: imageUrl,
                                   progressIndicatorBuilder:
                                       (context, url, downloadProgress) =>
                                           CircularProgressIndicator(
