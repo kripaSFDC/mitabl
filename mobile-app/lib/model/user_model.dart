@@ -64,7 +64,7 @@ class User {
     this.availableRoles = const [],
   });
 
-  User.fromJson(Map<String, dynamic> json) {
+  User.fromJson(Map<String, dynamic> json) : availableRoles = const [] {
     id = json['id'];
     name = json['name'];
     role = json['role'];

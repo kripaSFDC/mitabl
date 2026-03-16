@@ -45,7 +45,61 @@ class _RoleCtaState {
 
 class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
   bool _switchingRole = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricPreference();
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    try {
+      final biometricService = BiometricService.instance;
+      final available = await biometricService.isAvailable();
+      final enabled = available ? await biometricService.isEnabled() : false;
+
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = available;
+        _biometricEnabled = enabled;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = false;
+        _biometricEnabled = false;
+      });
+    }
+  }
+
+  Future<void> _onBiometricChanged(bool enabled) async {
+    if (enabled && !_biometricAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Biometric authentication is not available on this device.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await BiometricService.instance.setEnabled(enabled);
+      if (!mounted) return;
+      setState(() => _biometricEnabled = enabled);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to update biometric preference right now.'),
+        ),
+      );
+    }
+  }
 
   bool _isSuccessfulResponse(int statusCode) {
     return statusCode >= 200 && statusCode < 300;
@@ -737,7 +791,9 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 inactiveTrackColor: Theme.of(
                                   context,
                                 ).primaryColorDark,
-                                onChanged: _onBiometricChanged,
+                                onChanged: _biometricAvailable
+                                    ? _onBiometricChanged
+                                    : null,
                               ),
                             ),
                           ),

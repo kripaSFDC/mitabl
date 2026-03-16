@@ -59,7 +59,7 @@ class Data {
       this.foodieRoleMembership,
       this.availableRoles = const []});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  Data.fromJson(Map<String, dynamic> json) : availableRoles = const [] {
     id = _asInt(json['id']);
     firstName = json['first_name'];
     lastName = json['last_name'];
