@@ -49,12 +49,20 @@ class LoginCubit extends Cubit<LoginState> {
   void doLogin() async {
     try {
       emit(state.copyWith(apiStatus: FormzStatus.submissionInProgress));
-      var map = <String, dynamic>{};
-      map['email'] = state.email.value;
-      map['password'] = state.password.value;
-      // map['device_key'] = state.deviceToken;
 
-      Response response = await _authenticationRepository.logIn(data: map);
+      final payload = _buildLoginPayload();
+      if (payload == null) {
+        emit(
+          state.copyWith(
+            apiStatus: FormzStatus.submissionFailure,
+            serverMessage: 'Please enter a valid email and password.',
+          ),
+        );
+        emit(state.copyWith(apiStatus: FormzStatus.pure));
+        return;
+      }
+
+      Response response = await _authenticationRepository.logIn(data: payload);
 
       if (response.statusCode == 200) {
         await userRepository.setCurrentUser(response.body);
@@ -99,4 +107,29 @@ class LoginCubit extends Cubit<LoginState> {
       );
     }
   }
+
+  Map<String, dynamic>? _buildLoginPayload() {
+    final normalizedEmail = state.email.value.trim().toLowerCase();
+    final normalizedPassword = (state.password.value ?? '').trim();
+
+    if (normalizedEmail.isEmpty || normalizedPassword.isEmpty) {
+      return null;
+    }
+
+    final payload = <String, dynamic>{
+      'email': normalizedEmail,
+      'username': normalizedEmail,
+      'password': normalizedPassword,
+    };
+
+    final normalizedDeviceToken = state.deviceToken.trim();
+    if (normalizedDeviceToken.isNotEmpty) {
+      payload['device_token'] = normalizedDeviceToken;
+      // Backward-compatible alias for older backend handlers.
+      payload['device_key'] = normalizedDeviceToken;
+    }
+
+    return payload;
+  }
+
 }
