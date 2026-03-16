@@ -65,7 +65,7 @@ class PaymentsController extends Controller
 
     public function cards(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccount($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError, 422);
@@ -91,7 +91,7 @@ class PaymentsController extends Controller
             return $this->responser([],$validator->errors()->first(), 422);
         }
 
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccount($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError, 422);
@@ -114,7 +114,7 @@ class PaymentsController extends Controller
 
     public function checkoutSession(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccount($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError, 422);
@@ -132,7 +132,7 @@ class PaymentsController extends Controller
 
     public function createIntent(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         if ((int) $user->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can create payment intents.', 403);
         }
@@ -199,7 +199,7 @@ class PaymentsController extends Controller
 
     public function confirmIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
+        if ((int) $this->authenticatedUser()->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can confirm payment intents.', 403);
         }
 
@@ -227,7 +227,7 @@ class PaymentsController extends Controller
 
         try {
             $selection = $this->paymentService->resolvePaymentMethodForIntent(
-                Auth::user(),
+                $this->authenticatedUser(),
                 $request->input('card_id'),
                 $request->input('payment_method_id')
             );

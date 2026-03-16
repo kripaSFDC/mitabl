@@ -50,7 +50,7 @@ trait HandlesUserAuthentication
             return $this->responser([], 'Could not create token.', 500);
         }
 
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
 
         if (! $user) {
             return $this->responser([], 'Unable to resolve authenticated user.', 401);
@@ -416,7 +416,7 @@ trait HandlesUserAuthentication
 
     public function logout(Request $request)
     {
-        $data = Auth::guard('api')->user();
+        $data = $this->authenticatedUser('api');
         Auth::guard('api')->logout();
 
         return $this->responser($data, 'User logged out.');
@@ -424,7 +424,7 @@ trait HandlesUserAuthentication
 
     public function delete(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $userId = (int) $user->id;
 
         UserAuthToken::query()->where('user_id', $userId)->delete();

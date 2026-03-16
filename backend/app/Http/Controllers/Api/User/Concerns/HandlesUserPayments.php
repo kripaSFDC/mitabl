@@ -44,7 +44,7 @@ trait HandlesUserPayments
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccountOrError($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError['message'], $provisionError['status']);
@@ -67,11 +67,11 @@ trait HandlesUserPayments
 
     public function completedOnBoarding(Request $request)
     {
-        if ((int) Auth::id() <= 0 || (int) Auth::user()->role_id !== 2) {
+        if ((int) Auth::id() <= 0 || (int) $this->authenticatedUser()->role_id !== 2) {
             return $this->responser([], 'Only cook accounts can complete onboarding.', 403);
         }
 
-        $kitchen = Auth::user()->restaurant;
+        $kitchen = $this->authenticatedUser()->restaurant;
         if (empty($kitchen)) {
             return $this->responser([], 'This user has not Kitchen', 404);
         }
@@ -97,24 +97,24 @@ trait HandlesUserPayments
             return $this->responser([], $validator->errors()->first(), 422);
         }
 
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], "you don't have stripe vendor connected account.", 403);
         }
 
         try {
-            $stripeExternalBank = $this->paymentService->createAndAddBankToVendor(Auth::user(), $request->all());
+            $stripeExternalBank = $this->paymentService->createAndAddBankToVendor($this->authenticatedUser(), $request->all());
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to add vendor bank account.', 422);
         }
 
-        $userId = Auth::user()->id;
+        $userId = $this->authenticatedUser()->id;
         $bankAccount = new StripeBankAccount();
         $bankAccount->user_id = $userId;
         $bankAccount->stripe_bank_id = $stripeExternalBank->id;
 
         if ($bankAccount->save()) {
-            $kitchen = Auth::user()->restaurant;
+            $kitchen = $this->authenticatedUser()->restaurant;
             if ($kitchen) {
                 $kitchen->status = 1;
                 $kitchen->save();
@@ -131,7 +131,7 @@ trait HandlesUserPayments
 
     public function getAllCards()
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccountOrError($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError['message'], $provisionError['status']);
@@ -149,7 +149,7 @@ trait HandlesUserPayments
 
     public function createCheckoutsession()
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $provisionError = $this->ensureCustomerAccountOrError($user);
         if ($provisionError !== null) {
             return $this->responser([], $provisionError['message'], $provisionError['status']);
@@ -167,7 +167,7 @@ trait HandlesUserPayments
 
     public function createPaymentIntent(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         if ((int) $user->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can create payment intents.', 403);
         }
@@ -227,7 +227,7 @@ trait HandlesUserPayments
 
     public function confirmPaymentIntent(Request $request)
     {
-        if ((int) Auth::user()->role_id !== 3) {
+        if ((int) $this->authenticatedUser()->role_id !== 3) {
             return $this->responser([], 'Only foodie accounts can confirm payment intents.', 403);
         }
 
@@ -251,7 +251,7 @@ trait HandlesUserPayments
 
         try {
             $selection = $this->paymentService->resolvePaymentMethodForIntent(
-                Auth::user(),
+                $this->authenticatedUser(),
                 $request->input('card_id'),
                 $request->input('payment_method_id')
             );
@@ -295,12 +295,12 @@ trait HandlesUserPayments
 
     public function retrieveAccount()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
         try {
-            $account = $this->paymentService->retrieveAccount(Auth::user());
+            $account = $this->paymentService->retrieveAccount($this->authenticatedUser());
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to retrieve Stripe account details.', 422);
@@ -311,12 +311,12 @@ trait HandlesUserPayments
 
     public function getVendorBankAcc()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
         try {
-            $account = $this->paymentService->getVendorBankAccount(Auth::user());
+            $account = $this->paymentService->getVendorBankAccount($this->authenticatedUser());
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to retrieve vendor bank account.', 422);
@@ -327,12 +327,12 @@ trait HandlesUserPayments
 
     public function getBankAccFromConect()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
         try {
-            $bankId = $this->paymentService->getBankAccFromConnect(Auth::user());
+            $bankId = $this->paymentService->getBankAccFromConnect($this->authenticatedUser());
         } catch (Throwable $th) {
             return $this->responser([], $th->getMessage(), 422);
         }
@@ -346,12 +346,12 @@ trait HandlesUserPayments
 
     public function checkaccountComplted()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return false;
         }
 
         try {
-            $result = $this->paymentService->isAccountCompleted(Auth::user());
+            $result = $this->paymentService->isAccountCompleted($this->authenticatedUser());
         } catch (Throwable $throwable) {
             report($throwable);
             return false;
@@ -369,12 +369,12 @@ trait HandlesUserPayments
 
     public function createAccLoginLink()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
         try {
-            $link = $this->paymentService->createAccLoginLink(Auth::user());
+            $link = $this->paymentService->createAccLoginLink($this->authenticatedUser());
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to create account login link.', 422);
@@ -385,12 +385,12 @@ trait HandlesUserPayments
 
     public function onboardingLink()
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
         try {
-            $link = $this->paymentService->onboardingLink(Auth::user());
+            $link = $this->paymentService->onboardingLink($this->authenticatedUser());
         } catch (Throwable $throwable) {
             report($throwable);
             return $this->responser([], 'Unable to create onboarding link.', 422);
@@ -401,11 +401,11 @@ trait HandlesUserPayments
 
     public function updateConnectedAccount(Request $request)
     {
-        if (! Auth::user()->vendor) {
+        if (! $this->authenticatedUser()->vendor) {
             return $this->responser([], 'you don\'t have stripe vendor connected account.', 403);
         }
 
-        $accountId = (string) optional(Auth::user()->vendor)->account_id;
+        $accountId = (string) optional($this->authenticatedUser()->vendor)->account_id;
         if ($accountId === '') {
             return $this->responser([], 'account_id is required.', 422);
         }

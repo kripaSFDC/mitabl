@@ -14,7 +14,6 @@ use App\Services\AccountProfileService;
 use App\Services\AuthService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
@@ -60,7 +59,7 @@ class UserController extends Controller
 
     public function update(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->updateProfile($user, $request, [$this, 'uploadImage']);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -71,7 +70,7 @@ class UserController extends Controller
 
     public function changePassword(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $result = $this->accountProfileService->changePassword($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -82,7 +81,7 @@ class UserController extends Controller
 
     public function updateDeviceToken(Request $request)
     {
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $result = $this->accountProfileService->updateDeviceToken($user, $request);
         if (isset($result['error'])) {
             return $this->responser([], (string) $result['error'], (int) ($result['status'] ?? 422));
@@ -131,7 +130,7 @@ class UserController extends Controller
 
     public function toggleNotifications(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $this->accountProfileService->toggleNotifications($user);
 
         return $this->responser(['updated' => true], 'User notifications updated successfully.');
@@ -139,7 +138,7 @@ class UserController extends Controller
 
     public function mobileContact(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->authenticatedUser();
         $rspn = $this->accountProfileService->mobileContact($user);
         return $this->responser($rspn, 'User details.');
     }

@@ -15,7 +15,7 @@ class FavoriteController extends Controller
     public $data = [];
 
     public function toggleFavorite(Request $request){
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $kitchen = Mikitchn::find($request->restaurant_id);
         if (! $kitchen) {
             return $this->responser([], 'Restaurant not found.', 404);
@@ -44,7 +44,7 @@ class FavoriteController extends Controller
     {
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
-        $user = Auth::guard('api')->user();
+        $user = $this->authenticatedUser('api');
         $favorites = $user->getFavoriteItems(Mikitchn::class);
 
         $this->data['total_count'] = $favorites->count();
