@@ -105,36 +105,58 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     setState(() => _switchingRole = true);
     final userRepository = context.read<UserRepository>();
     try {
-      final response = await userRepository.switchRole(
+      final activationResponse = await userRepository.startCookOnboarding();
+      if (!mounted) return;
+
+      if (activationResponse.statusCode != 200) {
+        String message = 'micook profile is not available for this account.';
+        try {
+          final payload =
+              jsonDecode(activationResponse.body) as Map<String, dynamic>;
+          final serverMessage = payload['isError'] ?? payload['message'];
+          if (serverMessage is String && serverMessage.trim().isNotEmpty) {
+            message = serverMessage;
+          }
+        } catch (_) {}
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+        return;
+      }
+
+      final activationPayload =
+          jsonDecode(activationResponse.body) as Map<String, dynamic>;
+      final activationData = activationPayload['data'];
+      final transition = activationData is Map<String, dynamic>
+          ? activationData['role_transition']
+          : null;
+      final transitionMap = transition is Map<String, dynamic>
+          ? transition
+          : <String, dynamic>{};
+      final onboardingRequired = transitionMap['onboarding_required'] == true;
+
+      if (onboardingRequired) {
+        await _continueCookOnboarding(transitionMap);
+        return;
+      }
+
+      final switchResponse = await userRepository.switchRole(
         roleId: AppConstants.COOK,
       );
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
-        final data = payload['data'];
-        final transition = data is Map<String, dynamic>
-            ? data['role_transition']
-            : null;
-        final transitionMap = transition is Map<String, dynamic>
-            ? transition
-            : <String, dynamic>{};
-        final onboardingRequired = transitionMap['onboarding_required'] == true;
-
-        if (onboardingRequired) {
-          await _continueCookOnboarding(transitionMap);
-        } else {
-          navigatorKey.currentState!.pushNamedAndRemoveUntil(
-            '/DashboardCook',
-            (route) => false,
-          );
-        }
+      if (switchResponse.statusCode == 200) {
+        navigatorKey.currentState!.pushNamedAndRemoveUntil(
+          '/DashboardCook',
+          (route) => false,
+        );
         return;
       }
 
-      String message = 'micook profile is not available for this account.';
+      String message = 'Unable to switch to micook right now. Please try again.';
       try {
-        final payload = jsonDecode(response.body) as Map<String, dynamic>;
+        final payload = jsonDecode(switchResponse.body) as Map<String, dynamic>;
         final serverMessage = payload['isError'] ?? payload['message'];
         if (serverMessage is String && serverMessage.trim().isNotEmpty) {
           message = serverMessage;

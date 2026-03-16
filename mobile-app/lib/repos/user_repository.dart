@@ -226,6 +226,46 @@ class UserRepository {
     }
   }
 
+  Future<http.Response> startCookOnboarding() async {
+    try {
+      final headers = await authorizedHeaders(includeJsonContentType: true);
+      final primaryUri = ApiContract.uri('v2/account/roles/cook/activate');
+      final fallbackUri = ApiContract.uri('v2/account/onboarding/cook/start');
+
+      final activationResponse = await _httpClient
+          .post(primaryUri, headers: headers)
+          .timeout(ApiContract.requestTimeout);
+
+      if (activationResponse.statusCode == 404 ||
+          activationResponse.statusCode == 405 ||
+          activationResponse.statusCode == 501) {
+        return _httpClient
+            .post(fallbackUri, headers: headers)
+            .timeout(ApiContract.requestTimeout);
+      }
+
+      return activationResponse;
+    } catch (e) {
+      AppLogger.error('Failed to start cook onboarding', e);
+      rethrow;
+    }
+  }
+
+  Future<http.Response> completeCookVendorAccountStep() async {
+    try {
+      return _httpClient
+          .post(
+            ApiContract.uri('v2/account/onboarding/cook/vendor-account'),
+            headers: await authorizedHeaders(includeJsonContentType: true),
+            body: json.encode(<String, dynamic>{}),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to complete cook vendor account step', e);
+      rethrow;
+    }
+  }
+
   Future<void> syncCurrentUserRole({String? roleName, dynamic roleId}) async {
     final prefs = await SharedPreferences.getInstance();
     final secureJson = await _secureStorage.read(key: _secureCurrentUserKey);
