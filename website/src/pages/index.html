@@ -90,50 +90,67 @@
             mitabl, built for cooks and food lovers
         </h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-12">
-            <!-- Feature 1: Food-first local discovery -->
-            <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col justify-between hover:shadow-lg transition-shadow relative overflow-hidden group">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-brand-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70 group-hover:bg-brand-200 transition-colors"></div>
-                <div class="text-brand-500 mb-6 relative z-10 w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <div class="flex flex-col gap-16 w-full mb-12">
+            <!-- Section 1: mifoodi -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center glass p-8 sm:p-10 rounded-[2.5rem] hover:shadow-xl transition-shadow relative overflow-hidden group max-w-6xl mx-auto">
+                <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 group-hover:bg-brand-200 transition-colors pointer-events-none"></div>
+                <div class="order-2 lg:order-1 relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="/frontend/images/logo1.png" alt="mifoodi logo" class="h-10 w-auto object-contain">
+                        <h3 class="text-3xl font-bold text-brand-500 lowercase m-0">mifoodi</h3>
+                    </div>
+                    <p class="text-gray-600 text-lg mb-6 leading-relaxed">mitabl helps you discover local meals in minutes. Open the mobile app, browse nearby micooks, place your order securely, and enjoy food made by your community.</p>
+                    <ul class="text-gray-600 text-base space-y-3 pl-5 list-disc marker:text-brand-400">
+                        <li><b class="text-gray-800">Discover:</b> Explore local menus and dining options in your neighbourhood through the mitabl app.</li>
+                        <li><b class="text-gray-800">Order:</b> Choose your meal, pay securely, and track updates supported by mitabl's backend operations.</li>
+                        <li><b class="text-gray-800">Enjoy:</b> Share great food, support local cooks, and make everyday dining more meaningful.</li>
+                        <li><b class="text-gray-800">Share:</b> Post your experience with #mitabl so others can discover nearby food experiences too.</li>
+                    </ul>
                 </div>
-                <div class="relative z-10">
-                    <h3 class="text-2xl font-bold mb-3 text-brand-900">Food-first local discovery</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">mitabl helps you discover local meals in minutes. Open the mobile app, browse nearby micooks, place your order securely, and enjoy food made by your community.</p>
-                </div>
-            </div>
-            
-            <!-- Feature 2: For cooks -->
-            <div class="glass p-8 rounded-[2.5rem] bg-brand-600 text-white flex flex-col justify-between hover:bg-brand-700 transition-colors shadow-lg shadow-brand-500/20">
-                <div class="bg-white/20 w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-3">Built for cooks</h3>
-                    <p class="text-brand-50 opacity-90 text-lg">mitabl gives micooks a dependable platform to publish menus, manage orders, and serve their local audience. Our mobile-first experience is backed by operational tooling for quality, safety documentation, and day-to-day fulfilment visibility.</p>
-                </div>
-            </div>
-
-            <!-- Feature 3: Community -->
-            <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-between hover:shadow-lg transition-shadow border-t-4 border-t-accent">
-                <div class="text-accent mb-6 w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-2xl font-bold mb-3 text-brand-900">Partner network</h3>
-                    <p class="text-gray-600 text-lg">Join a growing network of partners helping mitabl deliver trusted local food experiences through strong community connections.</p>
+                <div class="order-1 lg:order-2 relative z-10 w-full">
+                    <div class="w-full bg-gray-100 rounded-[2rem] overflow-hidden shadow-lg border-4 border-white aspect-square md:aspect-[4/3]">
+                        <img src="/frontend/images/home1.jpg" alt="Night market" class="w-full h-full object-cover relative pointer-events-none">
+                    </div>
                 </div>
             </div>
 
-            <!-- Feature 4 -->
-            <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col sm:flex-row gap-8 items-center justify-between hover:shadow-lg transition-shadow bg-gradient-to-br from-white to-brand-50">
-                <div class="flex-1">
-                    <div class="inline-block px-4 py-1.5 bg-brand-100 text-brand-700 font-bold text-sm tracking-wide rounded-full mb-4 uppercase">Community</div>
-                    <h3 class="text-3xl font-bold mb-3 text-brand-900">Break bread with mitabl</h3>
-                    <p class="text-gray-600 text-lg">break bread with mitabl. Cook | discover | order | share | connect.</p>
+            <!-- Section 2: micook -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center glass p-8 sm:p-10 rounded-[2.5rem] hover:shadow-xl transition-shadow relative overflow-hidden group max-w-6xl mx-auto">
+                <div class="absolute -right-10 -top-10 w-64 h-64 bg-accent/10 rounded-full mix-blend-multiply filter blur-3xl opacity-50 group-hover:bg-accent/20 transition-colors pointer-events-none"></div>
+                <div class="order-1 lg:order-1 relative z-10 w-full">
+                    <div class="w-full bg-gray-100 rounded-[2rem] overflow-hidden shadow-lg border-4 border-white aspect-square md:aspect-[4/3]">
+                        <img src="/frontend/images/home2.jpg" alt="Kitchen" class="w-full h-full object-cover relative pointer-events-none">
+                    </div>
                 </div>
-                <div class="w-32 h-32 rounded-full bg-brand-200 border-4 border-white shadow-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    <img src="/frontend/images/logo2.png" alt="" class="w-16 h-16 object-contain z-10 filter invert brightness-0 opacity-40">
+                <div class="order-2 lg:order-2 relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="/frontend/images/logo2.png" alt="micook logo" class="h-10 w-auto object-contain">
+                        <h3 class="text-3xl font-bold text-brand-500 lowercase m-0">micook</h3>
+                    </div>
+                    <p class="text-gray-600 text-lg mb-6 leading-relaxed">mitabl gives micooks a dependable platform to publish menus, manage orders, and serve their local audience. Our mobile-first experience is backed by operational tooling for quality, safety documentation, and day-to-day fulfilment visibility.</p>
+                    <ul class="text-gray-600 text-base space-y-3 pl-5 list-disc marker:text-brand-400">
+                        <li><b class="text-gray-800">Launch:</b> Build your presence with menu visibility and clear service settings in the mitabl app.</li>
+                        <li><b class="text-gray-800">Operate:</b> Receive orders, manage fulfilment updates, and stay aligned with customer expectations.</li>
+                        <li><b class="text-gray-800">Deliver:</b> Provide quality takeaway or dine-in experiences that keep customers returning.</li>
+                        <li><b class="text-gray-800">Grow:</b> Share your story with #mitabl and reach more local diners.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 3: mipartner -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center glass p-8 sm:p-10 rounded-[2.5rem] hover:shadow-xl transition-shadow relative overflow-hidden group max-w-6xl mx-auto">
+                <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-green-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 group-hover:bg-green-200 transition-colors pointer-events-none"></div>
+                <div class="order-2 lg:order-1 relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="/frontend/images/log03.png" alt="mipartner logo" class="h-10 w-auto object-contain">
+                        <h3 class="text-3xl font-bold text-brand-500 lowercase m-0">mipartner</h3>
+                    </div>
+                    <p class="text-gray-600 text-lg mb-6 leading-relaxed">Join a growing network of partners helping mitabl deliver trusted local food experiences through strong community connections and reliable platform operations.</p>
+                </div>
+                <div class="order-1 lg:order-2 relative z-10 w-full">
+                    <div class="w-full bg-gray-100 rounded-[2rem] overflow-hidden shadow-lg border-4 border-white aspect-square md:aspect-[4/3]">
+                        <img src="/frontend/images/home3.jpg" alt="Partners" class="w-full h-full object-cover object-top relative pointer-events-none">
+                    </div>
                 </div>
             </div>
         </div>
