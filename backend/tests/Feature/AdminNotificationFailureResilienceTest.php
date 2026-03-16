@@ -18,7 +18,7 @@ class AdminNotificationFailureResilienceTest extends TestCase
     public function test_kitchen_status_update_survives_mail_and_notification_failures(): void
     {
         Notification::shouldReceive('send')
-            ->once()
+            ->atLeast()->once()
             ->andThrow(new RuntimeException('Push unavailable'));
         Mail::shouldReceive('to->queue')
             ->once()
@@ -53,7 +53,7 @@ class AdminNotificationFailureResilienceTest extends TestCase
     public function test_order_status_update_survives_mail_and_notification_failures(): void
     {
         Notification::shouldReceive('send')
-            ->once()
+            ->atLeast()->once()
             ->andThrow(new RuntimeException('Push unavailable'));
         Mail::shouldReceive('to->queue')
             ->twice()

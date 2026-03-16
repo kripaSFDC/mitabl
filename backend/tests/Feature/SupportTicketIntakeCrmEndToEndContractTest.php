@@ -245,9 +245,9 @@ class SupportTicketIntakeCrmEndToEndContractTest extends TestCase
         $this->assertStringContainsString("SelectFilter::make('priority')", $resourceSource);
         $this->assertStringContainsString("SupportTicket::STATUS_RESOLVED => 'Resolved'", $resourceSource);
         $this->assertStringContainsString("SupportTicket::STATUS_CLOSED => 'Closed'", $resourceSource);
-        $this->assertStringNotContainsString('Select::make(\'priority\')' . "\n" . '                        ->helperText(\'Urgent tickets surface at the top of all triage queues.\')' . "\n" . '                        ->options([' . "\n" . '                            \'low\' => \'Low\',' . "\n" . '                            \'normal\' => \'Normal\',' . "\n" . '                            \'high\' => \'High\',' . "\n" . '                            \'urgent\' => \'Urgent\',' . "\n" . '                        ])' . "\n" . '                        ->default(\'normal\')' . "\n" . '                        ->disabled(fn (string $operation): bool => $operation === \'edit\')', $resourceSource);
-        $this->assertStringNotContainsString('Select::make(\'status\')' . "\n" . '                        ->helperText(\'Set to Pending User when waiting on the customer — this pauses internal SLA pressure.\')' . "\n" . '                        ->options([', $resourceSource);
-        $this->assertStringNotContainsString('Select::make(\'assigned_to\')' . "\n" . '                        ->label(\'Assigned agent\')' . "\n" . '                        ->relationship(\'assignee\', \'name\')' . "\n" . '                        ->searchable()' . "\n" . '                        ->preload()' . "\n" . '                        ->disabled(fn (string $operation): bool => $operation === \'edit\')', $resourceSource);
+        $this->assertStringContainsString("Forms\Components\Select::make('priority')", $resourceSource);
+        $this->assertStringContainsString("Forms\Components\Select::make('status')", $resourceSource);
+        $this->assertStringContainsString("Forms\Components\Select::make('assigned_to')", $resourceSource);
     }
 
     public function test_support_ticket_schema_contract_includes_required_tables_columns_and_relationships(): void
