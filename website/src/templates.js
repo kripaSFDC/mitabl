@@ -75,6 +75,12 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
         .nav-link {
             transition: all 0.3s ease;
             position: relative;
+            display: inline-flex;
+            align-items: center;
+            min-height: 2.5rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.75rem;
+            touch-action: manipulation;
         }
         .nav-link::after {
             content: '';
@@ -85,13 +91,26 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
             left: 0;
             background-color: #ea580c;
             transition: width 0.3s ease;
+            pointer-events: none;
         }
-        .nav-link:hover::after, .nav-link.active::after {
+        .nav-link.active::after {
             width: 100%;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .nav-link:hover::after {
+                width: 100%;
+            }
         }
         .nav-link.active {
             color: #ea580c;
             font-weight: 600;
+        }
+        #nav-list li {
+            display: flex;
+            align-items: center;
+        }
+        #nav-list .nav-link {
+            z-index: 1;
         }
         
         /* Modal transitions */
@@ -116,7 +135,7 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 glass px-4 py-2 rounded-lg text-brand-600 font-bold shadow-lg">Skip to main content</a>
     
     <header role="banner" class="w-full z-40 sticky top-0 glass border-b border-brand-100">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
             <a href="/" aria-label="mitabl home" class="flex items-center group">
                 <img src="/frontend/logo.png" alt="mitabl logo" class="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300">
             </a>
@@ -125,8 +144,8 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
             
-            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-6 py-6 md:py-0 shadow-lg md:shadow-none transition-all duration-300">
-                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+            <nav id="navbar-menu" class="hidden absolute top-full left-0 w-full md:static md:w-auto md:flex glass md:bg-transparent md:border-none border-b border-brand-100 md:backdrop-filter-none flex-col md:flex-row items-center gap-4 py-5 md:py-0 px-4 md:px-0 shadow-lg md:shadow-none transition-all duration-300">
+                <ul id="nav-list" class="flex flex-col md:flex-row items-center gap-2 md:gap-3 w-full md:w-auto">
                     <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/">Home</a></li>
                     <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/about">About</a></li>
                     <li><a class="nav-link text-gray-600 hover:text-brand-600 font-medium" href="/faq">FAQ</a></li>
@@ -135,7 +154,7 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
             </nav>
         </div>
     </header>
-    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-col items-center">
 `;
 
 const modal = `
@@ -278,6 +297,29 @@ const footer = ({ showStoreBadges }) => `
                 mobileBtn.addEventListener('click', () => {
                     navMenu.classList.toggle('hidden');
                     navMenu.classList.toggle('flex');
+                });
+
+                const closeMobileMenu = () => {
+                    if (window.innerWidth >= 768) {
+                        navMenu.classList.remove('hidden');
+                        navMenu.classList.remove('flex');
+                    }
+                };
+
+                window.addEventListener('resize', closeMobileMenu);
+
+                document.addEventListener('click', (event) => {
+                    if (window.innerWidth >= 768) {
+                        return;
+                    }
+
+                    const clickedInsideMenu = navMenu.contains(event.target);
+                    const clickedToggle = mobileBtn.contains(event.target);
+
+                    if (!clickedInsideMenu && !clickedToggle && !navMenu.classList.contains('hidden')) {
+                        navMenu.classList.add('hidden');
+                        navMenu.classList.remove('flex');
+                    }
                 });
             }
 
