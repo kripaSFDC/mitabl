@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('user_roles', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedInteger('role_id');
             $table->enum('status', [
                 UserRole::STATUS_ACTIVE,
                 UserRole::STATUS_ONBOARDING,
