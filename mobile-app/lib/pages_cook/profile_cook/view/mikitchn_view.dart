@@ -32,6 +32,38 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
     return BlocConsumer<ProfileCookCubit, ProfileCookState>(
       listener: (context, state) {},
       builder: (context, state) {
+        final kitchen = state.cookProfile?.data?.kitchen;
+
+        if (kitchen == null) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<ProfileCookCubit>().getCookProfile();
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: config.AppConfig(context).appHeight(8)),
+                Center(
+                  child: Text(
+                    'mikitchn data is not available yet.',
+                    style: GoogleFonts.gothicA1(
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: config.AppConfig(context).appWidth(4),
+                    ),
+                  ),
+                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: context.read<ProfileCookCubit>().getCookProfile,
+                    child: const Text('Retry'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         return RefreshIndicator(
           onRefresh: () async {
             context.read<ProfileCookCubit>().getCookProfile();
@@ -129,17 +161,17 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      state.cookProfile!.data!.kitchen!.status == '1'
+                      kitchen.status == '1'
                           ? 'Your account is activated.'
                           : 'Your account is inactive.',
                       style: GoogleFonts.gothicA1(
-                        color: state.cookProfile!.data!.kitchen!.status == '1'
+                        color: kitchen.status == '1'
                             ? Colors.lightGreen
                             : Colors.red,
                         fontSize: config.AppConfig(context).appWidth(4),
                       ),
                     ),
-                    state.cookProfile!.data!.kitchen!.status == '0'
+                    kitchen.status == '0'
                         ? Container(
                             height: config.AppConfig(context).appHeight(4),
                             width: config.AppConfig(context).appWidth(30),
@@ -174,7 +206,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 ),
                 SizedBox(height: config.AppConfig(context).appHeight(2)),
                 Text(
-                  state.cookProfile!.data!.kitchen!.name.toString(),
+                  kitchen.name.toString(),
                   style: GoogleFonts.gothicA1(
                     color: Theme.of(context).primaryColorDark,
                     fontSize: config.AppConfig(context).appWidth(4),
@@ -188,7 +220,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   thickness: 0.2,
                 ),
                 Text(
-                  state.cookProfile!.data!.kitchen!.address.toString(),
+                  kitchen.address.toString(),
                   style: GoogleFonts.gothicA1(
                     color: Theme.of(context).primaryColorDark,
                     fontSize: config.AppConfig(context).appWidth(4),
@@ -202,7 +234,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   thickness: 0.2,
                 ),
                 Text(
-                  state.cookProfile!.data!.kitchen!.phone.toString(),
+                  kitchen.phone.toString(),
                   style: GoogleFonts.gothicA1(
                     color: Theme.of(context).primaryColorDark,
                     fontSize: config.AppConfig(context).appWidth(4),
@@ -216,7 +248,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   thickness: 0.2,
                 ),
                 Text(
-                  state.cookProfile!.data!.kitchen!.noOfSeats.toString(),
+                  kitchen.noOfSeats.toString(),
                   style: GoogleFonts.gothicA1(
                     color: Theme.of(context).primaryColorDark,
                     fontSize: config.AppConfig(context).appWidth(4),
@@ -230,7 +262,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                   thickness: 0.2,
                 ),
                 Text(
-                  state.cookProfile!.data!.kitchen!.description ?? '-',
+                  kitchen.description ?? '-',
                   style: GoogleFonts.gothicA1(
                     color: Theme.of(context).primaryColorDark,
                     fontSize: config.AppConfig(context).appWidth(4),
@@ -264,11 +296,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   value:
-                                      state
-                                              .cookProfile!
-                                              .data!
-                                              .kitchen!
-                                              .dineIn ==
+                                      kitchen.dineIn ==
                                           1
                                       ? true
                                       : false,
@@ -311,11 +339,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   value:
-                                      state
-                                              .cookProfile!
-                                              .data!
-                                              .kitchen!
-                                              .takeAway ==
+                                      kitchen.takeAway ==
                                           1
                                       ? true
                                       : false,
@@ -352,7 +376,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Switch(
-                      value: state.cookProfile!.data!.kitchen!.available == 1,
+                      value: kitchen.available == 1,
                       onChanged: (val) {},
                     ),
                   ],
@@ -413,7 +437,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 //       overflow: TextOverflow.ellipsis,
                 //     ),
                 //     Text(
-                //       state.cookProfile!.data!.kitchen!.abn ?? '-',
+                //       kitchen.abn ?? '-',
                 //       style: GoogleFonts.gothicA1(
                 //           color: Theme.of(context).primaryColorDark,
                 //           fontSize: config.AppConfig(context).appWidth(4)),
@@ -437,7 +461,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                 //       overflow: TextOverflow.ellipsis,
                 //     ),
                 //     Text(
-                //       state.cookProfile!.data!.kitchen!.certificateNo ?? '-',
+                //       kitchen.certificateNo ?? '-',
                 //       style: GoogleFonts.gothicA1(
                 //           color: Theme.of(context).primaryColorDark,
                 //           fontSize: config.AppConfig(context).appWidth(4)),
@@ -466,7 +490,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                         navigatorKey.currentState!.pushNamed(
                           '/CustomerReviewPage',
                           arguments: RouteArguments(
-                            kitchen: state.cookProfile!.data!.kitchen!,
+                            kitchen: kitchen,
                           ),
                         );
                       },
@@ -503,7 +527,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                             .pushNamed(
                               '/EditKitchenProfile',
                               arguments: RouteArguments(
-                                kitchen: state.cookProfile!.data!.kitchen!,
+                                kitchen: kitchen,
                               ),
                             )
                             .then((value) {
