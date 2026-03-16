@@ -34,6 +34,8 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
         jsonDecode(response.body),
       );
 
+      await userRepository!.syncAvailableRolesFromProfile(cookProfile.data);
+
       // List<String>? value =
       //     (jsonDecode(cookProfile.data!.kitchen!.images!) as List<dynamic>)
       //         .cast<String>()

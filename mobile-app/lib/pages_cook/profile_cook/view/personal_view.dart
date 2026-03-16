@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -22,33 +23,96 @@ class PersonalTabView extends StatefulWidget {
   State<PersonalTabView> createState() => _PersonalTabViewState();
 }
 
+class _RoleCtaState {
+  final bool exists;
+  final bool active;
+  final bool onboarding;
+  final bool disabled;
+
+  const _RoleCtaState({
+    required this.exists,
+    required this.active,
+    required this.onboarding,
+    required this.disabled,
+  });
+}
+
 class _PersonalTabViewState extends State<PersonalTabView> {
+
   bool _switchingRole = false;
 
-  String _mifoodiCtaText(ProfileCookState state) {
-    final membership = state.cookProfile?.data?.foodieRoleMembership;
-    if (membership == null) {
-      return 'Switch to mifoodi';
+  AvailableRoleMembership? _targetMifoodiRole(ProfileCookState state) {
+    final availableRoles = state.cookProfile?.data?.availableRoles ?? const [];
+    for (final role in availableRoles) {
+      final normalizedRole = role.role?.trim().toLowerCase();
+      if (role.roleId == AppConstants.FOODI ||
+          normalizedRole == 'mifoodi' ||
+          normalizedRole == 'foodie' ||
+          normalizedRole == 'foodi') {
+        return role;
+      }
+    }
+    return null;
+  }
+
+  _RoleCtaState _mifoodiCtaState(ProfileCookState state) {
+    final availableRole = _targetMifoodiRole(state);
+    if (availableRole != null) {
+      final status = availableRole.status?.trim().toLowerCase();
+      return _RoleCtaState(
+        exists: true,
+        active: status == 'active',
+        onboarding: availableRole.onboarding,
+        disabled: status == 'disabled',
+      );
     }
 
-    if (membership.exists == false) {
+    final membership = state.cookProfile?.data?.foodieRoleMembership;
+    if (membership != null) {
+      return _RoleCtaState(
+        exists: membership.exists,
+        active: membership.active,
+        onboarding: membership.onboardingRequired,
+        disabled: membership.isDisabled,
+      );
+    }
+
+    return const _RoleCtaState(
+      exists: false,
+      active: false,
+      onboarding: false,
+      disabled: false,
+    );
+  }
+
+  String _mifoodiCtaText(ProfileCookState state) {
+    final ctaState = _mifoodiCtaState(state);
+    if (ctaState.disabled) {
+      return 'mifoodi disabled';
+    }
+    if (!ctaState.exists) {
       return 'Register as mifoodi';
     }
-
-    if (membership.onboardingRequired) {
+    if (ctaState.onboarding) {
       return 'Continue mifoodi setup';
     }
-
-    if (membership.active) {
+    if (ctaState.active) {
       return 'Switch to mifoodi';
     }
 
-    return 'Continue mifoodi setup';
+    return 'Register as mifoodi';
   }
 
   bool _shouldRegisterMifoodi(ProfileCookState state) {
-    final membership = state.cookProfile?.data?.foodieRoleMembership;
-    return membership != null && membership.exists == false;
+    return !_mifoodiCtaState(state).exists;
+  }
+
+  bool _mifoodiTransitionDisabled(ProfileCookState state) {
+    return _mifoodiCtaState(state).disabled;
+  }
+
+  String _disabledMifoodiMessage() {
+    return 'mifoodi access is currently disabled. Please contact support for help.';
   }
 
   String _mifoodiStepDescription(String? step) {
@@ -100,11 +164,15 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         final onboardingRequired = _isOnboardingRequired(transitionMap);
 
         if (onboardingRequired) {
+          await userRepository.refreshRoleMembershipState();
+          if (!mounted) return;
           final step = transitionMap['next_required_step']?.toString();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(_mifoodiStepDescription(step))),
           );
         } else {
+          await userRepository.refreshRoleMembershipState();
+          if (!mounted) return;
           navigatorKey.currentState!.pushNamedAndRemoveUntil(
             '/HomePage',
             (route) => false,
@@ -113,7 +181,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         return;
       }
 
-      String message = 'Register as mifoodi to continue.';
+      String message = 'Register as mifoodi from onboarding before switching roles.';
       try {
         final payload = jsonDecode(response.body) as Map<String, dynamic>;
         final transitionMap = _extractRoleTransition(payload);
@@ -252,11 +320,17 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                       onTap: _switchingRole
                           ? null
                           : () {
+                              if (_mifoodiTransitionDisabled(state)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(_disabledMifoodiMessage())),
+                                );
+                                return;
+                              }
                               if (_shouldRegisterMifoodi(state)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Register as mifoodi to continue.',
+                                      'Register as mifoodi from onboarding to enable role switching.',
                                     ),
                                   ),
                                 );

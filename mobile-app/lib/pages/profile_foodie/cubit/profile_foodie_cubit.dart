@@ -29,6 +29,8 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
         jsonDecode(response.body),
       );
 
+      await userRepository!.syncAvailableRolesFromProfile(foodieProfile.data);
+
       emit(
         state.copyWith(
           firstName: Name.dirty(foodieProfile.data?.firstName ?? ''),
