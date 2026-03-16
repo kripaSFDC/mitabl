@@ -48,7 +48,8 @@ class AppServiceProvider extends ServiceProvider
 
         if (app()->environment('production', 'staging')) {
             $url->forceScheme('https');
-            $url->forceRootUrl(rtrim((string) config('app.url'), '/'));
+            $origin = rtrim((string) config('app.url'), '/');
+            $url->useOrigin($origin);
         }
 
 

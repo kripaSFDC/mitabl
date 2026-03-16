@@ -380,11 +380,13 @@ class OrderController extends Controller
                 ->where('status', 1)
                 ->first();
 
-            $invalidWindow = $promoCode
-                && (($promoCode->starts_at && now()->lt($promoCode->starts_at))
-                || ($promoCode->ends_at && now()->gt($promoCode->ends_at)));
+            $invalidWindow = false;
+            if ($promoCode instanceof PromoCode) {
+                $invalidWindow = ($promoCode->starts_at && now()->lt($promoCode->starts_at))
+                    || ($promoCode->ends_at && now()->gt($promoCode->ends_at));
+            }
 
-            if (! $promoCode || $invalidWindow) {
+            if (! ($promoCode instanceof PromoCode) || $invalidWindow) {
                 return $this->responser([], 'Promo code is invalid, inactive, or expired', 422);
             }
         }

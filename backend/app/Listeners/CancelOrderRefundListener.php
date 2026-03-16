@@ -30,7 +30,7 @@ class CancelOrderRefundListener implements ShouldQueue
     /**
      * Handle the event.
      *
-     * @param  App\Events\CancelOrderRefund  $event
+     * @param  \App\Events\CancelOrderRefund  $event
      * @return void
      */
     public function handle(CancelOrderRefund $event)

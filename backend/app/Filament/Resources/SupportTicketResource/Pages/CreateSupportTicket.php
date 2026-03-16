@@ -8,6 +8,7 @@ use App\Services\SupportTicketService;
 use Filament\Facades\Filament;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 
 class CreateSupportTicket extends CreateRecord
 {
@@ -36,8 +37,10 @@ class CreateSupportTicket extends CreateRecord
             'skip_duplicate_check' => true,
         ], 'admin_panel');
 
-        /** @var SupportTicket $ticket */
-        $ticket = $result['ticket'];
+        $ticket = $result['ticket'] ?? null;
+        if (! $ticket instanceof SupportTicket) {
+            throw new RuntimeException('Support ticket could not be created.');
+        }
 
         $ticket = $service->updateFromAdminForm(
             $ticket,
