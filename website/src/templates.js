@@ -91,6 +91,7 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
             left: 0;
             background-color: #ea580c;
             transition: width 0.3s ease;
+            pointer-events: none;
         }
         .nav-link.active::after {
             width: 100%;
@@ -103,6 +104,13 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
         .nav-link.active {
             color: #ea580c;
             font-weight: 600;
+        }
+        #nav-list li {
+            display: flex;
+            align-items: center;
+        }
+        #nav-list .nav-link {
+            z-index: 1;
         }
         
         /* Modal transitions */
@@ -146,7 +154,7 @@ const header = ({ pageTitle }) => `<!DOCTYPE html>
             </nav>
         </div>
     </header>
-    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-col items-center">
 `;
 
 const modal = `
@@ -289,6 +297,29 @@ const footer = ({ showStoreBadges }) => `
                 mobileBtn.addEventListener('click', () => {
                     navMenu.classList.toggle('hidden');
                     navMenu.classList.toggle('flex');
+                });
+
+                const closeMobileMenu = () => {
+                    if (window.innerWidth >= 768) {
+                        navMenu.classList.remove('hidden');
+                        navMenu.classList.remove('flex');
+                    }
+                };
+
+                window.addEventListener('resize', closeMobileMenu);
+
+                document.addEventListener('click', (event) => {
+                    if (window.innerWidth >= 768) {
+                        return;
+                    }
+
+                    const clickedInsideMenu = navMenu.contains(event.target);
+                    const clickedToggle = mobileBtn.contains(event.target);
+
+                    if (!clickedInsideMenu && !clickedToggle && !navMenu.classList.contains('hidden')) {
+                        navMenu.classList.add('hidden');
+                        navMenu.classList.remove('flex');
+                    }
                 });
             }
 

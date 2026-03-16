@@ -91,6 +91,7 @@
             left: 0;
             background-color: #ea580c;
             transition: width 0.3s ease;
+            pointer-events: none;
         }
         .nav-link.active::after {
             width: 100%;
@@ -103,6 +104,13 @@
         .nav-link.active {
             color: #ea580c;
             font-weight: 600;
+        }
+        #nav-list li {
+            display: flex;
+            align-items: center;
+        }
+        #nav-list .nav-link {
+            z-index: 1;
         }
         
         /* Modal transitions */
@@ -146,17 +154,17 @@
             </nav>
         </div>
     </header>
-    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+    <main id="main-content" tabindex="-1" class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-col items-center">
 <div class="w-full mb-16 text-center" data-aos="fade-down">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-brand-900 tracking-tight leading-[1.1] mb-6">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-brand-900 tracking-tight leading-[1.1] mb-6">
                 About <span class="font-serif italic font-normal text-brand-600">Us</span>
             </h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+            <p class="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
                 mitabl connects micooks and mifoodi through a mobile-first food marketplace designed for real local discovery.
             </p>
         </div>
 
-        <div class="glass p-8 md:p-12 rounded-[2.5rem] w-full mb-12 shadow-lg relative overflow-hidden">
+        <div class="glass p-6 sm:p-8 md:p-12 rounded-[2rem] sm:rounded-[2.5rem] w-full mb-12 shadow-lg relative overflow-hidden">
             <div class="absolute -right-20 -top-20 w-64 h-64 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60"></div>
             
             <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -342,6 +350,29 @@
                 mobileBtn.addEventListener('click', () => {
                     navMenu.classList.toggle('hidden');
                     navMenu.classList.toggle('flex');
+                });
+
+                const closeMobileMenu = () => {
+                    if (window.innerWidth >= 768) {
+                        navMenu.classList.remove('hidden');
+                        navMenu.classList.remove('flex');
+                    }
+                };
+
+                window.addEventListener('resize', closeMobileMenu);
+
+                document.addEventListener('click', (event) => {
+                    if (window.innerWidth >= 768) {
+                        return;
+                    }
+
+                    const clickedInsideMenu = navMenu.contains(event.target);
+                    const clickedToggle = mobileBtn.contains(event.target);
+
+                    if (!clickedInsideMenu && !clickedToggle && !navMenu.classList.contains('hidden')) {
+                        navMenu.classList.add('hidden');
+                        navMenu.classList.remove('flex');
+                    }
                 });
             }
 
