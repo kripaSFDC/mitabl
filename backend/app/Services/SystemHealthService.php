@@ -137,24 +137,26 @@ class SystemHealthService
     private function checkQueueProcessing(): array
     {
         $missingTables = [];
+        $queueDriver = (string) config('queue.default', 'sync');
+        $usesDatabaseQueue = $queueDriver === 'database';
 
         try {
             $hasJobsTable = Schema::hasTable('jobs');
             $hasFailedJobsTable = Schema::hasTable('failed_jobs');
 
-            if (! $hasJobsTable) {
+            if ($usesDatabaseQueue && ! $hasJobsTable) {
                 $missingTables[] = 'jobs';
             }
             if (! $hasFailedJobsTable) {
                 $missingTables[] = 'failed_jobs';
             }
 
-            if (! $hasJobsTable && ! $hasFailedJobsTable) {
+            if (($usesDatabaseQueue && ! $hasJobsTable) && ! $hasFailedJobsTable) {
                 throw new \RuntimeException('jobs and failed_jobs tables are not available');
             }
 
-            $jobsCount = $hasJobsTable ? DB::table('jobs')->count() : 0;
-            $oldestPending = $hasJobsTable ? DB::table('jobs')->min('created_at') : null;
+            $jobsCount = ($usesDatabaseQueue && $hasJobsTable) ? DB::table('jobs')->count() : 0;
+            $oldestPending = ($usesDatabaseQueue && $hasJobsTable) ? DB::table('jobs')->min('created_at') : null;
             $failedJobsCount = $hasFailedJobsTable ? DB::table('failed_jobs')->count() : 0;
             $poisonCount = $hasFailedJobsTable
                 ? DB::table('failed_jobs')
@@ -210,11 +212,37 @@ class SystemHealthService
         $lastRun = Cache::get('platform.health.synthetic.last_run_at');
 
         if (! $lastRun) {
+            $firstSeenKey = 'platform.health.synthetic.first_seen_at';
+            $firstSeenRaw = Cache::get($firstSeenKey);
+
+            if (! $firstSeenRaw) {
+                Cache::forever($firstSeenKey, now()->toIso8601String());
+
+                return [
+                    'key' => 'scheduler',
+                    'label' => 'Scheduler',
+                    'status' => 'warning',
+                    'message' => 'No scheduler heartbeat found yet. Awaiting first scheduled run.',
+                ];
+            }
+
+            $firstSeenAt = \Carbon\Carbon::parse((string) $firstSeenRaw);
+            $ageMinutes = now()->diffInMinutes($firstSeenAt);
+
+            if ($ageMinutes > 15) {
+                return [
+                    'key' => 'scheduler',
+                    'label' => 'Scheduler',
+                    'status' => 'error',
+                    'message' => 'No scheduler heartbeat found after ' . $ageMinutes . ' min. Verify cron invokes `php artisan schedule:run` every minute.',
+                ];
+            }
+
             return [
                 'key' => 'scheduler',
                 'label' => 'Scheduler',
                 'status' => 'warning',
-                'message' => 'No scheduler heartbeat found yet.',
+                'message' => 'No scheduler heartbeat found yet. Awaiting first scheduled run.',
             ];
         }
 

@@ -107,6 +107,31 @@ class PhaseFourSystemHealthServiceTest extends TestCase
         $this->assertStringContainsString('poison-message retries', strtolower((string) $queueProcessing['message']));
     }
 
+    public function test_queue_processing_does_not_require_jobs_table_for_redis_queue_driver(): void
+    {
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'connection' => 'redis',
+            'queue' => 'default',
+            'payload' => json_encode(['displayName' => 'ExampleJob']),
+            'exception' => 'example failure',
+            'failed_at' => now(),
+        ]);
+
+        config([
+            'queue.default' => 'redis',
+            'mail.default' => 'array',
+            'mail.from.address' => 'ops@example.com',
+        ]);
+
+        $summary = app(SystemHealthService::class)->runChecks();
+        $queueProcessing = collect($summary['checks'])->firstWhere('key', 'queue_processing');
+
+        $this->assertNotNull($queueProcessing);
+        $this->assertStringContainsString('Failed jobs detected (1).', (string) $queueProcessing['message']);
+        $this->assertStringNotContainsString('missing table(s): jobs', strtolower((string) $queueProcessing['message']));
+    }
+
     public function test_queue_check_errors_when_sync_queue_is_used_outside_local_testing(): void
     {
         config([
