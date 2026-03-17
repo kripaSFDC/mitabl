@@ -83,11 +83,15 @@ class PlatformRuntimeConfigService
             Config::set('mail.mailers.smtp.encryption', null);
             Config::set('mail.mailers.smtp.username', null);
             Config::set('mail.mailers.smtp.password', null);
+
+            if ($defaultMailer === 'smtp') {
+                Config::set('mail.default', 'log');
+            }
+
+            return;
         }
 
-        if ($defaultMailer === 'smtp' && $smtpHost === '') {
-            Config::set('mail.default', 'log');
-        }
+        Config::set('mail.mailers.smtp.transport', 'smtp');
     }
 
     /**
