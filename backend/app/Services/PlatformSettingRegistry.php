@@ -318,6 +318,22 @@ class PlatformSettingRegistry
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function defaultForKey(string $key): ?array
+    {
+        $normalized = strtolower(trim($key));
+
+        foreach (self::DEFAULT_SETTINGS as $default) {
+            if (strtolower((string) ($default['key'] ?? '')) === $normalized) {
+                return $default;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function toFormRow(PlatformSetting $setting): array

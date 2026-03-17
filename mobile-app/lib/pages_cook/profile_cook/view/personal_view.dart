@@ -38,7 +38,6 @@ class _RoleCtaState {
 }
 
 class _PersonalTabViewState extends State<PersonalTabView> {
-
   bool _switchingRole = false;
 
   AvailableRoleMembership? _targetMifoodiRole(ProfileCookState state) {
@@ -124,9 +123,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
 
   Map<String, dynamic> _extractRoleTransition(Map<String, dynamic> payload) {
     final data = payload['data'];
-    final transition = data is Map<String, dynamic>
-        ? data['role_transition']
-        : null;
+    final transition =
+        data is Map<String, dynamic> ? data['role_transition'] : null;
     return transition is Map<String, dynamic>
         ? transition
         : <String, dynamic>{};
@@ -301,6 +299,27 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      navigatorKey.currentState!
+                          .pushNamed('/ProfileCook')
+                          .then((value) {
+                        if (!context.mounted) return;
+                        if (value == true) {
+                          context.read<ProfileCookCubit>().getCookProfile();
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      size: config.AppConfig(context).appWidth(4.5),
+                    ),
+                    label: const Text('Edit profile'),
+                  ),
+                ),
               ],
             ),
             Divider(
@@ -319,7 +338,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           : () {
                               if (_mifoodiTransitionDisabled(state)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(_disabledMifoodiMessage())),
+                                  SnackBar(
+                                      content: Text(_disabledMifoodiMessage())),
                                 );
                                 return;
                               }
@@ -398,8 +418,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                           final payload = await MobileContactRepository(
                             httpClient: userRepository.httpClient,
                           ).fetch(user);
-                          final message =
-                              payload['message']?.toString() ??
+                          final message = payload['message']?.toString() ??
                               'Contact information loaded.';
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(

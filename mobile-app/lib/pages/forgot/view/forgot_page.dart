@@ -61,6 +61,11 @@ class _ForgotPage extends State<ForgotPage> with TickerProviderStateMixin {
                   height: config.AppConfig(context).appHeight(100),
                   width: config.AppConfig(context).appWidth(100),
                   child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom +
+                          MediaQuery.of(context).viewInsets.bottom +
+                          config.AppConfig(context).appHeight(3),
+                    ),
                     child: Padding(
                       padding: EdgeInsets.only(
                         top: config.AppConfig(context).appHeight(2),

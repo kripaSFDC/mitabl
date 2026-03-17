@@ -56,6 +56,11 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
               height: config.AppConfig(context).appHeight(100),
               width: config.AppConfig(context).appWidth(100),
               child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom +
+                      MediaQuery.of(context).viewInsets.bottom +
+                      config.AppConfig(context).appHeight(3),
+                ),
                 child: Padding(
                   padding: EdgeInsets.only(
                     top: config.AppConfig(context).appHeight(2),
@@ -181,9 +186,8 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
           // listener misses a single state transition.
           final user = await context.read<UserRepository>().getUser();
           final role = user?.data?.user?.role;
-          final routeName = AppConstants.isCookRole(role)
-              ? '/DashboardCook'
-              : '/HomePage';
+          final routeName =
+              AppConstants.isCookRole(role) ? '/DashboardCook' : '/HomePage';
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
             routeName,
             (route) => false,

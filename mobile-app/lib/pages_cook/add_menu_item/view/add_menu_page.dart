@@ -52,16 +52,16 @@ class _AddMenuPageState extends State<AddMenuPage> {
     super.initState();
     itemNameController.addListener(() {
       context.read<AddMenuCubit>().onItemNameChange(
-        value: itemNameController.text,
-      );
+            value: itemNameController.text,
+          );
     });
     priceController.addListener(() {
       context.read<AddMenuCubit>().onPriceChange(value: priceController.text);
     });
     descriptionController.addListener(() {
       context.read<AddMenuCubit>().onDescriptionChange(
-        value: descriptionController.text,
-      );
+            value: descriptionController.text,
+          );
     });
 
     cookingStyleController.addListener(() {});
@@ -72,14 +72,11 @@ class _AddMenuPageState extends State<AddMenuPage> {
         .name
         .toString();
     if (widget.routeArguments!.foodData != null) {
-      CookingStyleData cookingStyleData = context
-          .read<AddMenuCubit>()
-          .state
-          .cookingStyleList
-          .firstWhere(
-            (element) =>
-                element.id == widget.routeArguments!.foodData!.cookingstyle,
-          );
+      CookingStyleData cookingStyleData =
+          context.read<AddMenuCubit>().state.cookingStyleList.firstWhere(
+                (element) =>
+                    element.id == widget.routeArguments!.foodData!.cookingstyle,
+              );
       cookingStyleController.text = cookingStyleData.name!;
 
       itemNameController.text = widget.routeArguments!.foodData!.foodName!;
@@ -167,6 +164,11 @@ class _AddMenuPageState extends State<AddMenuPage> {
               child: Stack(
                 children: [
                   SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom +
+                          MediaQuery.of(context).viewInsets.bottom +
+                          config.AppConfig(context).appHeight(4),
+                    ),
                     child: Column(
                       children: [
                         SizedBox(
@@ -208,14 +210,14 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                 decoration: BoxDecoration(
                                                   color: config.AppColors()
                                                       .textFieldBackgroundColor(
-                                                        1,
-                                                      ),
+                                                    1,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                        config.AppConfig(
-                                                          context,
-                                                        ).appWidth(5),
-                                                      ),
+                                                    config.AppConfig(
+                                                      context,
+                                                    ).appWidth(5),
+                                                  ),
                                                 ),
                                                 alignment: Alignment.center,
                                                 child: CachedNetworkImage(
@@ -223,24 +225,23 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                       '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
                                                   errorWidget:
                                                       (context, data, e) {
-                                                        return Image.file(
-                                                          File(
-                                                            state
-                                                                .pathFiles[index]
-                                                                .path!,
-                                                          ),
-                                                        );
-                                                      },
+                                                    return Image.file(
+                                                      File(
+                                                        state.pathFiles[index]
+                                                            .path!,
+                                                      ),
+                                                    );
+                                                  },
                                                   // errorWidget: (context, url, error) =>
                                                   //     Container(
                                                   //       color: Theme.of(context).backgroundColor,
                                                   //     ),
                                                   placeholder: (context, s) =>
                                                       Container(
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).colorScheme.surface,
-                                                      ),
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.surface,
+                                                  ),
                                                 ),
                                               ),
                                               Positioned(
@@ -489,7 +490,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                 child: Chip(
                                                   padding: EdgeInsets.zero,
                                                   labelStyle: TextStyle(
-                                                    fontFamily: config.FontFamily()
+                                                    fontFamily: config
+                                                            .FontFamily()
                                                         .itcAvantGardeGothicStdFontFamily,
                                                     fontWeight:
                                                         config.FontFamily()
@@ -506,10 +508,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                       width: 0.5,
                                                     ),
                                                   ),
-                                                  backgroundColor:
-                                                      Theme.of(
-                                                        context,
-                                                      ).primaryColor.withValues(
+                                                  backgroundColor: Theme.of(
+                                                    context,
+                                                  ).primaryColor.withValues(
                                                         alpha: 0.2,
                                                       ),
                                                   label: Text(
@@ -517,8 +518,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                                 .where(
                                                                   (
                                                                     element,
-                                                                  ) => element
-                                                                      .isSelected!,
+                                                                  ) =>
+                                                                      element
+                                                                          .isSelected!,
                                                                 )
                                                                 .toList()[index]
                                                                 .name!
@@ -526,19 +528,20 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                             15
                                                         ? '${state.specialDietDataList!.where((element) => element.isSelected!).toList()[index].name!.substring(0, 14)}...'
                                                         : state
-                                                              .specialDietDataList!
-                                                              .where(
-                                                                (
-                                                                  element,
-                                                                ) => element
-                                                                    .isSelected!,
-                                                              )
-                                                              .toList()[index]
-                                                              .name!,
+                                                            .specialDietDataList!
+                                                            .where(
+                                                              (
+                                                                element,
+                                                              ) =>
+                                                                  element
+                                                                      .isSelected!,
+                                                            )
+                                                            .toList()[index]
+                                                            .name!,
                                                     style: TextStyle(
-                                                      fontFamily:
-                                                          config.FontFamily()
-                                                              .itcAvantGardeGothicStdFontFamily,
+                                                      fontFamily: config
+                                                              .FontFamily()
+                                                          .itcAvantGardeGothicStdFontFamily,
                                                       fontWeight:
                                                           config.FontFamily()
                                                               .book,
@@ -562,8 +565,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                               .where(
                                                                 (
                                                                   element,
-                                                                ) => element
-                                                                    .isSelected!,
+                                                                ) =>
+                                                                    element
+                                                                        .isSelected!,
                                                               )
                                                               .toList()[index]
                                                               .id,
@@ -585,12 +589,12 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                     decoration: BoxDecoration(
                                                       borderRadius:
                                                           BorderRadius.all(
-                                                            Radius.circular(
-                                                              config.AppConfig(
-                                                                context,
-                                                              ).appWidth(10),
-                                                            ),
-                                                          ),
+                                                        Radius.circular(
+                                                          config.AppConfig(
+                                                            context,
+                                                          ).appWidth(10),
+                                                        ),
+                                                      ),
                                                       border: Border.all(
                                                         color: Theme.of(
                                                           context,
@@ -864,37 +868,29 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                       if (state.pathFiles.isNotEmpty) {
                                         if (state.specialDietDataList!
                                             .firstWhere(
-                                              (element) => element.isSelected!,
-                                              orElse: () {
-                                                return SpecialDietData(
-                                                  isSelected: false,
-                                                );
-                                              },
-                                            )
-                                            .isSelected!) {
-                                          if (state
-                                                      .selectedCookingStyle!
+                                          (element) => element.isSelected!,
+                                          orElse: () {
+                                            return SpecialDietData(
+                                              isSelected: false,
+                                            );
+                                          },
+                                        ).isSelected!) {
+                                          if (state.selectedCookingStyle!
                                                       .isSelected !=
                                                   null &&
-                                              state
-                                                  .selectedCookingStyle!
+                                              state.selectedCookingStyle!
                                                   .isSelected!) {
                                             context
                                                 .read<AddMenuCubit>()
                                                 .onAddFood(
                                                   isEdit: widget
-                                                      .routeArguments!
-                                                      .isEdit!,
-                                                  foodId:
-                                                      widget
-                                                              .routeArguments!
+                                                      .routeArguments!.isEdit!,
+                                                  foodId: widget.routeArguments!
                                                               .foodData !=
                                                           null
-                                                      ? widget
-                                                            .routeArguments!
-                                                            .foodData!
-                                                            .id
-                                                            .toString()
+                                                      ? widget.routeArguments!
+                                                          .foodData!.id
+                                                          .toString()
                                                       : '',
                                                 );
                                           } else {
@@ -918,7 +914,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                               .isSubmissionInProgress
                                           ? Center(
                                               child: CupertinoActivityIndicator())
-                                          :*/ Text(
+                                          :*/
+                                      Text(
                                     widget.routeArguments!.isEdit!
                                         ? 'UPDATE'
                                         : 'SAVE',
@@ -983,9 +980,8 @@ class _ItemNameState extends State<_ItemName> {
             onChanged: (text) {},
             decoration: InputDecoration(
               counterText: '',
-              errorText: state.itemName!.invalid
-                  ? 'Please enter a valid name'
-                  : null,
+              errorText:
+                  state.itemName!.invalid ? 'Please enter a valid name' : null,
 
               hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
@@ -1057,9 +1053,8 @@ class _ItemPriceState extends State<_ItemPrice> {
             onChanged: (text) {},
             decoration: InputDecoration(
               counterText: '',
-              errorText: state.price!.invalid
-                  ? 'Please enter a valid price'
-                  : null,
+              errorText:
+                  state.price!.invalid ? 'Please enter a valid price' : null,
 
               hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
@@ -1297,9 +1292,9 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                 TextButton(
                   onPressed: () =>
                       context.read<AddMenuCubit>().onAvailableTimeChanged(
-                        availableFromTime: '',
-                        availableToTime: '',
-                      ),
+                            availableFromTime: '',
+                            availableToTime: '',
+                          ),
                   child: const Text('Clear time window'),
                 ),
             ],
@@ -1351,9 +1346,9 @@ class _AvailabilityScheduleSection extends StatelessWidget {
     final formatted =
         '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
     context.read<AddMenuCubit>().onAvailableTimeChanged(
-      availableFromTime: isStart ? formatted : null,
-      availableToTime: isStart ? null : formatted,
-    );
+          availableFromTime: isStart ? formatted : null,
+          availableToTime: isStart ? null : formatted,
+        );
   }
 
   DateTime? _parseDate(String? value) {

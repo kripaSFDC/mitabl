@@ -15,6 +15,7 @@ use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 use Validator, DB, Auth;
 
@@ -343,7 +344,9 @@ class OrderController extends Controller
             'dine_in' => ['required', 'integer', Rule::in([0, 1])],
             'take_away' => ['required', 'integer', Rule::in([0, 1])],
             'persons' => ['nullable', 'integer', 'min:1'],
-            'dine_in_slot_id' => ['nullable', 'integer', 'exists:dine_in_slots,id'],
+            'dine_in_slot_id' => Schema::hasTable('dine_in_slots')
+                ? ['nullable', 'integer', 'exists:dine_in_slots,id']
+                : ['nullable', 'integer'],
             'item_data' => ['required', 'string'],
             'promo_code' => ['nullable', 'integer', 'exists:promo_codes,id'],
             'card_id' => ['nullable'],
@@ -356,6 +359,10 @@ class OrderController extends Controller
 
         if (((int) $request->input('dine_in')) + ((int) $request->input('take_away')) !== 1) {
             return $this->responser([], 'Exactly one of dine_in or take_away must be selected.', 422);
+        }
+
+        if ((int) $request->input('dine_in') === 1 && ! Schema::hasTable('dine_in_slots')) {
+            return $this->responser([], 'Dine-in orders are not available until the dine_in_slots table has been migrated.', 422);
         }
 
         if ((int) $request->input('dine_in') === 1 && ! $request->filled('persons')) {
@@ -445,7 +452,7 @@ class OrderController extends Controller
 
     private function orderListResourceRelations(): array
     {
-        return [
+        $relations = [
             'orderdata.food',
             'Mikitchn.addedimage',
             'user',
@@ -453,13 +460,18 @@ class OrderController extends Controller
             'cancelreason.actor.restaurant',
             'review',
             'payment',
-            'dineInSlot',
         ];
+
+        if (Schema::hasTable('dine_in_slots')) {
+            $relations[] = 'dineInSlot';
+        }
+
+        return $relations;
     }
 
     private function orderDetailResourceRelations(): array
     {
-        return [
+        $relations = [
             'orderdata.food',
             'Mikitchn.addedimage',
             'Mikitchn.reviews',
@@ -468,8 +480,13 @@ class OrderController extends Controller
             'cancelreason.actor.restaurant',
             'review',
             'payment',
-            'dineInSlot',
         ];
+
+        if (Schema::hasTable('dine_in_slots')) {
+            $relations[] = 'dineInSlot';
+        }
+
+        return $relations;
     }
 
     private function canManageOrder(Order $order): bool

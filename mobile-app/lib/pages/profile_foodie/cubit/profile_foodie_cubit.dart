@@ -17,7 +17,7 @@ part 'profile_foodie_state.dart';
 
 class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
   ProfileFoodieCubit({this.userRepository, this.authenticationRepository})
-    : super(const ProfileFoodieState());
+      : super(const ProfileFoodieState());
 
   final UserRepository? userRepository;
   final AuthenticationRepository? authenticationRepository;
@@ -133,6 +133,10 @@ class ProfileFoodieCubit extends Cubit<ProfileFoodieState> {
 
   onAvatarImageSelect({String? path}) {
     emit(state.copyWith(avatarPath: path));
+  }
+
+  void resetSubmissionStatus() {
+    emit(state.copyWith(statusUpload: FormzStatus.pure));
   }
 
   updateFoodieProfile() async {

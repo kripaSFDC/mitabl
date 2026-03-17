@@ -65,6 +65,11 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                   height: config.AppConfig(context).appHeight(100),
                   width: config.AppConfig(context).appWidth(100),
                   child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom +
+                          MediaQuery.of(context).viewInsets.bottom +
+                          config.AppConfig(context).appHeight(3),
+                    ),
                     child: Padding(
                       padding: EdgeInsets.only(
                         top: config.AppConfig(context).appHeight(2),
@@ -182,8 +187,8 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                 decoration: BoxDecoration(
                                                   color: config.AppColors()
                                                       .textFieldBackgroundColor(
-                                                        1,
-                                                      ),
+                                                    1,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
@@ -207,18 +212,18 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                           children: [
                                                             Image.asset(
                                                               'assets/img/foodi.png',
-                                                              height:
-                                                                  config.AppConfig(
-                                                                    context,
-                                                                  ).appHeight(
-                                                                    3,
-                                                                  ),
-                                                              width:
-                                                                  config.AppConfig(
-                                                                    context,
-                                                                  ).appHeight(
-                                                                    3,
-                                                                  ),
+                                                              height: config
+                                                                  .AppConfig(
+                                                                context,
+                                                              ).appHeight(
+                                                                3,
+                                                              ),
+                                                              width: config
+                                                                  .AppConfig(
+                                                                context,
+                                                              ).appHeight(
+                                                                3,
+                                                              ),
                                                               fit: BoxFit
                                                                   .fitHeight,
                                                             ),
@@ -246,39 +251,43 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                         flex: 1,
                                                         child:
                                                             state.selectedRole ==
-                                                                AppConstants
-                                                                    .FOODI
-                                                            ? Container(
-                                                                decoration: BoxDecoration(
-                                                                  shape: BoxShape
-                                                                      .circle,
-                                                                  color: Theme.of(
-                                                                    context,
-                                                                  ).primaryColor,
-                                                                ),
-                                                                child: Icon(
-                                                                  Icons.done,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  size:
-                                                                      config.AppConfig(
+                                                                    AppConstants
+                                                                        .FOODI
+                                                                ? Container(
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      shape: BoxShape
+                                                                          .circle,
+                                                                      color: Theme
+                                                                          .of(
+                                                                        context,
+                                                                      ).primaryColor,
+                                                                    ),
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .done,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      size: config
+                                                                          .AppConfig(
                                                                         context,
                                                                       ).appWidth(
                                                                         5,
                                                                       ),
-                                                                ),
-                                                              )
-                                                            : Icon(
-                                                                Icons.circle,
-                                                                color: Colors
-                                                                    .white,
-                                                                size:
-                                                                    config.AppConfig(
+                                                                    ),
+                                                                  )
+                                                                : Icon(
+                                                                    Icons
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: config
+                                                                        .AppConfig(
                                                                       context,
                                                                     ).appWidth(
                                                                       5,
                                                                     ),
-                                                              ),
+                                                                  ),
                                                       ),
                                                     ],
                                                   ),
@@ -306,8 +315,8 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                 decoration: BoxDecoration(
                                                   color: config.AppColors()
                                                       .textFieldBackgroundColor(
-                                                        1,
-                                                      ),
+                                                    1,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
@@ -331,18 +340,18 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                           children: [
                                                             Image.asset(
                                                               'assets/img/cook.png',
-                                                              height:
-                                                                  config.AppConfig(
-                                                                    context,
-                                                                  ).appHeight(
-                                                                    3,
-                                                                  ),
-                                                              width:
-                                                                  config.AppConfig(
-                                                                    context,
-                                                                  ).appHeight(
-                                                                    3,
-                                                                  ),
+                                                              height: config
+                                                                  .AppConfig(
+                                                                context,
+                                                              ).appHeight(
+                                                                3,
+                                                              ),
+                                                              width: config
+                                                                  .AppConfig(
+                                                                context,
+                                                              ).appHeight(
+                                                                3,
+                                                              ),
                                                               fit: BoxFit
                                                                   .fitHeight,
                                                             ),
@@ -370,39 +379,43 @@ class _SignupPage extends State<SignupPage> with TickerProviderStateMixin {
                                                         flex: 1,
                                                         child:
                                                             state.selectedRole ==
-                                                                AppConstants
-                                                                    .COOK
-                                                            ? Container(
-                                                                decoration: BoxDecoration(
-                                                                  shape: BoxShape
-                                                                      .circle,
-                                                                  color: Theme.of(
-                                                                    context,
-                                                                  ).primaryColor,
-                                                                ),
-                                                                child: Icon(
-                                                                  Icons.done,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  size:
-                                                                      config.AppConfig(
+                                                                    AppConstants
+                                                                        .COOK
+                                                                ? Container(
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      shape: BoxShape
+                                                                          .circle,
+                                                                      color: Theme
+                                                                          .of(
+                                                                        context,
+                                                                      ).primaryColor,
+                                                                    ),
+                                                                    child: Icon(
+                                                                      Icons
+                                                                          .done,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      size: config
+                                                                          .AppConfig(
                                                                         context,
                                                                       ).appWidth(
                                                                         5,
                                                                       ),
-                                                                ),
-                                                              )
-                                                            : Icon(
-                                                                Icons.circle,
-                                                                color: Colors
-                                                                    .white,
-                                                                size:
-                                                                    config.AppConfig(
+                                                                    ),
+                                                                  )
+                                                                : Icon(
+                                                                    Icons
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: config
+                                                                        .AppConfig(
                                                                       context,
                                                                     ).appWidth(
                                                                       5,
                                                                     ),
-                                                              ),
+                                                                  ),
                                                       ),
                                                     ],
                                                   ),
@@ -1073,9 +1086,9 @@ class _PhoneNoState extends State<_PhoneNo> {
                 maxLength: 5,
                 onChanged: (value) {
                   context.read<SignUpCubit>().onCountryCodeChanged(
-                    value: value,
-                    localNumber: _phoneController.text,
-                  );
+                        value: value,
+                        localNumber: _phoneController.text,
+                      );
                 },
                 decoration: _phoneInputDecoration(
                   context,
@@ -1095,11 +1108,11 @@ class _PhoneNoState extends State<_PhoneNo> {
                 maxLength: 14,
                 onChanged: (text) {
                   context.read<SignUpCubit>().onPhoneChanged(
-                    value: InternationalPhone.compose(
-                      countryCode: _countryCodeController.text,
-                      number: text,
-                    ),
-                  );
+                        value: InternationalPhone.compose(
+                          countryCode: _countryCodeController.text,
+                          number: text,
+                        ),
+                      );
                 },
                 decoration: _phoneInputDecoration(
                   context,

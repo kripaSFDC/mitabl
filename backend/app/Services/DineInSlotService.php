@@ -7,6 +7,7 @@ use App\Models\Mikitchn;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 class DineInSlotService
@@ -19,6 +20,10 @@ class DineInSlotService
 
     public function syncKitchenSlots(Mikitchn $kitchen, array $slots): void
     {
+        if (! Schema::hasTable('dine_in_slots')) {
+            throw new InvalidArgumentException('Dine-in slots are not available until the dine_in_slots table has been migrated.');
+        }
+
         $existingSlots = $kitchen->dineInSlots()->get()->keyBy(
             fn (DineInSlot $slot): string => $this->slotFingerprint(
                 (int) $slot->day_of_week,
@@ -62,6 +67,10 @@ class DineInSlotService
 
     public function clearKitchenSlots(Mikitchn $kitchen): void
     {
+        if (! Schema::hasTable('dine_in_slots')) {
+            return;
+        }
+
         $this->retireOrDeleteSlots($kitchen->dineInSlots()->get());
     }
 
@@ -85,6 +94,10 @@ class DineInSlotService
 
     public function getAvailabilityForDate(Mikitchn $kitchen, Carbon $date, ?int $persons = null): Collection
     {
+        if (! Schema::hasTable('dine_in_slots')) {
+            return collect();
+        }
+
         $slots = $kitchen->dineInSlots()
             ->where('day_of_week', $date->dayOfWeek)
             ->where('status', 1)
@@ -110,6 +123,10 @@ class DineInSlotService
 
     public function assertBookable(Mikitchn $kitchen, int $slotId, string $deliveryDate, int $persons, ?int $ignoreOrderId = null): DineInSlot
     {
+        if (! Schema::hasTable('dine_in_slots')) {
+            throw new InvalidArgumentException('Dine-in slots are not available until the dine_in_slots table has been migrated.');
+        }
+
         $date = Carbon::parse($deliveryDate)->startOfDay();
 
         if ($persons <= 0) {

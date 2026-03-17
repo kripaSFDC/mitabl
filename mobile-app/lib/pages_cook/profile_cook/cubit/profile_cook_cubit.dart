@@ -168,6 +168,10 @@ class ProfileCookCubit extends Cubit<ProfileCookState> {
     emit(state.copyWith(avatarPath: path));
   }
 
+  void resetSubmissionStatus() {
+    emit(state.copyWith(statusUpload: FormzStatus.pure));
+  }
+
   updateCookProfile() async {
     try {
       emit(state.copyWith(statusUpload: FormzStatus.submissionInProgress));

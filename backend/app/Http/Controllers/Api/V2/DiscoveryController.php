@@ -11,6 +11,7 @@ use App\Services\DiscoveryService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -65,23 +66,28 @@ class DiscoveryController extends Controller
             }
         }
 
+        $relations = [
+            'addedimage:id,ref_id,model_name,path',
+            'certificate:id,mikitchn_id,abn,abn_gst,status',
+            'weektimings',
+            'user:id,first_name,last_name,avatar,role_id,description',
+            'foods' => function ($foodQuery) use ($request): void {
+                $foodQuery->active()
+                    ->availableForOrderType(
+                        $request->has('dine_in') ? (int) $request->query('dine_in') : null,
+                        $request->has('take_away') ? (int) $request->query('take_away') : null
+                    )
+                    ->with('addedimage:id,ref_id,model_name,path')
+                    ->orderBy('food_name');
+            },
+        ];
+
+        if (Schema::hasTable('dine_in_slots')) {
+            $relations[] = 'dineInSlots';
+        }
+
         $restaurant = $query
-            ->with([
-                'addedimage:id,ref_id,model_name,path',
-                'certificate:id,mikitchn_id,abn,abn_gst,status',
-                'weektimings',
-                'dineInSlots',
-                'user:id,first_name,last_name,avatar,role_id,description',
-                'foods' => function ($foodQuery) use ($request): void {
-                    $foodQuery->active()
-                        ->availableForOrderType(
-                            $request->has('dine_in') ? (int) $request->query('dine_in') : null,
-                            $request->has('take_away') ? (int) $request->query('take_away') : null
-                        )
-                        ->with('addedimage:id,ref_id,model_name,path')
-                        ->orderBy('food_name');
-                },
-            ])
+            ->with($relations)
             ->withAvg('reviews', 'rating')
             ->find($id);
 
@@ -160,6 +166,10 @@ class DiscoveryController extends Controller
 
         if (! $restaurant) {
             return $this->responser([], 'restaurant not found.', 404);
+        }
+
+        if (! Schema::hasTable('dine_in_slots')) {
+            return $this->responser([], 'Dine-in slots are not available until the dine_in_slots table has been migrated.', 422);
         }
 
         $slots = $this->dineInSlotService->getAvailabilityForDate(

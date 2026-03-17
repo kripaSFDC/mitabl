@@ -27,7 +27,7 @@
         <server name="MAIL_MAILER" value="array"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
-        <server name="JWT_SECRET" value="testing-jwt-secret-key"/>
+        <server name="JWT_SECRET" value="testing-jwt-secret-key-testing-jwt-secret-key-2026"/>
         <server name="JWT_TTL" value="60"/>
         <server name="JWT_REFRESH_TTL" value="20160"/>
     </php>

@@ -36,15 +36,16 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   @override
   void initState() {
     super.initState();
+    context.read<ProfileFoodieCubit>().resetSubmissionStatus();
     firstName!.addListener(() {
       context.read<ProfileFoodieCubit>().onFirstNameChanged(
-        value: firstName!.text,
-      );
+            value: firstName!.text,
+          );
     });
     lastName!.addListener(() {
       context.read<ProfileFoodieCubit>().onLastNameChanged(
-        value: lastName!.text,
-      );
+            value: lastName!.text,
+          );
     });
     email!.addListener(() {
       context.read<ProfileFoodieCubit>().onEmailChanged(value: email!.text);
@@ -54,17 +55,14 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     });
     description!.addListener(() {
       context.read<ProfileFoodieCubit>().onDescriptionChanged(
-        value: description!.text,
-      );
+            value: description!.text,
+          );
     });
 
     firstName!.text = context.read<ProfileFoodieCubit>().state.firstName!.value;
     lastName!.text = context.read<ProfileFoodieCubit>().state.lastName!.value;
-    description!.text = context
-        .read<ProfileFoodieCubit>()
-        .state
-        .description!
-        .value;
+    description!.text =
+        context.read<ProfileFoodieCubit>().state.description!.value;
     email!.text = context.read<ProfileFoodieCubit>().state.email!.value;
     phone!.text = context.read<ProfileFoodieCubit>().state.phoneNo!.value;
   }
@@ -156,14 +154,20 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
               SizedBox(height: config.AppConfig(context).appHeight(4)),
               Expanded(
                 child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom +
+                        MediaQuery.of(context).viewInsets.bottom +
+                        config.AppConfig(context).appHeight(4),
+                  ),
                   child: Column(
                     children: [
                       BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
                         builder: (context, state) {
                           final avatarPath = state.avatarPath ?? '';
-                          final remoteAvatar = state.foodieProfile?.data?.avatar;
-                          final imageUrl =
-                              remoteAvatar != null && remoteAvatar.isNotEmpty
+                          final remoteAvatar =
+                              state.foodieProfile?.data?.avatar;
+                          final imageUrl = remoteAvatar != null &&
+                                  remoteAvatar.isNotEmpty
                               ? "${GlobalConfiguration().getValue<String>('base_url')}/$remoteAvatar"
                               : '';
 
@@ -182,31 +186,35 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   ),
                                 )
                               : imageUrl.isEmpty
-                              ? Container(
-                                  height: config.AppConfig(context).appWidth(18),
-                                  width: config.AppConfig(context).appWidth(18),
-                                  padding: EdgeInsets.all(
-                                    config.AppConfig(context).appWidth(3),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                  child: Icon(
-                                    Icons.person,
-                                    color: const Color(0xFFFFFBF7),
-                                    size: config.AppConfig(context).appWidth(8),
-                                  ),
-                                )
-                              : CachedNetworkImage(
-                                  imageUrl: imageUrl,
-                                  progressIndicatorBuilder:
-                                      (context, url, downloadProgress) =>
-                                          CircularProgressIndicator(
-                                            value: downloadProgress.progress,
-                                          ),
-                                  errorWidget: (context, url, error) =>
-                                      Container(
+                                  ? Container(
+                                      height: config.AppConfig(context)
+                                          .appWidth(18),
+                                      width: config.AppConfig(context)
+                                          .appWidth(18),
+                                      padding: EdgeInsets.all(
+                                        config.AppConfig(context).appWidth(3),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      child: Icon(
+                                        Icons.person,
+                                        color: const Color(0xFFFFFBF7),
+                                        size: config.AppConfig(context)
+                                            .appWidth(8),
+                                      ),
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      progressIndicatorBuilder:
+                                          (context, url, downloadProgress) =>
+                                              CircularProgressIndicator(
+                                        value: downloadProgress.progress,
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Container(
                                         height: config.AppConfig(
                                           context,
                                         ).appWidth(18),
@@ -230,8 +238,8 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                           ).appWidth(8),
                                         ),
                                       ),
-                                  imageBuilder: (context, imageProvider) =>
-                                      Container(
+                                      imageBuilder: (context, imageProvider) =>
+                                          Container(
                                         height: config.AppConfig(
                                           context,
                                         ).appWidth(18),
@@ -248,7 +256,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                           ),
                                         ),
                                       ),
-                                );
+                                    );
                         },
                       ),
                       SizedBox(height: config.AppConfig(context).appHeight(1)),
@@ -333,6 +341,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                       _Description(editProfile: this),
                       SizedBox(height: config.AppConfig(context).appHeight(2)),
                       _UpdateButton(editProfile: this),
+                      SizedBox(height: config.AppConfig(context).appHeight(2)),
                     ],
                   ),
                 ),
@@ -373,9 +382,8 @@ class _EmailState extends State<_Email> {
             },
             decoration: InputDecoration(
               counterText: '',
-              errorText: state.email!.invalid
-                  ? 'Please enter a valid email id'
-                  : null,
+              errorText:
+                  state.email!.invalid ? 'Please enter a valid email id' : null,
 
               // suffixIcon: state.email!.valid
               //     ? Icon(
@@ -719,7 +727,11 @@ class _UpdateButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileFoodieCubit, ProfileFoodieState>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state.statusUpload!.isSubmissionSuccess && context.mounted) {
+          Navigator.of(context).pop(true);
+        }
+      },
       builder: (context, state) {
         return Container(
           height: 45,

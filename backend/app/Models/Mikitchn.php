@@ -10,6 +10,7 @@ use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Overtrue\LaravelFavorite\Traits\Favoriteable;
 use Auth;
 
@@ -206,7 +207,9 @@ class Mikitchn extends Model
     public function delete() {
         return DB::transaction(function () {
             $this->weektimings()->delete();
-            $this->dineInSlots()->delete();
+            if (Schema::hasTable('dine_in_slots')) {
+                $this->dineInSlots()->delete();
+            }
             $this->reviews()->delete();
             $this->certificate()->delete();
             $this->addedimage()->delete();

@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class RequirementSevenMenuAndSlotsTest extends TestCase
@@ -385,6 +386,53 @@ class RequirementSevenMenuAndSlotsTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'dine_in_slot_id' => $slot->id,
         ]);
+    }
+
+    public function test_kitchen_update_still_saves_profile_when_dine_in_slots_table_is_missing_and_dine_in_setting_is_unchanged(): void
+    {
+        Storage::fake('my_files');
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture(['dine_in' => 1, 'take_away' => 1]);
+
+        Schema::dropIfExists('dine_in_slots');
+
+        $this->actingAs($cook, 'api')
+            ->post('/api/v2/mikitchn/editkitchen', [
+                'name' => $kitchen->name . ' Updated',
+                'address' => $kitchen->address,
+                'no_of_seats' => $kitchen->no_of_seats,
+                'timings' => $this->defaultKitchenTimingsJson(),
+                'phone' => $kitchen->phone,
+                'take_away' => 1,
+                'description' => 'Updated without dine-in slots table',
+            ])
+            ->assertOk();
+
+        $kitchen->refresh();
+
+        $this->assertSame(1, (int) $kitchen->dine_in);
+        $this->assertSame(1, (int) $kitchen->take_away);
+        $this->assertSame('Requirement Seven Kitchen Updated', $kitchen->name);
+    }
+
+    public function test_kitchen_update_rejects_enabling_dine_in_when_slots_table_is_missing(): void
+    {
+        Storage::fake('my_files');
+        [$cook, $foodie, $kitchen] = $this->createKitchenFixture(['dine_in' => 0, 'take_away' => 1]);
+
+        Schema::dropIfExists('dine_in_slots');
+
+        $this->actingAs($cook, 'api')
+            ->post('/api/v2/mikitchn/editkitchen', [
+                'name' => $kitchen->name,
+                'address' => $kitchen->address,
+                'no_of_seats' => $kitchen->no_of_seats,
+                'timings' => $this->defaultKitchenTimingsJson(),
+                'phone' => $kitchen->phone,
+                'dine_in' => 1,
+                'take_away' => 0,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('isError', 'Dine-in is not available until the dine_in_slots table has been migrated.');
     }
 
     public function test_kitchen_update_rejects_overlapping_dine_in_slots(): void

@@ -28,7 +28,6 @@ class ProfileFoodiePage extends StatefulWidget {
   State<ProfileFoodiePage> createState() => _ProfileFoodiePageState();
 }
 
-
 class _RoleCtaState {
   final bool exists;
   final bool active;
@@ -134,7 +133,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   }
 
   AvailableRoleMembership? _targetMicookRole(ProfileFoodieState state) {
-    final availableRoles = state.foodieProfile?.data?.availableRoles ?? const [];
+    final availableRoles =
+        state.foodieProfile?.data?.availableRoles ?? const [];
     for (final role in availableRoles) {
       final normalizedRole = role.role?.trim().toLowerCase();
       if (role.roleId == AppConstants.COOK ||
@@ -334,7 +334,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
       final message = _extractResponseMessage(
         switchResponse.body,
-        fallback: 'We could not switch to micook yet. Complete remaining setup steps and try again.',
+        fallback:
+            'We could not switch to micook yet. Complete remaining setup steps and try again.',
       );
       ScaffoldMessenger.of(
         context,
@@ -432,8 +433,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                         progressIndicatorBuilder:
                             (context, url, downloadProgress) =>
                                 CircularProgressIndicator(
-                                  value: downloadProgress.progress,
-                                ),
+                          value: downloadProgress.progress,
+                        ),
                         errorWidget: (context, url, error) => Container(
                           height: config.AppConfig(context).appWidth(18),
                           width: config.AppConfig(context).appWidth(18),
@@ -485,13 +486,38 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  SizedBox(height: config.AppConfig(context).appHeight(2)),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        navigatorKey.currentState!
+                            .pushNamed('/EditProfileFoodie')
+                            .then((value) {
+                          if (!context.mounted) return;
+                          if (value == true) {
+                            context
+                                .read<ProfileFoodieCubit>()
+                                .getFoodieProfile();
+                          }
+                        });
+                      },
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: config.AppConfig(context).appWidth(4.5),
+                      ),
+                      label: const Text('Edit profile'),
+                    ),
+                  ),
+                  SizedBox(height: config.AppConfig(context).appHeight(1)),
                   ListTile(
                     onTap: _switchingRole
                         ? null
                         : () {
                             if (_micookTransitionDisabled(state)) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(_disabledMicookMessage())),
+                                SnackBar(
+                                    content: Text(_disabledMicookMessage())),
                               );
                               return;
                             }
@@ -670,8 +696,8 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                           ),
                           ListTile(
                             onTap: () async {
-                              final userRepository = context
-                                  .read<UserRepository>();
+                              final userRepository =
+                                  context.read<UserRepository>();
                               try {
                                 final user = await userRepository.getUser();
                                 final payload = await MobileContactRepository(
@@ -679,7 +705,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
                                 ).fetch(user);
                                 final message =
                                     payload['message']?.toString() ??
-                                    'Contact information loaded.';
+                                        'Contact information loaded.';
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(message)),

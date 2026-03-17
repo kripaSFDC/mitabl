@@ -18,6 +18,7 @@ class PlatformSettingChangeRequest extends Model
         'setting_key',
         'proposed_value',
         'value_type',
+        'description',
         'change_reason',
         'risk_level',
         'status',

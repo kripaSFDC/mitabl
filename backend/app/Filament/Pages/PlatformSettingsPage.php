@@ -37,12 +37,14 @@ class PlatformSettingsPage extends Page implements HasForms
 
     public function mount(): void
     {
-        $this->form->fill([
-            'settings' => app(PlatformSettingRegistry::class)->forAdminForm(),
-            'change_reason' => '',
-        ]);
+        $rows = app(PlatformSettingRegistry::class)->forAdminForm();
 
         $this->loadPendingApprovals();
+
+        $this->form->fill([
+            'settings' => $this->overlayPendingChanges($rows),
+            'change_reason' => '',
+        ]);
     }
 
     public function form(Form $form): Form
@@ -144,6 +146,7 @@ class PlatformSettingsPage extends Page implements HasForms
         $currentPassword = $state['current_password'] ?? null;
         $changedKeys = [];
         $deletedCount = 0;
+        $pendingRequestsByKey = $this->latestPendingRequestsByKey();
 
         $keys = collect($rows)
             ->pluck('key')
@@ -172,9 +175,18 @@ class PlatformSettingsPage extends Page implements HasForms
             $valueType = (string) ($row['value_type'] ?? 'json');
             $normalizedValue = $this->normalizeValue($valueType, $row);
             $existing = $this->resolveExistingSetting($row, $existingById, $existingByKey);
+            $pendingRequest = $pendingRequestsByKey->get(strtolower($key));
+
+            if ($pendingRequest instanceof PlatformSettingChangeRequest
+                && $this->matchesPendingRequest($pendingRequest, $valueType, $row['description'] ?? null, $normalizedValue)
+            ) {
+                continue;
+            }
 
             if (! $existing) {
-                $changedOrAddedKeys[] = $key;
+                if (! $this->matchesDefaultSetting($key, $valueType, $row['description'] ?? null, $normalizedValue)) {
+                    $changedOrAddedKeys[] = $key;
+                }
                 continue;
             }
 
@@ -190,7 +202,17 @@ class PlatformSettingsPage extends Page implements HasForms
         }
 
         $deletedKeys = $existingSettings
-            ->filter(fn (PlatformSetting $setting): bool => ! in_array((int) $setting->id, $retainedIds, true))
+            ->filter(function (PlatformSetting $setting) use ($retainedIds, $pendingRequestsByKey): bool {
+                if (in_array((int) $setting->id, $retainedIds, true)) {
+                    return false;
+                }
+
+                /** @var PlatformSettingChangeRequest|null $pendingRequest */
+                $pendingRequest = $pendingRequestsByKey->get(strtolower((string) $setting->key));
+
+                return ! ($pendingRequest instanceof PlatformSettingChangeRequest
+                    && $pendingRequest->proposed_value === null);
+            })
             ->pluck('key')
             ->map(fn ($key): string => (string) $key)
             ->values()
@@ -200,6 +222,9 @@ class PlatformSettingsPage extends Page implements HasForms
             ->filter(fn (string $key): bool => $this->isHighRiskKey($key))
             ->unique()
             ->values();
+        $highRiskLookup = $highRiskCandidates
+            ->map(fn (string $key): string => strtolower($key))
+            ->all();
 
         $restrictedCandidates = collect(array_merge($changedOrAddedKeys, $deletedKeys))
             ->filter(fn (string $key): bool => $this->isSuperAdminOnlyIntegrationKey($key))
@@ -213,6 +238,13 @@ class PlatformSettingsPage extends Page implements HasForms
                 ->send();
             return;
         }
+
+        $directRows = array_values(array_filter($rows, function (array $row) use ($highRiskLookup): bool {
+            $key = strtolower(trim((string) ($row['key'] ?? '')));
+
+            return $key !== '' && ! in_array($key, $highRiskLookup, true);
+        }));
+        $directDeletedKeys = array_values(array_filter($deletedKeys, fn (string $key): bool => ! in_array(strtolower($key), $highRiskLookup, true)));
 
         if ($highRiskCandidates->isNotEmpty()) {
             if (! $this->canManagePlatformConfiguration() || ! Filament::auth()->user()?->can('policy_changes.publish')) {
@@ -238,32 +270,16 @@ class PlatformSettingsPage extends Page implements HasForms
                 return;
             }
 
-            $this->createApprovalRequests($rows, $highRiskCandidates->all(), $deletedKeys, $changeReason);
-
-            Notification::make()
-                ->title('High-risk changes validated and submitted for approval. Activate after approver sign-off.')
-                ->warning()
-                ->send();
-
-            app(AdminAuditLogService::class)->log('platform_settings.validated', request(), [
-                'high_risk_keys' => $highRiskCandidates->all(),
-                'change_reason' => $changeReason,
-            ]);
-
-            $this->mount();
-
-            return;
         }
 
         try {
-            DB::transaction(function () use ($rows, &$changedKeys, &$deletedCount): void {
+            DB::transaction(function () use ($directRows, $directDeletedKeys, $highRiskCandidates, $rows, $deletedKeys, $changeReason, &$changedKeys, &$deletedCount): void {
                 $existingSettings = PlatformSetting::query()->lockForUpdate()->get();
                 $existingById = $existingSettings->keyBy('id');
                 $existingByKey = $existingSettings->keyBy(fn (PlatformSetting $setting): string => strtolower((string) $setting->key));
-                $retainedIds = $this->calculateRetainedIds($rows, $existingByKey);
 
                 $toDelete = $existingSettings
-                    ->filter(fn (PlatformSetting $setting): bool => ! in_array((int) $setting->id, $retainedIds, true))
+                    ->filter(fn (PlatformSetting $setting): bool => in_array(strtolower((string) $setting->key), array_map('strtolower', $directDeletedKeys), true))
                     ->pluck('id')
                     ->map(fn ($id): int => (int) $id)
                     ->all();
@@ -273,7 +289,7 @@ class PlatformSettingsPage extends Page implements HasForms
                     $deletedCount = count($toDelete);
                 }
 
-                foreach ($rows as $row) {
+                foreach ($directRows as $row) {
                     $key = trim((string) ($row['key'] ?? ''));
                     if ($key === '') {
                         continue;
@@ -286,6 +302,10 @@ class PlatformSettingsPage extends Page implements HasForms
 
                     $isNewRecord = false;
                     if (! $record) {
+                        if ($this->matchesDefaultSetting($key, $valueType, $row['description'] ?? null, $normalizedValue)) {
+                            continue;
+                        }
+
                         $record = new PlatformSetting();
                         $record->key = $key;
                         $record->version = 1;
@@ -312,12 +332,37 @@ class PlatformSettingsPage extends Page implements HasForms
                     $existingById[(int) $record->id] = $record;
                     $existingByKey[strtolower((string) $record->key)] = $record;
                 }
+
+                if ($highRiskCandidates->isNotEmpty()) {
+                    $this->createApprovalRequests($rows, $highRiskCandidates->all(), $deletedKeys, $changeReason);
+                }
             });
         } catch (ValidationException $exception) {
             throw $exception;
         } catch (\Throwable $throwable) {
             Notification::make()->title('Save failed: ' . $throwable->getMessage())->danger()->send();
             return;
+        }
+
+        if ($highRiskCandidates->isNotEmpty()) {
+            app(AdminAuditLogService::class)->log('platform_settings.validated', request(), [
+                'high_risk_keys' => $highRiskCandidates->all(),
+                'change_reason' => $changeReason,
+            ]);
+        }
+
+        if ($highRiskCandidates->isNotEmpty() && count(array_unique($changedKeys)) > 0) {
+            Notification::make()
+                ->title('Low-risk settings saved. High-risk changes are waiting for a second admin to approve and activate them.')
+                ->warning()
+                ->send();
+        } elseif ($highRiskCandidates->isNotEmpty()) {
+            Notification::make()
+                ->title('High-risk changes validated and are waiting for a second admin to approve and activate them.')
+                ->warning()
+                ->send();
+        } else {
+            Notification::make()->title('Platform settings saved.')->success()->send();
         }
 
         app(AdminAuditLogService::class)->log('platform_settings.save', request(), [
@@ -330,7 +375,6 @@ class PlatformSettingsPage extends Page implements HasForms
 
         app(PlatformRuntimeConfigService::class)->apply();
 
-        Notification::make()->title('Platform settings saved.')->success()->send();
         $this->mount();
     }
 
@@ -360,18 +404,10 @@ class PlatformSettingsPage extends Page implements HasForms
             return;
         }
 
-        $request->status = PlatformSettingChangeRequest::STATUS_APPROVED;
-        $request->approved_by = $actorId;
-        $request->approved_at = now();
-        $request->save();
+        $this->applyApprovedRequest($request, $actorId);
 
-        app(AdminAuditLogService::class)->log('platform_settings.approved', request(), [
-            'request_id' => $request->id,
-            'setting_key' => $request->setting_key,
-        ]);
-
-        Notification::make()->title('High-risk change approved.')->success()->send();
-        $this->loadPendingApprovals();
+        Notification::make()->title('High-risk change approved and activated.')->success()->send();
+        $this->mount();
     }
 
     public function activateRequest(int $requestId): void
@@ -395,28 +431,7 @@ class PlatformSettingsPage extends Page implements HasForms
         }
 
         DB::transaction(function () use ($request): void {
-            /** @var PlatformSetting $setting */
-            $setting = PlatformSetting::query()->firstOrNew([
-                'key' => $request->setting_key,
-            ]);
-
-            $isDeletion = $request->proposed_value === null;
-            if ($isDeletion) {
-                if ($setting->exists) {
-                    $setting->delete();
-                }
-            } else {
-                $setting->value = $request->proposed_value;
-                $setting->value_type = $request->value_type;
-                $setting->updated_by = Filament::auth()->id();
-                $setting->version = $setting->exists ? ((int) $setting->version + 1) : 1;
-                $setting->save();
-            }
-
-            $request->status = PlatformSettingChangeRequest::STATUS_ACTIVATED;
-            $request->activated_by = Filament::auth()->id();
-            $request->activated_at = now();
-            $request->save();
+            $this->activateApprovedRequest($request, Filament::auth()->id());
         });
 
         app(AdminAuditLogService::class)->log('platform_settings.activated', request(), [
@@ -434,46 +449,34 @@ class PlatformSettingsPage extends Page implements HasForms
     {
         $highRisk = array_map('strtolower', $keys);
 
-        DB::transaction(function () use ($rows, $highRisk, $deletedKeys, $changeReason): void {
-            foreach ($rows as $row) {
-                $key = trim((string) ($row['key'] ?? ''));
-                if ($key === '' || ! in_array(strtolower($key), $highRisk, true)) {
-                    continue;
-                }
-
-                $valueType = (string) ($row['value_type'] ?? 'json');
-                $normalizedValue = $this->normalizeValue($valueType, $row);
-
-                PlatformSettingChangeRequest::query()->create([
-                    'setting_key' => $key,
-                    'proposed_value' => $normalizedValue,
-                    'value_type' => $valueType,
-                    'change_reason' => $changeReason,
-                    'risk_level' => 'high',
-                    'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
-                    'requested_by' => Filament::auth()->id(),
-                    'validated_at' => now(),
-                ]);
+        foreach ($rows as $row) {
+            $key = trim((string) ($row['key'] ?? ''));
+            if ($key === '' || ! in_array(strtolower($key), $highRisk, true)) {
+                continue;
             }
 
-            foreach ($deletedKeys as $deletedKey) {
-                $normalizedDeletedKey = strtolower(trim((string) $deletedKey));
-                if ($normalizedDeletedKey === '' || ! in_array($normalizedDeletedKey, $highRisk, true)) {
-                    continue;
-                }
+            $valueType = (string) ($row['value_type'] ?? 'json');
+            $normalizedValue = $this->normalizeValue($valueType, $row);
 
-                PlatformSettingChangeRequest::query()->create([
-                    'setting_key' => (string) $deletedKey,
-                    'proposed_value' => null,
-                    'value_type' => 'json',
-                    'change_reason' => $changeReason,
-                    'risk_level' => 'high',
-                    'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
-                    'requested_by' => Filament::auth()->id(),
-                    'validated_at' => now(),
-                ]);
+            $this->upsertApprovalRequest($key, $normalizedValue, $valueType, $row['description'] ?? null, $changeReason);
+        }
+
+        foreach ($deletedKeys as $deletedKey) {
+            $normalizedDeletedKey = strtolower(trim((string) $deletedKey));
+            if ($normalizedDeletedKey === '' || ! in_array($normalizedDeletedKey, $highRisk, true)) {
+                continue;
             }
-        });
+
+            $existingSetting = PlatformSetting::query()->where('key', (string) $deletedKey)->first();
+
+            $this->upsertApprovalRequest(
+                (string) $deletedKey,
+                null,
+                'json',
+                $existingSetting?->description,
+                $changeReason
+            );
+        }
     }
 
     private function loadPendingApprovals(): void
@@ -493,8 +496,110 @@ class PlatformSettingsPage extends Page implements HasForms
                 'reason' => (string) $request->change_reason,
                 'requested_by' => (int) ($request->requested_by ?? 0),
                 'approved_by' => (int) ($request->approved_by ?? 0),
+                'activated_by' => (int) ($request->activated_by ?? 0),
                 'validated_at' => optional($request->validated_at)?->toDateTimeString(),
             ])->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function overlayPendingChanges(array $rows): array
+    {
+        $pendingByKey = PlatformSettingChangeRequest::query()
+            ->whereIn('status', [
+                PlatformSettingChangeRequest::STATUS_VALIDATED,
+                PlatformSettingChangeRequest::STATUS_APPROVED,
+            ])
+            ->latest('id')
+            ->get()
+            ->unique(fn (PlatformSettingChangeRequest $request): string => strtolower((string) $request->setting_key))
+            ->keyBy(fn (PlatformSettingChangeRequest $request): string => strtolower((string) $request->setting_key));
+
+        $merged = [];
+        foreach ($rows as $row) {
+            $key = strtolower(trim((string) ($row['key'] ?? '')));
+            /** @var PlatformSettingChangeRequest|null $pending */
+            $pending = $key !== '' ? $pendingByKey->get($key) : null;
+
+            $merged[] = $pending ? $this->applyPendingRequestToRow($row, $pending) : $row;
+
+            if ($pending) {
+                $pendingByKey->forget($key);
+            }
+        }
+
+        foreach ($pendingByKey as $pending) {
+            $merged[] = $this->applyPendingRequestToRow([
+                'id' => null,
+                'key' => $pending->setting_key,
+                'value_type' => $pending->value_type,
+                'description' => null,
+                'value_string' => null,
+                'value_integer' => null,
+                'value_boolean' => false,
+                'value_json' => '{}',
+            ], $pending);
+        }
+
+        return $merged;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function applyPendingRequestToRow(array $row, PlatformSettingChangeRequest $request): array
+    {
+        $row['description'] = $request->description ?? $row['description'] ?? null;
+
+        if ($request->proposed_value === null) {
+            return $row;
+        }
+
+        $row['value_type'] = $request->value_type;
+        $row['value_string'] = null;
+        $row['value_integer'] = null;
+        $row['value_boolean'] = false;
+        $row['value_json'] = '{}';
+
+        return match ($request->value_type) {
+            'boolean' => array_merge($row, [
+                'value_boolean' => (bool) data_get($request->proposed_value, 'value', false),
+            ]),
+            'integer' => array_merge($row, [
+                'value_integer' => (int) data_get($request->proposed_value, 'value', 0),
+            ]),
+            'string' => array_merge($row, [
+                'value_string' => (string) data_get($request->proposed_value, 'value', ''),
+            ]),
+            default => array_merge($row, [
+                'value_json' => json_encode($request->proposed_value ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
+            ]),
+        };
+    }
+
+    private function matchesDefaultSetting(string $key, string $valueType, mixed $description, array $normalizedValue): bool
+    {
+        $default = app(PlatformSettingRegistry::class)->defaultForKey($key);
+        if ($default === null) {
+            return false;
+        }
+
+        return (string) ($default['value_type'] ?? '') === $valueType
+            && ($default['description'] ?? null) === $description
+            && (array) ($default['value'] ?? []) === $normalizedValue;
+    }
+
+    private function matchesPendingRequest(PlatformSettingChangeRequest $request, string $valueType, mixed $description, array $normalizedValue): bool
+    {
+        if (($request->value_type ?? null) !== $valueType) {
+            return false;
+        }
+
+        return $request->proposed_value === $normalizedValue
+            && ($request->description ?? null) === $description;
     }
 
     private function normalizeValue(string $valueType, array $row): array
@@ -665,6 +770,57 @@ class PlatformSettingsPage extends Page implements HasForms
             || str_starts_with($normalized, 'payment.');
     }
 
+    private function applyApprovedRequest(PlatformSettingChangeRequest $request, int $actorId): void
+    {
+        DB::transaction(function () use ($request, $actorId): void {
+            $request->approved_by = $actorId;
+            $request->approved_at = now();
+            $request->status = PlatformSettingChangeRequest::STATUS_APPROVED;
+            $request->save();
+
+            $this->activateApprovedRequest($request, $actorId);
+        });
+
+        app(AdminAuditLogService::class)->log('platform_settings.approved', request(), [
+            'request_id' => $request->id,
+            'setting_key' => $request->setting_key,
+        ]);
+
+        app(AdminAuditLogService::class)->log('platform_settings.activated', request(), [
+            'request_id' => $request->id,
+            'setting_key' => $request->setting_key,
+        ]);
+
+        app(PlatformRuntimeConfigService::class)->apply();
+    }
+
+    private function activateApprovedRequest(PlatformSettingChangeRequest $request, int $actorId): void
+    {
+        /** @var PlatformSetting $setting */
+        $setting = PlatformSetting::query()->firstOrNew([
+            'key' => $request->setting_key,
+        ]);
+
+        $isDeletion = $request->proposed_value === null;
+        if ($isDeletion) {
+            if ($setting->exists) {
+                $setting->delete();
+            }
+        } else {
+            $setting->value = $request->proposed_value;
+            $setting->value_type = $request->value_type;
+            $setting->description = $request->description;
+            $setting->updated_by = $actorId;
+            $setting->version = $setting->exists ? ((int) $setting->version + 1) : 1;
+            $setting->save();
+        }
+
+        $request->status = PlatformSettingChangeRequest::STATUS_ACTIVATED;
+        $request->activated_by = $actorId;
+        $request->activated_at = now();
+        $request->save();
+    }
+
     private function resolveExistingSetting(array $row, \Illuminate\Support\Collection $existingById, \Illuminate\Support\Collection $existingByKey): ?PlatformSetting
     {
         $id = ! empty($row['id']) ? (int) $row['id'] : null;
@@ -682,6 +838,49 @@ class PlatformSettingsPage extends Page implements HasForms
         }
 
         return null;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, PlatformSettingChangeRequest>
+     */
+    private function latestPendingRequestsByKey(): \Illuminate\Support\Collection
+    {
+        return PlatformSettingChangeRequest::query()
+            ->whereIn('status', [
+                PlatformSettingChangeRequest::STATUS_VALIDATED,
+                PlatformSettingChangeRequest::STATUS_APPROVED,
+            ])
+            ->latest('id')
+            ->get()
+            ->unique(fn (PlatformSettingChangeRequest $request): string => strtolower((string) $request->setting_key))
+            ->keyBy(fn (PlatformSettingChangeRequest $request): string => strtolower((string) $request->setting_key));
+    }
+
+    private function upsertApprovalRequest(string $key, ?array $proposedValue, string $valueType, ?string $description, string $changeReason): void
+    {
+        PlatformSettingChangeRequest::query()
+            ->where('setting_key', $key)
+            ->whereIn('status', [
+                PlatformSettingChangeRequest::STATUS_VALIDATED,
+                PlatformSettingChangeRequest::STATUS_APPROVED,
+            ])
+            ->delete();
+
+        PlatformSettingChangeRequest::query()->create([
+            'setting_key' => $key,
+            'proposed_value' => $proposedValue,
+            'value_type' => $valueType,
+            'description' => $description,
+            'change_reason' => $changeReason,
+            'risk_level' => 'high',
+            'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
+            'requested_by' => Filament::auth()->id(),
+            'approved_by' => null,
+            'activated_by' => null,
+            'validated_at' => now(),
+            'approved_at' => null,
+            'activated_at' => null,
+        ]);
     }
 
     private function calculateRetainedIds(array $rows, \Illuminate\Support\Collection $existingByKey): array
@@ -711,4 +910,5 @@ class PlatformSettingsPage extends Page implements HasForms
 
         return $retained->unique()->values()->all();
     }
+
 }

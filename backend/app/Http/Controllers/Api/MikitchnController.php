@@ -22,6 +22,7 @@ use App\Services\DiscoveryService;
 use App\Services\KitchenService;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class MikitchnController extends Controller
@@ -162,7 +163,14 @@ class MikitchnController extends Controller
 
         $requestedDineIn = $request->has('dine_in')
             ? (int) $request->input('dine_in')
-            : (int) optional($existKitchen ?? null)->dine_in;
+            : (int) ($existKitchen?->dine_in ?? 0);
+        $requestedTakeAway = $request->has('take_away')
+            ? (int) $request->input('take_away')
+            : (int) ($existKitchen?->take_away ?? 0);
+
+        if ($requestedDineIn === 1 && (int) ($existKitchen?->dine_in ?? 0) !== 1 && ! Schema::hasTable('dine_in_slots')) {
+            return $this->responser([], 'Dine-in is not available until the dine_in_slots table has been migrated.', 422);
+        }
 
         $dineInSlots = null;
         if ($request->filled('dine_in_slots')) {
@@ -230,6 +238,10 @@ class MikitchnController extends Controller
                 return $this->responser([], 'Dine-in slots for the same day cannot overlap.', 422);
             }
 
+            if (! Schema::hasTable('dine_in_slots')) {
+                return $this->responser([], 'Dine-in slots are not available until the dine_in_slots table has been migrated.', 422);
+            }
+
             $dineInSlots = $decodedSlots;
         }
 
@@ -255,66 +267,75 @@ class MikitchnController extends Controller
             return $this->responser([], 'Please provide a valid international phone number.', 422);
         }
 
-        $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots, $normalizedPhone) {
-            $kitchen = $existKitchen ?: new Mikitchn();
-            $kitchen->user_id = $user->id;
-            $kitchen->name = $request->name;
-            $kitchen->address = $request->address;
-            $kitchen->no_of_seats = $request->no_of_seats;
-            $kitchen->timings = $request->timings;
-            $kitchen->phone = $normalizedPhone;
-            $kitchen->dine_in = $request->dine_in;
-            $kitchen->take_away = $request->take_away;
-            $kitchen->description = $request->description;
-            if ($request->has('lat')) {
-                $kitchen->latitude = (float) $request->lat;
-            }
-            if ($request->has('lng')) {
-                $kitchen->longitude = (float) $request->lng;
-            }
-            $kitchen->save();
-
-            $abn = trim((string) $request->input('abn', ''));
-            $certificateNo = trim((string) $request->input('certificate_no', ''));
-            $existingCertificate = Certificate::query()
-                ->where('mikitchn_id', $kitchen->id)
-                ->exists();
-
-            if ($abn !== '' || $certificateNo !== '' || $existingCertificate) {
-                Certificate::query()->updateOrCreate(
-                    ['mikitchn_id' => $kitchen->id],
-                    [
-                        'abn' => $abn !== '' ? $abn : null,
-                        'certificate_no' => $certificateNo,
-                    ]
-                );
-            }
-
-            foreach ($timings as $timing) {
-                $day = $this->normalizeTimingDay((string) ($timing->day ?? ''));
-                if ($day === null) {
-                    continue;
+        try {
+            $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots, $normalizedPhone, $requestedDineIn, $requestedTakeAway) {
+                $kitchen = $existKitchen ?: new Mikitchn();
+                $kitchen->user_id = $user->id;
+                $kitchen->name = $request->name;
+                $kitchen->address = $request->address;
+                $kitchen->no_of_seats = $request->no_of_seats;
+                $kitchen->timings = $request->timings;
+                $kitchen->phone = $normalizedPhone;
+                $kitchen->dine_in = $requestedDineIn;
+                $kitchen->take_away = $requestedTakeAway;
+                $kitchen->description = $request->description;
+                if ($request->has('lat')) {
+                    $kitchen->latitude = (float) $request->lat;
                 }
-                $fromTime = Carbon::parse($timing->timing->start_time ?? '00:00')->format('H:i:s');
-                $toTime = Carbon::parse($timing->timing->end_time ?? '00:00')->format('H:i:s');
-                Timing::query()->updateOrCreate(
-                    ['mikitchn_id' => $kitchen->id, 'day' => $day],
-                    [
-                        'status' => (int) ($timing->isOn ?? 0),
-                        'start_time' => $fromTime,
-                        'end_time' => $toTime,
-                    ]
-                );
+                if ($request->has('lng')) {
+                    $kitchen->longitude = (float) $request->lng;
+                }
+                $kitchen->save();
+
+                $abn = trim((string) $request->input('abn', ''));
+                $certificateNo = trim((string) $request->input('certificate_no', ''));
+                $existingCertificate = Certificate::query()
+                    ->where('mikitchn_id', $kitchen->id)
+                    ->exists();
+
+                if ($abn !== '' || $certificateNo !== '' || $existingCertificate) {
+                    Certificate::query()->updateOrCreate(
+                        ['mikitchn_id' => $kitchen->id],
+                        [
+                            'abn' => $abn !== '' ? $abn : null,
+                            'certificate_no' => $certificateNo,
+                        ]
+                    );
+                }
+
+                foreach ($timings as $timing) {
+                    $day = $this->normalizeTimingDay((string) ($timing->day ?? ''));
+                    if ($day === null) {
+                        continue;
+                    }
+                    $fromTime = Carbon::parse($timing->timing->start_time ?? '00:00')->format('H:i:s');
+                    $toTime = Carbon::parse($timing->timing->end_time ?? '00:00')->format('H:i:s');
+                    Timing::query()->updateOrCreate(
+                        ['mikitchn_id' => $kitchen->id, 'day' => $day],
+                        [
+                            'status' => (int) ($timing->isOn ?? 0),
+                            'start_time' => $fromTime,
+                            'end_time' => $toTime,
+                        ]
+                    );
+                }
+
+                if ((int) $kitchen->dine_in !== 1) {
+                    $this->dineInSlotService->clearKitchenSlots($kitchen);
+                } elseif ($dineInSlots !== null) {
+                    $this->dineInSlotService->syncKitchenSlots($kitchen, $dineInSlots);
+                }
+
+                return $kitchen;
+            });
+        } catch (Throwable $throwable) {
+            if ($throwable instanceof \InvalidArgumentException) {
+                return $this->responser([], $throwable->getMessage(), 422);
             }
 
-            if ((int) $kitchen->dine_in !== 1) {
-                $this->dineInSlotService->clearKitchenSlots($kitchen);
-            } elseif ($dineInSlots !== null) {
-                $this->dineInSlotService->syncKitchenSlots($kitchen, $dineInSlots);
-            }
-
-            return $kitchen;
-        });
+            report($throwable);
+            return $this->responser([], 'Unable to save kitchen profile.', 500);
+        }
 
         if (!empty($delete_files)) {
             foreach ($delete_files as $delete_file) {
@@ -332,7 +353,9 @@ class MikitchnController extends Controller
         if (!empty($files)) {
             $this->addImages($files,'kitchen','mikitchns',$miKitchen->id);
         }
-        $miKitchen->load('dineInSlots');
+        if (Schema::hasTable('dine_in_slots')) {
+            $miKitchen->load('dineInSlots');
+        }
         return $this->responser($miKitchen, $msg);
     }
 
@@ -429,6 +452,10 @@ class MikitchnController extends Controller
         $kitchen = $this->authenticatedUser()->restaurant;
         if (! $kitchen) {
             return $this->responser([], 'Kitchen not found for this user.', 404);
+        }
+
+        if (! Schema::hasTable('dine_in_slots')) {
+            return $this->responser([], 'Dine-in slots are not available until the dine_in_slots table has been migrated.', 422);
         }
 
         if ($request->filled('date')) {
