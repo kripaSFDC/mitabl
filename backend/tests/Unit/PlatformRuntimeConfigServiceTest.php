@@ -88,6 +88,61 @@ class PlatformRuntimeConfigServiceTest extends TestCase
         $this->assertSame('smtp.after-save.test', config('mail.mailers.smtp.host'));
     }
 
+    public function test_apply_converts_smtp_mailer_to_log_transport_when_host_is_missing(): void
+    {
+        PlatformSetting::query()->create([
+            'key' => 'email.mailer',
+            'value' => ['value' => 'smtp'],
+            'value_type' => 'string',
+            'version' => 1,
+        ]);
+
+        PlatformSetting::query()->create([
+            'key' => 'email.smtp.host',
+            'value' => ['value' => ''],
+            'value_type' => 'string',
+            'version' => 1,
+        ]);
+
+        app(PlatformRuntimeConfigService::class)->apply();
+
+        $this->assertSame('log', config('mail.default'));
+        $this->assertSame('log', config('mail.mailers.smtp.transport'));
+        $this->assertNull(config('mail.mailers.smtp.host'));
+        $this->assertNull(config('mail.mailers.smtp.port'));
+    }
+
+
+    public function test_apply_restores_smtp_transport_when_host_is_configured_again(): void
+    {
+        PlatformSetting::query()->create([
+            'key' => 'email.mailer',
+            'value' => ['value' => 'smtp'],
+            'value_type' => 'string',
+            'version' => 1,
+        ]);
+
+        PlatformSetting::query()->create([
+            'key' => 'email.smtp.host',
+            'value' => ['value' => ''],
+            'value_type' => 'string',
+            'version' => 1,
+        ]);
+
+        app(PlatformRuntimeConfigService::class)->apply();
+        $this->assertSame('log', config('mail.mailers.smtp.transport'));
+
+        PlatformSetting::query()->where('key', 'email.smtp.host')->update([
+            'value' => ['value' => 'smtp.runtime.recovered.test'],
+        ]);
+
+        app(PlatformRuntimeConfigService::class)->apply();
+
+        $this->assertSame('smtp', config('mail.mailers.smtp.transport'));
+        $this->assertSame('smtp', config('mail.default'));
+        $this->assertSame('smtp.runtime.recovered.test', config('mail.mailers.smtp.host'));
+    }
+
     public function test_apply_switches_to_log_mailer_when_smtp_host_is_missing(): void
     {
         PlatformSetting::query()->create([
