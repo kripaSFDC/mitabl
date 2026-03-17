@@ -16,6 +16,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class PlatformSettingsPage extends Page implements HasForms
@@ -866,11 +867,10 @@ class PlatformSettingsPage extends Page implements HasForms
             ])
             ->delete();
 
-        PlatformSettingChangeRequest::query()->create([
+        $payload = [
             'setting_key' => $key,
             'proposed_value' => $proposedValue,
             'value_type' => $valueType,
-            'description' => $description,
             'change_reason' => $changeReason,
             'risk_level' => 'high',
             'status' => PlatformSettingChangeRequest::STATUS_VALIDATED,
@@ -880,7 +880,13 @@ class PlatformSettingsPage extends Page implements HasForms
             'validated_at' => now(),
             'approved_at' => null,
             'activated_at' => null,
-        ]);
+        ];
+
+        if (Schema::hasColumn('platform_setting_change_requests', 'description')) {
+            $payload['description'] = $description;
+        }
+
+        PlatformSettingChangeRequest::query()->create($payload);
     }
 
     private function calculateRetainedIds(array $rows, \Illuminate\Support\Collection $existingByKey): array

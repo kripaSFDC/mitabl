@@ -138,6 +138,7 @@ class MikitchnController extends Controller
             'timings' => 'required|string',
             'phone' => ['required', 'string', 'max:30'],
             'abn' => 'nullable|string',
+            'abn_gst' => 'nullable|integer|in:0,1',
             'certificate_no' => 'nullable|string',
             'lat' => 'nullable|numeric|between:-90,90|required_with:lng',
             'lng' => 'nullable|numeric|between:-180,180|required_with:lat',
@@ -262,13 +263,19 @@ class MikitchnController extends Controller
             return $this->responser([],'Images required.', 422);
         }
 
+        $certificateFirstName = trim((string) $userExist->first_name);
+        $certificateLastName = trim((string) $userExist->last_name);
+        if ($certificateFirstName === '' || $certificateLastName === '') {
+            return $this->responser([], 'User profile name is required before creating a certificate.', 422);
+        }
+
         $normalizedPhone = $this->normalizeInternationalPhone((string) $request->input('phone'));
         if ($normalizedPhone === null) {
             return $this->responser([], 'Please provide a valid international phone number.', 422);
         }
 
         try {
-            $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots, $normalizedPhone, $requestedDineIn, $requestedTakeAway) {
+            $miKitchen = DB::transaction(function () use ($request, $timings, $user, $existKitchen, $dineInSlots, $normalizedPhone, $requestedDineIn, $requestedTakeAway, $certificateFirstName, $certificateLastName) {
                 $kitchen = $existKitchen ?: new Mikitchn();
                 $kitchen->user_id = $user->id;
                 $kitchen->name = $request->name;
@@ -291,14 +298,19 @@ class MikitchnController extends Controller
                 $certificateNo = trim((string) $request->input('certificate_no', ''));
                 $existingCertificate = Certificate::query()
                     ->where('mikitchn_id', $kitchen->id)
-                    ->exists();
+                    ->first();
 
                 if ($abn !== '' || $certificateNo !== '' || $existingCertificate) {
                     Certificate::query()->updateOrCreate(
                         ['mikitchn_id' => $kitchen->id],
                         [
+                            'first_name' => $certificateFirstName,
+                            'last_name' => $certificateLastName,
                             'abn' => $abn !== '' ? $abn : null,
                             'certificate_no' => $certificateNo,
+                            'abn_gst' => $request->has('abn_gst')
+                                ? (int) $request->input('abn_gst')
+                                : (int) ($existingCertificate?->abn_gst ?? 0),
                         ]
                     );
                 }

@@ -10,6 +10,7 @@ use Database\Seeders\AdminRolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -154,6 +155,65 @@ class PlatformSettingsPageTest extends TestCase
 
         $this->assertNotNull($setting);
         $this->assertSame('Short admin session timeout', $setting->description);
+    }
+
+    public function test_save_stripe_secret_key_still_works_when_change_request_description_column_is_missing(): void
+    {
+        if (Schema::hasColumn('platform_setting_change_requests', 'description')) {
+            Schema::table('platform_setting_change_requests', function ($table): void {
+                $table->dropColumn('description');
+            });
+        }
+
+        $admin = $this->makeAdmin('super_admin', 'stripe-admin@example.test');
+        $this->actingAs($admin, 'admin');
+
+        $rows = app(\App\Services\PlatformSettingRegistry::class)->forAdminForm();
+        $rows = $this->replaceSettingValue($rows, 'stripe.secret_key', 'value_string', 'sk_test_123');
+
+        Livewire::test(PlatformSettingsPage::class)
+            ->set('data.settings', $rows)
+            ->set('data.change_reason', 'Adding stripe key for the first time')
+            ->set('data.current_password', 'password')
+            ->call('save');
+
+        $request = PlatformSettingChangeRequest::query()->where('setting_key', 'stripe.secret_key')->first();
+
+        $this->assertNotNull($request);
+        $this->assertSame('stripe.secret_key', $request->setting_key);
+        $this->assertSame(PlatformSettingChangeRequest::STATUS_VALIDATED, $request->status);
+    }
+
+    public function test_platform_settings_schema_contains_required_admin_workflow_columns(): void
+    {
+        $this->assertTrue(Schema::hasColumns('platform_settings', [
+            'key',
+            'value',
+            'value_type',
+            'description',
+            'version',
+            'updated_by',
+            'created_at',
+            'updated_at',
+        ]));
+
+        $this->assertTrue(Schema::hasColumns('platform_setting_change_requests', [
+            'setting_key',
+            'proposed_value',
+            'value_type',
+            'description',
+            'change_reason',
+            'risk_level',
+            'status',
+            'requested_by',
+            'approved_by',
+            'activated_by',
+            'validated_at',
+            'approved_at',
+            'activated_at',
+            'created_at',
+            'updated_at',
+        ]));
     }
 
     /**

@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (! Schema::hasTable('platform_setting_change_requests')) {
+            return;
+        }
+
+        if (Schema::hasColumn('platform_setting_change_requests', 'description')) {
+            return;
+        }
+
+        Schema::table('platform_setting_change_requests', function (Blueprint $table): void {
+            $table->text('description')->nullable()->after('value_type');
+        });
+    }
+
+    public function down(): void
+    {
+        if (! Schema::hasTable('platform_setting_change_requests')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('platform_setting_change_requests', 'description')) {
+            return;
+        }
+
+        Schema::table('platform_setting_change_requests', function (Blueprint $table): void {
+            $table->dropColumn('description');
+        });
+    }
+};
