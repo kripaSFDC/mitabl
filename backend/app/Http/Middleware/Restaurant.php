@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class Restaurant
 {
+    private const UNAUTHORIZED_MESSAGE = 'Your account is unauthorized for this request. Login with Restaurant account.';
+    private const ONBOARDING_REQUIRED_MESSAGE = 'Complete your kitchen profile first. Create your kitchen before managing restaurant operations.';
+
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::guard('api')->user();
@@ -29,7 +32,7 @@ class Restaurant
             $membership = $user->roleMembershipFor(2);
 
             if ($membership && $membership->status === UserRole::STATUS_DISABLED) {
-                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+                return Controller::responser([], self::UNAUTHORIZED_MESSAGE, 403);
             }
 
             if (! $membership) {
@@ -47,28 +50,36 @@ class Restaurant
             }
 
             if (! $membership) {
-                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+                return Controller::responser([], self::UNAUTHORIZED_MESSAGE, 403);
             }
 
-            if ($membership->status === UserRole::STATUS_ONBOARDING && $this->isKitchenOnboardingRoute($request)) {
-                return $next($request);
+            if ($membership->status === UserRole::STATUS_ONBOARDING) {
+                if ($this->isKitchenOnboardingRoute($request)) {
+                    return $next($request);
+                }
+
+                return Controller::responser([], self::ONBOARDING_REQUIRED_MESSAGE, 403);
             }
 
             if ($membership->status !== UserRole::STATUS_ACTIVE) {
-                return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+                return Controller::responser([], self::UNAUTHORIZED_MESSAGE, 403);
             }
 
             return $next($request);
         }
 
-        return Controller::responser([], 'Your account is Unauthorize for this request. Login with Restaurant account.', 403);
+        return Controller::responser([], self::UNAUTHORIZED_MESSAGE, 403);
     }
 
     private function isKitchenOnboardingRoute(Request $request): bool
     {
         return $request->is('api/v1/mikitchn/store')
             || $request->is('api/v1/mikitchn/editkitchen')
+            || $request->is('api/v1/food/add')
+            || $request->is('api/v1/food/editfood')
             || $request->is('api/v2/mikitchn/store')
-            || $request->is('api/v2/mikitchn/editkitchen');
+            || $request->is('api/v2/mikitchn/editkitchen')
+            || $request->is('api/v2/food/add')
+            || $request->is('api/v2/food/editfood');
     }
 }

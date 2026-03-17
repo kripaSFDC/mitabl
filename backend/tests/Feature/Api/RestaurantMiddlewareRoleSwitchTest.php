@@ -56,7 +56,20 @@ class RestaurantMiddlewareRoleSwitchTest extends TestCase
         $this->actingAs($user, 'api')
             ->getJson('/api/v2/getdashboarddata')
             ->assertStatus(403)
-            ->assertJsonPath('isError', 'Your account is Unauthorize for this request. Login with Restaurant account.');
+            ->assertJsonPath('isError', 'Complete your kitchen profile first. Create your kitchen before managing restaurant operations.');
+    }
+
+
+    public function test_restaurant_food_routes_allow_onboarding_cook_and_return_kitchen_profile_guidance(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 2, 'status' => UserRole::STATUS_ONBOARDING]);
+        UserRole::query()->create(['user_id' => $user->id, 'role_id' => 3, 'status' => UserRole::STATUS_ACTIVE]);
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/v2/food/add', [])
+            ->assertStatus(422)
+            ->assertJsonPath('isError', 'The food name field is required.');
     }
 
     public function test_restaurant_routes_block_foodie_without_cook_membership(): void
@@ -67,6 +80,6 @@ class RestaurantMiddlewareRoleSwitchTest extends TestCase
         $this->actingAs($user, 'api')
             ->postJson('/api/v2/mikitchn/store', [])
             ->assertStatus(403)
-            ->assertJsonPath('isError', 'Your account is Unauthorize for this request. Login with Restaurant account.');
+            ->assertJsonPath('isError', 'Your account is unauthorized for this request. Login with Restaurant account.');
     }
 }
