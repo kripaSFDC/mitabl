@@ -92,6 +92,16 @@ class FoodsController extends Controller
             ]);
         }
 
+        $restaurant = $this->authenticatedUser()->restaurant;
+        if (! $restaurant) {
+            return $this->responser([], 'Kitchen profile is required before managing menu items.', 422);
+        }
+
+        $kitchnExist = Mikitchn::find($restaurant->id);
+        if (! $kitchnExist) {
+            return $this->responser([], 'Kitchen profile is required before managing menu items.', 422);
+        }
+
         $validator = Validator::make($request->all(), [
             'food_name' => 'required',
             'cookingstyle' => 'required|integer',
@@ -130,17 +140,6 @@ class FoodsController extends Controller
          // print_r($delete_files); 
          // die();
 
-        $restaurant = $this->authenticatedUser()->restaurant;
-        if (! $restaurant) {
-            return $this->responser([], 'Kitchen profile is required before managing menu items.', 422);
-        }
-
-        $kitchnExist = Mikitchn::find($restaurant->id);
-
-        if (!$kitchnExist) {
-            return $this->responser([],'Unauthorized kitchen not found.', 403);
-            
-        }
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
         if ($isUpdate && ! $existFood) {
             return $this->responser([], 'Food item not found for this restaurant.', 404);
