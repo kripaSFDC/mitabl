@@ -41,6 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('admin')
             ->authPasswordBroker('admin_users')
             ->login(AdminLogin::class)
+            ->maxContentWidth(MaxWidth::Full)
             ->simplePageMaxContentWidth(MaxWidth::SevenExtraLarge)
             ->passwordReset()
             ->colors([
