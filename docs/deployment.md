@@ -130,14 +130,14 @@ First boot on fresh DB:
    - After host nginx + TLS: `https://www.mitabl.com/admin`
 
 4. After initialization, set both flags back to `false` and clear bootstrap password/email.
-
-  Production bootstrap password policy:
-  - Minimum 12 characters
-  - At least one uppercase letter
-  - At least one lowercase letter
-  - At least one digit
-
-  If this policy is not met, `AdminUserSeeder` intentionally fails in production.
+   Production bootstrap password policy:
+   
+   - Minimum 12 characters
+   - At least one uppercase letter
+   - At least one lowercase letter
+   - At least one digit
+   
+   If this policy is not met, `AdminUserSeeder` intentionally fails in production.
 
 5. Apply:
    
@@ -189,6 +189,9 @@ cd ~/mitabl
 git pull --ff-only origin main
 export DB_ROOT_PASSWORD='Usman111!'
 docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --remove-orphans
+
+# optional DB migrations run
+# docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan migrate --force
 ```
 
 If the release includes auth, runtime config, or admin routing changes, prefer a forced refresh of the app containers and Laravel caches:
@@ -201,6 +204,23 @@ docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --force-r
 docker exec -it mitabl-prod-contabo-backend-1 php artisan optimize:clear
 docker exec -it mitabl-prod-contabo-backend-1 php artisan config:cache
 ```
+
+If you need to also run DB migrations (force run without env changes); use below commands:
+
+```
+cd ~/mitabl
+git pull --ff-only origin main
+export DB_ROOT_PASSWORD='Usman111!'
+docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --force-recreate backend queue-worker scheduler
+docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan migrate --force
+docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan optimize:clear
+docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan config:cache
+
+```
+
+
+
+
 
 If `.env` does not exist yet (first server setup only):
 
@@ -324,13 +344,13 @@ Common fixes:
 - If compose says `DB_ROOT_PASSWORD is required`, export it and write `.env` before `up`.
 
 - If mobile login returns `Could not create token.` and backend logs show `Token has expired` during `auth()->attempt(...)`, check JWT TTL values:
-
+  
   ```bash
   docker compose -f deploy/docker-compose.prod.contabo.yml exec -T backend php artisan tinker --execute='dump(["jwt_ttl"=>config("jwt.ttl"),"jwt_refresh_ttl"=>config("jwt.refresh_ttl"),"env_jwt_ttl"=>env("JWT_TTL"),"env_jwt_refresh_ttl"=>env("JWT_REFRESH_TTL")]);'
   ```
-
+  
   If `jwt_ttl` or `jwt_refresh_ttl` is `null` or non-positive, set safe values and recreate app containers:
-
+  
   ```bash
   sed -i -E 's/^JWT_TTL=.*/JWT_TTL=10080/; s/^JWT_REFRESH_TTL=.*/JWT_REFRESH_TTL=20160/' deploy/environments/prod/backend-api.env
   docker compose -f deploy/docker-compose.prod.contabo.yml up -d --build --force-recreate backend queue-worker scheduler

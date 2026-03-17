@@ -73,6 +73,13 @@ class PhaseOneFoundationRegressionTest extends TestCase
         }
     }
 
+    public function test_user_role_onboarding_checklists_role_id_matches_legacy_roles_type(): void
+    {
+        $migration = (string) file_get_contents(database_path('migrations/2026_03_14_000200_create_user_role_onboarding_checklists_table.php'));
+
+        $this->assertStringContainsString("unsignedInteger('role_id')", $migration);
+    }
+
     public function test_phase_one_models_exist(): void
     {
         $this->assertTrue(class_exists(AdminUser::class));

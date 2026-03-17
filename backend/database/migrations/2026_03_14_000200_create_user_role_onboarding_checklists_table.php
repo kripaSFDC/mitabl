@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('user_role_onboarding_checklists', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('role_id');
+            // Legacy roles table uses increments('id'), so keep this aligned for the FK.
+            $table->unsignedInteger('role_id');
             $table->boolean('vendor_account_completed')->default(false);
             $table->boolean('kitchen_profile_completed')->default(false);
             $table->boolean('certificate_completed')->default(false);
