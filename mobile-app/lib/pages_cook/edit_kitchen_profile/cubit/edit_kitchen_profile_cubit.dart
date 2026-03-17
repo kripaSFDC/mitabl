@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:mitabl_user/helper/api_error_parser.dart';
+import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
+import 'package:mitabl_user/model/international_phone.dart';
 import 'package:mitabl_user/model/phone.dart';
 import 'package:mitabl_user/model/timing_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -17,10 +20,14 @@ part 'edit_kitchen_profile_state.dart';
 
 class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
   EditKitchenProfileCubit({this.routeArguments, this.userRepository})
-    : super(const EditKitchenProfileState()) {
+      : super(const EditKitchenProfileState()) {
     setUpTimingModel();
-    loadDineInSlots();
+    if (hasExistingKitchen) {
+      loadDineInSlots();
+    }
   }
+
+  bool get hasExistingKitchen => routeArguments?.kitchen?.id != null;
 
   onOpenTimingDialog() {
     List<Days> daysList = [];
@@ -40,24 +47,33 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
   }
 
   setUpTimingModel() {
-    var valueDays = (jsonDecode(routeArguments!.kitchen!.timings!));
-    TimingModel timingModel = TimingModel.fromJson(valueDays);
+    final kitchen = routeArguments?.kitchen;
+    var daysTiming = _defaultDaysTiming();
 
-    // List<String>? value =
-    //     (jsonDecode(routeArguments!.kitchen!.images!) as List<dynamic>)
-    //         .cast<String>()
-    //         .toList();
+    if (kitchen?.timings != null && kitchen!.timings!.isNotEmpty) {
+      try {
+        final valueDays = jsonDecode(kitchen.timings!);
+        final timingModel = TimingModel.fromJson(valueDays);
+        final parsedDays = timingModel.days;
+        if (parsedDays != null && parsedDays.isNotEmpty) {
+          daysTiming = parsedDays;
+        }
+      } on FormatException {
+        daysTiming = _defaultDaysTiming();
+      }
+    }
 
     emit(
       state.copyWith(
-        daysTimingOriginal: timingModel.days,
-        daysTiming: timingModel.days,
-        pathFiles: routeArguments!.kitchen!.images,
-        dineIn: routeArguments!.kitchen!.dineIn == 1 ? true : false,
-        takeAway: routeArguments!.kitchen!.takeAway == 1 ? true : false,
-        abn: routeArguments!.kitchen!.abn ?? '',
-        certificateNo: routeArguments!.kitchen!.certificateNo ?? '',
-        dineInSlots: routeArguments!.kitchen!.dineInSlots ?? const [],
+        isCreateMode: !hasExistingKitchen,
+        daysTimingOriginal: daysTiming,
+        daysTiming: daysTiming,
+        pathFiles: kitchen?.images ?? const [],
+        dineIn: kitchen?.dineIn == 1,
+        takeAway: kitchen?.takeAway == 1,
+        abn: kitchen?.abn ?? '',
+        certificateNo: kitchen?.certificateNo ?? '',
+        dineInSlots: kitchen?.dineInSlots ?? const [],
       ),
     );
   }
@@ -162,6 +178,18 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
 
   onKitchenEditUpload() async {
     try {
+      if (!hasExistingKitchen && state.pathFiles.isEmpty) {
+        Helper.showToast('Please add at least one kitchen image.');
+        emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
+        return;
+      }
+
+      if (!InternationalPhone.dirty(state.phone.value).isValid) {
+        Helper.showToast('Please provide a valid international phone number.');
+        emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
+        return;
+      }
+
       emit(state.copyWith(statusApi: FormzStatus.submissionInProgress));
       Map<String, dynamic> map = {};
       map['name'] = state.nameKitchn!.value;
@@ -183,9 +211,8 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
         );
       }
 
-      var paths = state.pathFiles
-          .where((element) => element.id == null)
-          .toList();
+      var paths =
+          state.pathFiles.where((element) => element.id == null).toList();
       List<String> localPaths = [];
       for (var element in paths) {
         localPaths.add(element.path!);
@@ -193,19 +220,22 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
       var response = await userRepository!.vendorKitchenEditUpload(
         data: map,
         filePaths: localPaths,
+        isCreate: !hasExistingKitchen,
       );
-      if (response.statusCode == 200) {
-        jsonDecode(response.body);
-
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         emit(state.copyWith(statusApi: FormzStatus.submissionSuccess));
-        Helper.showToast('Success');
+        Helper.showToast(
+          hasExistingKitchen
+              ? 'mikitchn updated successfully.'
+              : 'mikitchn created successfully.',
+        );
         navigatorKey.currentState!.pop(true);
         // navigatorKey.currentState!.pushNamedAndRemoveUntil(
         //   '/DashboardCook',
         //       (route) => false,
         // );
       } else {
-        Helper.showToast(jsonDecode(response.body)['isError']);
+        Helper.showToast(ApiErrorParser.parseMessage(response.body));
         emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
       }
     } on Exception {
@@ -370,5 +400,17 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
 
     next.removeAt(index);
     emit(state.copyWith(dineInSlots: next));
+  }
+
+  List<Days> _defaultDaysTiming() {
+    return AppConstants.DAYS
+        .map(
+          (day) => Days(
+            day: day,
+            isOn: false,
+            timing: Timing(endTime: '23:59', startTime: '00:00'),
+          ),
+        )
+        .toList(growable: false);
   }
 }

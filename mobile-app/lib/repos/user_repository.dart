@@ -211,8 +211,8 @@ class UserRepository {
                 .toList();
           } else if (data['user'] is Map<String, dynamic>) {
             final userData = data['user'] as Map<String, dynamic>;
-            final userAvailableRoles =
-                userData['data']?['available_roles'] ?? userData['available_roles'];
+            final userAvailableRoles = userData['data']?['available_roles'] ??
+                userData['available_roles'];
             if (userAvailableRoles is List) {
               availableRoles = userAvailableRoles
                   .whereType<Map<String, dynamic>>()
@@ -286,7 +286,6 @@ class UserRepository {
     }
   }
 
-
   Future<void> syncCurrentUserRoleState({
     String? roleName,
     dynamic roleId,
@@ -335,7 +334,8 @@ class UserRepository {
     await updateUserInstance();
   }
 
-  Future<void> syncAvailableRolesFromProfile(profile_model.Data? profileData) async {
+  Future<void> syncAvailableRolesFromProfile(
+      profile_model.Data? profileData) async {
     if (profileData == null) return;
     await syncCurrentUserRoleState(
       roleName: profileData.role,
@@ -441,11 +441,14 @@ class UserRepository {
 
   Future<http.Response> vendorKitchenEditUpload(
       {required Map<String, dynamic> data,
-      required List<String> filePaths}) async {
+      required List<String> filePaths,
+      bool isCreate = false}) async {
     try {
       final request = http.MultipartRequest(
         'POST',
-        ApiContract.uri('v2/mikitchn/editkitchen'),
+        ApiContract.uri(
+          isCreate ? 'v2/mikitchn/store' : 'v2/mikitchn/editkitchen',
+        ),
       );
 
       request.headers.addAll(await authorizedHeaders());

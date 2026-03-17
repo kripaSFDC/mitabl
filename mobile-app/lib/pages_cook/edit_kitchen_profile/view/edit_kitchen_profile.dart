@@ -54,55 +54,52 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
   @override
   void initState() {
     super.initState();
+    final kitchen = widget.routeArguments?.kitchen;
     nameTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
-        value: nameTextEditor!.text,
-      );
+            value: nameTextEditor!.text,
+          );
     });
 
     addressTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onAddressChanged(
-        value: addressTextEditor!.text,
-      );
+            value: addressTextEditor!.text,
+          );
     });
     mobileNoTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onPhoneChanged(
-        value: mobileNoTextEditor!.text,
-      );
+            value: mobileNoTextEditor!.text,
+          );
     });
     noOfSeatsTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onSeatChanged(
-        value: noOfSeatsTextEditor!.text,
-      );
+            value: noOfSeatsTextEditor!.text,
+          );
     });
 
     abnNoTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onAbnChanged(
-        value: abnNoTextEditor!.text,
-      );
+            value: abnNoTextEditor!.text,
+          );
     });
     certificateTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onCertificateNoChanged(
-        value: certificateTextEditor!.text,
-      );
+            value: certificateTextEditor!.text,
+          );
     });
     bioTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onBioChanged(
-        value: bioTextEditor!.text,
-      );
+            value: bioTextEditor!.text,
+          );
     });
 
-    nameTextEditor!.text = widget.routeArguments!.kitchen!.name!.toString();
-    addressTextEditor!.text = widget.routeArguments!.kitchen!.address!
-        .toString();
-    mobileNoTextEditor!.text = widget.routeArguments!.kitchen!.phone!
-        .toString();
-    noOfSeatsTextEditor!.text = widget.routeArguments!.kitchen!.noOfSeats
-        .toString();
-    abnNoTextEditor!.text = widget.routeArguments!.kitchen!.abn ?? '';
-    certificateTextEditor!.text =
-        widget.routeArguments!.kitchen!.certificateNo ?? '';
-    bioTextEditor!.text = widget.routeArguments!.kitchen!.description ?? '';
+    nameTextEditor!.text = kitchen?.name ?? '';
+    addressTextEditor!.text = kitchen?.address ?? '';
+    mobileNoTextEditor!.text = kitchen?.phone ?? '';
+    noOfSeatsTextEditor!.text = kitchen?.noOfSeats?.toString() ?? '';
+    abnNoTextEditor!.text = kitchen?.abn ?? '';
+    certificateTextEditor!.text = kitchen?.certificateNo ?? '';
+    bioTextEditor!.text = kitchen?.description ?? '';
   }
 
   @override
@@ -145,7 +142,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                     ),
                     SizedBox(width: config.AppConfig(context).appWidth(2)),
                     Text(
-                      'Profile',
+                      state.isCreateMode ? 'Add mikitchn' : 'Edit mikitchn',
                       style: GoogleFonts.gothicA1(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: config.AppConfig(context).appWidth(5),
@@ -213,10 +210,10 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                   .textFieldBackgroundColor(1),
                                               borderRadius:
                                                   BorderRadius.circular(
-                                                    config.AppConfig(
-                                                      context,
-                                                    ).appWidth(5),
-                                                  ),
+                                                config.AppConfig(
+                                                  context,
+                                                ).appWidth(5),
+                                              ),
                                             ),
                                             alignment: Alignment.center,
                                             child: CachedNetworkImage(
@@ -226,15 +223,14 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 return Image.file(
                                                   File(
                                                     state
-                                                        .pathFiles[index]
-                                                        .path!,
+                                                        .pathFiles[index].path!,
                                                   ),
                                                   errorBuilder:
                                                       (context, data, e) {
-                                                        return const Icon(
-                                                          Icons.error_outline,
-                                                        );
-                                                      },
+                                                    return const Icon(
+                                                      Icons.error_outline,
+                                                    );
+                                                  },
                                                 );
                                               },
                                             ),
@@ -246,8 +242,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                               onTap: () {
                                                 context
                                                     .read<
-                                                      EditKitchenProfileCubit
-                                                    >()
+                                                        EditKitchenProfileCubit>()
                                                     .onDeleteImage(
                                                       path: state
                                                           .pathFiles[index]
@@ -458,8 +453,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 onChanged: (value) {
                                                   context
                                                       .read<
-                                                        EditKitchenProfileCubit
-                                                      >()
+                                                          EditKitchenProfileCubit>()
                                                       .onDineInChange(
                                                         value: value,
                                                       );
@@ -520,8 +514,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 onChanged: (value) {
                                                   context
                                                       .read<
-                                                        EditKitchenProfileCubit
-                                                      >()
+                                                          EditKitchenProfileCubit>()
                                                       .onTakeAwayChange(
                                                         value: value,
                                                       );
@@ -777,10 +770,10 @@ class _DineInSlotSection extends StatelessWidget {
                   TextButton.icon(
                     onPressed: state.dineIn == true && availableDays.isNotEmpty
                         ? () => _showSlotEditor(
-                            context,
-                            state: state,
-                            availableDays: availableDays,
-                          )
+                              context,
+                              state: state,
+                              availableDays: availableDays,
+                            )
                         : null,
                     icon: const Icon(Icons.add),
                     label: const Text('Add slot'),
@@ -913,8 +906,7 @@ class _DineInSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime:
-                                    _parseTimeOfDay(startTime) ??
+                                initialTime: _parseTimeOfDay(startTime) ??
                                     const TimeOfDay(hour: 12, minute: 0),
                               );
                               if (picked == null) {
@@ -938,8 +930,7 @@ class _DineInSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime:
-                                    _parseTimeOfDay(endTime) ??
+                                initialTime: _parseTimeOfDay(endTime) ??
                                     const TimeOfDay(hour: 13, minute: 0),
                               );
                               if (picked == null) {
@@ -1133,11 +1124,9 @@ class _DineInSlotSection extends StatelessWidget {
       return false;
     }
 
-    final startMinutes =
-        ((int.tryParse(startParts[0]) ?? 0) * 60) +
+    final startMinutes = ((int.tryParse(startParts[0]) ?? 0) * 60) +
         (int.tryParse(startParts[1]) ?? 0);
-    final endMinutes =
-        ((int.tryParse(endParts[0]) ?? 0) * 60) +
+    final endMinutes = ((int.tryParse(endParts[0]) ?? 0) * 60) +
         (int.tryParse(endParts[1]) ?? 0);
 
     return endMinutes > startMinutes;
@@ -1216,11 +1205,9 @@ class _DineInSlotSection extends StatelessWidget {
   static int _compareTime(String left, String right) {
     final leftParts = left.split(':');
     final rightParts = right.split(':');
-    final leftMinutes =
-        ((int.tryParse(leftParts[0]) ?? 0) * 60) +
+    final leftMinutes = ((int.tryParse(leftParts[0]) ?? 0) * 60) +
         (int.tryParse(leftParts[1]) ?? 0);
-    final rightMinutes =
-        ((int.tryParse(rightParts[0]) ?? 0) * 60) +
+    final rightMinutes = ((int.tryParse(rightParts[0]) ?? 0) * 60) +
         (int.tryParse(rightParts[1]) ?? 0);
     return leftMinutes.compareTo(rightMinutes);
   }
@@ -1266,8 +1253,8 @@ class _KitchenNameState extends State<_KitchenName> {
             maxLength: 15,
             onChanged: (text) {
               context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
-                value: text,
-              );
+                    value: text,
+                  );
             },
             decoration: InputDecoration(
               counterText: '',
@@ -1340,14 +1327,13 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
             maxLength: 10,
             onChanged: (text) {
               context.read<EditKitchenProfileCubit>().onSeatChanged(
-                value: text,
-              );
+                    value: text,
+                  );
             },
             decoration: InputDecoration(
               counterText: '',
-              errorText: state.noOfSeats.invalid
-                  ? 'Please enter a valid seats'
-                  : null,
+              errorText:
+                  state.noOfSeats.invalid ? 'Please enter a valid seats' : null,
               hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
                 fontSize: config.AppConfig(context).appWidth(4),
@@ -1412,14 +1398,13 @@ class _PhoneNoState extends State<_PhoneNo> {
             maxLength: 15,
             onChanged: (text) {
               context.read<EditKitchenProfileCubit>().onPhoneChanged(
-                value: text,
-              );
+                    value: text,
+                  );
             },
             decoration: InputDecoration(
               counterText: '',
-              errorText: state.phone.invalid
-                  ? 'Please enter a valid phone no'
-                  : null,
+              errorText:
+                  state.phone.invalid ? 'Please enter a valid phone no' : null,
 
               hintStyle: GoogleFonts.gothicA1(
                 color: Theme.of(context).hintColor,
@@ -1764,7 +1749,7 @@ class _LoginButton extends StatelessWidget {
                     ),
                   )
                 : Text(
-                    'SUBMIT',
+                    state.isCreateMode ? 'CREATE MIKITCHN' : 'UPDATE MIKITCHN',
                     style: GoogleFonts.gothicA1(
                       fontSize: config.AppConfig(context).appWidth(3.5),
                       color: const Color(0xFFFFFBF7),

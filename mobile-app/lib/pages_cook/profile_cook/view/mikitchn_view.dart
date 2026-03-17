@@ -41,22 +41,59 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: config.AppConfig(context).appWidth(4),
+              ),
               children: [
                 SizedBox(height: config.AppConfig(context).appHeight(8)),
                 Center(
                   child: Text(
-                    'mikitchn data is not available yet.',
+                    'No mikitchn record exists for this micook profile yet.',
                     style: GoogleFonts.gothicA1(
                       color: Theme.of(context).primaryColorDark,
                       fontSize: config.AppConfig(context).appWidth(4),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: config.AppConfig(context).appHeight(2)),
+                Center(
+                  child: Text(
+                    'Add your mikitchn from this tab now, and later use the same place to view or edit it.',
+                    style: GoogleFonts.gothicA1(
+                      color: const Color(0xFF6B7280),
+                      fontSize: config.AppConfig(context).appWidth(3.6),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: config.AppConfig(context).appHeight(3)),
+                Center(
+                  child: SizedBox(
+                    width: config.AppConfig(context).appWidth(60),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        navigatorKey.currentState!
+                            .pushNamed(
+                          '/EditKitchenProfile',
+                          arguments: RouteArguments(),
+                        )
+                            .then((value) {
+                          if (!context.mounted) return;
+                          if (value == true) {
+                            context.read<ProfileCookCubit>().getCookProfile();
+                          }
+                        });
+                      },
+                      child: const Text('Add mikitchn'),
                     ),
                   ),
                 ),
                 SizedBox(height: config.AppConfig(context).appHeight(2)),
                 Center(
-                  child: ElevatedButton(
+                  child: TextButton(
                     onPressed: context.read<ProfileCookCubit>().getCookProfile,
-                    child: const Text('Retry'),
+                    child: const Text('Refresh'),
                   ),
                 ),
               ],
@@ -80,8 +117,8 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                           controller: controller,
                           onPageChanged: (page) {
                             context.read<ProfileCookCubit>().onImageScroll(
-                              index: page,
-                            );
+                                  index: page,
+                                );
                           },
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
@@ -295,11 +332,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Checkbox(
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
-                                  value:
-                                      kitchen.dineIn ==
-                                          1
-                                      ? true
-                                      : false,
+                                  value: kitchen.dineIn == 1 ? true : false,
                                   onChanged: (value) {},
                                 ),
                                 Text(
@@ -338,11 +371,7 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                                 Checkbox(
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
-                                  value:
-                                      kitchen.takeAway ==
-                                          1
-                                      ? true
-                                      : false,
+                                  value: kitchen.takeAway == 1 ? true : false,
                                   onChanged: (value) {},
                                 ),
                                 Text(
@@ -525,19 +554,17 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                       onPressed: () {
                         navigatorKey.currentState!
                             .pushNamed(
-                              '/EditKitchenProfile',
-                              arguments: RouteArguments(
-                                kitchen: kitchen,
-                              ),
-                            )
+                          '/EditKitchenProfile',
+                          arguments: RouteArguments(
+                            kitchen: kitchen,
+                          ),
+                        )
                             .then((value) {
-                              if (!context.mounted) return;
-                              if (value != null && value == true) {
-                                context
-                                    .read<ProfileCookCubit>()
-                                    .getCookProfile();
-                              }
-                            });
+                          if (!context.mounted) return;
+                          if (value != null && value == true) {
+                            context.read<ProfileCookCubit>().getCookProfile();
+                          }
+                        });
                       },
                       child: Text(
                         'Edit Info',

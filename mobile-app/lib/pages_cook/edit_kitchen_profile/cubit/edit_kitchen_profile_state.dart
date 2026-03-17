@@ -21,6 +21,7 @@ class EditKitchenProfileState extends Equatable {
     this.selectedPage = 0,
     this.takeAway,
     this.dineIn,
+    this.isCreateMode = false,
   });
 
   final Name? nameKitchn;
@@ -42,6 +43,7 @@ class EditKitchenProfileState extends Equatable {
   final int? selectedPage;
   final bool? dineIn;
   final bool? takeAway;
+  final bool isCreateMode;
 
   EditKitchenProfileState copyWith({
     int? selectedPage,
@@ -63,12 +65,14 @@ class EditKitchenProfileState extends Equatable {
     Phone? noOfSeats,
     String? serverMessage,
     Phone? phone,
+    bool? isCreateMode,
   }) {
     return EditKitchenProfileState(
       bio: bio ?? this.bio,
       daysTimingOriginal: daysTimingOriginal ?? this.daysTimingOriginal,
       dineIn: dineIn ?? this.dineIn,
       takeAway: takeAway ?? this.takeAway,
+      isCreateMode: isCreateMode ?? this.isCreateMode,
       selectedPage: selectedPage ?? this.selectedPage,
       daysTiming: daysTiming ?? this.daysTiming,
       dineInSlots: dineInSlots ?? this.dineInSlots,
@@ -88,23 +92,24 @@ class EditKitchenProfileState extends Equatable {
 
   @override
   List<Object?> get props => [
-    bio,
-    daysTimingOriginal,
-    takeAway,
-    dineIn,
-    selectedPage,
-    daysTiming,
-    dineInSlots,
-    dineInSlotsStatus,
-    pathFiles,
-    noOfSeats,
-    statusApi,
-    address,
-    abn,
-    certificateNo,
-    status,
-    nameKitchn,
-    phone,
-    serverMessage,
-  ];
+        bio,
+        daysTimingOriginal,
+        takeAway,
+        dineIn,
+        selectedPage,
+        daysTiming,
+        dineInSlots,
+        dineInSlotsStatus,
+        pathFiles,
+        noOfSeats,
+        statusApi,
+        address,
+        abn,
+        certificateNo,
+        status,
+        nameKitchn,
+        phone,
+        serverMessage,
+        isCreateMode,
+      ];
 }
