@@ -66,6 +66,7 @@ class PhaseOneFoundationRegressionTest extends TestCase
             '2026_02_28_000012_create_policy_change_log_table.php',
             '2026_02_28_000013_create_admin_password_resets_table.php',
             '2026_02_28_000020_drop_sales_kitchens_table.php',
+            '2026_03_18_000002_repair_user_role_onboarding_checklists_table_schema.php',
         ];
 
         foreach ($requiredMigrations as $file) {
@@ -79,6 +80,14 @@ class PhaseOneFoundationRegressionTest extends TestCase
 
         $this->assertStringContainsString("unsignedInteger('role_id')", $migration);
         $this->assertStringContainsString("Schema::hasTable('user_role_onboarding_checklists')", $migration);
+    }
+
+    public function test_user_role_onboarding_checklists_schema_repair_migration_fixes_role_fk(): void
+    {
+        $migration = (string) file_get_contents(database_path('migrations/2026_03_18_000002_repair_user_role_onboarding_checklists_table_schema.php'));
+
+        $this->assertStringContainsString('MODIFY `role_id` INT UNSIGNED NOT NULL', $migration);
+        $this->assertStringContainsString('ADD CONSTRAINT `user_role_onboarding_checklists_role_id_foreign`', $migration);
     }
 
     public function test_phase_one_models_exist(): void
