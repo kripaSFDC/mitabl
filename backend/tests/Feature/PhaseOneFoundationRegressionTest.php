@@ -78,6 +78,7 @@ class PhaseOneFoundationRegressionTest extends TestCase
         $migration = (string) file_get_contents(database_path('migrations/2026_03_14_000200_create_user_role_onboarding_checklists_table.php'));
 
         $this->assertStringContainsString("unsignedInteger('role_id')", $migration);
+        $this->assertStringContainsString("Schema::hasTable('user_role_onboarding_checklists')", $migration);
     }
 
     public function test_phase_one_models_exist(): void

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('user_role_onboarding_checklists')) {
+            return;
+        }
+
         Schema::create('user_role_onboarding_checklists', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('user_id');
