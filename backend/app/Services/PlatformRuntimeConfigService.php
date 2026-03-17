@@ -76,6 +76,15 @@ class PlatformRuntimeConfigService
         $defaultMailer = trim((string) config('mail.default', ''));
         $smtpHost = trim((string) config('mail.mailers.smtp.host', ''));
 
+        if ($smtpHost === '') {
+            Config::set('mail.mailers.smtp.transport', 'log');
+            Config::set('mail.mailers.smtp.host', null);
+            Config::set('mail.mailers.smtp.port', null);
+            Config::set('mail.mailers.smtp.encryption', null);
+            Config::set('mail.mailers.smtp.username', null);
+            Config::set('mail.mailers.smtp.password', null);
+        }
+
         if ($defaultMailer === 'smtp' && $smtpHost === '') {
             Config::set('mail.default', 'log');
         }
