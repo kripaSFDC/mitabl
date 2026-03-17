@@ -69,7 +69,7 @@ class RestaurantMiddlewareRoleSwitchTest extends TestCase
         $this->actingAs($user, 'api')
             ->postJson('/api/v2/food/add', [])
             ->assertStatus(422)
-            ->assertJsonPath('isError', 'The food name field is required.');
+            ->assertJsonPath('isError', 'Kitchen profile is required before managing menu items.');
     }
 
     public function test_restaurant_routes_block_foodie_without_cook_membership(): void
