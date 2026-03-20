@@ -1,5 +1,11 @@
 # Product + UX audit
 
+## 0. Scope and audit coverage
+
+- **Platforms covered:** Flutter mobile app plus the mobile-serving backend API.
+- **Backend interface types detected:** REST endpoints were clearly present and used by the app; no GraphQL schema, resolvers, or mobile GraphQL client usage were found in the scanned codebase.
+- **Out of scope by request:** website marketing flows, admin portal internals, and CRM UI except where they imply mobile/backend product behavior.
+
 ## 1. Personas and roles
 
 ### micook
@@ -30,6 +36,70 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Admin / platform admin / super admin**: present in Filament resources and role checks, but out of scope for mobile journeys.
 - **Support / CRM operators**: implied by support ticket APIs, SLA escalation jobs, and admin resources.
 - **System automation**: scheduled commands and background jobs perform vendor-transfer, support SLA escalation, and certificate outcome delivery.
+
+## 1.1 Flow diagrams
+
+### Diagram: micook onboarding and activation
+```mermaid
+flowchart TD
+    A[Choose micook at sign up
+or tap Register as micook] --> B[Register / verify OTP]
+    B --> C[Create or reuse cook role membership]
+    C --> D[Start cook onboarding]
+    D --> E{Kitchen profile exists?}
+    E -- No --> F[Complete mikitchn profile
+name, timings, seats, images]
+    E -- Yes --> G{Certificate exists?}
+    F --> G
+    G -- No --> H[Upload / submit certificate details]
+    G -- Yes --> I{Vendor account ready?}
+    H --> I
+    I -- No --> J[Complete Stripe vendor setup]
+    I -- Yes --> K[Cook role becomes active]
+    J --> K
+    K --> L[Access DashboardCook, Menu, Requests, Profile]
+```
+
+### Diagram: mifoodi browse to order confirmation
+```mermaid
+flowchart TD
+    A[Splash / version check] --> B[Login or sign up as mifoodi]
+    B --> C[Home discovery feeds]
+    C --> D[Open kitchen]
+    D --> E[Browse filtered menu]
+    E --> F[Add items to cart]
+    F --> G{Service type}
+    G -- Take away --> H[Pick date + time window]
+    G -- Dine in --> I[Pick date + party size + slot]
+    H --> J[Checkout]
+    I --> J
+    J --> K[Choose saved card or one-time payment method]
+    K --> L[Create order in requested state]
+    L --> M[Cook accepts and confirms payment]
+    M --> N[Track order in MiOrders]
+    N --> O[Complete + leave review]
+```
+
+### Diagram: shared order lifecycle and actor permissions
+```mermaid
+stateDiagram-v2
+    [*] --> Requested
+    Requested --> Cancelled: mifoodi cancels
+    Requested --> Cancelled: micook cancels
+    Requested --> Confirmed: micook accepts
+    Confirmed --> InProgress: micook marks in progress
+    InProgress --> Completed: micook completes
+    Confirmed --> Cancelled: micook cancels
+    InProgress --> Cancelled: micook cancels
+
+    note right of Requested
+      mifoodi may cancel only here
+    end note
+
+    note right of Confirmed
+      payment is finalized on acceptance
+    end note
+```
 
 ## 2. End-to-end user journeys
 
@@ -446,6 +516,8 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 
 ## 4. Backend feature map
 
+> Note: this audit found a REST API surface used by the mobile app. I did not find an active GraphQL schema, resolver layer, or mobile GraphQL client in the scanned codebase.
+
 ### App startup and version governance
 - `GET /api/app/version`: controls forced vs optional mobile upgrade prompts using config-only minimum/latest versions and store URLs.
 
@@ -689,3 +761,5 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 15. **Notification preference storage looks cook-keyed.** Mobile notification preference resolution uses a cook-named local preference key; product/design should confirm whether mifoodi and micook should have separate or shared toggles.
 16. **Biometric auth fails open when unavailable.** That is user-friendly, but if stronger account protection is required, this behavior should be revisited.
 17. **Support is present but mostly operationally defined.** Ticket SLAs and escalations exist in backend jobs, yet user-facing expectations (response times, escalation visibility) are not obvious in mobile UX.
+18. **Legacy and parallel endpoints still exist.** Some functionality appears in both legacy and `v2` controllers/routes, which increases the risk of drift between old and new mobile behaviors.
+19. **Pre-registration/referral exists outside the core mobile app flow.** Backend has intake support for pre-registration, including referral-oriented data in admin resources, but it does not appear as a first-class journey in the reviewed mobile client.
