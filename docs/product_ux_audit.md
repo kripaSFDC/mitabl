@@ -8,6 +8,7 @@ A micook is the supply-side persona: a person who sets up a kitchen (`mikitchn`)
 **Goals inferred from code**
 - Create or continue a cook role from an existing account.
 - Complete onboarding steps needed to become an active cook.
+- Pass compliance and payout-readiness checks before kitchen activation.
 - Maintain kitchen profile, compliance/certification details, and payout readiness.
 - Publish dishes with schedule/service-type rules.
 - Manage order lifecycle from request to completion.
@@ -22,7 +23,8 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - Filter or search based on location, date, and service type.
 - Place an order with card or one-time Stripe payment method selection.
 - View payment history and order history.
-- Maintain profile, favourites, and optionally activate micook onboarding.
+- Maintain profile, favourites, payment methods, and optionally activate micook onboarding.
+- Handle app updates, support tickets, and account/security preferences from mobile settings.
 
 ### Additional roles discovered
 - **Admin / platform admin / super admin**: present in Filament resources and role checks, but out of scope for mobile journeys.
@@ -45,9 +47,10 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 1. User selects the micook role in sign-up or starts cook activation from the foodie profile.
 2. Backend creates or reuses a `user_roles` membership for role `2` with onboarding status.
 3. Backend also ensures the same account has an active mifoodi role membership and a Stripe customer account, so dual-role use is possible.
-4. App routes the authenticated user to cook-facing flows and opens cook profile or dashboard depending on current state.
-5. User progresses through missing onboarding tasks: kitchen profile, certificate/compliance, and vendor payout account setup.
-6. Once onboarding checklist is satisfied, role transition state becomes ready/active and the user can fully use micook screens.
+4. If the user just completed sign-up as a cook, the dedicated cook profile setup screen asks for initial mikitchn details and images before normal dashboard usage.
+5. App routes the authenticated user to cook-facing flows and opens cook profile or dashboard depending on current state.
+6. User progresses through missing onboarding tasks: kitchen profile, certificate/compliance, and vendor payout account setup.
+7. Once onboarding checklist is satisfied, role transition state becomes ready/active and the user can fully use micook screens.
 
 **Alternative / edge paths**
 - **Case: role disabled.** Switching or activation returns a disabled-role error and UI shows a support-oriented blocked message.
@@ -67,9 +70,10 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 2. User edits personal profile fields: first name, last name, email, phone, description, avatar.
 3. User creates a `mikitchn` with kitchen name, address, seat count, timings, phone, service mode flags, lat/lng, and images.
 4. Backend validates timings JSON, phone format, and requires images on first kitchen creation.
-5. If dine-in is enabled, user optionally configures structured dine-in slots within open hours.
-6. Certificate/compliance data is stored alongside the kitchen, and later reviewed via admin workflows.
-7. User completes Stripe vendor onboarding/account step to support payouts.
+5. Kitchen activation is effectively gated by kitchen data + certificate presence + vendor account state exposed in onboarding checklist logic.
+6. If dine-in is enabled, user optionally configures structured dine-in slots within open hours.
+7. Certificate/compliance data is stored alongside the kitchen, and later reviewed via admin workflows.
+8. User completes Stripe vendor onboarding/account step to support payouts.
 
 **Alternative / edge paths**
 - **Case: kitchen already exists.** Create endpoint returns conflict and user must use edit-kitchen instead.
@@ -216,6 +220,24 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Case: OTP failure or expired code.** User must retry or resend OTP.
 - **Case: admin or unsupported identity role.** Mobile auth is rejected server-side.
 
+### Journey name: mifoodi – splash, update gate, and authenticated app entry
+**Trigger:** App launch or cold start.
+
+**Preconditions:**
+- Mobile app is installed.
+
+**Happy path steps**
+1. Splash screen appears immediately on launch.
+2. App calls the backend app-version endpoint during the splash window.
+3. If backend says the running version is below `minimum`, a non-dismissible forced-update modal is shown.
+4. If backend says a newer `latest` exists but current version still meets minimum, an optional update modal is shown.
+5. In parallel, authentication state resolves; authenticated users are routed to HomePage or DashboardCook based on active role, while unknown users fall back to LandingPage after a timer.
+
+**Alternative / edge paths**
+- **Case: update endpoint fails.** The check fails silently and app startup continues.
+- **Case: required update.** User cannot dismiss the dialog without leaving to update.
+- **Case: auth state stays unknown.** Splash fallback timer sends user to LandingPage after ~3 seconds.
+
 ### Journey name: mifoodi – browsing and searching for kitchens / dishes
 **Trigger:** User lands on home screen or opens a kitchen detail screen.
 
@@ -286,7 +308,9 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 4. App posts order creation payload to `v2/account/orders` including kitchen, time, taxes, items, service mode, guests/slot if dine-in, and optional payment selection (`card_id` or `payment_method_id`).
 5. Backend creates order in requested state and optionally initializes payment intent immediately.
 6. If payment method is attached later, app can call `v2/payments/intent` to attach it to an existing order.
-7. Order remains pending until cook acceptance triggers payment confirmation.
+7. Server calculates totals itself, including GST where enabled and an automatic 50.00 discount for users with fewer than five completed orders.
+8. Backend also supports an optional `promo_code` id, although no visible mifoodi promo-entry UI surfaced in the scanned mobile flows.
+9. Order remains pending until cook acceptance triggers payment confirmation.
 
 **Alternative / edge paths**
 - **Case: both dine-in and take-away selected or neither.** Backend rejects request.
@@ -295,6 +319,7 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Case: promo invalid or expired.** Backend rejects request.
 - **Case: payment method belongs to another customer.** Stripe/PaymentService rejects it.
 - **Case: saved cards fail to load.** Checkout shows error and refresh path.
+- **Case: introductory-discount expectation mismatch.** Backend may apply discount automatically even if the mobile UI does not explicitly explain the rule.
 
 ### Journey name: mifoodi – order tracking and cancellation
 **Trigger:** User opens miOrders screen after placing one or more orders.
@@ -361,10 +386,31 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Case: no explicit loyalty/referral implementation found.** No concrete customer rewards system was visible in analyzed mobile/backend paths.
 - **Case: support SLA escalation.** Backend jobs imply unresolved tickets can be escalated even if mobile UI remains simple.
 
+### Journey name: shared – account settings, support, and security controls
+**Trigger:** User opens cook settings or security/support related surfaces.
+
+**Preconditions:**
+- Authenticated session.
+
+**Happy path steps**
+1. User opens settings and can toggle push notifications.
+2. App persists the local preference and syncs it to backend.
+3. User can enable biometric lock if the device supports it.
+4. User can open FAQ web content, create support tickets, load ticket status, and reply to existing tickets.
+5. User can attempt account deletion from settings.
+
+**Alternative / edge paths**
+- **Case: biometrics unavailable.** App keeps the toggle off and shows an explanatory snackbar.
+- **Case: support ticket access without auth.** Support repository can also rely on a ticket token header for retrieval/reply.
+- **Case: account deletion.** Mobile contains a delete-account action, but the scanned backend route file does not expose `/api/v2/account/delete`, so this flow may currently be incomplete or environment-specific.
+
 ## 3. Screen-by-screen breakdown (mobile app)
 
 | Screen / route | Personas | Entry points | Exit points | Data displayed | Main actions / backend calls |
 |---|---|---|---|---|---|
+| `/Splash` | shared | cold start | LandingPage, HomePage, DashboardCook, update modal | brand splash and startup state | `GET /api/app/version`, auth bootstrap, timed fallback to landing |
+| update gate modal | shared | Splash when backend signals optional/required upgrade | app store, dismiss for optional updates | latest/minimum version requirement and store links | `GET /api/app/version`, external store launch |
+| biometric lock page | shared authenticated | app resume when biometric lock enabled | previous route after unlock | device-auth prompt UI | local biometric auth only |
 | `/LandingPage` | shared unauthenticated | app launch, logout | Login, Sign up | marketing / persona entry choices | navigate only |
 | `/LoginPage` | shared unauthenticated | landing | HomePage or DashboardCook after auth, Forgot | email/password fields | `POST /api/login`, token refresh support, route by active role |
 | `/SignUpPage` | shared unauthenticated | landing | OTP | role selection, account fields | `POST /api/register` with selected `role_id` |
@@ -393,10 +439,15 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 | `/EditKitchenProfile` | micook | ProfileCook | back to profile | kitchen fields, timings, service modes, images, dine-in slots | `POST /api/v2/mikitchn/editkitchen`, `POST /api/v2/deleteimage`, `GET /api/v2/mikitchn/dine-in-slots` |
 | `/CookProfile` | shared, mostly mifoodi viewing cook | deep link `/cook/{id}` or kitchen browse | OrderMenu | public-ish cook/kitchen profile | discovery restaurant detail endpoints |
 | `/CustomerReviewPage` | micook | bookings/order details | back to bookings/profile | received reviews and/or review form | `GET` review listing endpoints, `POST` foodie review submission |
-| `/SettingsCook` | micook | cook profile | logout, FAQ/web views, support | notification toggle, security settings, help links | `POST /api/v2/account/notification-preferences`, support ticket endpoints, logout |
-| support / FAQ / Stripe web views | shared by role context | settings / checkout | return to parent page | external or embedded web content | support ticket APIs, payment method web page |
+| `/SettingsCook` | micook | cook profile | logout, FAQ/web views, support, delete-account attempt | notification toggle, biometric toggle, support forms, help links | `POST /api/v2/account/notification-preferences`, support ticket endpoints, logout, mobile delete-account attempt |
+| FAQ web view | shared by role context | settings | return to settings | hosted FAQ/help content | web only |
+| Stripe payment-method web view | mifoodi | OrderCheckout | return to checkout | embedded secure payment-method collection form | `GET /api/v2/payments/payment-method-entry` |
+| support actions (bottom sheet / form) | shared in current app shell, exposed from cook settings | SettingsCook | back to settings | support ticket intake, lookup, and reply forms | `POST /api/support/ticket`, `GET /api/support/ticket/{id}`, `POST /api/support/ticket/{id}/reply` |
 
 ## 4. Backend feature map
+
+### App startup and version governance
+- `GET /api/app/version`: controls forced vs optional mobile upgrade prompts using config-only minimum/latest versions and store URLs.
 
 ### Authentication and session management
 - `POST /api/login`: mobile login, role-aware routing, unsupported-role rejection.
@@ -454,6 +505,7 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - `POST /api/v2/payments/checkout-session`: start secure Stripe setup session.
 - `GET /api/v2/payments/payment-method-entry`: hosted/embedded one-time payment-method capture form.
 - `POST /api/v2/payments/intent`: attach/initialize order payment intent.
+- Payment/order services also apply an automatic introductory discount (50.00) to users with fewer than five completed orders, independent of promo-code support.
 - `POST /api/v2/payments/intent/confirm`: explicit payment intent confirmation.
 - `GET /api/v2/account/payments/history`: foodie payment history.
 - Vendor-related endpoints under `/api/v2/payments/vendor/*`: vendor bank account retrieval, onboarding links, login links, account completion, refresh. Direct `vendor-transfer` is blocked from mobile.
@@ -465,7 +517,7 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - Restaurant review creation/listing and foodie review creation exist in `ReviewController`; these power customer-review and mutual-review flows even if route exposure is partly legacy or indirect.
 
 ### Support and communication
-- `POST /api/support/ticket`: create support ticket.
+- `POST /api/support/ticket`: create support ticket, with optional order/kitchen context and attachments.
 - `GET /api/support/ticket/{id}`: fetch ticket state.
 - `POST /api/support/ticket/{id}/reply`: reply to ticket.
 - Push token + notification preference endpoints support outbound mobile notifications.
@@ -477,6 +529,13 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - Additional repair / policy / health commands imply ongoing operational automation around roles and platform monitoring.
 
 ## 5. Consolidated feature list
+
+### Feature: shared – startup version gate and safe app entry
+- **Personas:** micook, mifoodi
+- **Description:** Splash flow checks backend minimum/latest app versions, shows required/optional update prompts, and safely falls back to landing if auth state remains unresolved.
+- **Journeys:** mifoodi splash, shared app entry
+- **Screens:** Splash, update gate modal
+- **Endpoints:** `/api/app/version`
 
 ### Feature: shared – mobile authentication and OTP verification
 - **Personas:** micook, mifoodi
@@ -562,6 +621,13 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Screens:** OrderMenu, OrderCart
 - **Endpoints:** `/api/v2/discovery/restaurants/{id}`, `/api/v2/discovery/restaurants/{id}/menu`, `/api/v2/discovery/restaurants/{id}/dine-in-slots`
 
+### Feature: shared – settings, support, and biometric lock
+- **Personas:** micook, mifoodi (current UI exposure is strongest on cook settings)
+- **Description:** Manage notification preference, biometric lock, FAQ/help content, support ticket create/read/reply, and an account-delete attempt from settings.
+- **Journeys:** shared account settings, support, and security controls
+- **Screens:** SettingsCook, BiometricLockPage, FAQ web view, support sheet
+- **Endpoints:** `/api/v2/account/notification-preferences`, `/api/support/ticket`, `/api/support/ticket/{id}`, `/api/support/ticket/{id}/reply`, mobile attempt to `/api/v2/account/delete`
+
 ### Feature: mifoodi – checkout and payment method selection
 - **Personas:** mifoodi
 - **Description:** Review order, load saved cards, add cards through Stripe, use one-time payment methods, and create orders with attached payment references.
@@ -597,12 +663,12 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 - **Screens:** order history / review entry surfaces
 - **Endpoints:** review controller restaurant-review endpoint(s)
 
-### Feature: shared – push notifications, deep linking, biometric lock, and support
+### Feature: shared – push notifications and deep linking
 - **Personas:** micook, mifoodi
-- **Description:** Push registration, local notifications, deep links into cook/booking pages, optional biometric unlock, and support ticket conversation.
-- **Journeys:** notifications and communication for both personas
-- **Screens:** app shell, settings, support surfaces
-- **Endpoints:** `/api/v2/account/notification-preferences`, `/api/support/ticket`, `/api/support/ticket/{id}`, `/api/support/ticket/{id}/reply`
+- **Description:** Register device tokens, respect notification preferences, present local notifications in foreground, and route notification/deep-link payloads into supported screens.
+- **Journeys:** notifications and communication for both personas; mifoodi splash/app entry
+- **Screens:** app shell, Splash, cook/booking entry routes
+- **Endpoints:** `/api/v2/account/notification-preferences`, `/api/v2/account/device-token`
 
 ## 6. Gaps, risks, and questions
 
@@ -611,12 +677,15 @@ A mifoodi is the demand-side persona: a person who signs up, verifies account ac
 3. **Role-switch onboarding UX is stateful but partially implicit.** The app infers micook CTA state from role membership + onboarding checklist + Stripe provisioning. Product should define canonical states and copy for active/onboarding/disabled more explicitly.
 4. **Dine-in is feature-flagged by schema existence.** The product experience changes if the `dine_in_slots` table is not migrated; this is a technical deployment dependency acting like a feature flag.
 5. **Menu availability has mutually exclusive modes.** A dish cannot use both a specific `available_date` and recurring `available_days`; confirm this matches merchant expectations.
-6. **Dish-level service support inherits kitchen constraints.** A dish cannot expose dine-in or take-away unless the kitchen supports that mode. This is sensible, but should be surfaced clearly in UX copy.
-7. **Take-away acceptance can change promised time, dine-in cannot.** That distinction is enforced server-side and should be reflected in cook order-management UI and customer comms.
-8. **Order deep links are only partial.** Deep links to `/order/{id}` currently land on Bookings because full order-detail arguments are not reconstructible from the link payload alone.
-9. **Manual vendor transfers are blocked from public API.** Settlement is automation/admin-driven, so any PM expectation of self-serve withdrawals is not implemented here.
-10. **No concrete loyalty/referral system was visible.** If these are roadmap items, they are not materially represented in the analyzed mobile/backend paths.
-11. **Review routing exposure should be double-checked.** Review controller behavior is clear, but exact public route registration for every review action was not fully confirmed from the scanned route file and may rely on legacy or omitted routes.
-12. **Notification preference storage looks cook-keyed.** Mobile notification preference resolution uses a cook-named local preference key; product/design should confirm whether mifoodi and micook should have separate or shared toggles.
-13. **Biometric auth fails open when unavailable.** That is user-friendly, but if stronger account protection is required, this behavior should be revisited.
-14. **Support is present but mostly operationally defined.** Ticket SLAs and escalations exist in backend jobs, yet user-facing expectations (response times, escalation visibility) are not obvious in mobile UX.
+6. **Automatic first-five-orders discount is backend-driven.** The order service applies a fixed 50.00 discount for users with fewer than five completed orders, but that rule is not obviously explained in the scanned mobile checkout UX.
+7. **Promo-code support looks backend-first.** Orders accept `promo_code`, validate active windows, and serialize promo data in resources, but no clear mobile promo-entry UI was surfaced in the reviewed screens.
+8. **Dish-level service support inherits kitchen constraints.** A dish cannot expose dine-in or take-away unless the kitchen supports that mode. This is sensible, but should be surfaced clearly in UX copy.
+9. **Take-away acceptance can change promised time, dine-in cannot.** That distinction is enforced server-side and should be reflected in cook order-management UI and customer comms.
+10. **Order deep links are only partial.** Deep links to `/order/{id}` currently land on Bookings because full order-detail arguments are not reconstructible from the link payload alone.
+11. **Manual vendor transfers are blocked from public API.** Settlement is automation/admin-driven, so any PM expectation of self-serve withdrawals is not implemented here.
+12. **Account deletion appears incomplete.** Mobile settings attempt `/api/v2/account/delete`, but that route was not found in the scanned backend API file, so this may currently be broken, deferred, or implemented elsewhere.
+13. **No concrete loyalty/referral system was visible in the mobile product, despite some admin/pre-registration references.** If these are roadmap items, they are not materially represented in the analyzed mobile/backend paths.
+14. **Review routing exposure should be double-checked.** Review controller behavior is clear, but exact public route registration for every review action was not fully confirmed from the scanned route file and may rely on legacy or omitted routes.
+15. **Notification preference storage looks cook-keyed.** Mobile notification preference resolution uses a cook-named local preference key; product/design should confirm whether mifoodi and micook should have separate or shared toggles.
+16. **Biometric auth fails open when unavailable.** That is user-friendly, but if stronger account protection is required, this behavior should be revisited.
+17. **Support is present but mostly operationally defined.** Ticket SLAs and escalations exist in backend jobs, yet user-facing expectations (response times, escalation visibility) are not obvious in mobile UX.
