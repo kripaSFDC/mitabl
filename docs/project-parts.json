@@ -1,0 +1,112 @@
+{
+  "repository_type": "monorepo",
+  "generated": "2026-03-14",
+  "scan_level": "exhaustive",
+  "parts": [
+    {
+      "part_id": "backend",
+      "display_name": "Laravel 12 API + Filament Admin",
+      "project_type_id": "backend",
+      "root_path": "backend/",
+      "primary_language": "PHP",
+      "framework": "Laravel 12",
+      "database": "MySQL 8.0",
+      "cache_queue": "Redis 7.2",
+      "admin_panel": "Filament 3",
+      "entry_points": [
+        "backend/routes/api.php",
+        "backend/routes/web.php",
+        "backend/app/Providers/"
+      ],
+      "test_paths": [
+        "backend/tests/Feature/",
+        "backend/tests/Unit/"
+      ],
+      "documentation": {
+        "architecture": "architecture-backend.md",
+        "api_contracts": "api-contracts-backend.md",
+        "data_models": "data-models-backend.md",
+        "development_guide": "development-guide-backend.md"
+      }
+    },
+    {
+      "part_id": "mobile-app",
+      "display_name": "Flutter Mobile App (Foodie + Cook)",
+      "project_type_id": "mobile",
+      "root_path": "mobile-app/",
+      "primary_language": "Dart",
+      "framework": "Flutter (SDK >=3.5.0)",
+      "state_management": "flutter_bloc / Cubit 9.0.0",
+      "entry_points": [
+        "mobile-app/lib/main.dart",
+        "mobile-app/lib/route_generator.dart",
+        "mobile-app/assets/cfg/configuration.json"
+      ],
+      "test_paths": [
+        "mobile-app/test/",
+        "mobile-app/integration_test/"
+      ],
+      "documentation": {
+        "architecture": "architecture-mobile-app.md",
+        "component_inventory": "component-inventory-mobile-app.md",
+        "development_guide": "development-guide-mobile-app.md"
+      }
+    },
+    {
+      "part_id": "website",
+      "display_name": "Static Marketing Website",
+      "project_type_id": "web",
+      "root_path": "website/",
+      "primary_language": "HTML/CSS/JavaScript",
+      "framework": "Custom Node.js SSG + Bootstrap 4",
+      "entry_points": [
+        "website/build-static-site.js",
+        "website/src/templates.js"
+      ],
+      "test_paths": [],
+      "documentation": {
+        "architecture": "architecture-website.md",
+        "development_guide": "development-guide-website.md"
+      }
+    }
+  ],
+  "integration_points": [
+    {
+      "from": "mobile-app",
+      "to": "backend",
+      "type": "REST/JSON + JWT",
+      "details": "~50 API endpoints for all data operations, 15s timeout, automatic token refresh"
+    },
+    {
+      "from": "website",
+      "to": "backend",
+      "type": "REST/JSON",
+      "details": "Contact form AJAX POST to /api/support/ticket"
+    },
+    {
+      "from": "backend",
+      "to": "stripe",
+      "type": "Stripe API (HTTPS)",
+      "details": "Payment intents, checkout sessions, transfers, refunds. Webhook: /api/stripe/webhook"
+    },
+    {
+      "from": "backend",
+      "to": "firebase",
+      "type": "FCM HTTP API",
+      "details": "Push notifications triggered by model observers (orders, reviews, kitchen, certificates)"
+    },
+    {
+      "from": "backend",
+      "to": "smtp",
+      "type": "SMTP",
+      "details": "10 mailable classes for OTP, invoices, notifications, CRM communications"
+    }
+  ],
+  "infrastructure": {
+    "containerization": "Docker Compose",
+    "production_host": "Contabo VPS",
+    "ssl": "Let's Encrypt",
+    "ci_cd": "GitHub Actions",
+    "load_testing": "k6"
+  }
+}

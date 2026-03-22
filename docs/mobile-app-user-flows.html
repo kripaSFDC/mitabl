@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Mitabl Mobile App &mdash; Architecture &amp; User Flow Document</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="mitabl-mobile-app--architecture--user-flow-document">Mitabl Mobile App — Architecture &amp; User Flow Document</h1>
+<blockquote>
+<p><strong>Document Type:</strong> Technical Architecture + UX Flow Specification
+<strong>Platform:</strong> Flutter (iOS &amp; Android)
+<strong>Last Updated:</strong> 2026-03-19
+<strong>Contributors:</strong> Architect Agent, UX Designer Agent</p>
+</blockquote>
+<hr>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-product-overview">Product Overview</a></li>
+<li><a href="#2-user-roles--personas">User Roles &amp; Personas</a></li>
+<li><a href="#3-application-architecture">Application Architecture</a></li>
+<li><a href="#4-screen-inventory">Screen Inventory</a></li>
+<li><a href="#5-navigation--routing">Navigation &amp; Routing</a></li>
+<li><a href="#6-user-flows--mifoodi-customer">User Flows — miFoodi (Customer)</a></li>
+<li><a href="#7-user-flows--micook-vendor">User Flows — miCook (Vendor)</a></li>
+<li><a href="#8-cross-role-flows">Cross-Role Flows</a></li>
+<li><a href="#9-state-management">State Management</a></li>
+<li><a href="#10-api-integration-map">API Integration Map</a></li>
+<li><a href="#11-data-models">Data Models</a></li>
+<li><a href="#12-security--session-management">Security &amp; Session Management</a></li>
+<li><a href="#13-platform-features">Platform Features</a></li>
+<li><a href="#14-current-gaps--opportunities">Current Gaps &amp; Opportunities</a></li>
+</ol>
+<hr>
+<h2 id="1-product-overview">1. Product Overview</h2>
+<p><strong>Mitabl</strong> is a two-sided home-cooked food marketplace connecting home cooks (miCooks) with food enthusiasts (miFoodis). The mobile app is the primary customer-facing interface, supporting both roles within a single binary with role-based navigation switching.</p>
+<p><strong>Core Value Proposition:</strong></p>
+<ul>
+<li>Authentic home cooking discovery (not restaurant/delivery aggregation)</li>
+<li>Community-focused connection between cooks and diners</li>
+<li>Flexible dining: Dine-in at home kitchens or Take-away</li>
+<li>Cook empowerment with business management tools</li>
+</ul>
+<p><strong>Tech Stack:</strong></p>
+<ul>
+<li>Flutter (cross-platform), Dart</li>
+<li>BLoC/Cubit state management</li>
+<li>JWT authentication</li>
+<li>Stripe payment processing</li>
+<li>Firebase Cloud Messaging (push notifications)</li>
+</ul>
+<hr>
+<h2 id="2-user-roles--personas">2. User Roles &amp; Personas</h2>
+<h3 id="21-mifoodi-customer--role-id-3">2.1 miFoodi (Customer) — Role ID: 3</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Primary Goal</strong></td>
+<td>Discover and order authentic home-cooked food</td>
+</tr>
+<tr>
+<td><strong>Key Actions</strong></td>
+<td>Browse kitchens, order food, pay, rate &amp; review</td>
+</tr>
+<tr>
+<td><strong>Entry Point</strong></td>
+<td>Home/Discovery page after login</td>
+</tr>
+<tr>
+<td><strong>Service Types</strong></td>
+<td>Dine-in, Take-away</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-micook-vendor--role-id-2">2.2 miCook (Vendor) — Role ID: 2</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Primary Goal</strong></td>
+<td>Run a micro-kitchen business from home</td>
+</tr>
+<tr>
+<td><strong>Key Actions</strong></td>
+<td>Manage menu, accept/reject orders, track earnings</td>
+</tr>
+<tr>
+<td><strong>Entry Point</strong></td>
+<td>Dashboard with bottom navigation after login</td>
+</tr>
+<tr>
+<td><strong>Business Tools</strong></td>
+<td>Menu management, booking management, analytics</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-role-switching">2.3 Role Switching</h3>
+<p>Users can hold <strong>both roles simultaneously</strong> and switch between them in-app via <code>POST /api/v2/account/switch-role</code>. The switch changes the entire navigation shell — from the foodie discovery layout to the cook dashboard and vice versa.</p>
+<hr>
+<h2 id="3-application-architecture">3. Application Architecture</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                        main.dart                             │
+│               (Firebase init, Repository setup)              │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                        app.dart                              │
+│      (MultiRepositoryProvider, AuthenticationBloc,           │
+│       MaterialApp, Theme, Route Generator)                   │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+     ┌────────▼────────┐  ┌────────▼────────┐
+     │   pages/         │  │  pages_cook/     │
+     │   (miFoodi UI)   │  │  (miCook UI)     │
+     └────────┬────────┘  └────────┬────────┘
+              │                     │
+     ┌────────▼────────┐  ┌────────▼────────┐
+     │   cubit/         │  │   cubit/         │
+     │   (State mgmt)   │  │   (State mgmt)   │
+     └────────┬────────┘  └────────┬────────┘
+              │                     │
+              └──────────┬──────────┘
+                         │
+              ┌──────────▼──────────┐
+              │     repos/           │
+              │  (Data repositories, │
+              │   HTTP client,       │
+              │   Auth headers)      │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌──────────────────────┐
+              │   Backend API        │
+              │   (Laravel / JWT)    │
+              └──────────────────────┘
+</code></pre>
+<p><strong>Key Architectural Patterns:</strong></p>
+<ul>
+<li><strong>Clean separation</strong>: <code>pages/</code> (miFoodi screens) vs <code>pages_cook/</code> (miCook screens)</li>
+<li><strong>BLoC/Cubit pattern</strong>: Each feature has its own Cubit for state management</li>
+<li><strong>Repository pattern</strong>: All API calls abstracted behind repository interfaces</li>
+<li><strong>Auth-aware HTTP</strong>: <code>AuthAwareHttpClient</code> auto-injects JWT tokens on every request</li>
+<li><strong>Session monitoring</strong>: <code>SessionRepository</code> watches for 401s and triggers auto-logout</li>
+</ul>
+<hr>
+<h2 id="4-screen-inventory">4. Screen Inventory</h2>
+<h3 id="41-shared--authentication-screens">4.1 Shared / Authentication Screens</h3>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Splash</td>
+<td><code>/Splash</code></td>
+<td>App launch, update check, auth status detection</td>
+</tr>
+<tr>
+<td>Landing Page</td>
+<td><code>/LandingPage</code></td>
+<td>Welcome screen with Login/Sign Up options</td>
+</tr>
+<tr>
+<td>Login</td>
+<td><code>/LoginPage</code></td>
+<td>Phone/email + password authentication</td>
+</tr>
+<tr>
+<td>Sign Up</td>
+<td><code>/SignUpPage</code></td>
+<td>New account registration</td>
+</tr>
+<tr>
+<td>OTP Verification</td>
+<td><code>/OTPPage</code></td>
+<td>Email OTP verification post-registration</td>
+</tr>
+<tr>
+<td>Forgot Password</td>
+<td><code>/ForgotPage</code></td>
+<td>Password reset flow</td>
+</tr>
+<tr>
+<td>Biometric Lock</td>
+<td><code>/BiometricLockPage</code></td>
+<td>Fingerprint/Face ID lock screen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-mifoodi-customer-screens">4.2 miFoodi (Customer) Screens</h3>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Home / Discovery</td>
+<td><code>/HomePage</code></td>
+<td>Browse nearby, recommended, top-rated kitchens</td>
+</tr>
+<tr>
+<td>Order Menu</td>
+<td><code>/OrderMenu</code></td>
+<td>Browse a kitchen's menu items</td>
+</tr>
+<tr>
+<td>Order Cart</td>
+<td><code>/OrderCart</code></td>
+<td>Review cart, select dine-in/take-away, time slot</td>
+</tr>
+<tr>
+<td>Order Checkout</td>
+<td><code>/OrderCheckout</code></td>
+<td>Payment method selection, place order</td>
+</tr>
+<tr>
+<td>My Orders</td>
+<td><code>/MiOrders</code></td>
+<td>Order history and status tracking</td>
+</tr>
+<tr>
+<td>Favourites</td>
+<td><code>/Favourites</code></td>
+<td>Saved/bookmarked kitchens</td>
+</tr>
+<tr>
+<td>Payments</td>
+<td><code>/Payments</code></td>
+<td>Saved cards and payment history</td>
+</tr>
+<tr>
+<td>Profile</td>
+<td><code>/ProfileFoodie</code></td>
+<td>View personal profile</td>
+</tr>
+<tr>
+<td>Edit Profile</td>
+<td><code>/EditProfileFoodie</code></td>
+<td>Edit personal details</td>
+</tr>
+<tr>
+<td>Cook Profile (view)</td>
+<td><code>/CookProfile</code></td>
+<td>View a cook's public profile from discovery</td>
+</tr>
+<tr>
+<td>Stripe Payment Method</td>
+<td><code>/StripePaymentMethod</code></td>
+<td>Add/manage Stripe payment methods</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-micook-vendor-screens">4.3 miCook (Vendor) Screens</h3>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dashboard</td>
+<td><code>/DashboardCook</code></td>
+<td>Main hub — 4-tab bottom navigation</td>
+</tr>
+<tr>
+<td>— Tab 1: Dashboard</td>
+<td>(tab)</td>
+<td>Revenue analytics, metrics overview</td>
+</tr>
+<tr>
+<td>— Tab 2: Menu</td>
+<td>(tab)</td>
+<td>List of all menu items</td>
+</tr>
+<tr>
+<td>— Tab 3: Requests</td>
+<td>(tab)</td>
+<td>Incoming orders to accept/reject</td>
+</tr>
+<tr>
+<td>— Tab 4: Profile</td>
+<td>(tab)</td>
+<td>Cook profile overview</td>
+</tr>
+<tr>
+<td>Add/Edit Menu Item</td>
+<td><code>/AddMenuPage</code></td>
+<td>Create or edit a food item</td>
+</tr>
+<tr>
+<td>Menu Item Details</td>
+<td><code>/MenuDetails</code></td>
+<td>View single menu item</td>
+</tr>
+<tr>
+<td>Profile Cook</td>
+<td><code>/ProfileCook</code></td>
+<td>Personal + Kitchen tabs</td>
+</tr>
+<tr>
+<td>Edit Profile Cook</td>
+<td><code>/EditProfileCook</code></td>
+<td>Edit personal details</td>
+</tr>
+<tr>
+<td>Edit Kitchen Profile</td>
+<td><code>/EditKitchenProfile</code></td>
+<td>Edit miKitchn settings</td>
+</tr>
+<tr>
+<td>Bookings (Past)</td>
+<td><code>/Bookings</code></td>
+<td>Completed order history</td>
+</tr>
+<tr>
+<td>Upcoming Bookings</td>
+<td><code>/UpcomingBookings</code></td>
+<td>Scheduled future orders</td>
+</tr>
+<tr>
+<td>Customer Reviews</td>
+<td><code>/CustomerReviewPage</code></td>
+<td>View customer feedback</td>
+</tr>
+<tr>
+<td>User Details</td>
+<td><code>/UserDetails</code></td>
+<td>View customer info for an order</td>
+</tr>
+<tr>
+<td>Order Details</td>
+<td><code>/OrderDetails</code></td>
+<td>Full order details</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>/SettingsCook</code></td>
+<td>Account settings</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="5-navigation--routing">5. Navigation &amp; Routing</h2>
+<h3 id="51-app-entry-decision-tree">5.1 App Entry Decision Tree</h3>
+<pre><code>APP LAUNCH
+    │
+    ▼
+┌─────────┐
+│ Splash   │──→ Check app version (update gate)
+└────┬────┘
+     │
+     ▼
+ ┌───────────────┐
+ │ Auth Status?   │
+ └───┬───────┬───┘
+     │       │
+ (Logged In) (Not Logged In)
+     │       │
+     ▼       ▼
+ ┌────────┐ ┌──────────┐
+ │ Role?  │ │ Landing  │
+ └─┬────┬─┘ │ Page     │
+   │    │   └──────────┘
+   │    │
+(Cook) (Foodi)
+   │    │
+   ▼    ▼
+┌────┐ ┌──────┐
+│Dash│ │ Home │
+│Cook│ │ Page │
+└────┘ └──────┘
+</code></pre>
+<h3 id="52-role-detection-logic">5.2 Role Detection Logic</h3>
+<p>The app determines the user's role using normalized lowercase matching:</p>
+<ul>
+<li><strong>Cook role</strong>: <code>'restaurant'</code>, <code>'cook'</code>, <code>'micook'</code>, <code>'mikitchn'</code>, <code>'kitchen'</code>, <code>'vendor'</code> → routes to <code>/DashboardCook</code></li>
+<li><strong>Foodie role</strong>: All other values → routes to <code>/HomePage</code></li>
+</ul>
+<h3 id="53-bottom-navigation-cook-dashboard">5.3 Bottom Navigation (Cook Dashboard)</h3>
+<pre><code>┌────────────┬──────────┬──────────────┬──────────┐
+│  Dashboard │   Menu   │   Requests   │ Profile  │
+│  (Tab 0)   │ (Tab 1)  │   (Tab 2)    │ (Tab 3)  │
+└────────────┴──────────┴──────────────┴──────────┘
+</code></pre>
+<hr>
+<h2 id="6-user-flows--mifoodi-customer">6. User Flows — miFoodi (Customer)</h2>
+<h3 id="61-registration--onboarding">6.1 Registration &amp; Onboarding</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ Landing  │───→│ Sign Up  │───→│   OTP    │───→│  Home    │
+│ Page     │    │ Page     │    │ Verify   │    │ (Discov) │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+                     │
+                 Collects:
+                 - Name
+                 - Email/Phone
+                 - Password
+                 - Address
+</code></pre>
+<p><strong>Post-registration state:</strong> User is authenticated with Role 3 (Foodie) and lands on the Discovery home page.</p>
+<h3 id="62-login-flow">6.2 Login Flow</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────────────┐
+│ Landing  │───→│  Login   │───→│ Home (Foodie)    │
+│ Page     │    │  Page    │    │   OR              │
+└──────────┘    └──────────┘    │ Dashboard (Cook)  │
+                     │          └──────────────────┘
+                 Inputs:
+                 - Phone/Email
+                 - Password
+</code></pre>
+<p><strong>Branching:</strong> After successful login, the app checks the user's active role and navigates accordingly.</p>
+<h3 id="63-password-reset">6.3 Password Reset</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ Login    │───→│ Forgot   │───→│  Reset   │───→│  Login   │
+│ Page     │    │ Password │    │  (Email) │    │ Page     │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+</code></pre>
+<h3 id="64-discovery--browsing-core-loop">6.4 Discovery &amp; Browsing (Core Loop)</h3>
+<pre><code>┌───────────────────────────────────────────────────┐
+│                 HOME PAGE                          │
+│                                                    │
+│  ┌─────────────────────────────────────────────┐  │
+│  │  Search Bar (location-based)                │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                    │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────┐ │
+│  │   Nearest   │  │ Recommended  │  │Top Rated │ │
+│  │   Kitchens  │  │   Kitchens   │  │ Kitchens │ │
+│  └──────┬──────┘  └──────┬───────┘  └────┬─────┘ │
+│         │                │               │        │
+│         └────────────────┼───────────────┘        │
+│                          │                         │
+│                    Tap Kitchen                     │
+│                          │                         │
+└──────────────────────────┼─────────────────────────┘
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │  Cook Profile │ (public view)
+                    │  - Kitchen info
+                    │  - Rating
+                    │  - Images
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │  Order Menu  │
+                    └──────────────┘
+</code></pre>
+<p><strong>Discovery Filters:</strong></p>
+<ul>
+<li>Cuisine / Cooking style</li>
+<li>Price range</li>
+<li>Rating</li>
+<li>Distance / Location</li>
+<li>Dietary restrictions (vegan, gluten-free, etc.)</li>
+</ul>
+<p><strong>API Endpoints Used:</strong></p>
+<ul>
+<li><code>GET /api/v2/discovery/nearest</code> — Geo-location based</li>
+<li><code>GET /api/v2/discovery/recommended</code> — Personalized recommendations</li>
+<li><code>GET /api/v2/discovery/top-rated</code> — Highest rated</li>
+<li><code>GET /api/v2/discovery/search</code> — Text search</li>
+<li><code>GET /api/v2/discovery/filtered</code> — Combined filters</li>
+</ul>
+<h3 id="65-ordering-flow-critical-path">6.5 Ordering Flow (Critical Path)</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  STEP 1: MENU BROWSING (/OrderMenu)                          │
+│                                                               │
+│  Kitchen: &quot;Nana's Kitchen&quot; ★ 4.8                             │
+│  ┌────────────────────────────────────┐                      │
+│  │  🍲 Butter Chicken — $18.50       │  [+] Add to Cart     │
+│  │  🥘 Dal Makhani — $14.00          │  [+] Add to Cart     │
+│  │  🍚 Biryani — $22.00              │  [+] Add to Cart     │
+│  └────────────────────────────────────┘                      │
+│                                                               │
+│  [View Cart (3 items — $54.50)]                              │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 2: CART REVIEW (/OrderCart)                             │
+│                                                               │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │  Service Type:   ○ Dine-In    ○ Take-Away        │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                               │
+│  IF DINE-IN:                                                  │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │  Select Time Slot:   [6:00 PM - 7:00 PM ▼]      │        │
+│  │  Number of Persons:  [2 ▼]                        │        │
+│  │  Available Seats:    4 remaining                   │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                               │
+│  IF TAKE-AWAY:                                                │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │  Pickup Time:        [6:30 PM ▼]                  │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                               │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │  Items:         $54.50                            │        │
+│  │  GST:           $5.45                             │        │
+│  │  Total:         $59.95                            │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                               │
+│  [Proceed to Checkout]                                        │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 3: CHECKOUT (/OrderCheckout)                            │
+│                                                               │
+│  Payment Method:                                              │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │  ○ Visa ****4242 (saved)                          │        │
+│  │  ○ Mastercard ****8888 (saved)                    │        │
+│  │  ○ Add New Card                                   │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                               │
+│  [Place Order — $59.95]                                       │
+└──────────────────────────────┬───────────────────────────────┘
+                               │
+                               ▼
+┌──────────────────────────────────────────────────────────────┐
+│  STEP 4: ORDER CONFIRMATION                                   │
+│                                                               │
+│  &quot;Order #1234 placed successfully!&quot;                          │
+│  Status: REQUESTED (awaiting kitchen confirmation)            │
+│                                                               │
+│  [Track Order in My Orders]                                   │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>Order State Machine (Customer View):</strong></p>
+<pre><code>REQUESTED ──→ CONFIRMED ──→ IN_PROGRESS ──→ COMPLETED
+    │              │
+    ▼              ▼
+CANCELLED      CANCELLED
+</code></pre>
+<h3 id="66-order-management">6.6 Order Management</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  MY ORDERS (/MiOrders)                                        │
+│                                                               │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │  Order #1234 — Nana's Kitchen                      │      │
+│  │  Status: CONFIRMED  |  Dine-in 6:00 PM            │      │
+│  │  Total: $59.95      |  2 persons                   │      │
+│  │  [View Details]  [Cancel]                          │      │
+│  └────────────────────────────────────────────────────┘      │
+│                                                               │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │  Order #1201 — Mama's Bistro                       │      │
+│  │  Status: COMPLETED  |  Take-away                   │      │
+│  │  Total: $35.00                                     │      │
+│  │  [View Details]  [Rate &amp; Review]                   │      │
+│  └────────────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="67-favourites">6.7 Favourites</h3>
+<pre><code>Home Page ──→ Tap Heart on Kitchen ──→ Saved to Favourites
+                                            │
+Favourites Page ◄───────────────────────────┘
+    │
+    ▼
+Tap Kitchen ──→ Cook Profile ──→ Order Menu
+</code></pre>
+<h3 id="68-profile--settings">6.8 Profile &amp; Settings</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  PROFILE (/ProfileFoodie)                                     │
+│                                                               │
+│  [Edit Profile]  → Name, Phone, Photo, Address               │
+│  [Change Password]                                            │
+│  [Biometric Auth]  → Enable/Disable fingerprint               │
+│  [Payment Methods]  → Manage saved cards                      │
+│  [Switch to miCook]  → Role switch                            │
+│  [Logout]                                                     │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h2 id="7-user-flows--micook-vendor">7. User Flows — miCook (Vendor)</h2>
+<h3 id="71-cook-onboarding">7.1 Cook Onboarding</h3>
+<pre><code>┌──────────┐    ┌───────────────┐    ┌───────────────┐    ┌──────────────┐
+│ Sign Up  │───→│ Complete      │───→│ Upload        │───→│ Setup Payout │
+│ (Role 2) │    │ Kitchen       │    │ Kitchen       │    │ (Stripe      │
+│          │    │ Profile       │    │ Certificate   │    │  Onboarding) │
+└──────────┘    └───────────────┘    └───────────────┘    └──────┬───────┘
+                     │                                            │
+                 Collects:                                        ▼
+                 - Kitchen name                           ┌──────────────┐
+                 - Address/Location                       │  Dashboard   │
+                 - Description                            │  (Activated) │
+                 - Operating hours                        └──────────────┘
+                 - Dine-in/Take-away
+                 - Time slots &amp; capacity
+                 - Kitchen images
+</code></pre>
+<p><strong>Onboarding API Sequence:</strong></p>
+<ol>
+<li><code>POST /api/v2/onboarding/cook/start</code> — Begin onboarding</li>
+<li><code>POST /api/v2/mikitchn/store</code> — Create kitchen profile</li>
+<li><code>POST /api/v2/onboarding/cook/vendor-account</code> — Setup Stripe vendor</li>
+<li><code>POST /api/v2/roles/cook/activate</code> — Activate cook role</li>
+</ol>
+<h3 id="72-dashboard-daily-operations-hub">7.2 Dashboard (Daily Operations Hub)</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  DASHBOARD (/DashboardCook)                                   │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  TAB 1: DASHBOARD (Analytics)                         │    │
+│  │                                                       │    │
+│  │  Total Earnings:  $2,450.00                           │    │
+│  │  Orders This Week: 23                                 │    │
+│  │  Average Rating:   4.7 ★                              │    │
+│  └──────────────────────────────────────────────────────┘    │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  TAB 2: MENU                                          │    │
+│  │                                                       │    │
+│  │  [+ Add New Item]                                     │    │
+│  │  Butter Chicken — $18.50  [Edit] [Delete]             │    │
+│  │  Dal Makhani — $14.00     [Edit] [Delete]             │    │
+│  │  Biryani — $22.00         [Edit] [Delete]             │    │
+│  └──────────────────────────────────────────────────────┘    │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  TAB 3: REQUESTS (Incoming Orders)                    │    │
+│  │                                                       │    │
+│  │  NEW REQUEST #1234                                    │    │
+│  │  Customer: John D.  |  Dine-in 6:00 PM               │    │
+│  │  Items: 3  |  Total: $59.95                           │    │
+│  │  [Accept]  [Reject]                                   │    │
+│  └──────────────────────────────────────────────────────┘    │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  TAB 4: PROFILE                                       │    │
+│  │                                                       │    │
+│  │  Kitchen: &quot;Nana's Kitchen&quot;                            │    │
+│  │  Rating: 4.8 ★  |  Reviews: 45                        │    │
+│  │  [Edit Personal]  [Edit Kitchen]  [Settings]          │    │
+│  └──────────────────────────────────────────────────────┘    │
+│                                                               │
+│  ┌─────────┬─────────┬──────────┬─────────┐                 │
+│  │Dashboard│  Menu   │ Requests │ Profile │  ← Bottom Nav   │
+│  └─────────┴─────────┴──────────┴─────────┘                 │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="73-menu-management-flow">7.3 Menu Management Flow</h3>
+<pre><code>Dashboard (Menu Tab)
+    │
+    ├───→ [+ Add New Item] ──→ /AddMenuPage
+    │                              │
+    │                          Collects:
+    │                          - Food name
+    │                          - Description
+    │                          - Price
+    │                          - Photos (multiple)
+    │                          - Cooking style
+    │                          - Dietary options
+    │                          - Available days
+    │                          - Available hours
+    │                          - Dine-in / Take-away toggle
+    │                              │
+    │                              ▼
+    │                          [Save Item]
+    │                              │
+    │                              ▼
+    │                          Return to Menu Tab
+    │
+    ├───→ [Edit] on existing item ──→ /AddMenuPage (edit mode)
+    │
+    └───→ [Tap item] ──→ /MenuDetails (read-only view)
+</code></pre>
+<h3 id="74-order-fulfillment-flow">7.4 Order Fulfillment Flow</h3>
+<pre><code>┌──────────────┐     ┌──────────────┐     ┌──────────────────┐
+│  Push        │────→│ Requests Tab │────→│ Order Details    │
+│  Notification│     │ (new order)  │     │ (/OrderDetails)  │
+└──────────────┘     └──────────────┘     └────────┬─────────┘
+                                                    │
+                                          ┌─────────┼─────────┐
+                                          │                    │
+                                     [Accept]             [Reject]
+                                          │                    │
+                                          ▼                    ▼
+                                   ┌──────────────┐    ┌──────────────┐
+                                   │ CONFIRMED    │    │ CANCELLED    │
+                                   │ → Upcoming   │    │ (with reason)│
+                                   │   Bookings   │    └──────────────┘
+                                   └──────┬───────┘
+                                          │
+                                   (Prepare food)
+                                          │
+                                          ▼
+                                   ┌──────────────┐
+                                   │ IN_PROGRESS  │
+                                   └──────┬───────┘
+                                          │
+                                   (Serve/hand off)
+                                          │
+                                          ▼
+                                   ┌──────────────┐
+                                   │ COMPLETED    │
+                                   │ → Bookings   │
+                                   │   (history)  │
+                                   └──────────────┘
+</code></pre>
+<p><strong>Order Status Codes:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Status</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>LEGACY_CANCELLED</td>
+<td>Legacy cancelled state</td>
+</tr>
+<tr>
+<td>1</td>
+<td>COMPLETED</td>
+<td>Order fulfilled</td>
+</tr>
+<tr>
+<td>2</td>
+<td>REQUESTED</td>
+<td>Awaiting kitchen acceptance</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CONFIRMED</td>
+<td>Accepted by kitchen</td>
+</tr>
+<tr>
+<td>4</td>
+<td>CANCELLED</td>
+<td>Cancelled (either party)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>IN_PROGRESS</td>
+<td>Being prepared</td>
+</tr>
+</tbody>
+</table>
+<h3 id="75-kitchen-profile-management">7.5 Kitchen Profile Management</h3>
+<pre><code>Profile Tab
+    │
+    ├───→ Personal Tab
+    │        │
+    │        └───→ [Edit] ──→ /EditProfileCook
+    │                          - Name, Phone, Photo
+    │
+    └───→ Kitchen Tab
+             │
+             └───→ [Edit] ──→ /EditKitchenProfile
+                                - Kitchen name
+                                - Address / Location
+                                - Description
+                                - Operating hours (per day)
+                                - Dine-in toggle + slots
+                                - Take-away toggle
+                                - Seat capacity
+                                - Kitchen images
+                                - GST/ABN certification
+</code></pre>
+<h3 id="76-booking-management">7.6 Booking Management</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  UPCOMING BOOKINGS (/UpcomingBookings)                        │
+│                                                               │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │  Order #1234 — John D.                             │      │
+│  │  Dine-in | 6:00 PM - 7:00 PM | 2 persons          │      │
+│  │  Items: Butter Chicken, Dal, Biryani               │      │
+│  │  Total: $59.95  |  Status: CONFIRMED               │      │
+│  │  [View Details]  [Mark In Progress]                │      │
+│  └────────────────────────────────────────────────────┘      │
+│                                                               │
+│  PAST BOOKINGS (/Bookings)                                    │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │  Order #1201 — Sarah M.                            │      │
+│  │  Take-away | Completed Mar 18                      │      │
+│  │  Total: $35.00  |  Paid: Yes                       │      │
+│  └────────────────────────────────────────────────────┘      │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h2 id="8-cross-role-flows">8. Cross-Role Flows</h2>
+<h3 id="81-role-switching">8.1 Role Switching</h3>
+<pre><code>miFoodi Profile                      miCook Dashboard
+┌──────────────┐                    ┌──────────────┐
+│ [Switch to   │───── API Call ────→│ Dashboard    │
+│  miCook]     │  switch-role       │ (Cook View)  │
+└──────────────┘                    └──────────────┘
+
+miCook Profile                       miFoodi Home
+┌──────────────┐                    ┌──────────────┐
+│ [Switch to   │───── API Call ────→│ Home Page    │
+│  miFoodi]    │  switch-role       │ (Discovery)  │
+└──────────────┘                    └──────────────┘
+</code></pre>
+<p><strong>Important:</strong> If a user has never been a cook, switching to cook triggers the onboarding flow (Section 7.1).</p>
+<h3 id="82-become-a-cook-foodie--cook-registration">8.2 Become a Cook (Foodie → Cook Registration)</h3>
+<pre><code>Foodie Profile
+    │
+    └───→ [Become a miCook] ──→ /ProfileSignupCook
+                                    │
+                                Collects:
+                                - Kitchen details
+                                - Certification
+                                - Payout info
+                                    │
+                                    ▼
+                              Cook Onboarding
+                              (Section 7.1)
+</code></pre>
+<hr>
+<h2 id="9-state-management">9. State Management</h2>
+<h3 id="91-architecture-bloccubit-pattern">9.1 Architecture: BLoC/Cubit Pattern</h3>
+<pre><code>┌───────────────┐     ┌──────────┐     ┌──────────────┐
+│  UI (Widget)  │────→│  Cubit   │────→│  Repository  │
+│  (Listens to  │     │  (Logic) │     │  (Data)      │
+│   state)      │◄────│  (Emits  │◄────│  (API calls) │
+│               │     │   state) │     │              │
+└───────────────┘     └──────────┘     └──────────────┘
+</code></pre>
+<h3 id="92-key-state-managers">9.2 Key State Managers</h3>
+<table>
+<thead>
+<tr>
+<th>Cubit/Bloc</th>
+<th>Scope</th>
+<th>Manages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AuthenticationBloc</code></td>
+<td>Global</td>
+<td>Auth state, user session, login/logout</td>
+</tr>
+<tr>
+<td><code>HomeCubit</code></td>
+<td>miFoodi</td>
+<td>Discovery data, filters, search results</td>
+</tr>
+<tr>
+<td><code>ProfileFoodieCubit</code></td>
+<td>miFoodi</td>
+<td>Customer profile data</td>
+</tr>
+<tr>
+<td><code>DashboardCookCubit</code></td>
+<td>miCook</td>
+<td>Tab selection, dashboard metrics</td>
+</tr>
+<tr>
+<td><code>ProfileCookCubit</code></td>
+<td>miCook</td>
+<td>Cook + kitchen profile data</td>
+</tr>
+<tr>
+<td><code>AddMenuCubit</code></td>
+<td>miCook</td>
+<td>Menu item form state</td>
+</tr>
+<tr>
+<td><code>RequestsCubit</code></td>
+<td>miCook</td>
+<td>Incoming order requests</td>
+</tr>
+<tr>
+<td><code>BookingsCubit</code></td>
+<td>miCook</td>
+<td>Booking history data</td>
+</tr>
+<tr>
+<td><code>LoginCubit</code></td>
+<td>Auth</td>
+<td>Login form validation</td>
+</tr>
+<tr>
+<td><code>SignUpCubit</code></td>
+<td>Auth</td>
+<td>Registration form validation</td>
+</tr>
+<tr>
+<td><code>OtpCubit</code></td>
+<td>Auth</td>
+<td>OTP verification state</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93-form-validation">9.3 Form Validation</h3>
+<p>Uses <code>formz</code> package for declarative form validation with <code>FormzStatus</code>:</p>
+<ul>
+<li><code>pure</code> — untouched</li>
+<li><code>valid</code> / <code>invalid</code> — validation state</li>
+<li><code>submissionInProgress</code> — loading</li>
+<li><code>submissionSuccess</code> / <code>submissionFailure</code> — result</li>
+</ul>
+<hr>
+<h2 id="10-api-integration-map">10. API Integration Map</h2>
+<h3 id="101-authentication-apis">10.1 Authentication APIs</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Method</th>
+<th>Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Register</td>
+<td>POST</td>
+<td><code>/api/register</code></td>
+</tr>
+<tr>
+<td>Verify OTP</td>
+<td>POST</td>
+<td><code>/api/verifyOtp</code></td>
+</tr>
+<tr>
+<td>Resend OTP</td>
+<td>POST</td>
+<td><code>/api/resendotp</code></td>
+</tr>
+<tr>
+<td>Login</td>
+<td>POST</td>
+<td><code>/api/login</code></td>
+</tr>
+<tr>
+<td>Logout</td>
+<td>POST</td>
+<td><code>/api/v2/logout</code></td>
+</tr>
+<tr>
+<td>Refresh Token</td>
+<td>POST</td>
+<td><code>/api/token/refresh</code></td>
+</tr>
+<tr>
+<td>Reset Password</td>
+<td>POST</td>
+<td><code>/api/password/reset</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="102-mifoodi-customer-apis">10.2 miFoodi (Customer) APIs</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Method</th>
+<th>Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Get Profile</td>
+<td>GET</td>
+<td><code>/api/v2/account/profile</code></td>
+</tr>
+<tr>
+<td>Update Profile</td>
+<td>PUT</td>
+<td><code>/api/v2/account/profile</code></td>
+</tr>
+<tr>
+<td>Nearest Kitchens</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/nearest</code></td>
+</tr>
+<tr>
+<td>Recommended</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/recommended</code></td>
+</tr>
+<tr>
+<td>Top Rated</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/top-rated</code></td>
+</tr>
+<tr>
+<td>Search</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/search</code></td>
+</tr>
+<tr>
+<td>Filtered Results</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/filtered</code></td>
+</tr>
+<tr>
+<td>Restaurant Details</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/restaurants/{id}</code></td>
+</tr>
+<tr>
+<td>Restaurant Menu</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/restaurants/{id}/menu</code></td>
+</tr>
+<tr>
+<td>Dine-in Slots</td>
+<td>GET</td>
+<td><code>/api/v2/discovery/restaurants/{id}/dine-in-slots</code></td>
+</tr>
+<tr>
+<td>Place Order</td>
+<td>POST</td>
+<td><code>/api/v2/orders</code></td>
+</tr>
+<tr>
+<td>My Orders</td>
+<td>GET</td>
+<td><code>/api/v2/account/orders</code></td>
+</tr>
+<tr>
+<td>Favourites</td>
+<td>GET</td>
+<td><code>/api/v2/account/favorites</code></td>
+</tr>
+<tr>
+<td>Toggle Favourite</td>
+<td>POST</td>
+<td><code>/api/v2/account/favorites/toggle</code></td>
+</tr>
+<tr>
+<td>Payment Cards</td>
+<td>GET</td>
+<td><code>/api/v2/payments/cards</code></td>
+</tr>
+<tr>
+<td>Add Card</td>
+<td>POST</td>
+<td><code>/api/v2/payments/cards</code></td>
+</tr>
+<tr>
+<td>Payment Intent</td>
+<td>POST</td>
+<td><code>/api/v2/payments/intent</code></td>
+</tr>
+<tr>
+<td>Confirm Payment</td>
+<td>POST</td>
+<td><code>/api/v2/payments/intent/confirm</code></td>
+</tr>
+<tr>
+<td>Payment History</td>
+<td>GET</td>
+<td><code>/api/v2/account/payments/history</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="103-micook-vendor-apis">10.3 miCook (Vendor) APIs</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Method</th>
+<th>Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create Kitchen</td>
+<td>POST</td>
+<td><code>/api/v2/mikitchn/store</code></td>
+</tr>
+<tr>
+<td>Edit Kitchen</td>
+<td>POST</td>
+<td><code>/api/v2/mikitchn/editkitchen</code></td>
+</tr>
+<tr>
+<td>Get Kitchen Profile</td>
+<td>GET</td>
+<td><code>/api/v2/getprofile</code></td>
+</tr>
+<tr>
+<td>My Menu</td>
+<td>GET</td>
+<td><code>/api/v2/mymenu</code></td>
+</tr>
+<tr>
+<td>Add Food</td>
+<td>POST</td>
+<td><code>/api/v2/food/add</code></td>
+</tr>
+<tr>
+<td>Edit Food</td>
+<td>POST</td>
+<td><code>/api/v2/food/editfood</code></td>
+</tr>
+<tr>
+<td>Delete Food</td>
+<td>DELETE</td>
+<td><code>/api/v2/food/{id}</code></td>
+</tr>
+<tr>
+<td>Order Requests</td>
+<td>GET</td>
+<td><code>/api/v2/kitchenorderrequest</code></td>
+</tr>
+<tr>
+<td>Upcoming Orders</td>
+<td>GET</td>
+<td><code>/api/v2/kitchenupcomingorders</code></td>
+</tr>
+<tr>
+<td>All Orders</td>
+<td>GET</td>
+<td><code>/api/v2/allorders</code></td>
+</tr>
+<tr>
+<td>Update Order Status</td>
+<td>POST</td>
+<td><code>/api/v2/updateorderstatus</code></td>
+</tr>
+<tr>
+<td>Dashboard Data</td>
+<td>GET</td>
+<td><code>/api/v2/account/dashboard</code></td>
+</tr>
+<tr>
+<td>Activate Cook Role</td>
+<td>POST</td>
+<td><code>/api/v2/roles/cook/activate</code></td>
+</tr>
+<tr>
+<td>Start Onboarding</td>
+<td>POST</td>
+<td><code>/api/v2/onboarding/cook/start</code></td>
+</tr>
+<tr>
+<td>Vendor Account</td>
+<td>POST</td>
+<td><code>/api/v2/onboarding/cook/vendor-account</code></td>
+</tr>
+<tr>
+<td>Vendor Bank Account</td>
+<td>POST</td>
+<td><code>/api/v2/payments/vendor/bank-account</code></td>
+</tr>
+<tr>
+<td>Stripe Onboarding Link</td>
+<td>GET</td>
+<td><code>/api/v2/payments/vendor/onboarding-link</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="11-data-models">11. Data Models</h2>
+<h3 id="111-core-entities">11.1 Core Entities</h3>
+<pre><code>┌────────────┐       ┌─────────────┐       ┌────────────┐
+│   User     │──1:N─→│  UserRole   │──N:1─→│   Role     │
+│            │       │ (status)    │       │ (Cook,     │
+│ - id       │       └─────────────┘       │  Foodie)   │
+│ - name     │                              └────────────┘
+│ - email    │
+│ - phone    │       ┌─────────────┐
+│ - address  │──1:1─→│  Mikitchn   │
+│ - role     │       │ (Kitchen)   │
+└────────────┘       │ - name      │
+                     │ - address   │
+                     │ - lat/lng   │
+                     │ - dine_in   │
+                     │ - take_away │
+                     │ - rating    │
+                     │ - images[]  │
+                     │ - timings[] │
+                     └──────┬──────┘
+                            │
+                         1:N│
+                            ▼
+                     ┌─────────────┐
+                     │   Foods     │
+                     │ - name      │
+                     │ - price     │
+                     │ - desc      │
+                     │ - images[]  │
+                     │ - diets[]   │
+                     │ - styles[]  │
+                     │ - days[]    │
+                     │ - hours     │
+                     └──────┬──────┘
+                            │
+                         N:M│ (via OrderData)
+                            ▼
+                     ┌─────────────┐       ┌─────────────┐
+                     │   Order     │──1:1─→│  Payment    │
+                     │ - status    │       │ - stripe_id │
+                     │ - type      │       │ - amount    │
+                     │ - date/time │       │ - status    │
+                     │ - persons   │       └─────────────┘
+                     │ - total     │
+                     │ - customer  │       ┌─────────────┐
+                     │ - kitchen   │──1:N─→│  Review     │
+                     └─────────────┘       │ - rating    │
+                                           │ - comment   │
+                                           └─────────────┘
+</code></pre>
+<h3 id="112-supporting-entities">11.2 Supporting Entities</h3>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CookingStyle</code></td>
+<td>Cuisine categories (Italian, Indian, etc.)</td>
+</tr>
+<tr>
+<td><code>SpecialDiet</code></td>
+<td>Dietary tags (Vegan, Gluten-free, Halal, etc.)</td>
+</tr>
+<tr>
+<td><code>DineInSlot</code></td>
+<td>Time slots with seat capacity for dine-in bookings</td>
+</tr>
+<tr>
+<td><code>Certificate</code></td>
+<td>Kitchen certifications (ABN, GST)</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td>Polymorphic image storage for kitchens &amp; foods</td>
+</tr>
+<tr>
+<td><code>Timing</code></td>
+<td>Kitchen operating hours per day</td>
+</tr>
+<tr>
+<td><code>Favorite</code></td>
+<td>User-kitchen bookmark associations</td>
+</tr>
+<tr>
+<td><code>PromoCode</code></td>
+<td>Discount codes with validity windows</td>
+</tr>
+<tr>
+<td><code>SupportTicket</code></td>
+<td>Help desk tickets with SLA tracking</td>
+</tr>
+<tr>
+<td><code>Card</code></td>
+<td>Saved Stripe payment cards</td>
+</tr>
+<tr>
+<td><code>Transfer</code></td>
+<td>Vendor payout records</td>
+</tr>
+<tr>
+<td><code>Refund</code></td>
+<td>Order refund tracking</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="12-security--session-management">12. Security &amp; Session Management</h2>
+<h3 id="121-authentication-architecture">12.1 Authentication Architecture</h3>
+<pre><code>┌──────────┐    ┌──────────────────┐    ┌──────────────────┐
+│  Login   │───→│ JWT Token        │───→│ Secure Storage   │
+│          │    │ (access_token)   │    │ (FlutterSecure   │
+│          │    │                  │    │  Storage)         │
+└──────────┘    └──────────────────┘    └──────────────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ AuthAwareHttp    │ ← Injects Bearer token
+                │ Client           │   on every API request
+                └────────┬─────────┘
+                         │
+                    On 401 Response
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ SessionRepository│ ← Triggers logout
+                │ (monitors auth)  │   &amp; redirect to Landing
+                └──────────────────┘
+</code></pre>
+<h3 id="122-security-features">12.2 Security Features</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Implementation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Token Storage</strong></td>
+<td><code>FlutterSecureStorage</code> (encrypted)</td>
+</tr>
+<tr>
+<td><strong>Auto-logout</strong></td>
+<td>401 response detection via <code>SessionRepository</code></td>
+</tr>
+<tr>
+<td><strong>Biometric Auth</strong></td>
+<td>Optional fingerprint/Face ID via <code>local_auth</code></td>
+</tr>
+<tr>
+<td><strong>Biometric Lock</strong></td>
+<td>Lock screen shown on app resume if enabled</td>
+</tr>
+<tr>
+<td><strong>Token Migration</strong></td>
+<td>One-time migration from <code>SharedPreferences</code> to secure storage</td>
+</tr>
+<tr>
+<td><strong>Rate Limiting</strong></td>
+<td>Server-side on login, OTP, token refresh endpoints</td>
+</tr>
+<tr>
+<td><strong>Role Guards</strong></td>
+<td>Server middleware: <code>customer</code>, <code>restaurant</code>, <code>api.user.active</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="13-platform-features">13. Platform Features</h2>
+<h3 id="131-push-notifications">13.1 Push Notifications</h3>
+<pre><code>Firebase Cloud Messaging
+    │
+    ├──→ New order request (Cook)
+    ├──→ Order status update (Foodie)
+    ├──→ Order accepted/rejected (Foodie)
+    └──→ Deep link to specific screen
+</code></pre>
+<ul>
+<li>Device token synced via <code>POST /api/v2/account/device-token</code></li>
+<li>Notification preferences configurable</li>
+<li>Deep linking from notification tap to relevant screen</li>
+</ul>
+<h3 id="132-offline-handling">13.2 Offline Handling</h3>
+<ul>
+<li><code>ConnectivityService</code> monitors network status in real-time</li>
+<li>Offline banner displayed at top of app when disconnected</li>
+<li>Graceful error handling on failed API calls</li>
+<li>Retry mechanisms available</li>
+</ul>
+<h3 id="133-deep-linking">13.3 Deep Linking</h3>
+<ul>
+<li><code>DeepLinkService</code> handles incoming deep links</li>
+<li>Navigation to specific orders, kitchens, profiles</li>
+<li>Works from cold start and foreground state</li>
+</ul>
+<h3 id="134-app-update-gate">13.4 App Update Gate</h3>
+<ul>
+<li><code>UpdateCheckService</code> checks <code>GET /api/app/version</code> on splash</li>
+<li>Non-blocking prompt if update available</li>
+<li>Can enforce critical updates</li>
+</ul>
+<hr>
+<h2 id="14-current-gaps--opportunities">14. Current Gaps &amp; Opportunities</h2>
+<h3 id="141-identified-gaps-from-gap-analysis">14.1 Identified Gaps (from gap analysis)</h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ordering</strong></td>
+<td>No real-time order tracking beyond status polling</td>
+</tr>
+<tr>
+<td><strong>Payments</strong></td>
+<td>Limited refund flow in mobile app</td>
+</tr>
+<tr>
+<td><strong>Search</strong></td>
+<td>No advanced text search for individual food items</td>
+</tr>
+<tr>
+<td><strong>Reviews</strong></td>
+<td>Review submission flow exists but limited UX</td>
+</tr>
+<tr>
+<td><strong>Notifications</strong></td>
+<td>No in-app notification centre (relies on push only)</td>
+</tr>
+<tr>
+<td><strong>Cancellation</strong></td>
+<td>Limited cancellation policy enforcement in UI</td>
+</tr>
+<tr>
+<td><strong>Chat</strong></td>
+<td>No in-app messaging between cook and foodie</td>
+</tr>
+</tbody>
+</table>
+<h3 id="142-ux-opportunities">14.2 UX Opportunities</h3>
+<table>
+<thead>
+<tr>
+<th>Opportunity</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Onboarding tutorial</strong></td>
+<td>First-time user guidance for both roles</td>
+</tr>
+<tr>
+<td><strong>Order tracking timeline</strong></td>
+<td>Visual progress indicator for order status</td>
+</tr>
+<tr>
+<td><strong>Cook availability calendar</strong></td>
+<td>Weekly view of kitchen operating schedule</td>
+</tr>
+<tr>
+<td><strong>Menu item recommendations</strong></td>
+<td>AI-powered &quot;you might like&quot; suggestions</td>
+</tr>
+<tr>
+<td><strong>Reorder functionality</strong></td>
+<td>Quick reorder from past orders</td>
+</tr>
+<tr>
+<td><strong>Scheduled ordering</strong></td>
+<td>Book future meals in advance</td>
+</tr>
+<tr>
+<td><strong>Social proof</strong></td>
+<td>Show live activity (&quot;3 people ordered in the last hour&quot;)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="appendix-complete-flow-diagram">Appendix: Complete Flow Diagram</h2>
+<pre><code>                        ┌──────────────┐
+                        │   APP START  │
+                        │   (Splash)   │
+                        └──────┬───────┘
+                               │
+                     ┌─────────┴─────────┐
+                     │                   │
+                (Authenticated)    (Not Authenticated)
+                     │                   │
+                     │            ┌──────▼───────┐
+                     │            │ Landing Page │
+                     │            └───┬──────┬───┘
+                     │                │      │
+                     │          [Login]  [Sign Up]
+                     │                │      │
+                     │          ┌─────▼─┐  ┌─▼──────┐
+                     │          │ Login │  │Sign Up │
+                     │          └───┬───┘  └───┬────┘
+                     │              │          │
+                     │              │     ┌────▼────┐
+                     │              │     │  OTP    │
+                     │              │     │ Verify  │
+                     │              │     └────┬────┘
+                     │              │          │
+                     └──────────────┼──────────┘
+                                   │
+                          ┌────────▼────────┐
+                          │   ROLE CHECK    │
+                          └───┬─────────┬───┘
+                              │         │
+                         (FOODI)    (COOK)
+                              │         │
+                    ┌─────────▼──┐  ┌───▼──────────┐
+                    │  HOME PAGE │  │  DASHBOARD   │
+                    │ (Discovery)│  │  (4 Tabs)    │
+                    └─────┬──────┘  └───┬──────────┘
+                          │             │
+            ┌─────────────┼──────┐      ├─── Dashboard (Analytics)
+            │             │      │      ├─── Menu Management
+            ▼             ▼      ▼      ├─── Order Requests
+        ┌────────┐  ┌────────┐ ┌──────┐ └─── Profile &amp; Kitchen
+        │Nearest │  │Recomm. │ │Top   │
+        │Kitchns │  │Kitchns │ │Rated │
+        └───┬────┘  └───┬────┘ └──┬───┘
+            └────────────┼────────┘
+                         │
+                    ┌────▼─────┐
+                    │  Kitchen │
+                    │  Profile │
+                    └────┬─────┘
+                         │
+                    ┌────▼─────┐
+                    │  Order   │
+                    │  Menu    │
+                    └────┬─────┘
+                         │
+                    ┌────▼─────┐
+                    │  Order   │
+                    │  Cart    │
+                    └────┬─────┘
+                         │
+                    ┌────▼─────┐
+                    │ Checkout │
+                    └────┬─────┘
+                         │
+                    ┌────▼─────┐
+                    │  Order   │
+                    │ Complete │
+                    └────┬─────┘
+                         │
+                    ┌────▼─────┐
+                    │My Orders │
+                    │(History) │
+                    └──────────┘
+</code></pre>
+<hr>
+<p><em>Document generated by analyzing the live codebase — all screens, routes, APIs, and flows reflect the current implementation as of 2026-03-19.</em></p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>
