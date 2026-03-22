@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#d9c2b6",
+              "tertiary-fixed": "#f6ded1",
+              "error": "#ba1a1a",
+              "primary-fixed": "#ffdbd0",
+              "surface-tint": "#9f4122",
+              "outline-variant": "#ddc0b8",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#51694c",
+              "inverse-primary": "#ffb59f",
+              "secondary-fixed-dim": "#b3ceab",
+              "tertiary-container": "#837166",
+              "surface": "#fcf9f4",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "surface-container-high": "#ebe8e3",
+              "on-background": "#1c1c19",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "inverse-on-surface": "#f3f0eb",
+              "on-surface-variant": "#56423c",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-fixed": "#3a0a00",
+              "surface-container": "#f0ede9",
+              "secondary-container": "#cce7c3",
+              "on-primary-container": "#fffbff",
+              "tertiary": "#6a594e",
+              "primary-container": "#bc5636",
+              "surface-container-low": "#f6f3ee",
+              "on-tertiary-container": "#fffbff",
+              "on-secondary": "#ffffff",
+              "secondary": "#4d6548",
+              "primary": "#9c3e20",
+              "surface-variant": "#e5e2dd",
+              "on-secondary-fixed": "#0b200a",
+              "background": "#fcf9f4",
+              "secondary-fixed": "#cfeac6",
+              "on-surface": "#1c1c19",
+              "on-tertiary-fixed": "#251911"
+            },
+            fontFamily: {
+              "headline": ["Nunito", "Plus Jakarta Sans", "sans-serif"],
+              "body": ["DM Sans", "Manrope", "sans-serif"],
+              "label": ["DM Sans", "Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "1.25rem", "xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .font-nunito { font-family: 'Nunito', sans-serif; }
+      .font-dm-sans { font-family: 'DM Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-[#f6f3ee] dark:hover:bg-stone-800 transition-colors">
+<span class="material-symbols-outlined text-[#9c3e20]" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-extrabold text-[#9c3e20] tracking-tight font-nunito">miFoodi</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden ring-2 ring-primary/10">
+<img alt="User profile avatar" data-alt="Close up portrait of a smiling young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdLXJWkh3jNh5i9m0uleTiS8xbD55rfbZE9Sxlx-V2a2b3uWzm039RWQfrgxhkZhvdpyTpCAoqzQK95EwNchPT1N-IfL6bLQ97_Wq5f29klxom0aetYG8CaX01rN07ZWMj7apF7WNF91vAB5G1kNKcppSAfjyYXBO9iJbPD6VvFn0_YqwMkWqFvRzVQJgIQAxFDMyPbnOVEcucWYxHii3BgCPkaUrRa4-cFon_DVeTxMriSWjzjL5co9DhCji2Mko0tPQLmiExQiUU"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- Hero Section / Header Title -->
+<section class="mb-10">
+<h2 class="text-4xl font-extrabold text-on-surface font-nunito tracking-tight mb-2">Saved Kitchens</h2>
+<p class="text-on-surface-variant font-dm-sans">Your favorite neighborhood spots, all in one place.</p>
+</section>
+<!-- Favourites Grid: Bento Style -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Main Featured Favourite -->
+<div class="md:col-span-8 bg-surface-container-low rounded-xl overflow-hidden group">
+<div class="relative h-72 w-full">
+<img class="w-full h-full object-cover" data-alt="Elegant restaurant interior with warm lighting and wooden tables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3eXGwZFgYDiVDVh9KjSt4Hx0jXjwzTT4w-HlryIrTU3qYIUy8fxTJ_gwKnBMQfcv_kCWYySWa7ljyO273rJgX_rxqCJHGMLhPwhQChdaaz5RR2u2zYGPM_Bx0arJRl5TkDZm5XPUB5Hqcub8vg9ZkYWvLpGeZhOEmTqk7mBFxR-8MukQ9QvqsCjqrN138j41UbO4TV9-veHDA2PxlgXlbA3CQ4EUVGyRhVw3oeuOk6TL3SsL8jO9ur8jHmx_bykWIdTqtfGTRfE_N"/>
+<button class="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/90 backdrop-blur shadow-sm flex items-center justify-center text-primary transition-transform active:scale-90">
+<span class="material-symbols-outlined text-3xl" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-dm-sans">Local Legend</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-2xl font-extrabold font-nunito text-on-surface">The Rustic Ladle</h3>
+<p class="text-on-surface-variant font-dm-sans">Artisanal Soups &amp; Sourdough</p>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-lowest px-3 py-1 rounded-full shadow-sm">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold text-on-surface">4.9</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-sm text-on-surface-variant font-dm-sans">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="distance">distance</span>
+<span>0.8 miles</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="schedule">schedule</span>
+<span>20-30 min</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Card 1 -->
+<div class="md:col-span-4 bg-surface-container-low rounded-xl overflow-hidden flex flex-col">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover" data-alt="Fresh spicy curry in a traditional bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv2mQCOcYX6V40bW8xwlQizcFCs1nPsj3u-Cy3UJg_HKr-w06mHreKE158emXWbp6Y_cYbXWSRBgDGPlDi7-q0HjT0mpNIATf15sSi1mhUJwg2wpUBmZpF53lEbDoC6dbGl69nqsU6lZvRb-4JKvVb1P2jmw1L_5IAUFwlnthdxKePnWo7hyFctZJaKJKQIfmkJy2_6xFwPNrmm0i4SMe7Wdj36wZnX3N7NYdBsS2gcCuyuHnhPgX37595cSYkQ_xUCQvPObpSSvq3"/>
+<button class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur shadow-sm flex items-center justify-center text-primary transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="p-5 flex-1">
+<h3 class="text-xl font-extrabold font-nunito text-on-surface mb-1">Spice Haven</h3>
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.7</span>
+<span class="text-sm text-on-surface-variant">• 1.2 miles</span>
+</div>
+<p class="text-sm text-on-surface-variant font-dm-sans line-clamp-2">Authentic Kerala spices meet modern plating techniques.</p>
+</div>
+</div>
+<!-- Side Card 2 (Horizontal for variety) -->
+<div class="md:col-span-6 bg-surface-container-low rounded-xl overflow-hidden flex flex-row">
+<div class="w-1/3 relative">
+<img class="w-full h-full object-cover" data-alt="Gourmet pizza with fresh basil and mozzarella" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDan4g6GycJ8rs8zbCHd64zDdoJd9UshZ0VATl0GXdnPo0RrxvdhRqbu7CiPs2tREN-tcHSbOD8bArMTuDlKFwjQEN5cgRaF6J_ynCpSWxgVAhoMFGZxiCmNy2r3NSvlfm7iMqKq0QFXnJGu-f-u0OFYtp-0l9gxb3ogXaxXUnYuFW_Bvq2J-ebdakc_yAeGFCKD3KWcqg47_j8U7bb3pAFhMRxhCRJz_W_XHJOxv9zBmtvvGo4pW-eL4cAl_Vt75uVJrTzvb0Db6vw"/>
+</div>
+<div class="w-2/3 p-5 flex flex-col justify-center">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-extrabold font-nunito text-on-surface">Napoli Soul</h3>
+<button class="text-primary transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<p class="text-sm text-on-surface-variant font-dm-sans mb-3">Wood-fired perfection</p>
+<div class="flex items-center gap-3 mt-auto">
+<div class="flex items-center gap-1 bg-secondary-container/50 px-2 py-0.5 rounded text-xs font-bold text-on-secondary-container">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.8
+                        </div>
+<span class="text-xs text-on-surface-variant font-dm-sans">0.5 miles</span>
+</div>
+</div>
+</div>
+<!-- Side Card 3 -->
+<div class="md:col-span-6 bg-surface-container-low rounded-xl overflow-hidden flex flex-row">
+<div class="w-1/3 relative">
+<img class="w-full h-full object-cover" data-alt="Healthy colorful salad bowl with avocado" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANRpeRXS5hDMHDTI0PkfuiN2ZkajSvxMQVbfjLQD2reNtED65MtFP7enRxmiURXVLe3dWqM0KtWjYJPUgs-b9f1bvw8uG4WgXhrlhQEkjevs--E8qzxSvKqhTk7gtOd5GDEwQA_DnTy7L6z4RYveicjCCpR21Dqut7EQGh8uFA2g3bjitzyVOqpaQca0-A71BzyR12-CeV0IK1icZSfqfeNJont8vVWBkjYiS-EOOa8WRSuv6IMqiqTYPDpxZE6rWNwK1UJSkMxSo8"/>
+</div>
+<div class="w-2/3 p-5 flex flex-col justify-center">
+<div class="flex justify-between items-start">
+<h3 class="text-xl font-extrabold font-nunito text-on-surface">Garden State</h3>
+<button class="text-primary transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<p class="text-sm text-on-surface-variant font-dm-sans mb-3">Farm-to-table greens</p>
+<div class="flex items-center gap-3 mt-auto">
+<div class="flex items-center gap-1 bg-secondary-container/50 px-2 py-0.5 rounded text-xs font-bold text-on-secondary-container">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.5
+                        </div>
+<span class="text-xs text-on-surface-variant font-dm-sans">2.1 miles</span>
+</div>
+</div>
+</div>
+<!-- Suggested Card (Emptyish state but as a discovery element) -->
+<div class="md:col-span-12 bg-tertiary-fixed rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex-1">
+<h3 class="text-2xl font-extrabold font-nunito text-on-tertiary-fixed mb-2">Looking for more?</h3>
+<p class="text-on-tertiary-fixed-variant font-dm-sans">Discover new kitchens in your neighborhood that match your taste preferences.</p>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-full font-bold font-dm-sans transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+                    Explore New
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-6 pt-3 px-4 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md shadow-[0_-4px_24px_rgba(28,28,25,0.06)] z-50 rounded-t-[20px]">
+<!-- Explore -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Explore</span>
+</a>
+<!-- Favourites (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-2 scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Favourites</span>
+</a>
+<!-- Payments -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Payments</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

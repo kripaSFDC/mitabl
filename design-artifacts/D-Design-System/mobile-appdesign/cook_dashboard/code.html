@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cook Dashboard - Mitabl</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&amp;family=Nunito:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#D96C4A",
+                        "background-light": "#F7F4EF",
+                        "background-dark": "#3E3129",
+                        "surface": "#FCFAF8",
+                        "text-main": "#3E3129",
+                        "muted": "#8D7A6F",
+                        "accent": "#738C6D",
+                        "danger": "#D96C4A",
+                        "skeleton": "#EBE4DB"
+                    },
+                    fontFamily: {
+                        "display": ["Nunito", "sans-serif"],
+                        "body": ["DM Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "12px",
+                        "xl": "20px",
+                        "full": "100px"
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 24px rgba(62, 49, 41, 0.06)',
+                        'float': '0 16px 32px rgba(217, 108, 74, 0.15)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: theme('colors.background-light');
+            color: theme('colors.text-main');
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Nunito', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen pb-24 relative">
+<!-- Header -->
+<header class="pt-12 pb-4 px-6 bg-surface dark:bg-background-dark shadow-sm sticky top-0 z-20">
+<div class="flex justify-between items-center mb-6">
+<h1 class="text-3xl font-display font-extrabold text-text-main dark:text-surface">Dashboard</h1>
+<div class="w-10 h-10 rounded-full bg-skeleton bg-cover bg-center border-2 border-surface dark:border-background-dark shadow-sm" data-alt="Cook Avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQOPh-OOR9gJ6XThCG3t0LYI_cdOizAAxnN7GUyptBzgGSmEbW0rk3ZPuEWYYvyUDl8BIHULkfxYqtF7O0JXGX38dVhDPjgDXieyD0fB93CNRQ719n6sXN4d7eutdyaqBjsWvjIkq5YFWDwAXdKanNpcjN33QaVEAsOnCgKNq1JE6wiX_BQi1-93sBn_OuJFmN7Tma7rO87ur3QBIHLbepXoelSzAu4RH5PlzGM45YVTWu59VVl4pYOtX_VAyTOX3YVEFbIfKy2wD2');"></div>
+</div>
+<!-- Go Live Toggle -->
+<div class="flex items-center justify-between bg-background-light dark:bg-muted/30 p-4 rounded-xl shadow-soft">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-accent text-2xl" style="font-variation-settings: 'FILL' 1;">broadcast_on_home</span>
+<div>
+<p class="font-display font-bold text-lg text-text-main dark:text-surface leading-none mb-1">Kitchen Live</p>
+<p class="text-sm text-muted">Accepting orders</p>
+</div>
+</div>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-16 h-8 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-8 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-accent shadow-inner"></div>
+</label>
+</div>
+</header>
+<!-- Metrics -->
+<section class="px-6 mt-6 mb-8 flex gap-4">
+<div class="flex-1 bg-surface dark:bg-muted/20 p-5 rounded-xl shadow-soft">
+<p class="text-sm text-muted font-medium mb-1">Active Orders</p>
+<p class="font-display font-extrabold text-3xl text-text-main dark:text-surface">3</p>
+</div>
+<div class="flex-1 bg-surface dark:bg-muted/20 p-5 rounded-xl shadow-soft">
+<p class="text-sm text-muted font-medium mb-1">Today's Earnings</p>
+<p class="font-display font-extrabold text-3xl text-text-main dark:text-surface">$84.50</p>
+</div>
+</section>
+<!-- Orders Queue -->
+<main class="px-6 space-y-4">
+<h2 class="font-display font-bold text-xl text-text-main dark:text-surface mb-4">Cooking Queue</h2>
+<!-- Order Ticket: Normal -->
+<article class="bg-surface dark:bg-muted/20 rounded-[20px] p-5 shadow-soft border border-skeleton/50 relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-display font-extrabold text-xl text-text-main dark:text-surface">#042</span>
+<span class="text-base font-medium text-text-main dark:text-surface">· Alex Rivera</span>
+</div>
+<p class="text-sm text-muted">Pickup in <span class="font-bold text-text-main dark:text-surface">12 mins</span></p>
+</div>
+<div class="bg-background-light dark:bg-background-dark px-3 py-1 rounded-full border border-skeleton/50">
+<span class="text-sm font-bold text-text-main dark:text-surface">14:02 elapsed</span>
+</div>
+</div>
+<div class="mb-5 space-y-2 border-l-2 border-skeleton pl-3">
+<div class="flex justify-between items-start">
+<p class="text-text-main dark:text-surface font-medium">2x Mole Poblano</p>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<p class="text-text-main dark:text-surface font-medium">1x Elote Loco</p>
+<p class="text-xs text-muted mt-0.5">Note: No mayo, extra chili</p>
+</div>
+</div>
+</div>
+<div class="flex gap-3 mt-4 pt-4 border-t border-skeleton/30">
+<button class="flex-1 bg-transparent border-2 border-muted/30 text-muted font-display font-bold text-sm py-3 rounded-full hover:bg-muted/10 transition-colors">
+                    Delay
+                </button>
+<button class="flex-[2] bg-primary text-white font-display font-bold text-sm py-3 rounded-full shadow-float flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Mark Ready
+                </button>
+</div>
+</article>
+<!-- Order Ticket: Delayed (Danger state) -->
+<article class="bg-surface dark:bg-muted/20 rounded-[20px] p-5 shadow-soft border border-danger/30 relative overflow-hidden">
+<!-- Top highlight for delayed order -->
+<div class="absolute top-0 left-0 w-full h-1 bg-danger"></div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-display font-extrabold text-xl text-text-main dark:text-surface">#041</span>
+<span class="text-base font-medium text-text-main dark:text-surface">· Sarah J.</span>
+</div>
+<p class="text-sm text-muted">Delivery driver waiting</p>
+</div>
+<div class="bg-danger/10 px-3 py-1 rounded-full border border-danger/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-danger text-[16px]">warning</span>
+<span class="text-sm font-bold text-danger">24:15 elapsed</span>
+</div>
+</div>
+<div class="mb-5 space-y-2 border-l-2 border-danger/30 pl-3">
+<div class="flex justify-between items-start">
+<p class="text-text-main dark:text-surface font-medium">1x Family Taco Kit</p>
+</div>
+</div>
+<div class="flex gap-3 mt-4 pt-4 border-t border-skeleton/30">
+<button class="flex-[2] bg-primary text-white font-display font-bold text-sm py-3 rounded-full shadow-float flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Mark Ready
+                </button>
+</div>
+</article>
+<!-- Order Ticket: Just In -->
+<article class="bg-surface dark:bg-muted/20 rounded-[20px] p-5 shadow-soft border border-skeleton/50 relative overflow-hidden opacity-80">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-display font-extrabold text-xl text-text-main dark:text-surface">#043</span>
+<span class="text-base font-medium text-text-main dark:text-surface">· Michael T.</span>
+</div>
+<p class="text-sm text-muted">Delivery</p>
+</div>
+<div class="bg-background-light dark:bg-background-dark px-3 py-1 rounded-full border border-skeleton/50">
+<span class="text-sm font-bold text-text-main dark:text-surface">02:00 elapsed</span>
+</div>
+</div>
+<div class="mb-5 space-y-2 border-l-2 border-skeleton pl-3">
+<div class="flex justify-between items-start">
+<p class="text-text-main dark:text-surface font-medium">1x Chiles Rellenos</p>
+</div>
+</div>
+<div class="flex gap-3 mt-4 pt-4 border-t border-skeleton/30">
+<button class="flex-1 bg-transparent border-2 border-muted/30 text-muted font-display font-bold text-sm py-3 rounded-full">
+                    Accept Order
+                </button>
+</div>
+</article>
+</main>
+<!-- Bottom Nav (Shared Component included based on rule: Dashboard is a top-level destination) -->
+<nav class="fixed bottom-0 w-full flex gap-2 border-t border-skeleton/50 bg-surface dark:bg-background-dark px-4 pb-6 pt-3 z-30 shadow-[0_-4px_24px_rgba(62,49,41,0.04)]">
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-text-main dark:text-surface" href="#">
+<div class="text-text-main dark:text-surface flex h-8 items-center justify-center" data-icon="house" data-size="24px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">house</span>
+</div>
+<p class="text-text-main dark:text-surface text-xs font-medium leading-normal tracking-[0.015em]">Dashboard</p>
+</a>
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-muted" href="#">
+<div class="text-muted flex h-8 items-center justify-center" data-icon="list" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">list</span>
+</div>
+<p class="text-muted text-xs font-medium leading-normal tracking-[0.015em]">Menu</p>
+</a>
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-muted" href="#">
+<div class="text-muted flex h-8 items-center justify-center" data-icon="currency_dollar" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">currency_rupee</span>
+</div>
+<p class="text-muted text-xs font-medium leading-normal tracking-[0.015em]">Earnings</p>
+</a>
+<a class="just flex flex-1 flex-col items-center justify-end gap-1 text-muted" href="#">
+<div class="text-muted flex h-8 items-center justify-center" data-icon="user" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<p class="text-muted text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
+</a>
+</nav>
+</body></html>

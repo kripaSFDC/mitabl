@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Tracking - Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ef6034",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221410",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem", 
+                        "lg": "2rem", 
+                        "xl": "3rem", 
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased selection:bg-primary/30">
+<!-- Header (Back-to-Main Exception for Focused Views) -->
+<header class="sticky top-0 z-10 flex items-center justify-between p-4 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<button aria-label="Go back" class="flex items-center justify-center w-12 h-12 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Order Status</h1>
+<div class="w-12 h-12"></div> <!-- Spacer for centering -->
+</header>
+<main class="flex-1 flex flex-col pb-8">
+<!-- Hero Visual Area -->
+<div class="px-4 py-2">
+<div class="w-full aspect-video rounded-xl overflow-hidden relative shadow-lg">
+<!-- Map representation -->
+<img alt="Map showing delivery route" class="w-full h-full object-cover" data-alt="Map showing delivery route" data-location="Local Neighborhood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjWixUhZjPv3vGiIeGeG5Fp0ZWjboGs7YZ6ituIoVpZUse3SmraB4RAdS4Q-V3jfYEgs3Z_6HzlKW8_T9Aad-bGP3cvzfDBaT7HrHjcN1cqGXFuC-AHlPQ4QwcM5zMiXvtb9TcFNoKQbn_wzAZU3sVWcY_g7cCmfRam-uD4ktgJq-LTv4-aio5aQOl7-DyYrJQPrK0q3WFTXprW1Hs1-SlNp9NJP2Y8umOs4N0KtsKkc7SV2PtIeiIOqChQBfnuBAuFNUwKCVViBZ9"/>
+<!-- Overlay badge -->
+<div class="absolute top-4 right-4 bg-background-light dark:bg-background-dark rounded-full px-4 py-2 shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm filled">schedule</span>
+<span class="text-sm font-bold">15 mins</span>
+</div>
+</div>
+</div>
+<!-- Dynamic Status Header -->
+<div class="px-6 py-6 text-center">
+<h2 class="text-3xl font-bold leading-tight mb-2">Maria is cooking your meal</h2>
+<p class="text-slate-500 dark:text-slate-400 font-medium">Order #042 • Mole Poblano</p>
+</div>
+<!-- Vertical Progress Stepper -->
+<div class="px-8 py-4 flex-1">
+<div class="relative border-l-2 border-slate-200 dark:border-slate-800 ml-4 space-y-8 pb-4">
+<!-- Step 1: Completed -->
+<div class="relative flex items-start gap-6">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-primary border-4 border-background-light dark:border-background-dark z-10"></div>
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-slate-100">Order Accepted</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">6:30 PM</p>
+</div>
+</div>
+<!-- Step 2: Completed -->
+<div class="relative flex items-start gap-6">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-primary border-4 border-background-light dark:border-background-dark z-10"></div>
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-slate-100">Prep &amp; Chopping</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">6:35 PM</p>
+</div>
+</div>
+<!-- Step 3: Active (Pulsing) -->
+<div class="relative flex items-start gap-6">
+<!-- Pulse effect -->
+<div class="absolute -left-[15px] top-[0px] w-7 h-7 rounded-full bg-primary/30 animate-pulse-slow z-0"></div>
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-primary border-4 border-background-light dark:border-background-dark z-10 shadow-[0_0_10px_rgba(239,96,52,0.5)]"></div>
+<div>
+<h3 class="font-bold text-lg text-primary">Cooking</h3>
+<p class="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">Simmering the spices...</p>
+</div>
+</div>
+<!-- Step 4: Upcoming -->
+<div class="relative flex items-start gap-6">
+<div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 border-4 border-background-light dark:border-background-dark z-10"></div>
+<div class="opacity-50">
+<h3 class="font-bold text-lg text-slate-900 dark:text-slate-100">Ready for Pickup</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Estimated 7:00 PM</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Area (Cook Info & Message) -->
+<div class="mt-auto px-4 pt-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm flex items-center gap-4 border border-slate-100 dark:border-slate-800">
+<div class="relative">
+<img alt="Maria's profile picture" class="w-14 h-14 rounded-full object-cover border-2 border-primary/20" data-alt="Portrait of Maria smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCboBG5hVNcp3cKGbYpEFdH0z3S4KHvt51BbQr96V4SuCmuTzaXX9TF6JVsax4EqgFIS9F9u_sAF9JVxleM84U9N4Tyv0GOV6AMJUlorsQ1KBq8n9GnOC-MqP9mWVFxWwAdfiOD1WDK-vETC3v1hcbYZmQJisNwocEs1o0oQTponEOUf5Q-5_eDiwaEWkt0zdk6K-D3ouSlMQEsSnIawrpAuv4DLx_3PCCKtCXE7FmVSbjuzW3ktyYoM5rNEsBCJaU-72YJtsDSCuRE"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-base">Maria G.</h4>
+<div class="flex items-center text-sm text-slate-500 dark:text-slate-400 gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[16px] filled text-yellow-500">star</span>
+<span>4.9 (120+ meals)</span>
+</div>
+</div>
+<button class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined text-[20px]">chat</span>
+<span>Message</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>

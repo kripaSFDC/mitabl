@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mitabl - Taste the heart of your neighborhood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@800&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#f6ded1",
+                        "tertiary": "#6a594e",
+                        "surface-tint": "#9f4122",
+                        "outline-variant": "#ddc0b8",
+                        "surface-dim": "#dcdad5",
+                        "secondary-container": "#cce7c3",
+                        "on-secondary-fixed-variant": "#364c32",
+                        "surface": "#fcf9f4",
+                        "on-primary-fixed-variant": "#802a0d",
+                        "on-primary-container": "#fffbff",
+                        "inverse-primary": "#ffb59f",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#cfeac6",
+                        "surface-bright": "#fcf9f4",
+                        "inverse-on-surface": "#f3f0eb",
+                        "primary-container": "#bc5636",
+                        "surface-container-low": "#f6f3ee",
+                        "on-background": "#1c1c19",
+                        "surface-container-high": "#ebe8e3",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#d9c2b6",
+                        "on-tertiary-container": "#fffbff",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1c1c19",
+                        "tertiary-container": "#837166",
+                        "on-secondary": "#ffffff",
+                        "outline": "#89726b",
+                        "on-error": "#ffffff",
+                        "surface-container": "#f0ede9",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#0b200a",
+                        "primary-fixed": "#ffdbd0",
+                        "on-primary-fixed": "#3a0a00",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#b3ceab",
+                        "primary": "#9c3e20",
+                        "on-tertiary-fixed": "#251911",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#51694c",
+                        "inverse-surface": "#31302d",
+                        "on-surface-variant": "#56423c",
+                        "primary-fixed-dim": "#ffb59f",
+                        "surface-container-highest": "#e5e2dd",
+                        "on-tertiary-fixed-variant": "#53443a",
+                        "background": "#fcf9f4",
+                        "surface-variant": "#e5e2dd",
+                        "secondary": "#4d6548"
+                    },
+                    fontFamily: {
+                        "headline": ["Nunito", "sans-serif"],
+                        "body": ["DM Sans", "sans-serif"],
+                        "label": ["DM Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1.25rem",
+                        "xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #9c3e20 0%, #bc5636 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md">
+<div class="flex items-center justify-between px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-extrabold text-[#9c3e20] tracking-tight font-headline">Mitabl</span>
+</div>
+<!-- Desktop Nav -->
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#9c3e20] dark:text-[#bc5636] font-bold transition-colors" href="#">Welcome</a>
+<a class="text-[#56423c] dark:text-stone-500 hover:bg-[#f6f3ee] transition-colors px-3 py-1 rounded-full" href="#">Join</a>
+<a class="text-[#56423c] dark:text-stone-500 hover:bg-[#f6f3ee] transition-colors px-3 py-1 rounded-full" href="#">Support</a>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-bold transition-transform active:scale-95">Get Started</button>
+</div>
+<!-- Mobile Menu Toggle (Simplified for Design) -->
+<button class="md:hidden text-on-surface-variant">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 pb-32">
+<!-- Hero Section -->
+<section class="px-6 max-w-7xl mx-auto mb-20">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<div class="lg:col-span-6 space-y-8">
+<h1 class="text-5xl md:text-7xl font-headline font-extrabold text-on-surface leading-[1.1] tracking-tight">
+                        Taste the heart of your <span class="text-primary italic">neighborhood.</span>
+</h1>
+<p class="text-lg md:text-xl text-on-surface-variant max-w-lg leading-relaxed">
+                        Experience authentic, home-cooked meals prepared by passionate local chefs. From family secrets to modern twists, discover the soul of community dining.
+                    </p>
+<div class="flex flex-wrap gap-4 pt-4">
+<button class="bg-primary text-on-primary px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                            Get Started
+                        </button>
+<button class="bg-secondary-container text-on-secondary-container px-10 py-4 rounded-full font-bold text-lg hover:brightness-105 active:scale-95 transition-all">
+                            Login
+                        </button>
+</div>
+</div>
+<!-- Editorial Image Grid -->
+<div class="lg:col-span-6 grid grid-cols-2 gap-4">
+<div class="space-y-4">
+<div class="rounded-lg overflow-hidden h-64 shadow-sm bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Warm rustic soup in a ceramic bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX3BfvuutaWkFbW2pUnm0o8YgJ8kCgjogrUMcNDPi0BkOotcdHV1xeI6_oKmCkaKrygvE1i8OkVeYRk4OEsJxUjyAIdOS9n_SRlqzR7LMBSJ_f70LX3puhpXO25su-t4E-WkLThHfU-qC-adIvf2dvR57TRkQxlme71FSR-rbjVCXvz01q0pki9rDsjxMhmFKb_9rchDsetWq36u1Zuse-XvT906UQ9OwMiTYsEB-n9LdJgDbLu6T5OCM7T_S1AlcecDv0MKyvtS8x"/>
+</div>
+<div class="rounded-lg overflow-hidden h-48 shadow-sm bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Table spread with various Mediterranean dishes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBErP9_Z_8ke2zGnefPPINwMu-0bILPJS-K9fYSaW4S8WS39RHEICceQXarBVwkncHSBwTurTH-mpVrG78PRJbC9tQAHUFXO9F_8EnN0EZ9sA8wBKy-jZUyUoN0IVcQxr3KPb11ngbHnYo4r8-mUA9rjPu6IgSljkV1QpUASfxAFSUzTpp9Fpqo7H88nrbV0yBodxBJALcqFZ5MuPvTYsUevlrwEu_dLl2UZMcHMRjfR-QggfWB0U-95W0z_aLxQHO0HbciulRwUVRe"/>
+</div>
+</div>
+<div class="pt-12 space-y-4">
+<div class="rounded-lg overflow-hidden h-48 shadow-sm bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Fresh homemade pizza with basil leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhIg3_88stJcIUjQ_WGF-1t-IKub__iHkA3Wbt5tGCx_QHjrhiCt94sMyZoFcL-G4evfDFgkPks5noWe1SAlzWAGM-EwNl42icMGICEQW6QJCdOfLRCAafMd2BReP1OulVlfZ9NVxK5hXfoEgEje8zFaEtU-syO6ja2_-fTCKX0Luv6T-O0nnPXKU326aSkFzCAb4MnPpRzshXTKaxm77O7j6vkwCSNin18HMEJWl-EwgMhGN0wuFPoOUg9SkiydhZQEn1QAboRS5C"/>
+</div>
+<div class="rounded-lg overflow-hidden h-64 shadow-sm bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Colorful healthy salad with roasted vegetables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrEdQQtNoG1Oyiev0NsnLmctY2BSiMLYJn-es-5wthjMDf0gHbNQi89lIFzCpBBPwZIYfNevZsze-3vJGK5E7h2pZxb13ybgg8Mfz8WDQS3L4Zkbci2csBkoeoMZIxA-h7eN8S1qQlVzfJc4SLbTwaD9jphRv-vE8olnOfD4nBRk15eMdO2ueLGejRxbeqljyXV_UOBFMgSwMDm0XidIT1-tmaHhfI2pV1kgTXDLN3gioe6ul4Sll0kUrNQN6ZCkTIyCYyl1h5kKA6"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Features -->
+<section class="px-6 max-w-7xl mx-auto mb-32">
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<!-- Large Feature -->
+<div class="md:col-span-4 lg:col-span-4 bg-surface-container-low p-8 rounded-lg flex flex-col justify-between min-h-[400px]">
+<div class="max-w-md">
+<span class="bg-primary-fixed text-on-primary-fixed px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider mb-6 inline-block">Local First</span>
+<h2 class="text-4xl font-headline font-extrabold text-on-surface mb-4">Curated by neighbors, for neighbors.</h2>
+<p class="text-on-surface-variant text-lg">Every chef on Mitabl is verified for quality and safety, bringing you the same love they put into their own family's dinner.</p>
+</div>
+<div class="flex -space-x-4 mt-8">
+<img class="w-12 h-12 rounded-full border-4 border-surface" data-alt="Portrait of a smiling home chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqrFbgKt17kTea2xn5smdb-xjbCqNKc8XnFK34PYnFZAl-Mf6vIpAd09MEACmMcVe0NxvutKSOYswf9rjLsMsOlaeTalge_h6zrWR3FB4HE6Wm72XmAAuHqCivA-o3pcU2zLmJkZW38kUsiad43KV7vOuLELZ6NCfTOsRBq4xguluUlp7YFSaVOqncGtz2Jz_SFvCiThFjAGRi8YsNYeoIErND7Ud5yDA7Js_HRd3j4-muIMPwjpVljd9YayS03-_YKKSyXR8toU6Z"/>
+<img class="w-12 h-12 rounded-full border-4 border-surface" data-alt="Portrait of a friendly grandmother cooking" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnBQ_mpLAaZB_r5YkSMX0I2pURfMCdMNt3uc9ACZ5cu0k7LiuxZtsrr8MOVuzOFoIclTtbZmInOBerea_5TV4lycAF0N3cJAmAK5lzNBb04hsV9GWTl8fRTwNedBKeoYiQjLIuaajjUkI1BrOHdPf-M-0li3XP3dZzbgEyrg977yd0IiCc0wZ1imrSCTP-CGM7rmbUyEpmMRyeNYX2mSS7mFgudftv6aIgTZ7JZwu92_g8c4aOInzTrNgqzZHXmh7_1VDwDAUJqYlX"/>
+<img class="w-12 h-12 rounded-full border-4 border-surface" data-alt="Portrait of a young professional cook" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHkB4B_slps16khzRYkdzvb4m1QMA70jW1JZl2mEC2XCn4XrJI-p2aqVnA4e31-P58lUhAIBVlv59IwVWrHYxly8_FG0brW6dDjSipDI833_JY8MWPCdIZnKYkeUCOEbLe7LzvV0BQWcRFn_ZjtmSqvdG8ab1kUPpakAw-dGGIV1422lNv-QPA49p8h_lMAB24EMMxXxxx1yhT_dgKds4Z5xuwtpGuzUF_cujwXbRz1VAMliDj1ZXUvMcE8pcLG4DfC1oZlv5IZIyK"/>
+<div class="w-12 h-12 rounded-full border-4 border-surface bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-bold text-sm">+24</div>
+</div>
+</div>
+<!-- Small Feature 1 -->
+<div class="md:col-span-2 lg:col-span-2 bg-secondary-container p-8 rounded-lg flex flex-col justify-center items-center text-center">
+<span class="material-symbols-outlined text-6xl text-secondary mb-4" style="font-variation-settings: 'FILL' 1;">eco</span>
+<h3 class="text-2xl font-headline font-extrabold text-on-secondary-container">Zero-Waste Prep</h3>
+<p class="text-on-secondary-container opacity-80 mt-2">Cooked to order, reducing food waste in your community.</p>
+</div>
+<!-- Small Feature 2 -->
+<div class="md:col-span-2 lg:col-span-2 bg-tertiary-fixed p-8 rounded-lg">
+<h3 class="text-2xl font-headline font-extrabold text-on-tertiary-fixed mb-4">Authentic Flavors</h3>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface/50 px-3 py-1 rounded-full text-xs font-bold text-on-tertiary-fixed">Family Recipe</span>
+<span class="bg-surface/50 px-3 py-1 rounded-full text-xs font-bold text-on-tertiary-fixed">Small Batch</span>
+<span class="bg-surface/50 px-3 py-1 rounded-full text-xs font-bold text-on-tertiary-fixed">Local Herbs</span>
+</div>
+</div>
+<!-- Visual Card -->
+<div class="md:col-span-2 lg:col-span-4 rounded-lg overflow-hidden relative group h-[300px] md:h-auto">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Chef plating a gourmet home-cooked meal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCls2YhxqOEk41yql0jhDiDAWeW16z4gNdwjQt44bkCw_CCSjwEul0Af1RgZOYcoBAM7ijKqPrzunynGP0fnrtyhd4JUSP3PPYeD9ohMo49OVxFqS6EDznJxd3AXFarVzYnVD_MGY7R7_ZRbykEyaNohDsdfD0m5Rv5vvQW2Skf2ymIRicxarzHXDwutJA0LduHPICAnY84_OvjghlbhKHPlVKj4poA_VC-fxKP8KeEGcCAb3Z1OpOvO6hADRNAO32M-7Mu7ukEJbO2"/>
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-white font-headline text-2xl font-extrabold leading-tight">Bringing the culinary atelier experience to your doorstep.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Menu Highlight -->
+<section class="bg-surface-container-low py-24 px-6">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+<div>
+<h2 class="text-4xl font-headline font-extrabold text-on-surface mb-2">Happening now.</h2>
+<p class="text-on-surface-variant">Explore meals being prepared in your area today.</p>
+</div>
+<button class="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                        View All Menus <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow group">
+<div class="h-56 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Artisanal pasta with slow-cooked tomato sauce" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlaSYC3HmcqWcWBBuIxjCtNYyUixSiVfzSGe_ghDkFALo2k0XjD87wJvwounZ0tuqe_nEz-49382piUJee9dDdz97VnL8wa_B4FESdmTghk9zyBY5lcWjcudP20nhnH9feiWuzHbW0C8sfxVTy-ZSctIT0rerOVjyKNtklmgOr2MaziMOR5SojrXYaEuofzsUBrzjJB6XPiL48yl8T-_WnaFhTFh0KizrwH4HlV8OJjeyxYiu0o2kJRpbZqP3KBlnRNbcjUauRvw_h"/>
+<div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary">
+                                4.2 miles away
+                            </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-on-surface">Slow-Roasted Ragù</h3>
+<span class="text-primary font-bold">$18</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-4">A 12-hour simmered beef ragù using my nonna's secret spice blend and local San Marzano tomatoes.</p>
+<div class="flex items-center gap-2 text-sm text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                                Ready in 45m
+                            </div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow group">
+<div class="h-56 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Elegant salmon dish with seasonal vegetables" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaIQgdYH2WMNErsVzi2UB_Z4svhqhUYBZ7-1aF247B1vVw32C08kDgvrBuI9ryDicdL8CSB-MZplUjoR8sAGQ5BI8_w1NKALUuG549Qkwu5VA3QLvMtHxL_wuUMmoG1ScNYc_6vBtiGHVaNcdBqlgSYs1zG-O5_aZx98fABGiyOfCNgNq7-EIRojHLd1mUilhxdB_TwG_wLg_lu-0jWDP81hYTJpEUi53_6CaZyqVMZ9DHIEAImtQ-qlsHp-2-OY9qhA8a1Ha_cLCN"/>
+<div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary">
+                                1.8 miles away
+                            </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-on-surface">Honey Glazed Salmon</h3>
+<span class="text-primary font-bold">$22</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-4">Wild-caught salmon with a wildflower honey glaze, served with grilled seasonal asparagus.</p>
+<div class="flex items-center gap-2 text-sm text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                                Ready in 20m
+                            </div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow group">
+<div class="h-56 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Traditional hearty stew in a black bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNacFQMPuQnGk-HjeZJkaUdw_nvCf9xJh_XCmXKsU7BvbbpgNKi607P4yGd-1Br9YxexUtZUtdVzjqagH_ucLmZcv0N7wGQZk9DSKYOf7KHhmMHwnpmnEZp41ovDAoGsI7q-3MjshDgc7tR0NZZtM0MmTKoWhtZLhclpkMW9DtDxxUp3rLwXMhpQsVZNN4fLNC0fpq7L2Lw3cBbzsZCWwtAW9WtAqA_f3lOBIUPoLn3dnOiPIpKInKio4oeh7MpVaFapHNCo5rcalG"/>
+<div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary">
+                                0.5 miles away
+                            </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-on-surface">Curry Laksa Bowl</h3>
+<span class="text-primary font-bold">$15</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-4">Spicy coconut noodle soup with poached chicken, tofu puffs, and fresh Vietnamese mint.</p>
+<div class="flex items-center gap-2 text-sm text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                                Pre-order for 7 PM
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md rounded-t-[20px] z-50 shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full px-5 py-1.5 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bakery_dining</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold tracking-wide uppercase">Welcome</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity active:scale-90" href="#">
+<span class="material-symbols-outlined">person_add</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold tracking-wide uppercase">Join</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity active:scale-90" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold tracking-wide uppercase">Support</span>
+</a>
+</nav>
+</body></html>

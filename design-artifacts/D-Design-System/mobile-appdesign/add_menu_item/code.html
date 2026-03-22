@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Menu Item - Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f6f3ee",
+              "inverse-primary": "#ffb59f",
+              "secondary-fixed": "#cfeac6",
+              "primary": "#9c3e20",
+              "secondary-container": "#cce7c3",
+              "primary-container": "#bc5636",
+              "tertiary": "#6a594e",
+              "on-error-container": "#93000a",
+              "on-tertiary-container": "#fffbff",
+              "on-tertiary-fixed": "#251911",
+              "inverse-surface": "#31302d",
+              "on-primary-fixed-variant": "#802a0d",
+              "surface-bright": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "surface-container": "#f0ede9",
+              "on-background": "#1c1c19",
+              "on-secondary-fixed": "#0b200a",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-error": "#ffffff",
+              "secondary-fixed-dim": "#b3ceab",
+              "primary-fixed": "#ffdbd0",
+              "secondary": "#4d6548",
+              "surface-dim": "#dcdad5",
+              "on-tertiary-fixed-variant": "#53443a",
+              "tertiary-fixed": "#f6ded1",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#ddc0b8",
+              "on-primary-fixed": "#3a0a00",
+              "error": "#ba1a1a",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-primary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-variant": "#e5e2dd",
+              "outline": "#89726b",
+              "error-container": "#ffdad6",
+              "on-surface-variant": "#56423c",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary-container": "#837166",
+              "background": "#fcf9f4",
+              "on-primary-container": "#fffbff",
+              "on-secondary-container": "#51694c",
+              "surface": "#fcf9f4",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "surface-tint": "#9f4122",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container-high": "#ebe8e3"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["DM Sans"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#f6f3ee] transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#9c3e20]">arrow_back</span>
+</button>
+<h1 class="font-headline font-extrabold text-2xl text-[#9c3e20] tracking-tight">Edit Menu Item</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Vendor Profile Picture" class="w-full h-full object-cover" data-alt="Chef in professional kitchen uniform smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwUP_YqtPxB1o34yWljEks28XliD0kjzbBYwlBXlXiaHsfGkDWoWu1NqCFNyoM_VaCImXSZGp36mZuKQDvdd9rujruRL4aya2ca9FA4UYy-NpKMmN5k6AMfsHqzBh85EUpjqlBgyd9IF7PlPTcV9InRvRu-FhI9VrI-CXxafendWmKwl6b_xEQsUBKrLVE-JwJlp0bjuYKNVVoXPsb9DdEKjQ8O7y-lR-v3XSwIF3vXqlnmDDpjZ9R6MDI6arUD209RaNwz4wct1_T"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Media Section: Bento-ish Photo Upload -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="font-headline font-extrabold text-xl text-on-surface">Item Photography</h2>
+<span class="text-xs font-bold text-on-surface-variant tracking-widest uppercase">Max 4 Photos</span>
+</div>
+<div class="grid grid-cols-4 gap-3 h-48 md:h-64">
+<div class="col-span-2 row-span-2 relative group cursor-pointer bg-surface-container-low rounded-[20px] border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center transition-all hover:bg-surface-container">
+<span class="material-symbols-outlined text-outline text-3xl">add_a_photo</span>
+<p class="text-xs font-bold mt-2 text-on-surface-variant">Main Photo</p>
+</div>
+<div class="relative bg-surface-container-low rounded-[20px] border-2 border-dashed border-outline-variant/30 flex items-center justify-center hover:bg-surface-container cursor-pointer transition-all">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+<div class="relative bg-surface-container-low rounded-[20px] border-2 border-dashed border-outline-variant/30 flex items-center justify-center hover:bg-surface-container cursor-pointer transition-all">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+<div class="relative bg-surface-container-low rounded-[20px] border-2 border-dashed border-outline-variant/30 flex items-center justify-center hover:bg-surface-container cursor-pointer transition-all">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+<div class="relative bg-surface-container-low rounded-[20px] border-2 border-dashed border-outline-variant/30 flex items-center justify-center hover:bg-surface-container cursor-pointer transition-all">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+</div>
+</section>
+<!-- Basic Details Form -->
+<section class="space-y-6">
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant px-1">Food Name</label>
+<input class="w-full h-14 px-5 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline" placeholder="e.g. Heirloom Tomato &amp; Basil Gnocchi" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant px-1">Description</label>
+<textarea class="w-full p-5 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline resize-none" placeholder="Share the story behind this dish..." rows="4"></textarea>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant px-1">Price ($)</label>
+<div class="relative">
+<span class="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-on-surface-variant">$</span>
+<input class="w-full h-14 pl-10 pr-5 bg-surface-container-low border-none rounded-2xl focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="0.00" type="number"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Cooking Style & Tags -->
+<section class="space-y-4">
+<h3 class="font-headline font-extrabold text-lg text-on-surface">Cooking Style &amp; Dietary</h3>
+<div class="space-y-3">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">Cooking Style</p>
+<div class="flex flex-wrap gap-2">
+<button class="px-5 py-2.5 rounded-full bg-primary text-on-primary text-sm font-bold transition-transform active:scale-95">Home-style</button>
+<button class="px-5 py-2.5 rounded-full bg-tertiary-fixed-dim text-on-tertiary-fixed text-sm font-bold hover:bg-surface-variant transition-colors">Slow-cooked</button>
+<button class="px-5 py-2.5 rounded-full bg-tertiary-fixed-dim text-on-tertiary-fixed text-sm font-bold hover:bg-surface-variant transition-colors">Wood-fired</button>
+<button class="px-5 py-2.5 rounded-full bg-tertiary-fixed-dim text-on-tertiary-fixed text-sm font-bold hover:bg-surface-variant transition-colors">Fermented</button>
+</div>
+</div>
+<div class="space-y-3 pt-2">
+<p class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">Dietary Options</p>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+<label class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-colors group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-bold text-on-surface-variant">Vegan</span>
+</label>
+<label class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-colors group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-bold text-on-surface-variant">Gluten-free</span>
+</label>
+<label class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-colors group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-bold text-on-surface-variant">Nut-free</span>
+</label>
+<label class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl cursor-pointer hover:bg-surface-container transition-colors group">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-bold text-on-surface-variant">Dairy-free</span>
+</label>
+</div>
+</div>
+</section>
+<!-- Availability Toggles -->
+<section class="p-6 bg-surface-container-low rounded-[20px] space-y-4">
+<h3 class="font-headline font-extrabold text-lg text-on-surface">Service Availability</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">restaurant</span>
+<div>
+<p class="font-bold text-on-surface">Dine-in Experience</p>
+<p class="text-xs text-on-surface-variant">Allow guests to eat at your atelier</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<div class="h-px bg-outline-variant/10"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">shopping_bag</span>
+<div>
+<p class="font-bold text-on-surface">Take-away</p>
+<p class="text-xs text-on-surface-variant">Guests pick up their meal to-go</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-6 bg-surface-variant rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Action Bar -->
+<div class="flex gap-4 pt-4">
+<button class="flex-1 h-16 rounded-full font-headline font-extrabold text-lg bg-primary text-on-primary shadow-xl shadow-primary/20 hover:bg-primary-container transition-all active:scale-95">
+                Save Item
+            </button>
+<button class="px-8 h-16 rounded-full font-headline font-bold text-on-surface-variant bg-surface-container hover:bg-surface-variant transition-colors active:scale-95">
+                Discard
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 backdrop-blur-md shadow-[0_-4px_24px_rgba(28,28,25,0.06)] rounded-t-[20px]">
+<div class="flex flex-col items-center justify-center text-[#56423c] px-5 py-1.5 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['DM_Sans'] text-xs font-bold tracking-wide">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] text-[#51694c] rounded-full px-5 py-1.5 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-['DM_Sans'] text-xs font-bold tracking-wide">Menu</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] px-5 py-1.5 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">pending_actions</span>
+<span class="font-['DM_Sans'] text-xs font-bold tracking-wide">Requests</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] px-5 py-1.5 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['DM_Sans'] text-xs font-bold tracking-wide">Profile</span>
+</div>
+</nav>
+</body></html>

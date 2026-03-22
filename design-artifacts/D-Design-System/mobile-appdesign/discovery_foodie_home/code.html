@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mitabl - Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&amp;family=Nunito:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D96C4A",
+                        background: {
+                            light: "#F7F4EF",
+                            dark: "#221410"
+                        },
+                        surface: "#FCFAF8",
+                        text: {
+                            main: "#3E3129",
+                            muted: "#8D7A6F"
+                        },
+                        accent: "#738C6D"
+                    },
+                    fontFamily: {
+                        display: ["Nunito", "sans-serif"],
+                        body: ["DM Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        DEFAULT: "20px",
+                        lg: "20px",
+                        xl: "20px",
+                        full: "100px"
+                    },
+                    boxShadow: {
+                        soft: "0 8px 24px rgba(62, 49, 41, 0.06)",
+                        float: "0 16px 32px rgba(217, 108, 74, 0.15)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Grain overlay effect */
+        .bg-grain {
+            position: relative;
+        }
+        .bg-grain::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Hide scrollbar for category pills */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main font-body antialiased bg-grain selection:bg-primary/20">
+<div class="relative flex h-auto min-h-screen w-full flex-col mx-auto max-w-md bg-background-light dark:bg-background-dark overflow-x-hidden group/design-root z-10 pb-20">
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md pb-2 pt-4 px-4 transition-all duration-300 shadow-soft">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h1 class="font-display font-extrabold text-2xl text-text-main">Good evening, Alex</h1>
+<div class="flex items-center gap-1 text-text-muted mt-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="text-sm font-medium">Brooklyn, NY</span>
+<span class="material-symbols-outlined text-[16px] ml-1">expand_more</span>
+</div>
+</div>
+<button class="relative w-10 h-10 rounded-full bg-surface shadow-soft flex items-center justify-center text-text-main">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-surface"></span>
+</button>
+</div>
+<label class="flex flex-col w-full h-12 shadow-soft rounded-full">
+<div class="flex w-full flex-1 items-stretch rounded-full h-full bg-surface relative overflow-hidden">
+<div class="text-text-muted flex items-center justify-center pl-4 pr-2">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-full text-text-main focus:outline-none focus:ring-0 border-none bg-surface h-full placeholder:text-text-muted px-2 text-base font-normal leading-normal" placeholder="What are you craving?" value=""/>
+</div>
+</label>
+</header>
+<!-- Category Pills -->
+<div class="flex gap-3 px-4 py-4 overflow-x-auto no-scrollbar sticky top-[136px] z-40 bg-background-light dark:bg-background-dark">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-white px-5 shadow-soft transition-transform active:scale-95">
+<span class="text-sm font-bold">All</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface text-text-muted border border-text-muted/20 px-5 transition-transform active:scale-95 hover:bg-surface/80">
+<span class="text-sm font-medium">Mexican</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface text-text-muted border border-text-muted/20 px-5 transition-transform active:scale-95 hover:bg-surface/80">
+<span class="text-sm font-medium">Italian</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface text-text-muted border border-text-muted/20 px-5 transition-transform active:scale-95 hover:bg-surface/80">
+<span class="text-sm font-medium">Vegan</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface text-text-muted border border-text-muted/20 px-5 transition-transform active:scale-95 hover:bg-surface/80">
+<span class="text-sm font-medium">Bakery</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface text-text-muted border border-text-muted/20 px-5 transition-transform active:scale-95 hover:bg-surface/80">
+<span class="text-sm font-medium">Asian</span>
+</button>
+</div>
+<!-- Main Feed -->
+<main class="flex flex-col gap-6 px-4 py-2">
+<!-- Section Header -->
+<div class="flex items-center justify-between">
+<h2 class="font-display font-extrabold text-xl text-text-main">Cooking today near you</h2>
+</div>
+<!-- Card 1 -->
+<article class="flex flex-col rounded-[20px] bg-surface shadow-soft overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform">
+<!-- Image Header -->
+<div class="h-[180px] w-full relative">
+<img alt="Authentic Mexican Mole dish" class="w-full h-full object-cover" data-alt="Authentic Mexican Mole dish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB4e8Wp45EVurl7wMDOyESBuwz516ywIqUQPLVLd_JJLFfhxbyEYgiiXTIPd9FPylD0yjU557rY-xkzsnA3eNxDiCdEh3JNHcH6TNZ43087KjDkBTFLoECQ8yt4tMEAFyr5HjEQwG7ZE1XJRNVARbwQEbnTiLeTdTUWZPAhPTJYP5K2o-a67Znw-b9Vka1aLhS7q4vZ-qYeaDPrrB6SixzEg20sSrIn1q_lDMsJMZPr-qhPmjKHgJgCeYFWRaMnYIQEk9GKfBl7JDp"/>
+<!-- Badges -->
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur text-text-main text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.9
+                        </span>
+<span class="bg-primary text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                            Trending
+                        </span>
+</div>
+<!-- Heart Button -->
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/90 backdrop-blur flex items-center justify-center text-text-main shadow-sm transition-transform active:scale-90">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</button>
+</div>
+<!-- Content Area -->
+<div class="p-4 pt-5 relative">
+<!-- Cook Avatar overlapping -->
+<div class="absolute -top-6 right-4">
+<img alt="Portrait of Cook Maria" class="w-12 h-12 rounded-full border-4 border-surface object-cover shadow-sm" data-alt="Portrait of Cook Maria" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZ2vjImGwtYFMugPkfYfjhjb8qJkSNX7C4Gmxnk8lYSnzSIVJ2qSrNXNLEiD6o4aF6eSDY9dK7qAL8H65-fVcaMh7xoEZzANOee6kY6aa8pqox8mU5gCZHvCterjk03ImyLWNU88vN0WbgfZUZJtuVaUkhk_fXWxVueNaneKwKjHE9rjDHwun9Th5iy9sXrLxdgIr_x9dICmgIRbAvw58BlBtZBJqi7SmjvQsndpxoOGE_dCfZyMuge61la2hVbQkTwmqT9Y2vzVI-"/>
+</div>
+<h3 class="font-display font-extrabold text-[22px] leading-tight text-text-main mb-1">Maria's Oaxacan Kitchen</h3>
+<p class="text-text-muted text-sm font-medium mb-3">Authentic Mole Poblano &amp; Tamales</p>
+<div class="flex items-center justify-between mt-2 pt-3 border-t border-background-light">
+<div class="flex items-center gap-2 text-text-muted text-sm font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">directions_walk</span> 1.2 mi</span>
+<span>•</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Ready 6:30 PM</span>
+</div>
+<span class="font-bold text-text-main text-sm">$$</span>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="flex flex-col rounded-[20px] bg-surface shadow-soft overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform">
+<!-- Image Header -->
+<div class="h-[180px] w-full relative">
+<img alt="Fresh artisan sourdough bread" class="w-full h-full object-cover" data-alt="Fresh artisan sourdough bread" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9jLVjjeC1kLc6ZEYWr-ti4MfWmaHjzUy-TxrHVJST-_l1NFP2T51jsH-CMiDHA2OzPLd3eaLUE8IGUDUWYjAaH0Mi6XwQAzo9pjjHfbatuQr2y0bx-9BGg04OWSpeUlWJjlC5UN7mnNLnJ2vss4myJ_RTImiXykMEyP2LzOspNwsgMrag1IjEKG0ocdc2fORzW0cpPR0_6fDQYC-9KMJu1BmrvZtPMEce5XKwe-pSua634YfNAqs0ug8bmtiRDJXNKxfruSsVasZ-"/>
+<!-- Badges -->
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur text-text-main text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.8
+                        </span>
+<span class="bg-accent text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                            Vegan Friendly
+                        </span>
+</div>
+<!-- Heart Button -->
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/90 backdrop-blur flex items-center justify-center text-text-main shadow-sm transition-transform active:scale-90">
+<span class="material-symbols-outlined text-[18px]">favorite_border</span>
+</button>
+</div>
+<!-- Content Area -->
+<div class="p-4 pt-5 relative">
+<!-- Cook Avatar overlapping -->
+<div class="absolute -top-6 right-4">
+<img alt="Portrait of Baker David" class="w-12 h-12 rounded-full border-4 border-surface object-cover shadow-sm" data-alt="Portrait of Baker David" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvXhURBjK2TWZxb1bRwT0jKe3CpwlpFB4LIJjSIoeTlnRgIa-e5Bq2cvQmCxWLvGf-vFPtBRZmEMTxwExq6PjAlfXU4yymF17MqdOt-ZBMg0osNb3NmUMuKzWijfGZkHjzfxSJK7abIaNkwAR0_zpJnDCeDsfAg09J-BpZBiN-wgF4LexrKvsaL2dzqT6CXm8R34dDb6jUH2NSEiTBqlagSoLsqt4xoUFt9ptvD_Xu1PRJKvFqb5_7v2PBI4xv8DgTwPBqIcvCHHY9"/>
+</div>
+<h3 class="font-display font-extrabold text-[22px] leading-tight text-text-main mb-1">David's Vegan Bakery</h3>
+<p class="text-text-muted text-sm font-medium mb-3">Sourdough &amp; Morning Pastries</p>
+<div class="flex items-center justify-between mt-2 pt-3 border-t border-background-light">
+<div class="flex items-center gap-2 text-text-muted text-sm font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">directions_walk</span> 2.4 mi</span>
+<span>•</span>
+<span class="flex items-center gap-1 text-primary"><span class="material-symbols-outlined text-[16px]">local_fire_department</span> Selling fast</span>
+</div>
+<span class="font-bold text-text-main text-sm">$</span>
+</div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="flex flex-col rounded-[20px] bg-surface shadow-soft overflow-hidden relative cursor-pointer active:scale-[0.98] transition-transform">
+<!-- Image Header -->
+<div class="h-[180px] w-full relative">
+<img alt="Homemade comforting pasta dish" class="w-full h-full object-cover" data-alt="Homemade comforting pasta dish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFf1BGiSxJqO3mmhM2p7zzkizsrUsPwhzmVjLrY4tBUlBmccu67OQT3wrsUZ5_JK-hNSzQpsnV3hWzft0DYjneBJEbckYc82q-Yuv1b9DO8VsqUqu9ao7ef3GYp8L2GRs2NOdWk5hs_tbfW7d3B6Xm3mp_GQKDKjKT2_5LE7boflublojWbUZe62e8JKSNidXNnJBPOpuT1UYIi0xs8CailqEp9bwwJx5Vaa6ZaP0r6qj1Smt6CFqfnV7HY1niBLYCiXdRpr272x41"/>
+<!-- Badges -->
+<div class="absolute top-3 left-3 flex gap-2">
+<span class="bg-surface/90 backdrop-blur text-text-main text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+                            5.0
+                        </span>
+</div>
+<!-- Heart Button -->
+<button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/90 backdrop-blur flex items-center justify-center text-text-main shadow-sm transition-transform active:scale-90">
+<span class="material-symbols-outlined text-[18px]">favorite_border</span>
+</button>
+</div>
+<!-- Content Area -->
+<div class="p-4 pt-5 relative">
+<!-- Cook Avatar overlapping -->
+<div class="absolute -top-6 right-4">
+<img alt="Portrait of Cook Sofia" class="w-12 h-12 rounded-full border-4 border-surface object-cover shadow-sm" data-alt="Portrait of Cook Sofia" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkXjL_qCAvhofMCeklC7PEPL74eItqg-iqS8xhnmqNgBmCTHiMpwwW3K4xFQdWWX9UsGlbcLVqivdiZYhsANlNZ0dnatjKYkVH7bCu50HrWBLcbxu6kfaFwOEe3JK6452cJ10i0d7G9K0aC6Epzkjm7cfy6Z3eGPNtPMuf5m2PfLZ-mCaaIiYcVjSV6AxAcq1qaq92hKFmsehyW-VsFX4BfpTTNrx6Oye9G0SJpwO9ImpMP_87WMEUr5TH1DauDfzqDWxjrYwSC8yL"/>
+</div>
+<h3 class="font-display font-extrabold text-[22px] leading-tight text-text-main mb-1">Nonna's Pasta House</h3>
+<p class="text-text-muted text-sm font-medium mb-3">Hand-rolled gnocchi &amp; rich ragu</p>
+<div class="flex items-center justify-between mt-2 pt-3 border-t border-background-light">
+<div class="flex items-center gap-2 text-text-muted text-sm font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">directions_walk</span> 3.1 mi</span>
+<span>•</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Pre-order for tmrw</span>
+</div>
+<span class="font-bold text-text-main text-sm">$$$</span>
+</div>
+</div>
+</article>
+</main>
+<!-- Bottom Navigation Bar (Shared Component strictly applied) -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50">
+<div class="flex gap-2 border-t border-[#f3eae7] bg-surface/95 backdrop-blur-md px-4 pb-6 pt-2 shadow-[0_-4px_16px_rgba(62,49,41,0.05)] rounded-t-[24px]">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-primary" href="#">
+<div class="text-primary flex h-8 items-center justify-center" data-icon="compass" data-size="24px" data-weight="fill">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">compass_calibration</span>
+</div>
+<p class="text-primary text-[11px] font-bold leading-normal tracking-wide">Discovery</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main transition-colors" href="#">
+<div class="text-text-muted flex h-8 items-center justify-center" data-icon="receipt" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<p class="text-text-muted text-[11px] font-medium leading-normal tracking-wide">Orders</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted hover:text-text-main transition-colors" href="#">
+<div class="text-text-muted flex h-8 items-center justify-center" data-icon="user" data-size="24px" data-weight="regular">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-text-muted text-[11px] font-medium leading-normal tracking-wide">Profile</p>
+</a>
+</div>
+</div>
+</div>
+</body></html>

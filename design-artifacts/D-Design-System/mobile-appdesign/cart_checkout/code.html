@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cart &amp; Checkout - Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ef6034",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221410",
+                        "surface": "#ffffff",
+                        "text-main": "#3E3129",
+                        "text-muted": "#8D7A6F",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 8px 24px rgba(62, 49, 41, 0.06)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+            background-color: #f8f6f6;
+            color: #3E3129;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display antialiased">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-background-light/90 backdrop-blur-md px-4 py-4 flex items-center justify-between">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full bg-surface shadow-sm text-text-main">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<div class="flex flex-col items-center">
+<h1 class="text-lg font-bold text-text-main leading-tight">Checkout</h1>
+<span class="text-xs text-text-muted font-medium">Maria's Oaxacan Kitchen</span>
+</div>
+<div class="w-10 h-10"></div> <!-- Spacer for centering -->
+</header>
+<main class="flex-1 px-4 pb-32 overflow-y-auto">
+<!-- Fulfillment Toggle -->
+<div class="bg-[#EBE4DB]/30 p-1 rounded-full flex mb-6 relative shadow-inner">
+<div class="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-surface rounded-full shadow-sm transition-transform duration-300 z-0"></div>
+<button class="flex-1 py-2.5 text-sm font-bold text-text-main z-10 text-center relative">
+                Pickup
+            </button>
+<button class="flex-1 py-2.5 text-sm font-medium text-text-muted z-10 text-center relative">
+                Delivery
+            </button>
+</div>
+<!-- Order Items -->
+<section class="mb-8 space-y-4">
+<h2 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-2">Your Order</h2>
+<!-- Item 1 -->
+<div class="bg-surface rounded-2xl p-4 shadow-soft flex items-start gap-4">
+<div class="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">
+<img alt="Rich dark mole poblano sauce over chicken" class="w-full h-full object-cover" data-alt="Rich dark mole poblano sauce over chicken" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8jNahzwnfyXl474MPXMwanaqheog5VGH44OcKABAyXwv6wdYiD_9weHpMN1XY314Re2dFPsd0FUevuwjBhL5maRz3BPZ0BNNdBCKnr7SisegShd-kgkrP_6xlLsgilQx6duvO5scWz-dW6WflKKM_ksza464mPVfWuuPHCImFoJWhDEI5oWe5IFTXLyUIkgsWUuWErkYmX1C0tTb3yaJtXpvUe-bnQnhjhhDDbRWK1stcpWAJU0dITaDcWxCc07cLVwwPVSvTYNb3"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base text-text-main truncate">Mole Poblano</h3>
+<p class="text-xs text-text-muted mt-0.5">No cilantro, extra tortillas</p>
+<div class="mt-2 font-bold text-primary">$14.00</div>
+</div>
+<div class="flex flex-col items-center gap-2 bg-[#EBE4DB]/30 rounded-full p-1 h-24 justify-between">
+<button class="w-6 h-6 rounded-full bg-surface flex items-center justify-center text-text-main shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+<span class="text-sm font-bold">2</span>
+<button class="w-6 h-6 rounded-full bg-surface flex items-center justify-center text-text-main shadow-sm">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface rounded-2xl p-4 shadow-soft flex items-start gap-4">
+<div class="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">
+<img alt="Fresh homemade tamales in corn husks" class="w-full h-full object-cover" data-alt="Fresh homemade tamales in corn husks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPHDhPeWOTxcsESjzHNz4CfyaGjyMqyfYIOVpCrSlPQ7SW8CI9PYOCgwivQPB8jydmaJHKJtRv5l1Ows2q32zr_YluMIucuZXuek1iFDX5081nS2YUgDTpG2BRNnUREiOaeL2-VaxafSl06fc-KgCWqCcXr3_t4SJxQRbN1ewf1aplpMj9D0AulUfKhd1_dD4XxjtRla1o-23wkcef4EtmtnVbJRGN7fsOQrbIZMUlP9_WEJpGykHKNNGX-0mMUEYxJ8CDhCsHDy1x"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base text-text-main truncate">Pork Tamales</h3>
+<p class="text-xs text-text-muted mt-0.5">Salsa verde on the side</p>
+<div class="mt-2 font-bold text-primary">$8.50</div>
+</div>
+<div class="flex flex-col items-center gap-2 bg-[#EBE4DB]/30 rounded-full p-1 h-24 justify-between">
+<button class="w-6 h-6 rounded-full bg-surface flex items-center justify-center text-text-main shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+<span class="text-sm font-bold">1</span>
+<button class="w-6 h-6 rounded-full bg-surface flex items-center justify-center text-text-main shadow-sm">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+</div>
+</div>
+<button class="w-full py-3 flex items-center justify-center gap-2 text-sm font-bold text-primary bg-primary/10 rounded-xl">
+<span class="material-symbols-outlined text-lg">add_circle</span>
+                Add more items
+            </button>
+</section>
+<!-- Pickup Info -->
+<section class="mb-8 bg-surface rounded-2xl p-4 shadow-soft">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">schedule</span>
+</div>
+<div>
+<h3 class="font-bold text-sm">Pickup Time</h3>
+<p class="text-xs text-text-muted">Today, 6:30 PM - 7:00 PM</p>
+</div>
+</div>
+<div class="h-px w-full bg-[#EBE4DB]/50 my-3"></div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">location_on</span>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-sm">Maria's Kitchen</h3>
+<p class="text-xs text-text-muted truncate">1234 Maple Ave, 1.2 mi away</p>
+</div>
+<button class="text-xs font-bold text-primary">Map</button>
+</div>
+</section>
+<!-- Cost Breakdown -->
+<section class="mb-4 bg-surface rounded-2xl p-4 shadow-soft">
+<h2 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-3">Receipt</h2>
+<div class="space-y-2 text-sm">
+<div class="flex justify-between text-text-main">
+<span>Subtotal</span>
+<span>$36.50</span>
+</div>
+<div class="flex justify-between text-text-muted">
+<span>Taxes</span>
+<span>$3.10</span>
+</div>
+<div class="flex justify-between text-text-muted">
+<span>Community Fee</span>
+<span>$1.50</span>
+</div>
+<div class="h-px w-full bg-[#EBE4DB]/50 my-2"></div>
+<div class="flex justify-between font-bold text-lg text-text-main pt-1">
+<span>Total</span>
+<span>$41.10</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Swipe to Pay Fixed Bottom -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-light via-background-light to-transparent pb-8">
+<div class="relative w-full h-14 bg-surface rounded-full shadow-[0_8px_32px_rgba(239,96,52,0.15)] flex items-center p-1 border border-primary/20 overflow-hidden">
+<!-- Track Text -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+<span class="font-bold text-primary/80 text-sm tracking-wide">Slide to Pay $41.10</span>
+<span class="material-symbols-outlined text-primary/40 ml-2 animate-pulse">keyboard_double_arrow_right</span>
+</div>
+<!-- Draggable Pan Icon -->
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white shadow-md z-10 relative cursor-grab active:cursor-grabbing transform transition-transform hover:scale-105">
+<span class="material-symbols-outlined">skillet</span>
+</div>
+</div>
+</div>
+</body></html>

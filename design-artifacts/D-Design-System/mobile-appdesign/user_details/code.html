@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customer Details - miCook Vendor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary": "#4d6548",
+                        "surface-variant": "#e5e2dd",
+                        "primary": "#9c3e20",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb59f",
+                        "tertiary-fixed-dim": "#d9c2b6",
+                        "primary-fixed": "#ffdbd0",
+                        "on-secondary-fixed-variant": "#364c32",
+                        "on-secondary-container": "#51694c",
+                        "surface-dim": "#dcdad5",
+                        "secondary-fixed": "#cfeac6",
+                        "inverse-surface": "#31302d",
+                        "on-surface": "#1c1c19",
+                        "inverse-primary": "#ffb59f",
+                        "on-tertiary-fixed-variant": "#53443a",
+                        "on-secondary-fixed": "#0b200a",
+                        "surface-container-high": "#ebe8e3",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1c1c19",
+                        "surface-bright": "#fcf9f4",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-tint": "#9f4122",
+                        "surface-container-low": "#f6f3ee",
+                        "on-primary-container": "#fffbff",
+                        "background": "#fcf9f4",
+                        "tertiary-container": "#837166",
+                        "on-tertiary-fixed": "#251911",
+                        "surface": "#fcf9f4",
+                        "on-primary-fixed-variant": "#802a0d",
+                        "secondary-container": "#cce7c3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e5e2dd",
+                        "surface-container": "#f0ede9",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#b3ceab",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#f6ded1",
+                        "outline-variant": "#ddc0b8",
+                        "inverse-on-surface": "#f3f0eb",
+                        "primary-container": "#bc5636",
+                        "on-surface-variant": "#56423c",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "outline": "#89726b",
+                        "on-primary-fixed": "#3a0a00",
+                        "tertiary": "#6a594e",
+                        "error": "#ba1a1a"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f4;
+            color: #1c1c19;
+            font-family: 'Manrope', sans-serif;
+        }
+        .editorial-shadow {
+            box-shadow: 0 24px 40px rgba(28, 28, 25, 0.06);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#9c3e20] dark:text-[#d96c4a] hover:bg-[#f6f3ee] transition-colors p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl tracking-tight text-[#9c3e20] dark:text-[#d96c4a]">miCook Vendor</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Vendor Profile Picture" class="w-full h-full object-cover" data-alt="Close up of a professional chef smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUirddRILwcywo8NYwWDLLEm7x2nDf45nVGAQsqdnRwVww_HbynVlleqHxuDI73sfyx-DmGDqAlGz93sFTq9C8eVmVdmXKzlhk2h3WZ-aOWQfFz-Tn-CUyHGnLkuPiBcUHcSIuoBL3iaAxhWSplWShW_R7mjhK-HxXYmyJMOCaY3MGO4atw7pe4umfov8aEfMbjqH6WyL7_gFEpP5dc559-ZBye_NST91O-0T5VlDMQVVlVW3vKGeUrSy1i54yrINvGuNkqFi5LD6P"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto">
+<!-- Breadcrumb / Back Navigation -->
+<nav class="flex items-center gap-2 mb-8 text-on-surface-variant">
+<button class="flex items-center gap-1 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">arrow_back</span>
+<span class="font-semibold text-sm">Back to Orders</span>
+</button>
+</nav>
+<!-- Profile Header Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+<!-- Main Hero Card -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-lg p-8 editorial-shadow flex flex-col md:flex-row items-center md:items-start gap-8 border-none relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/20 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="relative">
+<div class="w-32 h-32 rounded-xl overflow-hidden ring-4 ring-surface-container-low transform -rotate-3">
+<img alt="Customer Avatar" class="w-full h-full object-cover" data-alt="Portrait of a friendly young man smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV5l36JylGi28ZgsTUYVh_Y3z868TtZ7R9xCzzqkvwEqkLMw4IZQgMXrKD5zP1xCbG-zn20rRrKTJvcI6GhwRNtke2Mo_IwbFvFXeblEPnk_AJRoXpPBx9HIWmSOrIDikXA0fC4oLDyzET4WYKZNWWAIpZZ7vjwh-GH4M7in9FwpChOo0Gw8aqBFW0mHXhH8LC8yboryfe8VxXIKILYQpFhzlZCwMAx83623RCLJwlvgdKW_t8K3GdEroTi6XrmSu5YqQbh73EYfgL"/>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-secondary text-on-secondary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm">
+                        VIP
+                    </div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h2 class="font-headline font-extrabold text-4xl mb-2 text-on-surface">Jameson Carter</h2>
+<p class="text-on-surface-variant font-medium mb-4 flex items-center justify-center md:justify-start gap-2">
+<span class="material-symbols-outlined text-primary text-lg">location_on</span>
+                        Chelsea, London • Member since 2022
+                    </p>
+<div class="flex flex-wrap gap-3 justify-center md:justify-start">
+<button class="bg-primary text-on-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-lg">call</span>
+                            Contact Customer
+                        </button>
+<button class="bg-surface-container-low text-on-surface-variant px-6 py-3 rounded-full font-bold hover:bg-surface-container transition-colors">
+                            Manage Credits
+                        </button>
+</div>
+</div>
+</div>
+<!-- Fast Stats Cards -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="bg-secondary-container/40 p-6 rounded-lg flex items-center justify-between border-none">
+<div>
+<span class="text-on-secondary-container font-bold text-sm uppercase tracking-wider block mb-1">Total Orders</span>
+<span class="text-4xl font-headline font-extrabold text-on-secondary-container">24</span>
+</div>
+<div class="bg-on-secondary-container/10 p-3 rounded-xl">
+<span class="material-symbols-outlined text-on-secondary-container text-3xl">restaurant</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg flex items-center justify-between border-none">
+<div>
+<span class="text-on-surface-variant font-bold text-sm uppercase tracking-wider block mb-1">Avg. Rating</span>
+<span class="text-4xl font-headline font-extrabold text-on-surface">4.9</span>
+</div>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Details Sections Asymmetric Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Column 1: Favorites & Prefs -->
+<div class="lg:col-span-2 space-y-8">
+<section>
+<div class="flex items-end justify-between mb-6 px-2">
+<h3 class="font-headline font-extrabold text-2xl">Favorite Dishes</h3>
+<span class="text-primary font-bold text-sm underline cursor-pointer">View All</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<!-- Favorite Item 1 -->
+<div class="bg-surface-container-lowest rounded-lg p-4 flex gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Dish Image" class="w-full h-full object-cover" data-alt="Gourmet salad with grilled chicken and avocado" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWwdXopCNWpRulV3CaeCpLwodIs5kaLlheC0qYuhybHyMbUPCxCfc6g3ABJquZu6ZgdNHZ5_cwqhua-Z1-a_pFAPqcfPLHiqOKzMECBDwTAD7CrHlMylQ-KicGb_7-vgMmT_F9SIO6APXybD3vuR71DHY5dOKAgpiAqnxv9qv7vEaMBAIR6DS0B8ZZOQkkrJ1wUJpMXGMcs2RyK3ka6WIXLaiyEpEX3Ri0oY9P5YuhkmjXrv8FXcoL9wEJ4lo1PqntgmFLY3KxOXrL"/>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="font-bold text-lg leading-tight mb-1">Miso-Glazed Salmon Bowl</h4>
+<span class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                                    Ordered 8 times
+                                </span>
+</div>
+</div>
+<!-- Favorite Item 2 -->
+<div class="bg-surface-container-lowest rounded-lg p-4 flex gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+<img alt="Dish Image" class="w-full h-full object-cover" data-alt="Neapolitan style pizza with fresh basil" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdiWEm4QZVCJP-69E3FoyKfSndNvjwBOHJB22PfAau3y2-NDj18IDJKtR7_ORwI2b1SIerCiKhThVsjgTvXVTO1s-Du_I243AxWwxLZ5i7FRux4o0-HlNl1tL7T3cPboutnmYbAX3Hf2Ikwz5meCe2jM4mhWafuFMEyTvNGP9G-i1PMmtpoZ0IO1f81xG9GqbavXIgueJmRlF20Oc3JDPACkqkvk8htzHyq0Xc_TtOJ21rt9xM1l7l16Q2Vt9RuP8YEFbRXlzVvgHE"/>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="font-bold text-lg leading-tight mb-1">Truffle Wild Mushroom Pizza</h4>
+<span class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                                    Ordered 5 times
+                                </span>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-surface-container-low rounded-xl p-8">
+<h3 class="font-headline font-extrabold text-2xl mb-6">Customer Preferences</h3>
+<div class="flex flex-wrap gap-3">
+<span class="bg-on-surface/5 text-on-surface px-4 py-2 rounded-full font-bold text-sm border border-outline-variant/20">Gluten-Free Only</span>
+<span class="bg-on-surface/5 text-on-surface px-4 py-2 rounded-full font-bold text-sm border border-outline-variant/20">No Spicy Food</span>
+<span class="bg-on-surface/5 text-on-surface px-4 py-2 rounded-full font-bold text-sm border border-outline-variant/20">Prefer Local Sourcing</span>
+<span class="bg-on-surface/5 text-on-surface px-4 py-2 rounded-full font-bold text-sm border border-outline-variant/20">Eco-Friendly Packaging</span>
+</div>
+<div class="mt-8 pt-8 border-t border-outline-variant/10">
+<h4 class="font-bold mb-3 uppercase text-xs tracking-widest text-on-surface-variant">Private Vendor Notes</h4>
+<p class="text-on-surface italic bg-surface-container-lowest p-4 rounded-lg">
+                            "Loves extra arugula on everything. Usually orders for Sunday lunch. Highly allergic to walnuts, double check pesto base always."
+                        </p>
+</div>
+</section>
+</div>
+<!-- Column 2: Order History -->
+<div class="lg:col-span-1">
+<div class="bg-surface-container-lowest rounded-lg p-6 editorial-shadow h-full">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline font-extrabold text-xl">Order History</h3>
+<span class="material-symbols-outlined text-on-surface-variant">history</span>
+</div>
+<div class="space-y-6">
+<!-- History Item 1 -->
+<div class="relative pl-6 pb-6 border-l-2 border-secondary-container">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-secondary ring-4 ring-surface-container-lowest"></div>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Yesterday, 18:30</span>
+<p class="font-bold text-on-surface mt-1">Order #8832 - Processing</p>
+<p class="text-sm text-on-surface-variant">2x Lamb Shank, 1x Apple Tart</p>
+<span class="text-primary font-bold text-sm mt-1 block">£42.50</span>
+</div>
+<!-- History Item 2 -->
+<div class="relative pl-6 pb-6 border-l-2 border-secondary-container">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-surface-variant ring-4 ring-surface-container-lowest"></div>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Oct 12, 2023</span>
+<p class="font-bold text-on-surface mt-1">Order #7921 - Delivered</p>
+<p class="text-sm text-on-surface-variant">1x Miso Salmon, 1x Green Tea</p>
+<span class="text-on-surface-variant font-bold text-sm mt-1 block">£28.00</span>
+</div>
+<!-- History Item 3 -->
+<div class="relative pl-6 border-l-2 border-transparent">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-surface-variant ring-4 ring-surface-container-lowest"></div>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Oct 05, 2023</span>
+<p class="font-bold text-on-surface mt-1">Order #7644 - Delivered</p>
+<span class="text-on-surface-variant font-bold text-sm mt-1 block">£35.20</span>
+</div>
+</div>
+<button class="w-full mt-10 py-4 bg-surface-container-low text-on-surface font-bold rounded-xl hover:bg-surface-container transition-colors">
+                        Download Full History
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl z-50 rounded-t-[32px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<!-- Bookings -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Bookings</span>
+</a>
+<!-- Reviews -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">star</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Reviews</span>
+</a>
+<!-- Orders (Likely the parent section for customer details) -->
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-1.5 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">receipt_long</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Orders</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</body></html>

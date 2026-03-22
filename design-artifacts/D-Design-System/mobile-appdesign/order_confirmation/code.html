@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmation - miFoodi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Nunito:wght@800&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "inverse-primary": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "tertiary-fixed": "#f6ded1",
+              "surface-variant": "#e5e2dd",
+              "on-tertiary": "#ffffff",
+              "background": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed": "#ffdbd0",
+              "on-tertiary-fixed": "#251911",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "on-primary": "#ffffff",
+              "surface": "#fcf9f4",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed-variant": "#53443a",
+              "surface-container": "#f0ede9",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-tertiary-container": "#fffbff",
+              "outline-variant": "#ddc0b8",
+              "tertiary-container": "#837166",
+              "primary-fixed-dim": "#ffb59f",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-secondary-fixed": "#0b200a",
+              "secondary-fixed": "#cfeac6",
+              "on-error": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "surface-container-lowest": "#ffffff",
+              "primary-container": "#bc5636",
+              "inverse-on-surface": "#f3f0eb",
+              "on-error-container": "#93000a",
+              "secondary-container": "#cce7c3",
+              "error-container": "#ffdad6"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"],
+              "nunito": ["Nunito"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .bg-glass {
+        background: rgba(252, 249, 244, 0.8);
+        backdrop-filter: blur(20px);
+      }
+      .asymmetric-shape {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- Top Navigation (Shell suppressed for transactional focus, simplified header used instead) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-surface/80 backdrop-blur-md">
+<div class="text-2xl font-black text-primary tracking-tight font-headline">miFoodi</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</header>
+<main class="w-full max-w-2xl px-6 pt-24 pb-12 flex flex-col items-center">
+<!-- Success Celebration Section -->
+<div class="relative w-full flex flex-col items-center text-center mb-10">
+<!-- Asymmetric Illustration Background -->
+<div class="absolute -z-10 w-64 h-64 bg-secondary-container/30 asymmetric-shape -top-4"></div>
+<!-- Animated-feel Illustration -->
+<div class="w-48 h-48 bg-surface-container-lowest rounded-full flex items-center justify-center shadow-sm mb-8">
+<div class="relative">
+<span class="material-symbols-outlined text-[100px] text-primary" style="font-variation-settings: 'FILL' 1;">cooking</span>
+<div class="absolute -top-4 -right-2">
+<span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</div>
+<h1 class="font-nunito text-5xl md:text-6xl text-primary font-extrabold mb-4 tracking-tight">Success!</h1>
+<p class="text-on-surface-variant text-lg max-w-sm">Your delicious journey has begun. We've received your order and the kitchen is getting ready!</p>
+</div>
+<!-- Order Summary Card (Tonal Layering) -->
+<section class="w-full bg-surface-container-low rounded-lg p-8 mb-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/60 block mb-1">Order Number</span>
+<h2 class="text-2xl font-bold font-headline text-on-surface tracking-tight">#MF-8294021</h2>
+</div>
+<div class="flex items-center gap-2 bg-secondary-container px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-on-secondary-container text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-on-secondary-container font-bold text-sm">Confirmed</span>
+</div>
+</div>
+<!-- Bento-style Summary Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Item List -->
+<div class="bg-surface-container-lowest p-6 rounded-lg">
+<h3 class="font-headline font-bold mb-4 text-on-surface">Order Summary</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">1x Heirloom Tomato Tart</span>
+<span class="font-bold text-on-surface">$18.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">2x Truffle Herb Focaccia</span>
+<span class="font-bold text-on-surface">$12.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">1x Wild Berry Tisane</span>
+<span class="font-bold text-on-surface">$6.50</span>
+</div>
+<div class="pt-4 mt-4 border-t border-dashed border-outline-variant/30 flex justify-between items-center">
+<span class="font-bold text-primary">Total Amount</span>
+<span class="font-bold text-2xl text-primary">$36.50</span>
+</div>
+</div>
+</div>
+<!-- Delivery Details -->
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-6 rounded-lg h-full">
+<h3 class="font-headline font-bold mb-4 text-on-surface">Estimated Delivery</h3>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary">schedule</span>
+</div>
+<div>
+<p class="text-2xl font-bold text-on-surface">25-35 min</p>
+<p class="text-sm text-on-surface-variant">Arriving by 7:45 PM</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary">location_on</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Studio Atelier</p>
+<p class="text-sm text-on-surface-variant">242 Culinary Blvd, Floor 4</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Cluster -->
+<div class="w-full flex flex-col gap-4">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary font-bold py-5 rounded-full text-lg shadow-lg shadow-primary/10 transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">map</span>
+                Track Order
+            </button>
+<button class="w-full bg-secondary-container hover:bg-secondary-fixed text-on-secondary-container font-bold py-5 rounded-full text-lg transition-all">
+                Back to Home
+            </button>
+</div>
+<!-- Decorative Element -->
+<div class="mt-12 opacity-30 flex items-center gap-4">
+<div class="h-[1px] w-12 bg-outline-variant"></div>
+<span class="material-symbols-outlined text-primary">restaurant</span>
+<div class="h-[1px] w-12 bg-outline-variant"></div>
+</div>
+</main>
+<!-- Visual Polish: Floating Shapes -->
+<div class="fixed top-1/4 -left-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="fixed bottom-1/4 -right-20 w-80 h-80 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+</body></html>

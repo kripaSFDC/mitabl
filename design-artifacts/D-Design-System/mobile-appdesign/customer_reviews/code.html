@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Nunito:wght@400;700;800;900&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#4d6548",
+              "surface-variant": "#e5e2dd",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "surface-dim": "#dcdad5",
+              "secondary-fixed": "#cfeac6",
+              "inverse-surface": "#31302d",
+              "on-surface": "#1c1c19",
+              "inverse-primary": "#ffb59f",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-high": "#ebe8e3",
+              "on-primary": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "surface-container-low": "#f6f3ee",
+              "on-primary-container": "#fffbff",
+              "background": "#fcf9f4",
+              "tertiary-container": "#837166",
+              "on-tertiary-fixed": "#251911",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "secondary-container": "#cce7c3",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container": "#f0ede9",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "on-surface-variant": "#56423c",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#f6f3ee] dark:hover:bg-stone-800 transition-colors p-2 rounded-full scale-95 active:duration-150">
+<span class="material-symbols-outlined text-[#9c3e20] dark:text-[#d96c4a]" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl tracking-tight text-[#9c3e20] dark:text-[#d96c4a]">miCook Vendor</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary/10">
+<img alt="Vendor Profile Picture" class="w-full h-full object-cover" data-alt="Close up portrait of a professional female chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrQIlnPqzwJtVgbDFAQZ4BodwF2v5JdcEPuMWZDNH8gHoH_AeStTa_APm-GQwHHVQAS8SllBx04GtSp20FXmKtw-C9I0dzpPEJOamHufVxwPhpQ4Huq5210uldxVD1fqFlB2W7GjvjHFWSHBjXB-Fgjcnc8zdefdlap1ZXkD7e_Y3WeT7Yi6agDy_yStB0pJiiwebDcB9F_BCanDQBmOnbntqOrkNRZc5L2RT_rEz2ah5imL2XddbNVk6Awt6nXNzpK-wMmZhrULFd"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-3xl mx-auto">
+<!-- Summary Dashboard Card -->
+<section class="mb-12">
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_24px_48px_-12px_rgba(28,28,25,0.06)] relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-secondary-container/30 transition-colors"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+<div class="flex flex-col">
+<span class="text-on-surface-variant font-semibold uppercase tracking-widest text-xs mb-2">Overall Rating</span>
+<div class="flex items-baseline gap-2">
+<span class="text-6xl font-headline font-black text-on-surface">4.9</span>
+<span class="text-on-surface-variant font-medium">/ 5.0</span>
+</div>
+<div class="flex items-center gap-1 mt-3">
+<span class="material-symbols-outlined text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="ml-2 text-on-surface-variant text-sm font-medium">(128 reviews)</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full md:w-48">
+<div class="flex items-center gap-3 text-xs font-bold text-on-surface-variant">
+<span>5</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[92%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-3 text-xs font-bold text-on-surface-variant">
+<span>4</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[6%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-3 text-xs font-bold text-on-surface-variant">
+<span>3</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[2%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Reviews List -->
+<div class="space-y-6">
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-xl font-headline font-extrabold text-on-surface">Latest Feedback</h2>
+<button class="text-primary text-sm font-bold flex items-center gap-1 hover:opacity-80">
+<span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
+                    Sort by Date
+                </button>
+</div>
+<!-- Review Card 1 -->
+<article class="bg-surface-container-low p-6 rounded-lg transition-all hover:bg-surface-container-lowest hover:shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-tertiary-fixed">
+<img alt="Customer Avatar" class="w-full h-full object-cover" data-alt="Portrait of a smiling young woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVmz9PtlZeME8Hh_EbWqAcGDbbkunvSbg20IW5j0BAjI5emMHVsPqYFMD7glyisg5myQviQCEEfFHK1URRrhrap1CUXIrnEc2gRcjdvjSaTFBHiYX_zaAtr-_Dvwae_-g1kyiOxE4LP6cCxOTh7tTyYOmvbB1Uf95OPxaCkQFN8oNV9fV9rh8B3vZweJcID81TJr1P1sZhFLM0axfvViCbpaxLoMahQXINbzLdgYIHAAo3rFr49Uq4JVTI0x4ynrJOk-NdCTGaJrP5"/>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">Elena Rodriguez</h3>
+<p class="text-xs text-on-surface-variant font-medium">October 24, 2023</p>
+</div>
+</div>
+<div class="flex gap-0.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed">
+                    The handmade pasta was absolutely divine! You can really taste the freshness in every bite. Chef Maria's attention to detail during the delivery was also impressive. Highly recommended for a quiet Friday night.
+                </p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider rounded-full">Tagliatelle Al Tartufo</span>
+</div>
+</article>
+<!-- Review Card 2 -->
+<article class="bg-surface-container-low p-6 rounded-lg transition-all hover:bg-surface-container-lowest hover:shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-tertiary-fixed">
+<img alt="Customer Avatar" class="w-full h-full object-cover" data-alt="Portrait of a bearded man smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpVPI9tVJFYxZBTNSd3e7Xd_ia2H7osai_H_xJeE7ORCUFqWu3OlR91zfga8U3E9PS7zhc5B-TEtk7vIx86oWg2MHDJaksdnIaxld7T-E1EMGtFkE2GOcY-WmN-5Zg-eyDKS6mo_ZE9ifQPunrNHEoq_9hSPVzeKX2zE3b4zmQOvzKsFydl1rU61BsMKHKGP6QLoRQyGondwIRcJYqC2OM9GGKqb0WdKQxUt0mmurr1FBfK90p6Rrb1zhhbeY5mMi9K7aKpqaqAXna"/>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">Marcus Thorne</h3>
+<p class="text-xs text-on-surface-variant font-medium">October 22, 2023</p>
+</div>
+</div>
+<div class="flex gap-0.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed">
+                    Great portions and the sauce was rich. It arrived a little later than expected but it was still warm enough to enjoy. The packaging is beautiful—very premium feel.
+                </p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider rounded-full">Braised Short Ribs</span>
+</div>
+</article>
+<!-- Review Card 3 -->
+<article class="bg-surface-container-low p-6 rounded-lg transition-all hover:bg-surface-container-lowest hover:shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-tertiary-fixed">
+<img alt="Customer Avatar" class="w-full h-full object-cover" data-alt="Portrait of a focused professional woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnimXCr2ZHTIlNTMMN2-9AKQAww7dIsOZIwVTUdHZ38pnixV4rLmCl8O0BmuJKyvyva_cVsSU8AHP7267gVvcLGQTB5NNdW6qgtF8Betwbe0AoL7-FCN0bUF8RHc_YbGl4cxDGScbI3lyu5063vgOuBOJnVt4-IUDZC5gMryLQ8eiFGxEHJN-SKO1WSl5Kg7aZxLo-IsQ5QhU7WPAJtCPo5HWk_mg7efsHeiP0sNFLSJU6rYwLCG_7wsbeqn1hVJVlNmP1L8-k72kR"/>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">Sarah Jenkins</h3>
+<p class="text-xs text-on-surface-variant font-medium">October 20, 2023</p>
+</div>
+</div>
+<div class="flex gap-0.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant leading-relaxed">
+                    Always a consistent experience. Chef Maria's Atelier never misses. The lemon tart was the perfect balance of sweet and tangy. 10/10 will order again.
+                </p>
+<div class="mt-4 flex gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider rounded-full">Lemon Curd Tart</span>
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider rounded-full">Burrata Salad</span>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl z-50 rounded-t-[32px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_today">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-1.5 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Reviews</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</body></html>

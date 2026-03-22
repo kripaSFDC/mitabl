@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cook Profile &amp; Menu - Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#ef6034",
+          "background-light": "#f8f6f6",
+          "background-dark": "#221410",
+        },
+        fontFamily: {
+          "display": ["Spline Sans", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        boxShadow: {
+            'soft': '0 8px 24px rgba(62, 49, 41, 0.06)',
+            'float': '0 16px 32px rgba(239, 96, 52, 0.15)',
+        }
+      },
+    },
+  }
+</script>
+<style>
+  body {
+    font-family: 'Spline Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .filled-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+  }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-slate-900 antialiased min-h-screen relative overflow-x-hidden selection:bg-primary/30">
+<!-- Minimal Header for Back Navigation (Focused View) -->
+<div class="absolute top-0 w-full z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
+<button aria-label="Go back" class="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-xl">arrow_back</span>
+</button>
+<button aria-label="Save cook" class="size-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-xl">favorite_border</span>
+</button>
+</div>
+<!-- Hero Image -->
+<div class="w-full h-[320px] bg-cover bg-center bg-slate-200" data-alt="Cook preparing food in a warm, sunlit kitchen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLDcKeIvTXnv-CD5X9UtUBTFkftnQN0Jrm8G8GsQKH649m7l5E80QtWQB3rUEXhs_8EFaIy1gK8NEg8yy98lbbFikSMYOEpd1lJTsGpJa86gn_JSnFzmfbmNtmNbN7OhL2fX30ngP6eKN-TfMOTmD_LhcztdnWuA2tdKvkF2PyqojGePlgcok525Dc5tQJxZ0W5gZygH2s6aVgb6e0WVvc_xJaUHBHPzB9p4OHxUoz-a6C0Jb44hAB-Tmyavkp9FxYJhSo0ENdugPh');">
+</div>
+<!-- Sliding Content Surface -->
+<main class="relative z-10 bg-white min-h-[calc(100vh-280px)] -mt-10 rounded-t-xl px-4 pb-28 shadow-soft">
+<!-- Avatar & Basic Info -->
+<div class="flex flex-col items-center pt-0 pb-6 border-b border-slate-100">
+<!-- Overlapping Avatar -->
+<div class="size-20 rounded-full bg-slate-200 border-4 border-white -mt-10 shadow-sm relative overflow-hidden" data-alt="Portrait of Maria, the cook">
+<img alt="Maria" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1eG2Eleuwer6W6wVMm9qSlixGR-EdSzf1CSDP9yGkCRjINwY_CFyjNoQEwt5OYmZGiJWUahU6_tY3_EmfJmvNU5256ERLKvL5um5FbP0mu2-LJwoMYNzwsSRh360xyDABgM9_Gk5ECC4bnKM7iyy-kM9hBN43To8BvhzPoOQsHfrpNiEfIwkD9QcBUDbRx2Q7IfX4KKc5Dh65yukzrBLKiIxeJAKj486m6MpaDE91VJQcZKQoSxT-IPVkghTETGkl5VkcLXYZFE9H"/>
+</div>
+<h1 class="text-[26px] font-bold tracking-tight text-slate-900 mt-3 font-display">Maria's Oaxacan Kitchen</h1>
+<div class="flex items-center gap-1 mt-1 text-slate-600">
+<span class="material-symbols-outlined filled-icon text-primary text-[18px]">star</span>
+<span class="font-semibold text-[15px] text-slate-800">4.9</span>
+<span class="text-[14px]">(120 reviews)</span>
+<span class="mx-1">·</span>
+<span class="text-[14px]">1.2 mi</span>
+</div>
+<p class="text-slate-500 italic text-[14px] mt-3 text-center max-w-[280px] leading-relaxed">
+                "Authentic, homemade meals from the heart of Oaxaca. Bringing my grandmother's recipes to your table."
+            </p>
+</div>
+<!-- Segmented Control (Sticky) -->
+<div class="sticky top-0 bg-white/95 backdrop-blur-sm z-10 py-4 -mx-4 px-4">
+<div class="bg-background-light p-1 rounded-full flex w-full">
+<button class="flex-1 py-2.5 text-[15px] font-semibold rounded-full bg-white shadow-sm text-slate-900 transition-all">
+                    Menu
+                </button>
+<button class="flex-1 py-2.5 text-[15px] font-medium rounded-full text-slate-500 transition-all hover:text-slate-700">
+                    About
+                </button>
+</div>
+</div>
+<!-- Menu List -->
+<div class="flex flex-col gap-6 mt-2">
+<!-- Category Header -->
+<h2 class="text-lg font-bold text-slate-900 font-display">Specials Today</h2>
+<!-- Dish Row 1 (Unselected) -->
+<div class="flex gap-4 items-center h-[110px]">
+<div class="flex-1 min-w-0 flex flex-col justify-center h-full py-1">
+<h3 class="font-bold text-[16px] text-slate-900 font-display truncate">Mole Poblano w/ Rice</h3>
+<p class="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-snug">Rich, complex sauce made with 20+ ingredients including chocolate and chiles, served over tender chicken.</p>
+<div class="mt-auto font-semibold text-[15px] text-slate-800">$14.50</div>
+</div>
+<!-- Image & Add Button -->
+<div class="relative size-[80px] shrink-0 rounded-[12px] bg-slate-100 shadow-sm" data-alt="Plate of Mole Poblano with rice">
+<img alt="Mole Poblano" class="w-full h-full object-cover rounded-[12px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzN5Y797RZZDIjnS9GPcpuDVtm7fEcPFolXOZVoD3RQ-9AZYkzAjREV5zc7_3OoKzNJMN6o6rX1Qtonb6MX-SMj3vDBs7o4JxWLq0tR5lJTYxwjOcmJo70FePrjl9kSwMnRjfOM1SgiINlgiT1M9wKw6iP80KWOHq2ZQX1jCBZimNkRPycHaY3JbTsppihO-PPL1dFXV6iiaFDvZUtqvSeoyF5V8yjwwssg6HvnYFAi6UUNOnW7GeBpfHHMw2N2AkTyilArej4Dh0R"/>
+<button class="absolute -bottom-2 -right-2 size-8 bg-white shadow-soft text-primary rounded-full flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+<!-- Dish Row 2 (Selected/Added to Cart) -->
+<div class="flex gap-4 items-center h-[110px]">
+<div class="flex-1 min-w-0 flex flex-col justify-center h-full py-1">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-bold text-[16px] text-slate-900 font-display truncate">Oaxacan Tamales</h3>
+<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Vegan Opt</span>
+</div>
+<p class="text-[13px] text-slate-500 line-clamp-2 leading-snug">Steamed in banana leaves, filled with black mole and jackfruit. A soft, earthy delight.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-semibold text-[15px] text-slate-800">$12.00</span>
+<!-- Interactive Counter Component (Active State) -->
+<div class="flex items-center bg-background-light rounded-full shadow-sm h-8 px-1">
+<button class="size-6 flex items-center justify-center text-primary rounded-full active:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="w-6 text-center text-[14px] font-semibold text-slate-900 font-display">2</span>
+<button class="size-6 flex items-center justify-center text-primary rounded-full active:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative size-[80px] shrink-0 rounded-[12px] bg-slate-100 shadow-sm" data-alt="Two tamales wrapped in banana leaves">
+<img alt="Tamales" class="w-full h-full object-cover rounded-[12px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt8WkMtIJBwGRJvl1ub_70PBrnvJA9iHPpD7E0sdV21rAX8x2LXATRbk3OFvBKwYdeFzMNQXcxMwz3O9Y-qZDvGrjn0WTtTkJr0TJnPrXa97pLaGxAQFoljLLyOVXyp_r7Gb15s1Ooh1ZCHLEaZKZ2cYbJ42sJ63ASYzqjcT1djr1OF2tyJBvYbNKr0mzIrcXlNKK2sT_Opt7rGEsFfhZec4phr_Paa8c3rsjqzLOWFzHGUIFs0qhjlgkEog4QmzaAu9WyPo3QGzFH"/>
+</div>
+</div>
+<!-- Category Header -->
+<h2 class="text-lg font-bold text-slate-900 font-display mt-4">Sides &amp; Drinks</h2>
+<!-- Dish Row 3 -->
+<div class="flex gap-4 items-center h-[110px]">
+<div class="flex-1 min-w-0 flex flex-col justify-center h-full py-1">
+<h3 class="font-bold text-[16px] text-slate-900 font-display truncate">Agua de Jamaica</h3>
+<p class="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-snug">Refreshing iced hibiscus tea, lightly sweetened with agave.</p>
+<div class="mt-auto font-semibold text-[15px] text-slate-800">$4.00</div>
+</div>
+<div class="relative size-[80px] shrink-0 rounded-[12px] bg-slate-100 shadow-sm" data-alt="Glass of red iced hibiscus tea">
+<img alt="Agua de Jamaica" class="w-full h-full object-cover rounded-[12px]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4nYqati6q9AujW4tj9SoOygaGkO2DxOCHyzEE8iNA4Fj9LE5XR9jP5XNiEFKbSof_Uiu-oQwpLaI_sy4rg4BJldbI96mj_11WcLXbaClzzahoJbJJpFOD4a2xlo6xVDcSfVV-a_4fEPlsICe_cnamELcJa923aMyoh2-_cIyMh6kwcxiSy71jhVTOp5JcwEZrCC_1n5efM6DTtB9FXWqB3-vyNKk3XG0aKwIIDg6iA4KkvzCNpRNFwlvasJbljYckdMsTrz3nLfIo"/>
+<button class="absolute -bottom-2 -right-2 size-8 bg-white shadow-soft text-primary rounded-full flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Bottom Cart Bar (Appears when items are in cart) -->
+<div class="fixed bottom-6 left-4 right-4 z-50 animate-[slideUp_0.3s_ease-out]">
+<button class="w-full bg-primary text-white rounded-full h-14 px-6 flex items-center justify-between shadow-float active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-3">
+<div class="bg-white/20 size-8 rounded-full flex items-center justify-center font-bold text-[14px]">
+                    2
+                </div>
+<span class="font-medium text-[15px]">View Cart</span>
+</div>
+<span class="font-bold text-[16px] tracking-wide">$24.00</span>
+</button>
+</div>
+</body></html>

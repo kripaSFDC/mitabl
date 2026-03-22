@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>miFoodi - Payments</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#d9c2b6",
+              "tertiary-fixed": "#f6ded1",
+              "error": "#ba1a1a",
+              "primary-fixed": "#ffdbd0",
+              "surface-tint": "#9f4122",
+              "outline-variant": "#ddc0b8",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#51694c",
+              "inverse-primary": "#ffb59f",
+              "secondary-fixed-dim": "#b3ceab",
+              "tertiary-container": "#837166",
+              "surface": "#fcf9f4",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "surface-container-high": "#ebe8e3",
+              "on-background": "#1c1c19",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "inverse-on-surface": "#f3f0eb",
+              "on-surface-variant": "#56423c",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-fixed": "#3a0a00",
+              "surface-container": "#f0ede9",
+              "secondary-container": "#cce7c3",
+              "on-primary-container": "#fffbff",
+              "tertiary": "#6a594e",
+              "primary-container": "#bc5636",
+              "surface-container-low": "#f6f3ee",
+              "on-tertiary-container": "#fffbff",
+              "on-secondary": "#ffffff",
+              "secondary": "#4d6548",
+              "primary": "#9c3e20",
+              "surface-variant": "#e5e2dd",
+              "on-secondary-fixed": "#0b200a",
+              "background": "#fcf9f4",
+              "secondary-fixed": "#cfeac6",
+              "on-surface": "#1c1c19",
+              "on-tertiary-fixed": "#251911"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-gradient-primary {
+            background: linear-gradient(135deg, #9c3e20 0%, #bc5636 100%);
+        }
+        .card-gradient-dark {
+            background: linear-gradient(135deg, #31302d 0%, #56423c 100%);
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#9c3e20] dark:text-[#bc5636] active:scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-extrabold text-[#9c3e20] tracking-tight font-['Nunito']">miFoodi</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high ring-2 ring-primary/10">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbjiOHdPZQqqhYVX6FsNMHBPAhvySNhn6bI4_XB-WX6EOz1__a_wkukntOm8FkL_Xlh13h-TjecYs1xMluxpw5WQdRYfQtcpftTbaz35M--AdzsG7IuG5u64iIjUEtPAVOSi2rsUe6CUoaY0Ig57RtxFFJ_VI0zArMNyu6TWpmZ6zEMyh2QRODIUrMXWRLfnDzetfiCvDdOO7X_52_803p2ziQJX8sMDyOHMWOE_rFj6Ifw70IVSQNNZ3TEfEc864HZthYA4LqEaKJ"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- Header Section -->
+<section class="mb-10">
+<h2 class="text-4xl font-extrabold font-headline text-on-surface mb-2 tracking-tight">Payments</h2>
+<p class="text-on-surface-variant font-medium">Manage your payment methods and track transactions.</p>
+</section>
+<!-- Bento Grid for Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+<!-- Add New Card Button - Bento Item 1 -->
+<button class="group flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-[20px] p-8 hover:bg-surface-container transition-all min-h-[220px]">
+<div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</div>
+<span class="font-bold text-on-surface">Add New Card</span>
+<span class="text-xs text-on-surface-variant mt-1">Visa, Mastercard, Amex</span>
+</button>
+<!-- Active Card 1 - Bento Item 2 -->
+<div class="card-gradient-primary text-white rounded-[20px] p-6 min-h-[220px] relative overflow-hidden flex flex-col justify-between shadow-xl">
+<!-- Abstract Texture Overlay -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<span class="text-xs font-bold opacity-80 uppercase tracking-widest mb-1">Primary Card</span>
+<span class="font-bold text-lg">miFoodi Rewards</span>
+</div>
+<span class="material-symbols-outlined text-3xl" data-icon="credit_card">credit_card</span>
+</div>
+<div class="z-10">
+<div class="text-xl font-mono tracking-[0.2em] mb-4">•••• •••• •••• 4290</div>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase opacity-70 mb-1">Card Holder</span>
+<span class="text-sm font-bold">ALEXANDER RIVERA</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] uppercase opacity-70 mb-1">Expires</span>
+<span class="text-sm font-bold">12/26</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Active Card 2 - Bento Item 3 -->
+<div class="card-gradient-dark text-white rounded-[20px] p-6 min-h-[220px] relative overflow-hidden flex flex-col justify-between shadow-xl">
+<div class="absolute bottom-0 left-0 w-24 h-24 bg-primary/20 rounded-full blur-3xl -ml-10 -mb-10"></div>
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<span class="text-xs font-bold opacity-80 uppercase tracking-widest mb-1">Business</span>
+<span class="font-bold text-lg">Bank of Atelier</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-red-500/80 -mr-3"></div>
+<div class="w-8 h-8 rounded-full bg-orange-400/80"></div>
+</div>
+</div>
+<div class="z-10">
+<div class="text-xl font-mono tracking-[0.2em] mb-4">•••• •••• •••• 8812</div>
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase opacity-70 mb-1">Card Holder</span>
+<span class="text-sm font-bold">ALEXANDER RIVERA</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] uppercase opacity-70 mb-1">Expires</span>
+<span class="text-sm font-bold">08/25</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions Section -->
+<section class="bg-surface-container-low rounded-[2rem] p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-2xl font-extrabold font-headline">Recent Transactions</h3>
+<button class="text-primary font-bold text-sm hover:underline">View All</button>
+</div>
+<div class="space-y-4">
+<!-- Transaction 1 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-[20px] transition-transform hover:scale-[1.01]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">The Rustic Kitchen</p>
+<p class="text-xs text-on-surface-variant">Today • 12:45 PM</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-on-surface">-$42.50</p>
+<p class="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Debit Card • 4290</p>
+</div>
+</div>
+<!-- Transaction 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-[20px] transition-transform hover:scale-[1.01]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="bakery_dining">bakery_dining</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Artisan Bakery Co.</p>
+<p class="text-xs text-on-surface-variant">Yesterday • 09:15 AM</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-on-surface">-$18.20</p>
+<p class="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Debit Card • 4290</p>
+</div>
+</div>
+<!-- Transaction 3 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-[20px] transition-transform hover:scale-[1.01]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="coffee">coffee</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Brew &amp; Bean</p>
+<p class="text-xs text-on-surface-variant">Oct 24 • 04:30 PM</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-bold text-on-surface">-$6.50</p>
+<p class="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Business • 8812</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Insights / Promotions Bento Footer -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+<div class="bg-secondary-container rounded-[2rem] p-8 flex items-center gap-6">
+<div class="flex-1">
+<h4 class="text-xl font-extrabold font-headline text-on-secondary-container mb-2">Save with miFoodi Card</h4>
+<p class="text-sm text-on-secondary-fixed-variant mb-4 leading-relaxed">Get 5% cashback on all orders using our primary card.</p>
+<button class="bg-primary text-white px-6 py-2 rounded-full font-bold text-sm hover:opacity-90 transition-opacity">Learn More</button>
+</div>
+<div class="hidden sm:block w-24 h-24 bg-white/20 rounded-full flex items-center justify-center rotate-12">
+<span class="material-symbols-outlined text-5xl text-on-secondary-container" data-icon="savings">savings</span>
+</div>
+</div>
+<div class="bg-tertiary-fixed rounded-[2rem] p-8">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-tertiary text-4xl" data-icon="security">security</span>
+<span class="text-[10px] font-bold text-tertiary uppercase tracking-widest bg-white/40 px-3 py-1 rounded-full">Secure</span>
+</div>
+<h4 class="text-xl font-extrabold font-headline text-on-tertiary-fixed mb-1">Purchase Protection</h4>
+<p class="text-sm text-on-tertiary-fixed-variant">Every transaction is encrypted and protected by miFoodi SafeCheck.</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-6 pt-3 px-4 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md z-50 rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Favourites</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-2 scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Payments</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['DM_Sans'] text-xs font-bold uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Operating Hours Scheduler</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline": "#89726b",
+              "error-container": "#ffdad6",
+              "background": "#fcf9f4",
+              "on-tertiary-fixed-variant": "#53443a",
+              "inverse-primary": "#ffb59f",
+              "on-surface-variant": "#56423c",
+              "inverse-surface": "#31302d",
+              "tertiary": "#6a594e",
+              "secondary-container": "#cce7c3",
+              "on-background": "#1c1c19",
+              "error": "#ba1a1a",
+              "primary-container": "#bc5636",
+              "on-primary-container": "#fffbff",
+              "surface-dim": "#dcdad5",
+              "surface-container-high": "#ebe8e3",
+              "surface-variant": "#e5e2dd",
+              "surface-bright": "#fcf9f4",
+              "secondary-fixed-dim": "#b3ceab",
+              "secondary-fixed": "#cfeac6",
+              "inverse-on-surface": "#f3f0eb",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#837166",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "primary-fixed": "#ffdbd0",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-fixed": "#3a0a00",
+              "surface": "#fcf9f4",
+              "on-primary": "#ffffff",
+              "surface-container": "#f0ede9",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "on-tertiary-fixed": "#251911",
+              "surface-tint": "#9f4122",
+              "on-tertiary": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "on-error-container": "#93000a",
+              "on-surface": "#1c1c19",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "on-tertiary-container": "#fffbff",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["DM Sans"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 w-full bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#9c3e20] dark:text-[#d96c4a] p-2 hover:bg-[#f6f3ee] dark:hover:bg-stone-800 transition-colors rounded-full" data-icon="menu">menu</button>
+<h1 class="text-2xl font-extrabold text-[#1c1c19] dark:text-[#fcf9f4] font-headline">Vendor Hub</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden ring-2 ring-outline-variant ring-opacity-20">
+<img alt="Vendor Profile Picture" class="w-full h-full object-cover" data-alt="Close up profile of a chef in a kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD94rgJe8qkK5KYt54yJ4QeILKAwdrosq4Y8FwIUAe4NzuAKaayvhYXPavBaAf5sRwBxRLZD6c5r9P3RjKlmqKqP-LsRSNuKlpotnph5n-KqTuYjrLz-6a-KOd20Fk5hDLt8vWmzdTpVIA2wewdOD7cyrZt8rTuiAcm4bcnacRiJAEs2bQO2taXuPeAR-vZoTXtPzdH0fkU7OFuKZtuVdfWTDnAQCOhhWcfhW23hjX60dXOfkX4RPpv-HjPrv5wJKt0ZA7vSWIuuTfv"/>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-6 pt-8 pb-32">
+<!-- Hero Section / Context -->
+<div class="mb-12">
+<h2 class="text-4xl font-extrabold font-headline text-on-surface mb-2 tracking-tight">Operating Hours</h2>
+<p class="text-on-surface-variant max-w-xl text-lg">Set your kitchen availability. Use breaks to manage peak prep times or staff shift changes.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Weekly Scheduler Column -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Day Card: Monday (Active) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col gap-6 shadow-sm transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold w-12 text-primary">MON</span>
+<div class="h-10 w-16 bg-primary rounded-full relative cursor-pointer flex items-center px-1">
+<div class="h-8 w-8 bg-white rounded-full shadow-md ml-auto"></div>
+</div>
+<span class="text-on-surface font-bold">Open</span>
+</div>
+<button class="text-primary font-bold flex items-center gap-1 py-2 px-4 bg-primary-fixed rounded-full hover:bg-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                            Add break
+                        </button>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="schedule">schedule</span>
+<div class="flex flex-col">
+<label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Start Time</label>
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0" type="time" value="09:00"/>
+</div>
+</div>
+<div class="w-2 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="bedtime">bedtime</span>
+<div class="flex flex-col">
+<label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">End Time</label>
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0" type="time" value="22:00"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Day Card: Tuesday (Active with Break) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col gap-6 shadow-sm ring-1 ring-primary/5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold w-12 text-primary">TUE</span>
+<div class="h-10 w-16 bg-primary rounded-full relative cursor-pointer flex items-center px-1">
+<div class="h-8 w-8 bg-white rounded-full shadow-md ml-auto"></div>
+</div>
+<span class="text-on-surface font-bold">Open</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="09:00"/>
+</div>
+<div class="w-2 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="14:00"/>
+</div>
+</div>
+<!-- Break Visual -->
+<div class="flex items-center gap-4 px-2">
+<div class="flex-1 h-[1px] bg-dashed border-t border-dashed border-outline-variant"></div>
+<span class="text-xs font-bold text-on-surface-variant bg-surface-container-low px-3 py-1 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="coffee">coffee</span>
+                                AFTERNOON BREAK
+                            </span>
+<div class="flex-1 h-[1px] bg-dashed border-t border-dashed border-outline-variant"></div>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="17:00"/>
+</div>
+<div class="w-2 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="22:00"/>
+</div>
+<button class="p-2 text-error hover:bg-error-container rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Day Card: Wednesday (Closed) -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col gap-6 transition-all opacity-80">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold w-12 text-on-surface-variant">WED</span>
+<div class="h-10 w-16 bg-surface-variant rounded-full relative cursor-pointer flex items-center px-1">
+<div class="h-8 w-8 bg-white rounded-full shadow-sm"></div>
+</div>
+<span class="text-on-surface-variant font-medium">Closed</span>
+</div>
+</div>
+</div>
+<!-- Day Card: Thursday (Active) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col gap-6 shadow-sm transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold w-12 text-primary">THU</span>
+<div class="h-10 w-16 bg-primary rounded-full relative cursor-pointer flex items-center px-1">
+<div class="h-8 w-8 bg-white rounded-full shadow-md ml-auto"></div>
+</div>
+<span class="text-on-surface font-bold">Open</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="09:00"/>
+</div>
+<div class="w-2 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="22:00"/>
+</div>
+</div>
+</div>
+<!-- Day Card: Friday (Active) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col gap-6 shadow-sm transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold w-12 text-primary">FRI</span>
+<div class="h-10 w-16 bg-primary rounded-full relative cursor-pointer flex items-center px-1">
+<div class="h-8 w-8 bg-white rounded-full shadow-md ml-auto"></div>
+</div>
+<span class="text-on-surface font-bold">Open</span>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="09:00"/>
+</div>
+<div class="w-2 h-[2px] bg-outline-variant"></div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-3 rounded-[1rem] flex-1 min-w-[200px]">
+<input class="bg-transparent border-none p-0 text-on-surface font-bold focus:ring-0 w-full" type="time" value="23:30"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Info / Quick Actions -->
+<aside class="lg:col-span-4 space-y-6">
+<!-- Status Bento Card -->
+<div class="bg-secondary-container p-8 rounded-lg text-on-secondary-container">
+<h3 class="font-headline text-2xl font-bold mb-4">Quick Status</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-medium opacity-80">Weekly Total</span>
+<span class="font-bold text-xl">54 Hours</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-medium opacity-80">Status</span>
+<span class="bg-white/40 px-3 py-1 rounded-full text-xs font-bold">LIVE NOW</span>
+</div>
+</div>
+<div class="mt-8">
+<button class="w-full bg-secondary text-white py-4 rounded-full font-bold shadow-lg shadow-secondary/20 active:scale-95 transition-all">
+                            Save All Changes
+                        </button>
+</div>
+</div>
+<!-- Visual Timeline Concept -->
+<div class="bg-surface-container-low p-6 rounded-lg">
+<h4 class="font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="insights">insights</span>
+                        Availability Density
+                    </h4>
+<div class="flex items-end justify-between h-32 gap-1 px-2">
+<div class="w-full bg-primary/20 rounded-t-full h-[60%]" title="Mon"></div>
+<div class="w-full bg-primary/40 rounded-t-full h-[85%]" title="Tue"></div>
+<div class="w-full bg-outline-variant/20 rounded-t-full h-[10%]" title="Wed"></div>
+<div class="w-full bg-primary/30 rounded-t-full h-[70%]" title="Thu"></div>
+<div class="w-full bg-primary/60 rounded-t-full h-[95%]" title="Fri"></div>
+<div class="w-full bg-primary/50 rounded-t-full h-[80%]" title="Sat"></div>
+<div class="w-full bg-primary/40 rounded-t-full h-[65%]" title="Sun"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-on-surface-variant px-1">
+<span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+</div>
+</div>
+<!-- Helper Tip -->
+<div class="bg-tertiary-fixed-dim/30 p-6 rounded-lg border border-tertiary-container/10">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-tertiary" data-icon="lightbulb">lightbulb</span>
+<p class="text-sm text-on-tertiary-fixed-variant leading-relaxed">
+                            Pro-tip: Adding an <strong>afternoon break</strong> can help manage your inventory and allow your team to reset for the dinner rush.
+                        </p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#fcf9f4]/80 backdrop-blur-md z-50 rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-safe pt-2 px-4 h-20">
+<button class="flex flex-col items-center justify-center text-[#56423c] hover:opacity-80 transition-all">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span class="font-['DM_Sans'] text-xs font-medium">Business</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#56423c] hover:opacity-80 transition-all">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-['DM_Sans'] text-xs font-medium">Finance</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full px-4 py-1 active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['DM_Sans'] text-xs font-medium">Docs</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#56423c] hover:opacity-80 transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['DM_Sans'] text-xs font-medium">Settings</span>
+</button>
+</div>
+</nav>
+<!-- FAB (Suppressed based on context rules, but shown here for scheduler action if needed - opting to prioritize clean desktop-first look) -->
+</body></html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Details - miCook Vendor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Nunito:wght@400;700;800;900&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#4d6548",
+              "surface-variant": "#e5e2dd",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "surface-dim": "#dcdad5",
+              "secondary-fixed": "#cfeac6",
+              "inverse-surface": "#31302d",
+              "on-surface": "#1c1c19",
+              "inverse-primary": "#ffb59f",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-high": "#ebe8e3",
+              "on-primary": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "surface-container-low": "#f6f3ee",
+              "on-primary-container": "#fffbff",
+              "background": "#fcf9f4",
+              "tertiary-container": "#837166",
+              "on-tertiary-fixed": "#251911",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "secondary-container": "#cce7c3",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container": "#f0ede9",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "on-surface-variant": "#56423c",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Manrope', sans-serif;
+        background-color: #fcf9f4;
+      }
+      .brand-font {
+        font-family: 'Nunito', sans-serif;
+      }
+      .headline-font {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface select-none">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#9c3e20] hover:bg-[#f6f3ee] p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl tracking-tight text-[#9c3e20]">Order #MC-8291</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary/10">
+<img class="w-full h-full object-cover" data-alt="Vendor Chef Profile Picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnjnDQUoumS_Yj1kxZu3D_8FErAcy2HQD7q1_x3m1kEfrWYo9kO0Ha6PLTNSuTITwbyR4B_bOd4Kp7sLbAGuQ4E_NCQ75K2U9zToE2UdAMLiPI69cYhb8zyA-c_AJWoFTyhPC3CspygkvuXVlNfokBQXL0Q0CHECiDcrPTdgC9ch7BgjsP0anOdLJ01oNQCCof9mq4wS-xvFMrLRSsgxy61ljGX2TCS2X5f3TPCu8k6UqeyYAGv739rK-02hZoZkcbHgW4QE4ALUuH"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-3xl mx-auto space-y-6">
+<!-- Order Status Timeline -->
+<section class="bg-surface-container-low rounded-lg p-6 space-y-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-bold uppercase tracking-widest text-on-surface-variant/60">Current Status</span>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">In Preparation</span>
+</div>
+<div class="relative flex items-center justify-between">
+<!-- Timeline Track -->
+<div class="absolute top-1/2 left-0 w-full h-0.5 bg-surface-variant -translate-y-1/2 -z-10"></div>
+<div class="absolute top-1/2 left-0 w-1/2 h-0.5 bg-secondary -translate-y-1/2 -z-10"></div>
+<!-- Status Dots -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-secondary ring-4 ring-secondary-container"></div>
+<span class="text-[10px] font-bold text-secondary uppercase">Placed</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-secondary ring-4 ring-secondary-container"></div>
+<span class="text-[10px] font-bold text-secondary uppercase">Confirmed</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-secondary animate-pulse ring-4 ring-secondary-container"></div>
+<span class="text-[10px] font-bold text-secondary uppercase">Cooking</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-30">
+<div class="w-4 h-4 rounded-full bg-surface-variant"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Ready</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-30">
+<div class="w-4 h-4 rounded-full bg-surface-variant"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Picked</span>
+</div>
+</div>
+</section>
+<!-- Customer & Delivery Info -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<section class="bg-surface-container-lowest rounded-lg p-6 space-y-3">
+<h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+                    Customer Info
+                </h3>
+<div class="space-y-1">
+<p class="font-bold text-lg">Eleanor Shellstrop</p>
+<p class="text-on-surface-variant text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="call">call</span>
+                        +1 (555) 012-3456
+                    </p>
+</div>
+</section>
+<section class="bg-surface-container-lowest rounded-lg p-6 space-y-3">
+<h3 class="font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+                    Delivery Method
+                </h3>
+<div class="space-y-1">
+<p class="font-bold text-lg">Doorstep Delivery</p>
+<p class="text-on-surface-variant text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="schedule">schedule</span>
+                        ASAP (ETA 25 mins)
+                    </p>
+</div>
+</section>
+</div>
+<!-- Order Items -->
+<section class="bg-surface-container-lowest rounded-lg overflow-hidden">
+<div class="p-6 border-b border-surface-variant/10">
+<h3 class="font-headline font-bold text-xl text-on-surface">Order Items</h3>
+</div>
+<div class="p-2 space-y-2">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 p-4 hover:bg-surface-container-low transition-colors rounded-lg group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Artisan Salad Bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5rqiVPT_lvYX5bE8nCyIe3NFEknlVEricfD45yr-CepuOv-l0XBMjObvtKCnXcerFTYDukUsL1taxHNqyCqeMtYvve2eMNCIa5GWKFz9t7FhHdjGgU2pdObajI3vPl624p5c136gkV0QzfUNgbj-IMpAH-xfTkYhPA1kQwlqIwUvxyaV-qfmvmO4IHa6EjEllbAFvzyVwnxSXrs_wSaBkjaBJMseDc3J8zDjKvNlTqRnMjRlCpc70hiOkHo9BrKmScD5XsG9maKdu"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface">Artisan Green Salad Bowl</h4>
+<p class="text-xs text-on-surface-variant">Extra dressing on the side</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-primary">2 × $14.50</p>
+<p class="text-sm font-semibold">$29.00</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 p-4 hover:bg-surface-container-low transition-colors rounded-lg group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Grilled Salmon Fillet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSFHJIBZX4bKGNH4_sxDNjcIi5BMhn5rAC1w_WjGm0WJg6cShl4AD5Ga27aFXy_tgflubQWW7NXHIxAZrPa883TcGFWkVARQ-RNCuTVwNKuALrQKi5P4kttMO-EJQFIm_k3ruHxntCnCaNS-STwwr1WZP-bTIHbsnkf_jQFCXEIAcKMzfrIq-Lf_cBds-55iQQ5yepIsPYrESaEvewLZife0hC4ZyRceAR1ejpGk-A0G6tuA9wF-QH2O6-_b9ev_jbZWKDR-Yzy-Ya"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface">Miso-Glazed Salmon</h4>
+<p class="text-xs text-on-surface-variant">Medium well</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-primary">1 × $24.00</p>
+<p class="text-sm font-semibold">$24.00</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 p-4 hover:bg-surface-container-low transition-colors rounded-lg group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Iced Peach Tea" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTBKvPGoTglVse6u6lum27VVMWXucErzCFBFPC1k2Ddby67W_qB-XD8NgM7ipXDPvBjIrXXJmTeAM0NL3Vj3iSj1nJeRsLq4XWQJfL9vVcXNriQXAjLlVdgyCm1lYpCVVsiXA1QXxfcZ8JTZAR40JcBaK7jTLh5w5J3M4rdtCbk3IUqUB7iu-kGHYbxLt0mmgHnZulG3rD-qeh_kvF8AKiye8VPwa5IqxsxebZbw2KVa1KZ0e53_KlYBPTI1qkV4z6G6k0JOfaWlH0"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface">Home-brewed Peach Tea</h4>
+<p class="text-xs text-on-surface-variant">Less ice</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-primary">3 × $4.50</p>
+<p class="text-sm font-semibold">$13.50</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Totals & Breakdown -->
+<section class="bg-surface-container-low rounded-lg p-6 space-y-4">
+<div class="space-y-2">
+<div class="flex justify-between text-on-surface-variant">
+<span>Subtotal</span>
+<span class="font-medium">$66.50</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>GST (7%)</span>
+<span class="font-medium">$4.65</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Delivery Fee</span>
+<span class="font-medium">$2.50</span>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-variant flex justify-between items-end">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Total Amount</p>
+<p class="text-3xl font-black headline-font text-primary">$73.65</p>
+</div>
+<div class="flex gap-2">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">PAID</span>
+</div>
+</div>
+</section>
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-4 px-6 rounded-full bg-surface-container-highest text-on-surface-variant font-bold hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+                Cancel Order
+            </button>
+<button class="flex items-center justify-center gap-2 py-4 px-6 rounded-full bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 hover:bg-primary-container transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Mark Ready
+            </button>
+</div>
+</main>
+<!-- Navigation Shell Placeholder (Not visible on transaction focus as per Shell Visibility Rule) -->
+<!-- Bottom Navigation (Filtered for Focused Journey - Suppressed) -->
+<!-- FAB (Filtered for Task Focused - Suppressed) -->
+</body></html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reject Order - Mitabl Cook</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-background": "#1c1c19",
+              "surface-tint": "#9f4122",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "error": "#ba1a1a",
+              "tertiary-container": "#837166",
+              "inverse-on-surface": "#f3f0eb",
+              "primary": "#9c3e20",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#0b200a",
+              "secondary-fixed": "#cfeac6",
+              "surface-bright": "#fcf9f4",
+              "tertiary-fixed": "#f6ded1",
+              "on-tertiary-fixed": "#251911",
+              "surface-dim": "#dcdad5",
+              "surface-container-high": "#ebe8e3",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-primary-fixed": "#3a0a00",
+              "outline-variant": "#ddc0b8",
+              "outline": "#89726b",
+              "surface": "#fcf9f4",
+              "secondary-fixed-dim": "#b3ceab",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "surface-container-low": "#f6f3ee",
+              "on-error": "#ffffff",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary": "#ffffff",
+              "inverse-primary": "#ffb59f",
+              "on-error-container": "#93000a",
+              "inverse-surface": "#31302d",
+              "tertiary": "#6a594e",
+              "on-surface": "#1c1c19",
+              "on-secondary-container": "#51694c",
+              "surface-variant": "#e5e2dd",
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "on-surface-variant": "#56423c",
+              "error-container": "#ffdad6",
+              "secondary-container": "#cce7c3",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container": "#f0ede9",
+              "on-tertiary-container": "#fffbff",
+              "surface-container-lowest": "#ffffff",
+              "primary-container": "#bc5636",
+              "on-primary-container": "#fffbff"
+            },
+            fontFamily: {
+              "Nunito": ["Nunito", "sans-serif"],
+              "DM-Sans": ["DM Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-DM-Sans selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-[#fcf9f4] dark:bg-stone-950 tonal-shift">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#9c3e20] dark:text-[#d96c4a]">lock</span>
+<h1 class="text-2xl font-black text-[#9c3e20] dark:text-[#d96c4a] font-Nunito">Mitabl</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile photo of a professional chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACGS3Ci9zp8ezTnFjiXeSoSL11zHtP1bRIDUzHxfwEOPIYBUjpyIQwHPLl3_Eb30sam3CXzGuA4NaDGHiDXdlQMaOy97YL-JLap0hrKKLB-Kg59-mBpccW6AFewJiNRd_mPnd8HPfAc8JfKQV4ciSwXZo8JCQF16uSW3tGCCYSEU7b7en31m-CgVwVAg3Avva4Cqb71DqGELrjXe2CR7SGdqdre51m7iuQFeCbtq7LIcOotMx-ujNImVxvwQQY-Sog8mXH_OLFCg90"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="min-h-screen pt-20 pb-32 px-4 max-w-xl mx-auto">
+<!-- Contextual Header -->
+<div class="mb-8">
+<button class="mb-4 flex items-center gap-2 text-on-surface-variant hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-bold tracking-tight uppercase text-[11px]">Back to Order</span>
+</button>
+<h2 class="text-3xl font-Nunito font-extrabold text-on-surface tracking-tight">Reject Order #1234</h2>
+<p class="text-on-surface-variant mt-1">Please select a reason for declining this request.</p>
+</div>
+<!-- Rejection Form Container -->
+<div class="bg-surface-container-low rounded-xl p-6 space-y-6">
+<!-- Options List -->
+<div class="space-y-3">
+<label class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-DEFAULT cursor-pointer hover:bg-white transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center group-has-[:checked]:border-primary transition-colors">
+<div class="w-3 h-3 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+</div>
+<span class="font-medium text-on-surface">Kitchen too busy</span>
+</div>
+<input checked="" class="hidden" name="rejection_reason" type="radio"/>
+</label>
+<label class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-DEFAULT cursor-pointer hover:bg-white transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center group-has-[:checked]:border-primary transition-colors">
+<div class="w-3 h-3 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+</div>
+<span class="font-medium text-on-surface">Out of ingredients</span>
+</div>
+<input class="hidden" name="rejection_reason" type="radio"/>
+</label>
+<label class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-DEFAULT cursor-pointer hover:bg-white transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant flex items-center justify-center group-has-[:checked]:border-primary transition-colors">
+<div class="w-3 h-3 rounded-full bg-primary opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+</div>
+<span class="font-medium text-on-surface">Other</span>
+</div>
+<input class="hidden" name="rejection_reason" type="radio"/>
+</label>
+</div>
+<!-- Custom Message Field -->
+<div class="space-y-2">
+<label class="text-[11px] font-bold tracking-wide uppercase text-on-surface-variant ml-1">Message to the foodie</label>
+<textarea class="w-full h-32 p-4 bg-surface-container-lowest border-none rounded-DEFAULT text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Briefly explain why you can't fulfill this order..."></textarea>
+<p class="text-[10px] text-outline text-right italic">A kind message helps keep your rating high.</p>
+</div>
+<!-- Action Button -->
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-bold shadow-[0_4px_16px_rgba(156,62,32,0.25)] active:scale-95 transition-transform">
+                Confirm Rejection
+            </button>
+<!-- Secondary Info -->
+<div class="flex items-start gap-3 p-4 bg-tertiary-fixed rounded-DEFAULT">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant">info</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-relaxed">
+                    Declining orders frequently may affect your visibility in the search results. Try setting your kitchen to "Busy" if you're over capacity.
+                </p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-stone-950/80 backdrop-blur-xl rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-DM-Sans text-[11px] font-bold tracking-wide uppercase mt-1">Home</span>
+</a>
+<!-- Orders (Active: Requests) -->
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c] text-[#51694c] dark:text-[#cce7c3] rounded-full px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-DM-Sans text-[11px] font-bold tracking-wide uppercase mt-1">Orders</span>
+</a>
+<!-- Inbox -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-DM-Sans text-[11px] font-bold tracking-wide uppercase mt-1">Inbox</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 px-4 py-1 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-DM-Sans text-[11px] font-bold tracking-wide uppercase mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

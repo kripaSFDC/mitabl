@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Join Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#f6ded1",
+              "tertiary": "#6a594e",
+              "surface-tint": "#9f4122",
+              "outline-variant": "#ddc0b8",
+              "surface-dim": "#dcdad5",
+              "secondary-container": "#cce7c3",
+              "on-secondary-fixed-variant": "#364c32",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary-container": "#fffbff",
+              "inverse-primary": "#ffb59f",
+              "error-container": "#ffdad6",
+              "secondary-fixed": "#cfeac6",
+              "surface-bright": "#fcf9f4",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "surface-container-low": "#f6f3ee",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "on-tertiary-container": "#fffbff",
+              "on-primary": "#ffffff",
+              "on-surface": "#1c1c19",
+              "tertiary-container": "#837166",
+              "on-secondary": "#ffffff",
+              "outline": "#89726b",
+              "on-error": "#ffffff",
+              "surface-container": "#f0ede9",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#0b200a",
+              "primary-fixed": "#ffdbd0",
+              "on-primary-fixed": "#3a0a00",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#b3ceab",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed": "#251911",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#51694c",
+              "inverse-surface": "#31302d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "on-tertiary-fixed-variant": "#53443a",
+              "background": "#fcf9f4",
+              "surface-variant": "#e5e2dd",
+              "secondary": "#4d6548"
+            },
+            fontFamily: {
+              "headline": ["Nunito"],
+              "body": ["DM Sans"],
+              "label": ["DM Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f4;
+            font-family: 'DM Sans', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Header / TopAppBar -->
+<!-- Suppressing standard Nav Shell for focused Sign Up journey -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 transition-transform" data-icon="arrow_back">arrow_back</span>
+</div>
+<div class="text-2xl font-extrabold text-[#9c3e20] tracking-tight font-headline">Mitabl</div>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="min-h-screen pt-24 pb-12 px-6 max-w-xl mx-auto flex flex-col justify-center">
+<!-- Onboarding Text -->
+<div class="mb-10 text-center md:text-left">
+<h1 class="text-4xl md:text-5xl font-extrabold text-on-surface font-headline leading-tight mb-4">
+                Pull up a <span class="text-primary">chair</span>.
+            </h1>
+<p class="text-lg text-on-surface-variant font-body leading-relaxed max-w-md">
+                Join our community of home cooks and culinary enthusiasts. Your place at the table is waiting.
+            </p>
+</div>
+<!-- Registration Form Card -->
+<div class="bg-surface-container-lowest rounded-lg p-8 shadow-[0_4px_40px_rgba(28,28,25,0.04)]">
+<form class="space-y-6">
+<!-- Name Field -->
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant uppercase tracking-wider ml-1" for="full-name">Full Name</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant/50">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/40 transition-all font-body" id="full-name" placeholder="Jamie Oliver" type="text"/>
+</div>
+</div>
+<!-- Contact Field -->
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant uppercase tracking-wider ml-1" for="contact">Email or Phone</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant/50">
+<span class="material-symbols-outlined" data-icon="contact_mail">contact_mail</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/40 transition-all font-body" id="contact" placeholder="chef@mitabl.com" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant uppercase tracking-wider ml-1" for="password">Password</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant/50">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+</div>
+<input class="block w-full pl-12 pr-12 py-4 bg-surface-container-low border-none rounded-DEFAULT focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/40 transition-all font-body" id="password" placeholder="••••••••" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-on-surface-variant/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 mt-4 flex items-center justify-center gap-2" type="submit">
+<span>Create Account</span>
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+</button>
+</form>
+<div class="mt-8 flex items-center gap-4">
+<div class="h-[1px] flex-1 bg-outline-variant/20"></div>
+<span class="text-sm text-on-surface-variant font-medium">Or join with</span>
+<div class="h-[1px] flex-1 bg-outline-variant/20"></div>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 py-3 bg-surface-container-low hover:bg-surface-container-high rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-primary" data-icon="google">google</span>
+<span class="font-bold text-sm text-on-surface">Google</span>
+</button>
+<button class="flex items-center justify-center gap-2 py-3 bg-surface-container-low hover:bg-surface-container-high rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[#1877F2]" data-icon="facebook" style="font-variation-settings: 'FILL' 1;">social_leaderboard</span>
+<span class="font-bold text-sm text-on-surface">Facebook</span>
+</button>
+</div>
+</div>
+<!-- Login Link -->
+<p class="mt-10 text-center text-on-surface-variant font-medium">
+            Already part of the kitchen? 
+            <a class="text-primary font-bold hover:underline underline-offset-4 ml-1" href="#">Log in here</a>
+</p>
+<!-- Terms -->
+<p class="mt-auto pt-12 text-[11px] text-center text-on-surface-variant/60 leading-relaxed uppercase tracking-widest font-bold">
+            By creating an account, you agree to Mitabl's <br/>
+<span class="underline">Terms of Service</span> and <span class="underline">Privacy Policy</span>.
+        </p>
+</main>
+<!-- Asymmetric Background Elements for 'Atelier' feel -->
+<div class="fixed -bottom-20 -left-20 w-64 h-64 bg-secondary-container/20 rounded-full blur-[80px] -z-10"></div>
+<div class="fixed -top-20 -right-20 w-80 h-80 bg-primary-container/10 rounded-full blur-[100px] -z-10"></div>
+</body></html>
