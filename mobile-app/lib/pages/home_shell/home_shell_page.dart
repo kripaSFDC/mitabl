@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
 import 'package:mitabl_user/pages/home/view/home_page.dart';
 import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/view/profile_foodie_page.dart';
+import 'package:mitabl_user/repos/cook_repository.dart';
+import 'package:mitabl_user/repos/home_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/mitabl_bottom_nav.dart';
 
 /// Wraps the foodie experience with a persistent bottom navigation bar.
@@ -40,33 +45,51 @@ class _HomeShellPageState extends State<HomeShellPage> {
     ),
   ];
 
-  late final List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    _pages = [
-      const HomePage(),
-      _buildOrdersPage(),
-      const ProfileFoodiePage(),
-    ];
-  }
-
-  Widget _buildOrdersPage() {
-    return const MiOrdersPage();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: [
+          _buildHomePage(context),
+          const MiOrdersPage(),
+          const ProfileFoodiePage(),
+        ],
       ),
       bottomNavigationBar: MitablBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: _navItems,
+      ),
+    );
+  }
+
+  /// Wraps HomePage with the same providers that HomePage.route() uses.
+  Widget _buildHomePage(BuildContext context) {
+    final userRepo = context.read<UserRepository>();
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(
+          create: (_) => HomeRepository(
+            httpClient: userRepo.httpClient,
+          ),
+          dispose: (repository) => repository.dispose(),
+        ),
+        RepositoryProvider(
+          create: (_) => CookRepository(
+            userRepo,
+            httpClient: userRepo.httpClient,
+          ),
+          dispose: (repository) => repository.dispose(),
+        ),
+      ],
+      child: BlocProvider(
+        create: (ctx) => HomeCubit(
+          repo: userRepo,
+          homeRepository: ctx.read<HomeRepository>(),
+          cookRepository: ctx.read<CookRepository>(),
+        ),
+        child: const HomePage(),
       ),
     );
   }

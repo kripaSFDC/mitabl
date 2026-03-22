@@ -9,6 +9,9 @@ import 'package:mitabl_user/pages/home_shell/home_shell_page.dart';
 import 'package:mitabl_user/pages/landing_page/landing_page.dart';
 import 'package:mitabl_user/pages/login/view/login_page.dart';
 import 'package:mitabl_user/pages/otp/view/otp_page.dart';
+import 'package:mitabl_user/pages/otp/view/otp_email_page.dart';
+import 'package:mitabl_user/pages/forgot/view/reset_link_sent_page.dart';
+import 'package:mitabl_user/pages/signup_foodie/view/signup_foodie_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_cart_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_checkout_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_menu_page.dart';
@@ -52,14 +55,26 @@ class RouteGenerator {
       case '/SignUpPage':
         return SignupPage.route();
 
+      case '/SignUpFoodie':
+        return SignupFoodiePage.route();
+
       case '/ForgotPage':
         return ForgotPage.route();
+
+      case '/ResetLinkSent':
+        return ResetLinkSentPage.route(routeArguments: routeArguments);
 
       case '/OTPPage':
         if (routeArguments == null) {
           return _routeError('Missing route arguments for /OTPPage');
         }
         return OTPPage.route(routeArguments: routeArguments);
+
+      case '/OTPEmailPage':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OTPEmailPage');
+        }
+        return OtpEmailPage.route(routeArguments: routeArguments);
 
       case '/HomePage':
         return HomeShellPage.route();

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 /// Full-screen biometric lock shown on cold start or app resume when the
 /// user has enabled biometric authentication.
@@ -23,7 +25,6 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
   @override
   void initState() {
     super.initState();
-    // Automatically prompt as soon as the page is shown.
     WidgetsBinding.instance.addPostFrameCallback((_) => _authenticate());
   }
 
@@ -56,69 +57,147 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: MitablColors.surface,
       body: SafeArea(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Semantics(
-                  image: true,
-                  label: 'Biometric authentication icon',
-                  child: Icon(
-                    Icons.fingerprint_rounded,
-                    size: 80,
-                    color: theme.primaryColor,
+                const Spacer(flex: 3),
+
+                // Brand
+                const Text(
+                  'Mitabl',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Nunito',
+                    color: MitablColors.primary,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 24),
-                Semantics(
-                  header: true,
-                  child: Text(
-                    'Unlock Mitabl',
-                    style: theme.textTheme.headlineSmall,
+                const SizedBox(height: 40),
+
+                // Fingerprint with tonal ring layers
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: MitablColors.primary.withValues(alpha: 0.04),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        color: MitablColors.primary.withValues(alpha: 0.07),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLowest,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: MitablColors.onSurface
+                                .withValues(alpha: 0.06),
+                            blurRadius: 24,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.fingerprint_rounded,
+                        size: 44,
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                const Text(
+                  'Locked for your security',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'Nunito',
+                    color: MitablColors.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Authenticate to access your account',
-                  style: theme.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
+                  'Use Face ID or Fingerprint to unlock',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: MitablColors.onSurfaceVariant
+                        .withValues(alpha: 0.8),
+                  ),
                 ),
+
                 if (_error != null) ...[
                   const SizedBox(height: 16),
                   Text(
                     _error!,
-                    style: TextStyle(color: theme.colorScheme.error),
+                    style: const TextStyle(color: MitablColors.error),
                     textAlign: TextAlign.center,
                   ),
                 ],
-                const SizedBox(height: 32),
+
+                const SizedBox(height: 36),
+
                 if (_authenticating)
-                  const CircularProgressIndicator()
+                  const CircularProgressIndicator(
+                    color: MitablColors.primary,
+                  )
                 else ...[
-                  Semantics(
-                    button: true,
-                    label: 'Try biometric authentication again',
-                    child: FilledButton.icon(
-                      onPressed: _authenticate,
-                      icon: const Icon(Icons.fingerprint_rounded),
-                      label: const Text('Try Again'),
-                    ),
+                  MitablButton(
+                    label: 'Unlock',
+                    icon: const Icon(Icons.fingerprint_rounded,
+                        color: Colors.white, size: 20),
+                    onPressed: _authenticate,
                   ),
-                  const SizedBox(height: 8),
-                  Semantics(
-                    button: true,
-                    label: 'Use passcode and bypass biometric lock for now',
-                    child: TextButton(
-                      onPressed: _bypassForSession,
-                      child: const Text('Use Passcode'),
-                    ),
+                  const SizedBox(height: 12),
+                  MitablButton(
+                    label: 'USE PASSWORD',
+                    variant: MitablButtonVariant.secondary,
+                    onPressed: _bypassForSession,
                   ),
                 ],
+
+                const Spacer(flex: 4),
+
+                // Encryption footer
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shield_outlined,
+                        size: 14,
+                        color: MitablColors.onSurfaceVariant
+                            .withValues(alpha: 0.5)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'YOUR DATA IS PROTECTED BY MITABL ENCRYPTION',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                        color: MitablColors.onSurfaceVariant
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:mitabl_user/pages/login/cubit/login_cubit.dart' as cubit;
 import 'package:mitabl_user/pages/login/view/login_form.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -28,6 +29,7 @@ class LoginPage extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         key: scaffoldKey,
+        backgroundColor: MitablColors.surface,
         body: BlocConsumer<cubit.LoginCubit, cubit.LoginState>(
           builder: (context, state) {
             return const LoginForm();
