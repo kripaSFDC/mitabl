@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
+import 'package:mitabl_user/pages/ordering/element/checkout_item_card.dart';
+import 'package:mitabl_user/pages/ordering/element/checkout_receipt.dart';
+import 'package:mitabl_user/pages/ordering/element/slide_to_pay_button.dart';
+import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/widgets/mitabl_chip.dart';
 
 class OrderCartPage extends StatelessWidget {
   const OrderCartPage({super.key, required this.session});
@@ -33,445 +39,314 @@ class OrderCartPage extends StatelessWidget {
       animation: session,
       builder: (context, _) {
         final kitchen = session.kitchen;
+
         return Scaffold(
-          appBar: AppBar(
-            title: Text(kitchen == null ? 'Your cart' : '${kitchen.name} cart'),
+          backgroundColor: MitablColors.surface,
+          appBar: GlassAppBar(
+            title: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Checkout'),
+                if (kitchen != null)
+                  Text(
+                    kitchen.name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: MitablColors.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
           ),
           body: session.cartItems.isEmpty
-              ? const Center(child: Text('Your cart is empty.'))
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Text(
-                      'Items',
-                      style: GoogleFonts.gothicA1(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
+              ? const Center(
+                  child: Text(
+                    'Your cart is empty.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: MitablColors.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 12),
-                    ...session.cartItems.map(
-                      (line) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _CartLine(
-                          line: line,
-                          onAdd: () => session.addItem(line.item),
-                          onRemove: () => session.removeItem(line.item),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _ServiceSection(session: session),
-                    const SizedBox(height: 20),
-                    _DateTimeSection(session: session),
-                    if (session.serviceType == OrderServiceType.dineIn) ...[
-                      const SizedBox(height: 20),
-                      _PersonsSection(session: session),
-                    ],
-                    const SizedBox(height: 20),
-                    _SummaryCard(session: session),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: session.canCheckout
-                          ? () {
-                              Navigator.of(context).pushNamed(
-                                '/OrderCheckout',
-                                arguments: RouteArguments(
-                                  data: OrderRouteData(session: session),
-                                ),
-                              );
-                            }
-                          : null,
-                      child: const Text('Review order'),
-                    ),
-                  ],
-                ),
+                  ),
+                )
+              : _CartBody(session: session),
         );
       },
     );
   }
 }
 
-class _CartLine extends StatelessWidget {
-  const _CartLine({
-    required this.line,
-    required this.onAdd,
-    required this.onRemove,
-  });
-
-  final CartLineItem line;
-  final VoidCallback onAdd;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: config.AppColors().textFieldBackgroundColor(1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: config.AppColors().colorDivider(1)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.item.name,
-                  style: GoogleFonts.gothicA1(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${line.item.price.toStringAsFixed(2)} each',
-                  style: GoogleFonts.gothicA1(
-                    color: config.AppColors().hintTextBackgroundColor(1),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(onPressed: onRemove, icon: const Icon(Icons.remove)),
-          Text(
-            '${line.quantity}',
-            style: GoogleFonts.gothicA1(fontWeight: FontWeight.w700),
-          ),
-          IconButton(onPressed: onAdd, icon: const Icon(Icons.add)),
-          const SizedBox(width: 8),
-          Text(
-            '\$${line.lineTotal.toStringAsFixed(2)}',
-            style: GoogleFonts.gothicA1(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ServiceSection extends StatelessWidget {
-  const _ServiceSection({required this.session});
+class _CartBody extends StatelessWidget {
+  const _CartBody({required this.session});
 
   final OrderSessionController session;
 
   @override
   Widget build(BuildContext context) {
     final kitchen = session.kitchen;
-    if (kitchen == null) {
-      return const SizedBox.shrink();
-    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        MitablSpacing.pagePadding,
+        MitablSpacing.pagePadding,
+        MitablSpacing.pagePadding,
+        32,
+      ),
       children: [
-        Text(
-          'Service type',
-          style: GoogleFonts.gothicA1(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          children: [
-            if (kitchen.dineInAvailable)
-              ChoiceChip(
-                label: const Text('Dine in'),
-                selected: session.serviceType == OrderServiceType.dineIn,
-                onSelected: (_) =>
-                    session.selectServiceType(OrderServiceType.dineIn),
-              ),
-            if (kitchen.takeAwayAvailable)
-              ChoiceChip(
-                label: const Text('Take away'),
-                selected: session.serviceType == OrderServiceType.takeAway,
-                onSelected: (_) =>
-                    session.selectServiceType(OrderServiceType.takeAway),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _DateTimeSection extends StatelessWidget {
-  const _DateTimeSection({required this.session});
-
-  final OrderSessionController session;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDineIn = session.serviceType == OrderServiceType.dineIn;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Pickup or table time',
-          style: GoogleFonts.gothicA1(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final selected = await showDatePicker(
-                    context: context,
-                    initialDate: session.scheduledDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                  );
-                  if (selected != null) {
-                    if (!context.mounted) {
-                      return;
-                    }
-                    session.updateScheduledDate(selected);
-                  }
-                },
-                icon: const Icon(Icons.calendar_month_outlined),
-                label: Text(
-                  DateFormat('EEE, d MMM').format(session.scheduledDate),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (isDineIn) ...[
-          if (session.isLoadingDineInSlots) const LinearProgressIndicator(),
-          if (session.isLoadingDineInSlots) const SizedBox(height: 10),
-          DropdownButtonFormField<int>(
-            key: ValueKey<String>(
-              'dine-in-slot-${session.selectedDineInSlotId}-${session.dineInSlots.length}',
-            ),
-            initialValue: session.selectedDineInSlotId,
-            items: session.dineInSlots
-                .map(
-                  (slot) => DropdownMenuItem<int>(
-                    value: slot.id,
-                    child: Text('${slot.startLabel} - ${slot.endLabel}'),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: session.dineInSlots.isEmpty
-                ? null
-                : (value) => session.selectDineInSlot(value),
-            decoration: const InputDecoration(
-              labelText: 'Available table slot',
-              border: OutlineInputBorder(),
+        // Pickup / Delivery toggle
+        if (kitchen != null) ...[
+          const Text(
+            'Service Type',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: MitablColors.onSurface,
             ),
           ),
-          if (session.dineInSlotError != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              session.dineInSlotError!,
-              style: GoogleFonts.gothicA1(color: Colors.red.shade700),
-            ),
-          ],
-        ] else
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    final picked = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
-                        hour: session.scheduledTime.startHour,
-                        minute: session.scheduledTime.startMinute,
-                      ),
-                    );
-                    if (picked != null) {
-                      final nextStartTotal = (picked.hour * 60) + picked.minute;
-                      final currentEndTotal =
-                          (session.scheduledTime.endHour * 60) +
-                          session.scheduledTime.endMinute;
-                      if (nextStartTotal >= currentEndTotal) {
-                        final adjustedEndTotal = (nextStartTotal + 60)
-                            .clamp(1, (23 * 60) + 59)
-                            .toInt();
-                        if (adjustedEndTotal <= nextStartTotal) {
-                          if (!context.mounted) {
-                            return;
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Please choose a start time earlier in the day.',
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        session.updateTime(
-                          startHour: picked.hour,
-                          startMinute: picked.minute,
-                          endHour: adjustedEndTotal ~/ 60,
-                          endMinute: adjustedEndTotal % 60,
-                        );
-                        return;
-                      }
-                      session.updateTime(
-                        startHour: picked.hour,
-                        startMinute: picked.minute,
-                      );
-                    }
-                  },
-                  child: Text('From ${session.scheduledTime.startLabel}'),
+              if (kitchen.takeAwayAvailable)
+                MitablChip(
+                  label: 'Take away',
+                  selected:
+                      session.serviceType == OrderServiceType.takeAway,
+                  onSelected: (_) =>
+                      session.selectServiceType(OrderServiceType.takeAway),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    final picked = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
-                        hour: session.scheduledTime.endHour,
-                        minute: session.scheduledTime.endMinute,
-                      ),
-                    );
-                    if (picked == null) {
-                      return;
-                    }
-                    final startTotal =
-                        (session.scheduledTime.startHour * 60) +
-                        session.scheduledTime.startMinute;
-                    final endTotal = (picked.hour * 60) + picked.minute;
-                    if (endTotal <= startTotal) {
-                      if (!context.mounted) {
-                        return;
-                      }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('End time must be after start time.'),
-                        ),
-                      );
-                      return;
-                    }
-                    session.updateTime(
-                      endHour: picked.hour,
-                      endMinute: picked.minute,
-                    );
-                  },
-                  child: Text('To ${session.scheduledTime.endLabel}'),
+              if (kitchen.dineInAvailable)
+                MitablChip(
+                  label: 'Dine in',
+                  selected:
+                      session.serviceType == OrderServiceType.dineIn,
+                  onSelected: (_) =>
+                      session.selectServiceType(OrderServiceType.dineIn),
                 ),
-              ),
             ],
           ),
-      ],
-    );
-  }
-}
+          const SizedBox(height: 24),
+        ],
 
-class _PersonsSection extends StatelessWidget {
-  const _PersonsSection({required this.session});
-
-  final OrderSessionController session;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Guests',
-          style: GoogleFonts.gothicA1(
-            fontSize: 18,
+        // YOUR ORDER section
+        const Text(
+          'YOUR ORDER',
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 13,
             fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            color: MitablColors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            IconButton(
-              onPressed: () => session.updatePersons(session.persons - 1),
-              icon: const Icon(Icons.remove_circle_outline),
-            ),
-            Text(
-              '${session.persons}',
-              style: GoogleFonts.gothicA1(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            IconButton(
-              onPressed: () => session.updatePersons(session.persons + 1),
-              icon: const Icon(Icons.add_circle_outline),
-            ),
-          ],
+        const SizedBox(height: 12),
+        ...session.cartItems.map(
+          (line) => Padding(
+            padding: const EdgeInsets.only(bottom: MitablSpacing.listItem),
+            child: CheckoutItemCard(line: line, session: session),
+          ),
         ),
+
+        // + Add more items
+        Center(
+          child: MitablButton(
+            label: '+ Add more items',
+            variant: MitablButtonVariant.outline,
+            fullWidth: false,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Pickup info
+        _PickupInfoSection(session: session),
+        const SizedBox(height: 24),
+
+        // Receipt breakdown
+        CheckoutReceipt(
+          itemTotal: session.itemTotal,
+          taxTotal: session.taxTotal,
+          estimatedTotal: session.estimatedTotal,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Your payment method is attached to the order and charged when the miCook accepts it.',
+          style: TextStyle(
+            fontSize: 12,
+            color: MitablColors.onSurfaceVariant,
+          ),
+        ),
+
+        if ((session.errorMessage ?? '').isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(
+            _displayError(session.errorMessage!),
+            style: const TextStyle(
+              fontSize: 13,
+              color: MitablColors.error,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+
+        // Slide to pay
+        if (session.isSubmitting)
+          const Center(child: CircularProgressIndicator())
+        else
+          SlideToPayButton(
+            amount: session.estimatedTotal + 1.50, // include community fee
+            onConfirmed: () => _handleSubmit(context),
+          ),
+
+        const SizedBox(height: 16),
       ],
     );
   }
+
+  Future<void> _handleSubmit(BuildContext context) async {
+    // 1. Capture cart data before submit clears it
+    final items = List<CartLineItem>.from(session.cartItems);
+    final kitchenName = session.kitchen?.name ?? '';
+    final kitchenAddress = session.kitchen?.address ?? '';
+    final totalAmount = session.estimatedTotal + 1.50;
+    final scheduledDate = session.scheduledDate;
+    final timeLabel =
+        '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
+
+    try {
+      // 2. Submit order
+      final result = await session.submit();
+
+      if (!context.mounted) return;
+
+      // 3. Navigate to confirmation
+      Navigator.of(context).pushReplacementNamed(
+        '/OrderConfirmation',
+        arguments: RouteArguments(
+          data: OrderConfirmationRouteData(
+            result: result,
+            kitchenName: kitchenName,
+            kitchenAddress: kitchenAddress,
+            items: items,
+            totalAmount: totalAmount,
+            scheduledDate: scheduledDate,
+            timeLabel: timeLabel,
+          ),
+        ),
+      );
+    } catch (_) {
+      // 4. Show error
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _displayError(
+              session.errorMessage ?? 'Unable to place order.',
+            ),
+          ),
+        ),
+      );
+    }
+  }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.session});
+class _PickupInfoSection extends StatelessWidget {
+  const _PickupInfoSection({required this.session});
 
   final OrderSessionController session;
 
   @override
   Widget build(BuildContext context) {
-    final serviceLabel = session.serviceType == OrderServiceType.dineIn
-        ? 'Dine in'
-        : 'Take away';
+    final kitchen = session.kitchen;
+    final dateLabel = DateFormat('EEE, d MMM yyyy').format(session.scheduledDate);
+    final timeLabel =
+        '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MitablSpacing.cardPadding),
       decoration: BoxDecoration(
-        color: config.AppColors().textFieldBackgroundColor(0.7),
-        borderRadius: BorderRadius.circular(16),
+        color: MitablColors.surfaceContainerLowest,
+        borderRadius: MitablRadius.cardBorder,
+        border: Border.all(
+          color: MitablColors.outlineVariant.withValues(alpha: 0.15),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Order snapshot',
-            style: GoogleFonts.gothicA1(
-              fontSize: 18,
+          const Text(
+            'Pickup Info',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 15,
               fontWeight: FontWeight.w700,
+              color: MitablColors.onSurface,
             ),
           ),
-          const SizedBox(height: 12),
-          Text('Service: $serviceLabel'),
-          const SizedBox(height: 6),
-          Text(
-            'When: ${DateFormat('EEE, d MMM').format(session.scheduledDate)} '
-            '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}',
-          ),
-          if (session.serviceType == OrderServiceType.dineIn) ...[
-            const SizedBox(height: 6),
-            Text('Guests: ${session.persons}'),
-          ],
           const SizedBox(height: 10),
-          Text(
-            'Items total: \$${session.itemTotal.toStringAsFixed(2)}',
-            style: GoogleFonts.gothicA1(fontWeight: FontWeight.w700),
+          _InfoRow(
+            icon: Icons.calendar_today_outlined,
+            label: dateLabel,
           ),
-          if (session.taxTotal > 0) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Estimated tax: \$${session.taxTotal.toStringAsFixed(2)}',
-              style: GoogleFonts.gothicA1(fontWeight: FontWeight.w700),
+          const SizedBox(height: 8),
+          _InfoRow(
+            icon: Icons.schedule_outlined,
+            label: timeLabel,
+          ),
+          if (kitchen != null) ...[
+            const SizedBox(height: 8),
+            _InfoRow(
+              icon: Icons.location_on_outlined,
+              label: kitchen.address.isNotEmpty
+                  ? kitchen.address
+                  : 'Address not available',
             ),
           ],
-          const SizedBox(height: 6),
-          Text(
-            'Estimated total: \$${session.estimatedTotal.toStringAsFixed(2)}',
-            style: GoogleFonts.gothicA1(fontWeight: FontWeight.w700),
-          ),
         ],
       ),
     );
   }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: MitablColors.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: MitablColors.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _displayError(String raw) {
+  const marker = 'message: ';
+  final markerIndex = raw.indexOf(marker);
+  if (markerIndex == -1) {
+    return raw;
+  }
+
+  final start = markerIndex + marker.length;
+  final trimmed = raw.substring(start).trimRight();
+  return trimmed.endsWith(')')
+      ? trimmed.substring(0, trimmed.length - 1)
+      : trimmed;
 }

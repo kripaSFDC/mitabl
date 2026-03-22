@@ -1,22 +1,23 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
-import 'package:mitabl_user/pages/home/element/filter_dialog.dart';
-import 'package:mitabl_user/pages/home/element/near_by_restaurant.dart';
-import 'package:mitabl_user/pages/home/element/recomm_rest_widget.dart';
-import 'package:mitabl_user/pages/home/element/top_rated.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/cooking_style.dart';
+import 'package:mitabl_user/model/near_by_restaurants_response.dart';
+import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
+import 'package:mitabl_user/pages/home/element/discovery_category_pills.dart';
+import 'package:mitabl_user/pages/home/element/discovery_cook_card.dart';
+import 'package:mitabl_user/pages/home/view/search_filters_page.dart';
+import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -86,427 +87,394 @@ class _HomePage extends State<HomePage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<HomeCubit, HomeState>(
-        builder: (context, state) {
-          return Container(
-            color: config.AppColors().scaffoldColor(1),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(2),
-              ),
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: config.AppConfig(context).appHeight(1),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Row(
-                      children: [
-                        const Expanded(child: _LocationInput()),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: 'Open profile',
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/ProfileFoodie'),
-                              icon: Icon(
-                                Icons.person_outline,
-                                color: Theme.of(context).primaryColorDark,
-                                size: config.AppConfig(context).appWidth(6),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Open filters',
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (contexts) {
-                                  return BlocProvider.value(
-                                    value: context.read<HomeCubit>(),
-                                    child: const FilterDialog(),
-                                  );
-                                },
-                              ),
-                              icon: SvgPicture.asset(
-                                'assets/img/filter.svg',
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(2.0),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _AccountActionsBanner(
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/ProfileFoodie'),
-                    ),
-                  ),
-                  const _SectionTitle(title: 'mitabl recommended'),
-                  SliverToBoxAdapter(
-                    child: state.statusRecommRes!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusRecommRes!.isSubmissionFailure &&
-                              (state
-                                      .recommendedRestResponse
-                                      ?.recommendedResturantList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onRecommendedRestaurants,
-                          )
-                        : (() {
-                            final recommendedItems =
-                                state
-                                    .recommendedRestResponse
-                                    ?.recommendedResturantList ??
-                                const [];
-                            if (recommendedItems.isEmpty &&
-                                state.statusRecommRes!.isSubmissionSuccess) {
-                              return const SizedBox.shrink();
-                            }
-                            return CarouselSlider(
-                              options: CarouselOptions(
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(28.0),
-                                initialPage: 0,
-                                aspectRatio: 2.0,
-                                enableInfiniteScroll: true,
-                                autoPlay: recommendedItems.length > 1,
-                                autoPlayInterval: const Duration(seconds: 3),
-                                autoPlayAnimationDuration: const Duration(
-                                  milliseconds: 1000,
-                                ),
-                                enlargeCenterPage: true,
-                                autoPlayCurve: Curves.fastOutSlowIn,
-                              ),
-                              items: recommendedItems
-                                  .map(
-                                    (item) => RecommendedRestWidget(
-                                      recommendedResturant: item,
-                                    ),
-                                  )
-                                  .toList(),
-                            );
-                          })(),
-                  ),
-                  const _SectionTitle(title: 'top rated restaurants'),
-                  SliverToBoxAdapter(
-                    child: state.statusTopRes!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusTopRes!.isSubmissionFailure &&
-                              (state
-                                      .topReatedRestResponse
-                                      ?.data
-                                      ?.topReatedRestList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onTopratedRestaurants,
-                          )
-                        : TopRatedWidget(
-                            canLoadMore: state.hasMoreTopRated,
-                            isLoadingMore: state.isLoadingMoreTopRated,
-                            onLoadMore: context
-                                .read<HomeCubit>()
-                                .loadMoreTopRated,
-                            topReatedRestList: state
-                                .topReatedRestResponse
-                                ?.data
-                                ?.topReatedRestList,
-                          ),
-                  ),
-                  const _SectionTitle(title: 'micook near my location'),
-                  SliverToBoxAdapter(
-                    child: state.statusApi!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusApi!.isSubmissionFailure &&
-                              (state
-                                      .nearByRestaurants
-                                      ?.data
-                                      ?.nearByRestaurantsList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onNearByRestaurants,
-                          )
-                        : NearByRestaurants(
-                            nearByRestaurantsList: state
-                                .nearByRestaurants
-                                ?.data
-                                ?.nearByRestaurantsList,
-                          ),
-                  ),
-                  if (state.isLoadingMoreNearBy)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: CupertinoActivityIndicator(
-                            color: config.AppColors().hintTextBackgroundColor(
-                              1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-        listener: (context, state) async {},
+  String _greetingLabel() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  }
+
+  String _firstName(BuildContext context) {
+    try {
+      final profileState = context.read<ProfileFoodieCubit>().state;
+      final name = profileState.firstName?.value;
+      if (name != null && name.isNotEmpty) return name;
+    } catch (_) {
+      // ProfileFoodieCubit might not be available yet
+    }
+    return '';
+  }
+
+  void _navigateToOrderMenu(BuildContext context, int kitchenId) {
+    Navigator.of(context).pushNamed(
+      '/OrderMenu',
+      arguments: RouteArguments(
+        data: OrderRouteData(kitchenId: kitchenId),
       ),
     );
   }
-}
-
-class _AccountActionsBanner extends StatelessWidget {
-  const _AccountActionsBanner({required this.onTap});
-
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: config.AppConfig(context).appHeight(1),
-        right: config.AppConfig(context).appHeight(1),
-        bottom: config.AppConfig(context).appHeight(0.8),
-      ),
-      child: Material(
-        color: config.AppColors().textFieldBackgroundColor(1),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: config.AppConfig(context).appWidth(3),
-              vertical: config.AppConfig(context).appHeight(1.1),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.manage_accounts_outlined,
-                  color: Theme.of(context).primaryColorDark,
-                  size: config.AppConfig(context).appWidth(6),
+    return Scaffold(
+      backgroundColor: MitablColors.surface,
+      body: BlocConsumer<HomeCubit, HomeState>(
+        listener: (context, state) async {},
+        builder: (context, state) {
+          // ── Build combined feed list from recommended + nearby ──
+          final recommendedItems =
+              state.recommendedRestResponse?.recommendedResturantList ??
+                  const [];
+          final nearByItems =
+              state.nearByRestaurants?.data?.nearByRestaurantsList ??
+                  const [];
+          final totalFeedCount =
+              recommendedItems.length + nearByItems.length;
+
+          final firstName = _firstName(context);
+          final greetingName = firstName.isNotEmpty ? ', $firstName' : '';
+
+          return CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              // ── Top safe-area spacing ──
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).padding.top + 8,
                 ),
-                SizedBox(width: config.AppConfig(context).appWidth(2.5)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+
+              // ── Greeting header ──
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        'Profile & account actions',
-                        style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.1),
-                          fontWeight: FontWeight.w700,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Good ${_greetingLabel()}$greetingName',
+                              style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 24,
+                                color: MitablColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on,
+                                  size: 16,
+                                  color: MitablColors.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    (state.locationLabel ?? '').isNotEmpty
+                                        ? state.locationLabel!
+                                        : 'Set location',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 13,
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(0.2),
-                      ),
-                      Text(
-                        'Switch profile and logout from here',
-                        style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).hintColor,
-                          fontSize: config.AppConfig(context).appWidth(3.2),
-                          fontWeight: FontWeight.w500,
+                      const SizedBox(width: 12),
+                      // Profile avatar button
+                      GestureDetector(
+                        onTap: () => Navigator.of(context)
+                            .pushNamed('/ProfileFoodie'),
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: MitablColors.primaryContainer,
+                          child: Text(
+                            firstName.isNotEmpty
+                                ? firstName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: MitablColors.onPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Theme.of(context).primaryColorDark,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: ListTile(
-        contentPadding: EdgeInsets.only(
-          left: config.AppConfig(context).appHeight(1),
-          right: config.AppConfig(context).appHeight(1),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.gothicA1(
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.w700,
-            fontSize: config.AppConfig(context).appWidth(5),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LocationInput extends StatefulWidget {
-  const _LocationInput();
-
-  @override
-  State<_LocationInput> createState() => _LocationInputState();
-}
-
-class _LocationInputState extends State<_LocationInput> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    _controller = TextEditingController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
-      builder: (context, state) {
-        if (_controller.text != state.locationQuery) {
-          final value = state.locationQuery ?? '';
-          _controller.value = _controller.value.copyWith(
-            text: value,
-            selection: TextSelection.collapsed(offset: value.length),
-            composing: TextRange.empty,
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: _controller,
-              style: const TextStyle(color: Colors.black),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
               ),
-              onChanged: context.read<HomeCubit>().onLocationQueryChanged,
-              onFieldSubmitted: (_) =>
-                  context.read<HomeCubit>().onLocationSubmitted(),
-              decoration: InputDecoration(
-                suffixIconConstraints: const BoxConstraints(minWidth: 88),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Use current location',
-                      onPressed: state.isResolvingLocation
-                          ? null
-                          : context.read<HomeCubit>().onUseCurrentLocation,
-                      icon: state.isResolvingLocation
-                          ? SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CupertinoActivityIndicator(
-                                color: config.AppColors()
-                                    .hintTextBackgroundColor(1),
-                              ),
-                            )
-                          : Icon(
-                              Icons.my_location_outlined,
-                              color: Theme.of(context).primaryColor,
+
+              // ── Search bar ──
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<HomeCubit>(),
+                            child: const SearchFiltersPage(),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLow,
+                        borderRadius: MitablRadius.pillBorder,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            size: 20,
+                            color: MitablColors.onSurfaceVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'What are you craving?',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 15,
+                              color: MitablColors.onSurfaceVariant
+                                  .withValues(alpha: 0.5),
                             ),
-                    ),
-                    IconButton(
-                      onPressed: context.read<HomeCubit>().onLocationSubmitted,
-                      icon: SvgPicture.asset(
-                        'assets/img/search.svg',
-                        height: config.AppConfig(context).appHeight(2.0),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-                hintStyle: GoogleFonts.gothicA1(
-                  color: Theme.of(context).hintColor,
-                  fontSize: config.AppConfig(context).appWidth(4),
-                ),
-                hintText: 'latitude, longitude',
-                helperText: 'Use current location or enter coordinates',
-                contentPadding: EdgeInsets.all(
-                  config.AppConfig(context).appWidth(2),
-                ),
-                fillColor: config.AppColors().textFieldBackgroundColor(1),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            if ((state.locationLabel ?? '').isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  state.locationLabel!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(3.2),
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-          ],
-        );
-      },
+
+              // ── Category pills (sticky) ──
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _CategoryPillsDelegate(
+                  categories: state.cookingStyleList,
+                  selectedId: state.selectedCookingData?.id,
+                  onSelected: (id) {
+                    if (id == null) {
+                      context
+                          .read<HomeCubit>()
+                          .onCookingStyleChanged(data: null);
+                    } else {
+                      final matching =
+                          state.cookingStyleList?.firstWhere(
+                        (c) => c.id == id,
+                      );
+                      context
+                          .read<HomeCubit>()
+                          .onCookingStyleChanged(data: matching);
+                    }
+                    context.read<HomeCubit>().onApplyFilter();
+                  },
+                ),
+              ),
+
+              // ── Section title ──
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 8,
+                    bottom: 12,
+                  ),
+                  child: Text(
+                    'Cooking today near you',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: MitablColors.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Loading state ──
+              if (state.statusApi!.isSubmissionInProgress &&
+                  state.statusRecommRes!.isSubmissionInProgress &&
+                  totalFeedCount == 0)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 48),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── Error/offline state ──
+              if (state.statusApi!.isSubmissionFailure &&
+                  state.statusRecommRes!.isSubmissionFailure &&
+                  totalFeedCount == 0)
+                SliverToBoxAdapter(
+                  child: OfflineErrorWidget(
+                    onRetry: () {
+                      context.read<HomeCubit>().onApplyFilter();
+                    },
+                  ),
+                ),
+
+              // ── Cook cards feed ──
+              if (totalFeedCount > 0)
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      int? kitchenId;
+                      String name = '';
+                      String? description;
+                      double? rating;
+                      List<Images>? images;
+                      double? distance;
+                      int? dineIn;
+                      int? takeAway;
+
+                      if (index < recommendedItems.length) {
+                        // Recommended item
+                        final item = recommendedItems[index];
+                        kitchenId = item.id;
+                        name = item.name ?? '';
+                        description = item.description;
+                        rating = item.ratingCount;
+                        images = item.images;
+                        dineIn = item.dineIn;
+                        takeAway = item.takeAway;
+                      } else {
+                        // Nearby item
+                        final nearByIndex =
+                            index - recommendedItems.length;
+                        final item = nearByItems[nearByIndex];
+                        kitchenId = item.id;
+                        name = item.name ?? '';
+                        description = item.description?.toString();
+                        // Parse rating from dynamic
+                        final rawRating = item.ratingCount;
+                        if (rawRating is num) {
+                          rating = rawRating.toDouble();
+                        } else {
+                          rating = double.tryParse(
+                              rawRating?.toString() ?? '');
+                        }
+                        images = item.images;
+                        distance = item.distance;
+                        dineIn = item.dineIn;
+                        takeAway = item.takeAway;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: MitablSpacing.listItem / 2,
+                        ),
+                        child: DiscoveryCookCard(
+                          id: kitchenId ?? 0,
+                          name: name,
+                          description: description,
+                          rating: rating,
+                          images: images,
+                          distance: distance,
+                          dineIn: dineIn,
+                          takeAway: takeAway,
+                          onTap: kitchenId == null
+                              ? null
+                              : () => _navigateToOrderMenu(
+                                    context,
+                                    kitchenId!,
+                                  ),
+                        ),
+                      );
+                    },
+                    childCount: totalFeedCount,
+                  ),
+                ),
+
+              // ── Loading more indicator ──
+              if (state.isLoadingMoreNearBy)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── Bottom padding for safe area ──
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 16,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
+  }
+}
+
+// ── Persistent header delegate for category pills ──
+
+class _CategoryPillsDelegate extends SliverPersistentHeaderDelegate {
+  _CategoryPillsDelegate({
+    required this.categories,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  final List<CookingStyleData>? categories;
+  final int? selectedId;
+  final ValueChanged<int?> onSelected;
+
+  @override
+  double get minExtent => 50;
+
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return DiscoveryCategoryPills(
+      categories: categories,
+      selectedId: selectedId,
+      onSelected: onSelected,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CategoryPillsDelegate oldDelegate) {
+    return categories != oldDelegate.categories ||
+        selectedId != oldDelegate.selectedId;
   }
 }
