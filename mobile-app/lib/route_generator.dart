@@ -5,7 +5,7 @@ import 'package:mitabl_user/pages/forgot/view/forgot_page.dart';
 import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
 import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
 import 'package:mitabl_user/pages/payments/view/payments_page.dart';
-import 'package:mitabl_user/pages/home/view/home_page.dart';
+import 'package:mitabl_user/pages/home_shell/home_shell_page.dart';
 import 'package:mitabl_user/pages/landing_page/landing_page.dart';
 import 'package:mitabl_user/pages/login/view/login_page.dart';
 import 'package:mitabl_user/pages/otp/view/otp_page.dart';
@@ -62,7 +62,7 @@ class RouteGenerator {
         return OTPPage.route(routeArguments: routeArguments);
 
       case '/HomePage':
-        return HomePage.route();
+        return HomeShellPage.route();
 
       case '/CookProfile':
         if (routeArguments == null) {
