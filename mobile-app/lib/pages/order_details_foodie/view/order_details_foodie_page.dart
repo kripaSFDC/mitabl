@@ -499,10 +499,14 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
 
     if (!mounted || reason == null || reason.trim().isEmpty) return;
 
+    // Capture references before async gap to avoid context issues
+    final userRepository = context.read<UserRepository>();
+    final scaffold = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     setState(() => _isCancelling = true);
     try {
       final repository = MiOrdersRepository();
-      final userRepository = context.read<UserRepository>();
       final userModel =
           userRepository.currentUser ?? await userRepository.getUser();
       await repository.cancelOrder(
@@ -511,14 +515,14 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
         cancelComment: reason,
       );
       repository.dispose();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffold.showSnackBar(
         const SnackBar(content: Text('Order cancelled successfully.')),
       );
-      Navigator.of(context).pop(true);
+      if (navigator.canPop()) {
+        navigator.pop(true);
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffold.showSnackBar(
         const SnackBar(content: Text('Unable to cancel this order right now.')),
       );
     } finally {

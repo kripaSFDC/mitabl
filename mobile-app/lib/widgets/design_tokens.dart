@@ -18,8 +18,8 @@ abstract final class MitablColors {
   static const Color tertiaryFixedDim = Color(0xFFD9C2B6); // Unselected chips
 
   // ── Surfaces ──
-  static const Color surface = Color(0xFFFCF9F4); // Warm Oat – primary canvas
-  static const Color surfaceContainerLow = Color(0xFFF6F3EE); // Subtle grouping
+  static const Color surface = Color(0xFFFEFCF9); // Light warm white – primary canvas
+  static const Color surfaceContainerLow = Color(0xFFF8F6F2); // Subtle grouping
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF); // Lifted cards
   static const Color surfaceBright = Color(0xFFFCF9F4); // Modals
 

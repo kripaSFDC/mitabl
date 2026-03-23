@@ -213,41 +213,48 @@ class _HomePage extends State<HomePage> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on,
-                                      size: 16,
-                                      color: Color(0xFF8D7A6F),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        (state.locationLabel ?? '').isNotEmpty
-                                            ? state.locationLabel!
-                                            : 'Set location',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.dmSans(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF8D7A6F),
+                                GestureDetector(
+                                  onTap: () {
+                                    context.read<HomeCubit>().onUseCurrentLocation();
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Color(0xFF8D7A6F),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          (state.locationLabel ?? '').isNotEmpty
+                                              ? state.locationLabel!
+                                              : 'Set location',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF8D7A6F),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const Icon(
-                                      Icons.expand_more,
-                                      size: 16,
-                                      color: Color(0xFF8D7A6F),
-                                    ),
-                                  ],
+                                      const Icon(
+                                        Icons.expand_more,
+                                        size: 16,
+                                        color: Color(0xFF8D7A6F),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 12),
                           // Notification button
-                          Stack(
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pushNamed('/Notifications'),
+                            child: Stack(
                             children: [
                               Container(
                                 width: 40,
@@ -289,6 +296,7 @@ class _HomePage extends State<HomePage> {
                                 ),
                               ),
                             ],
+                          ),
                           ),
                         ],
                       ),

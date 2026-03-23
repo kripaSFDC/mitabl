@@ -86,8 +86,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final rawList =
-            (body['notifications'] as List<dynamic>?) ?? <dynamic>[];
+        // API returns {data: {notifications: [...]}} or {notifications: [...]}
+        final dataObj = body['data'];
+        List<dynamic> rawList;
+        if (dataObj is Map<String, dynamic>) {
+          rawList = (dataObj['notifications'] as List<dynamic>?) ?? <dynamic>[];
+        } else {
+          rawList = (body['notifications'] as List<dynamic>?) ?? <dynamic>[];
+        }
 
         final parsed = <_ApiNotification>[];
         for (final raw in rawList) {
@@ -104,11 +110,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
             data = rawData;
           }
 
+          // Map backend fields to display fields
+          final title = (data['title'] ?? data['message'] ?? 'Notification').toString();
+          final body2 = (data['body'] ?? data['message'] ?? '').toString();
+          final typeRaw = data['type'];
+          String typeStr;
+          if (typeRaw is int) {
+            // Backend uses numeric types: map to string
+            typeStr = const {1: 'order', 2: 'order', 3: 'order', 4: 'order', 5: 'order'}[typeRaw] ?? 'system';
+          } else {
+            typeStr = (typeRaw ?? 'system').toString();
+          }
+
           parsed.add(_ApiNotification(
             id: (raw['id'] ?? '').toString(),
-            title: (data['title'] ?? 'Notification').toString(),
-            body: (data['body'] ?? '').toString(),
-            type: (data['type'] ?? 'system').toString(),
+            title: title,
+            body: title != body2 ? body2 : '',
+            type: typeStr,
             createdAt: DateTime.tryParse(
                     (raw['created_at'] ?? '').toString()) ??
                 DateTime.now(),
