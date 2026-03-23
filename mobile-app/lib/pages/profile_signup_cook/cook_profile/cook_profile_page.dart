@@ -101,7 +101,15 @@ class _CookProfilePage extends State<CookProfilePage>
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () => Navigator.of(context).maybePop(),
+                              onTap: () {
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop();
+                                } else {
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                    '/HomePage', (route) => false,
+                                  );
+                                }
+                              },
                               child: const Padding(
                                 padding: EdgeInsets.all(4),
                                 child: Icon(

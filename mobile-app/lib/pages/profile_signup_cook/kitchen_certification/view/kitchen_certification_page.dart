@@ -70,7 +70,13 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop();
+                      } else {
+                        Navigator.of(context).pushNamedAndRemoveUntil('/HomePage', (r) => false);
+                      }
+                    },
                     icon: const Icon(Icons.arrow_back,
                         color: MitablColors.primary),
                   ),
