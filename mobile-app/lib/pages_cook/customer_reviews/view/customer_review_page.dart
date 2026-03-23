@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/star_rating.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_card.dart';
 
 import '../../../helper/route_arguement.dart';
-import '../../../repos/authentication_repository.dart';
 
 class CustomerReviewPage extends StatefulWidget {
   const CustomerReviewPage({super.key, this.routeArguments});
@@ -25,174 +26,173 @@ class CustomerReviewPage extends StatefulWidget {
 class _CustomerReviewPageState extends State<CustomerReviewPage> {
   @override
   Widget build(BuildContext context) {
+    final reviews = widget.routeArguments!.kitchen!.reviewsData!;
+    final hasReviews = reviews.isNotEmpty;
+
+    // Compute average rating
+    double avgRating = 0;
+    if (hasReviews) {
+      double sum = 0;
+      for (final r in reviews) {
+        sum += (r.rating ?? 0);
+      }
+      avgRating = sum / reviews.length;
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFFFBF7),
-        elevation: 0,
-        leadingWidth: config.AppConfig(context).appWidth(50),
-        leading: Padding(
-          padding: EdgeInsets.only(left: config.AppConfig(context).appWidth(5)),
-          child: InkWell(
-            onTap: () {
-              navigatorKey.currentState!.pop();
-            },
-            child: Row(
+      backgroundColor: MitablColors.surface,
+      appBar: const GlassAppBar(
+        title: Text('Customer Reviews'),
+      ),
+      body: hasReviews
+          ? ListView(
+              padding: const EdgeInsets.all(MitablSpacing.pagePadding),
               children: [
-                Icon(
-                  Icons.arrow_back_ios,
-                  color: Theme.of(context).primaryColorDark,
-                  size: config.AppConfig(context).appWidth(5),
-                ),
-                SizedBox(width: config.AppConfig(context).appWidth(2)),
-                Text(
-                  'Reviews',
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(5),
-                    fontWeight: FontWeight.w600,
+                // Rating summary card
+                MitablCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        avgRating.toStringAsFixed(1),
+                        style: GoogleFonts.nunito(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w800,
+                          color: MitablColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      StarRating(
+                        rating: avgRating,
+                        size: 28,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${reviews.length} review${reviews.length == 1 ? '' : 's'}',
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: EdgeInsets.only(
-          top: config.AppConfig(context).appHeight(2),
-          left: config.AppConfig(context).appWidth(5),
-          right: config.AppConfig(context).appWidth(5),
-        ),
-        child: widget.routeArguments!.kitchen!.reviewsData!.isNotEmpty
-            ? ListView.separated(
-                itemBuilder: (context, index) {
-                  return SizedBox(
-                    height: config.AppConfig(context).appHeight(15),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl:
-                                  "${GlobalConfiguration().getValue<String>('base_url')}/${widget.routeArguments!.kitchen!.reviewsData![index].user!.avatar}",
-                              progressIndicatorBuilder:
-                                  (context, url, downloadProgress) =>
-                                      CircularProgressIndicator(
-                                        value: downloadProgress.progress,
-                                      ),
-                              errorWidget: (context, url, error) => Container(
-                                height: config.AppConfig(context).appWidth(16),
-                                width: config.AppConfig(context).appWidth(16),
-                                padding: EdgeInsets.all(
-                                  config.AppConfig(context).appWidth(3),
+                const SizedBox(height: MitablSpacing.listItem),
+
+                // Individual review cards
+                ...List.generate(reviews.length, (index) {
+                  final review = reviews[index];
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index < reviews.length - 1
+                          ? MitablSpacing.listItem
+                          : 0,
+                    ),
+                    child: MitablCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl:
+                                    "${GlobalConfiguration().getValue<String>('base_url')}/${review.user!.avatar}",
+                                imageBuilder: (context, imageProvider) =>
+                                    CircleAvatar(
+                                  radius: 22,
+                                  backgroundImage: imageProvider,
                                 ),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Theme.of(context).primaryColorDark,
+                                errorWidget: (context, url, error) =>
+                                    const CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: MitablColors.surfaceContainerLow,
+                                  child: Icon(
+                                    Icons.person,
+                                    color: MitablColors.onSurfaceVariant,
+                                    size: 22,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Color(0xFFFFFBF7),
+                                placeholder: (context, s) => const CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: MitablColors.surfaceContainerLow,
                                 ),
                               ),
-                              imageBuilder: (context, imageProvider) =>
-                                  Container(
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appWidth(16),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(16),
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: imageProvider,
-                                        fit: BoxFit.cover,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      review.user!.name!,
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: MitablColors.onSurface,
                                       ),
-                                      borderRadius: BorderRadius.circular(100),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                            ),
-                            SizedBox(
-                              width: config.AppConfig(context).appWidth(3),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget
-                                      .routeArguments!
-                                      .kitchen!
-                                      .reviewsData![index]
-                                      .user!
-                                      .name!,
-                                  style: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4.5),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                                    const SizedBox(height: 2),
+                                    StarRating(
+                                      rating: review.rating!,
+                                      size: 16,
+                                      color: Colors.amber,
+                                    ),
+                                  ],
                                 ),
-                                StarRating(
-                                  rating: widget
-                                      .routeArguments!
-                                      .kitchen!
-                                      .reviewsData![index]
-                                      .rating!,
-                                  size: config.AppConfig(context).appWidth(5),
-                                  color: Colors.amber,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: config.AppConfig(context).appHeight(1),
-                        ),
-                        Text(
-                          widget
-                              .routeArguments!
-                              .kitchen!
-                              .reviewsData![index]
-                              .review!,
-                          style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: config.AppConfig(context).appWidth(4),
-                            fontWeight: FontWeight.w400,
+                              ),
+                            ],
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          _ExpandableReviewText(text: review.review ?? ''),
+                        ],
+                      ),
                     ),
                   );
-                },
-                separatorBuilder: (context, index) {
-                  return Divider(
-                    height: config.AppConfig(context).appHeight(3),
-                    color: Theme.of(context).primaryColorDark,
-                  );
-                },
-                itemCount: widget.routeArguments!.kitchen!.reviewsData!.length,
-              )
-            : Center(
-                child: Text(
-                  'No review found.',
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(4.5),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                }),
+              ],
+            )
+          : Center(
+              child: Text(
+                'No reviews yet',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: MitablColors.onSurfaceVariant,
                 ),
               ),
+            ),
+    );
+  }
+}
+
+class _ExpandableReviewText extends StatefulWidget {
+  const _ExpandableReviewText({required this.text});
+
+  final String text;
+
+  @override
+  State<_ExpandableReviewText> createState() => _ExpandableReviewTextState();
+}
+
+class _ExpandableReviewTextState extends State<_ExpandableReviewText> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => setState(() => _expanded = !_expanded),
+      child: Text(
+        widget.text,
+        style: GoogleFonts.nunito(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: MitablColors.onSurface,
+          height: 1.5,
+        ),
+        maxLines: _expanded ? null : 4,
+        overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
       ),
     );
   }

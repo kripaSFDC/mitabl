@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class EditTimingDialog extends StatelessWidget {
   EditTimingDialog({super.key});
@@ -19,395 +19,217 @@ class EditTimingDialog extends StatelessWidget {
       listener: (context, state) {},
       builder: (context, state) {
         return Dialog(
-          insetPadding: EdgeInsets.zero,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(config.AppConfig(context).appWidth(5)),
-            ),
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: Container(
-            height: config.AppConfig(context).appHeight(80),
-            width: config.AppConfig(context).appWidth(90),
-            padding: EdgeInsets.only(
-              left: config.AppConfig(context).appWidth(2),
-              right: config.AppConfig(context).appWidth(2),
-            ),
+          backgroundColor: MitablColors.surface,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
             child: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text(
+                        'Operating Hours',
+                        style: GoogleFonts.nunito(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: MitablColors.onSurface,
+                        ),
+                      ),
                       IconButton(
                         onPressed: () => navigatorKey.currentState!.pop(),
-                        icon: SvgPicture.asset(
-                          'assets/img/filter_cross.svg',
-                          height: config.AppConfig(context).appHeight(2.0),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: MitablColors.onSurfaceVariant,
+                          size: 24,
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    'mikitchn Timing',
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontSize: config.AppConfig(context).appWidth(6),
-                    ),
-                  ),
-                  SizedBox(height: config.AppConfig(context).appHeight(3)),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          'Day',
-                          style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: config.AppConfig(context).appWidth(4),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        flex: 4,
-                        child: Text(
-                          'Time',
-                          style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: config.AppConfig(context).appWidth(4),
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: config.AppConfig(context).appHeight(2)),
+                  const SizedBox(height: 20),
+
+                  // Day rows
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(50),
-                        child: ListView.separated(
-                          separatorBuilder: (context, index) {
-                            return SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            );
-                          },
-                          itemCount: state.daysTiming.length,
-                          itemBuilder: (context, index) {
-                            return Row(
+                    children: List.generate(state.daysTiming.length, (index) {
+                      final day = state.daysTiming[index];
+                      final isOn = day.isOn ?? false;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          children: [
+                            // Day name + switch row
+                            Row(
                               children: [
                                 Expanded(
-                                  flex: 1,
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        state.daysTiming[index].day.toString(),
-                                        style: TextStyle(
-                                          fontSize: config.AppConfig(
-                                            context,
-                                          ).appWidth(4),
-                                        ),
-                                      ),
-                                      Switch(
-                                        value: state.daysTiming[index].isOn!,
-                                        onChanged: (val) {
-                                          context
-                                              .read<EditKitchenProfileCubit>()
-                                              .onSwitchChanged(
-                                                index: index,
-                                                switchValue: val,
-                                              );
-                                        },
-                                      ),
-                                    ],
+                                  child: Text(
+                                    day.day.toString(),
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: MitablColors.onSurface,
+                                    ),
                                   ),
                                 ),
-                                // Spacer(),
-                                SizedBox(
-                                  width: config.AppConfig(context).appWidth(2),
+                                Switch(
+                                  value: isOn,
+                                  activeThumbColor: MitablColors.accent,
+                                  onChanged: (val) {
+                                    context
+                                        .read<EditKitchenProfileCubit>()
+                                        .onSwitchChanged(
+                                          index: index,
+                                          switchValue: val,
+                                        );
+                                  },
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    right: config.AppConfig(
-                                      context,
-                                    ).appWidth(10),
-                                  ),
-                                  child: Row(
-                                    // mainAxisAlignment:
-                                    //     MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          String date = DateFormat(
-                                            'yyyy-MM-dd ',
-                                          ).format(nowDate);
-                                          String datePreviousStart =
-                                              date +
-                                              state
-                                                  .daysTiming[index]
-                                                  .timing!
-                                                  .startTime!;
-                                          DateTime startPreviousTime =
-                                              DateTime.parse(datePreviousStart);
-
-                                          _showDialog(
-                                            CupertinoDatePicker(
-                                              initialDateTime:
-                                                  startPreviousTime /*DateTime(
-                                                        nowDate!.year,
-                                                        nowDate!.month,
-                                                        nowDate!.day,
-                                                        0,
-                                                        0,
-                                                        0)*/,
-                                              mode:
-                                                  CupertinoDatePickerMode.time,
-                                              use24hFormat: true,
-                                              onDateTimeChanged:
-                                                  (DateTime newTime) {
-                                                    String date = DateFormat(
-                                                      'yyyy-MM-dd ',
-                                                    ).format(newTime);
-                                                    String dateStart =
-                                                        date +
-                                                        state
-                                                            .daysTiming[index]
-                                                            .timing!
-                                                            .endTime!;
-                                                    DateTime startTime =
-                                                        DateTime.parse(
-                                                          dateStart,
-                                                        );
-
-                                                    if (newTime.isBefore(
-                                                      startTime,
-                                                    )) {
-                                                      context
-                                                          .read<
-                                                            EditKitchenProfileCubit
-                                                          >()
-                                                          .onSwitchChanged(
-                                                            index: index,
-                                                            startTime:
-                                                                DateFormat(
-                                                                  'HH:mm',
-                                                                ).format(
-                                                                  newTime,
-                                                                ),
-                                                          );
-                                                    }
-                                                  },
-                                            ),
-                                            context,
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.only(
-                                            left: config.AppConfig(
-                                              context,
-                                            ).appWidth(3),
-                                            right: config.AppConfig(
-                                              context,
-                                            ).appWidth(3),
-                                            top: config.AppConfig(
-                                              context,
-                                            ).appWidth(1),
-                                            bottom: config.AppConfig(
-                                              context,
-                                            ).appWidth(1),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xffF5F5F5),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            ' ${state.daysTiming[index].timing!.startTime!} ',
-                                            // '9:00',
-                                            style: GoogleFonts.gothicA1(
-                                              color: Theme.of(
-                                                context,
-                                              ).primaryColorDark,
-                                              fontSize: config.AppConfig(
-                                                context,
-                                              ).appWidth(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(1),
-                                      ),
-                                      Text(
-                                        'To',
-                                        style: GoogleFonts.gothicA1(
-                                          color: Theme.of(
-                                            context,
-                                          ).primaryColorDark,
-                                          fontSize: config.AppConfig(
-                                            context,
-                                          ).appWidth(4),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(1),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          String date = DateFormat(
-                                            'yyyy-MM-dd ',
-                                          ).format(nowDate);
-                                          String datePreviousEnd =
-                                              date +
-                                              state
-                                                  .daysTiming[index]
-                                                  .timing!
-                                                  .endTime!;
-                                          DateTime endPreviousTime =
-                                              DateTime.parse(datePreviousEnd);
-
-                                          _showDialog(
-                                            CupertinoDatePicker(
-                                              initialDateTime:
-                                                  endPreviousTime /*DateTime(
-                                                        nowDate!.year,
-                                                        nowDate!.month,
-                                                        nowDate!.day,
-                                                        0,
-                                                        0,
-                                                        0)*/,
-                                              mode:
-                                                  CupertinoDatePickerMode.time,
-                                              use24hFormat: true,
-                                              onDateTimeChanged:
-                                                  (DateTime newTime) {
-                                                    String date = DateFormat(
-                                                      'yyyy-MM-dd ',
-                                                    ).format(newTime);
-                                                    String dateStart =
-                                                        date +
-                                                        state
-                                                            .daysTiming[index]
-                                                            .timing!
-                                                            .startTime!;
-                                                    DateTime startTime =
-                                                        DateTime.parse(
-                                                          dateStart,
-                                                        );
-                                                    if (newTime.isAfter(
-                                                      startTime,
-                                                    )) {
-                                                      context
-                                                          .read<
-                                                            EditKitchenProfileCubit
-                                                          >()
-                                                          .onSwitchChanged(
-                                                            index: index,
-                                                            endTime: DateFormat(
-                                                              'HH:mm',
-                                                            ).format(newTime),
-                                                          );
-                                                    }
-                                                  },
-                                            ),
-                                            context,
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: EdgeInsets.only(
-                                            left: config.AppConfig(
-                                              context,
-                                            ).appWidth(3),
-                                            right: config.AppConfig(
-                                              context,
-                                            ).appWidth(3),
-                                            top: config.AppConfig(
-                                              context,
-                                            ).appWidth(1),
-                                            bottom: config.AppConfig(
-                                              context,
-                                            ).appWidth(1),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xffF5F5F5),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            ' ${state.daysTiming[index].timing!.endTime!} ',
-                                            style: GoogleFonts.gothicA1(
-                                              color: Theme.of(
-                                                context,
-                                              ).primaryColorDark,
-                                              fontSize: config.AppConfig(
-                                                context,
-                                              ).appWidth(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: config.AppConfig(context).appHeight(3)),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: config.AppConfig(context).appHeight(6),
-                          width: config.AppConfig(context).appWidth(40),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(28.0),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.topRight,
-                              colors: [
-                                Theme.of(context).primaryColor,
-                                Theme.of(context).primaryColor,
                               ],
                             ),
-                          ),
-                          child: MaterialButton(
-                            height: config.AppConfig(context).appHeight(6),
-                            minWidth: config.AppConfig(context).appWidth(100),
-                            onPressed: () {
-                              context
-                                  .read<EditKitchenProfileCubit>()
-                                  .onApplyDays();
-                            },
-                            child: Text(
-                              'Apply',
-                              style: GoogleFonts.gothicA1(
-                                fontSize: config.AppConfig(
-                                  context,
-                                ).appWidth(3.5),
-                                color: const Color(0xFFFFFBF7),
+
+                            // Time row or closed text
+                            if (isOn)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, top: 4),
+                                child: Row(
+                                  children: [
+                                    // Start time box
+                                    _TimeBox(
+                                      time: day.timing?.startTime ?? '--:--',
+                                      onTap: () {
+                                        String date = DateFormat(
+                                          'yyyy-MM-dd ',
+                                        ).format(nowDate);
+                                        String datePreviousStart =
+                                            date + (day.timing?.startTime ?? '00:00');
+                                        DateTime startPreviousTime =
+                                            DateTime.parse(datePreviousStart);
+
+                                        _showDialog(
+                                          CupertinoDatePicker(
+                                            initialDateTime: startPreviousTime,
+                                            mode: CupertinoDatePickerMode.time,
+                                            use24hFormat: true,
+                                            onDateTimeChanged: (DateTime newTime) {
+                                              String date = DateFormat(
+                                                'yyyy-MM-dd ',
+                                              ).format(newTime);
+                                              String dateStart =
+                                                  date + (day.timing?.endTime ?? '23:59');
+                                              DateTime startTime =
+                                                  DateTime.parse(dateStart);
+
+                                              if (newTime.isBefore(startTime)) {
+                                                context
+                                                    .read<EditKitchenProfileCubit>()
+                                                    .onSwitchChanged(
+                                                      index: index,
+                                                      startTime: DateFormat('HH:mm')
+                                                          .format(newTime),
+                                                    );
+                                              }
+                                            },
+                                          ),
+                                          context,
+                                        );
+                                      },
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      child: Text(
+                                        'to',
+                                        style: GoogleFonts.nunito(
+                                          fontSize: 14,
+                                          color: MitablColors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    // End time box
+                                    _TimeBox(
+                                      time: day.timing?.endTime ?? '--:--',
+                                      onTap: () {
+                                        String date = DateFormat(
+                                          'yyyy-MM-dd ',
+                                        ).format(nowDate);
+                                        String datePreviousEnd =
+                                            date + (day.timing?.endTime ?? '23:59');
+                                        DateTime endPreviousTime =
+                                            DateTime.parse(datePreviousEnd);
+
+                                        _showDialog(
+                                          CupertinoDatePicker(
+                                            initialDateTime: endPreviousTime,
+                                            mode: CupertinoDatePickerMode.time,
+                                            use24hFormat: true,
+                                            onDateTimeChanged: (DateTime newTime) {
+                                              String date = DateFormat(
+                                                'yyyy-MM-dd ',
+                                              ).format(newTime);
+                                              String dateStart =
+                                                  date + (day.timing?.startTime ?? '00:00');
+                                              DateTime startTime =
+                                                  DateTime.parse(dateStart);
+                                              if (newTime.isAfter(startTime)) {
+                                                context
+                                                    .read<EditKitchenProfileCubit>()
+                                                    .onSwitchChanged(
+                                                      index: index,
+                                                      endTime: DateFormat('HH:mm')
+                                                          .format(newTime),
+                                                    );
+                                              }
+                                            },
+                                          ),
+                                          context,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, top: 4),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Closed',
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 14,
+                                      color: MitablColors.onSurfaceVariant
+                                          .withValues(alpha: 0.6),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+
+                            if (index < state.daysTiming.length - 1)
+                              const Divider(
+                                height: 8,
+                                color: MitablColors.outlineVariant,
+                              ),
+                          ],
                         ),
-                      ),
-                    ],
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Apply button
+                  MitablButton(
+                    label: 'Apply',
+                    variant: MitablButtonVariant.primary,
+                    fullWidth: true,
+                    onPressed: () {
+                      context.read<EditKitchenProfileCubit>().onApplyDays();
+                    },
                   ),
                 ],
               ),
@@ -432,6 +254,36 @@ class EditTimingDialog extends StatelessWidget {
         color: CupertinoColors.systemBackground.resolveFrom(context),
         // Use a SafeArea widget to avoid system overlaps.
         child: SafeArea(top: false, child: child),
+      ),
+    );
+  }
+}
+
+class _TimeBox extends StatelessWidget {
+  const _TimeBox({required this.time, required this.onTap});
+
+  final String time;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: MitablColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          time,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: MitablColors.onSurface,
+          ),
+        ),
       ),
     );
   }

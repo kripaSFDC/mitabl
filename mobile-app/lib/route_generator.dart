@@ -39,6 +39,7 @@ import 'package:mitabl_user/pages/order_details_foodie/view/order_details_foodie
 import 'package:mitabl_user/pages/submit_review/view/submit_review_page.dart';
 import 'package:mitabl_user/pages/add_payment_method/view/add_payment_method_page.dart';
 import 'package:mitabl_user/pages/notifications/view/notifications_page.dart';
+import 'package:mitabl_user/pages/offline_state/view/offline_state_page.dart';
 import 'package:mitabl_user/splash.dart';
 
 class RouteGenerator {
@@ -220,6 +221,9 @@ class RouteGenerator {
 
       case '/KitchenCertification':
         return KitchenCertificationPage.route(routeArguments: routeArguments);
+
+      case '/OfflineState':
+        return OfflineStatePage.route();
 
       default:
         return _routeError();

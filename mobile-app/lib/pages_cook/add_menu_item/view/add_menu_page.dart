@@ -15,6 +15,12 @@ import 'package:mitabl_user/pages_cook/add_menu_item/cubit/add_menu_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/cooking_style_dialog.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/special_diet/cubit/special_diet_cubit.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/elements/special_diet/special_diet_dialog.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/widgets/mitabl_card.dart';
+import 'package:mitabl_user/widgets/mitabl_chip.dart';
+import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/route_arguement.dart';
@@ -98,6 +104,8 @@ class _AddMenuPageState extends State<AddMenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isEdit = widget.routeArguments!.isEdit!;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -109,138 +117,78 @@ class _AddMenuPageState extends State<AddMenuPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: const Color(0xFFFFFBF7),
-          elevation: 0,
-          // leadingWidth: config.AppConfig(context).appWidth(100),
-          title: Padding(
-            padding: EdgeInsets.only(
-              top: config.AppConfig(context).appHeight(3),
-              bottom: 0,
-            ),
-            child: InkWell(
-              splashFactory: NoSplash.splashFactory,
-              onTap: () {
-                if (!widget.routeArguments!.isEdit!) {
-                  context.read<AddMenuCubit>().resetFields();
-                }
-                navigatorKey.currentState!.pop();
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.arrow_back_ios,
-                    color: Theme.of(context).primaryColorDark,
-                    size: config.AppConfig(context).appWidth(5),
-                  ),
-                  SizedBox(width: config.AppConfig(context).appWidth(2)),
-                  Flexible(
-                    child: Text(
-                      widget.routeArguments!.isEdit! ? 'Edit Item' : 'Add Item',
-                      style: TextStyle(
-                        fontFamily: config.FontFamily()
-                            .itcAvantGardeGothicStdFontFamily,
-                        fontWeight: config.FontFamily().medium,
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        backgroundColor: MitablColors.surface,
+        appBar: GlassAppBar(
+          title: Text(isEdit ? 'Edit Menu Item' : 'Add Menu Item'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new,
+                size: 20, color: MitablColors.onSurface),
+            onPressed: () {
+              if (!isEdit) {
+                context.read<AddMenuCubit>().resetFields();
+              }
+              navigatorKey.currentState!.pop();
+            },
           ),
         ),
         body: BlocConsumer<AddMenuCubit, AddMenuState>(
           builder: (context, state) {
-            return Container(
-              alignment: Alignment.topCenter,
-              color: const Color(0xFFFFFBF7),
-              height: config.AppConfig(context).appHeight(100),
-              width: config.AppConfig(context).appWidth(100),
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom +
-                          MediaQuery.of(context).viewInsets.bottom +
-                          config.AppConfig(context).appHeight(4),
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: config.AppConfig(context).appHeight(2),
-                        ),
-                        Stack(
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    left: MitablSpacing.pagePadding,
+                    right: MitablSpacing.pagePadding,
+                    top: MitablSpacing.pagePadding,
+                    bottom: MediaQuery.of(context).padding.bottom +
+                        MediaQuery.of(context).viewInsets.bottom +
+                        config.AppConfig(context).appHeight(4),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Photo Section ──
+                      MitablCard(
+                        child: Column(
                           children: [
-                            state.pathFiles.isNotEmpty
-                                ? SizedBox(
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(20),
-                                    child: PageView.builder(
-                                      padEnds: true,
-                                      clipBehavior: Clip.hardEdge,
-                                      controller: controller,
-                                      onPageChanged: (page) {
-                                        context
-                                            .read<AddMenuCubit>()
-                                            .onImageScroll(index: page);
-                                      },
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: config.AppConfig(
-                                              context,
-                                            ).appWidth(1),
-                                          ),
-                                          child: Stack(
+                            // Image carousel or placeholder
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(MitablRadius.card - 4),
+                              child: SizedBox(
+                                height: config.AppConfig(context).appHeight(20),
+                                child: state.pathFiles.isNotEmpty
+                                    ? PageView.builder(
+                                        padEnds: true,
+                                        clipBehavior: Clip.hardEdge,
+                                        controller: controller,
+                                        onPageChanged: (page) {
+                                          context
+                                              .read<AddMenuCubit>()
+                                              .onImageScroll(index: page);
+                                        },
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (context, index) {
+                                          return Stack(
                                             children: [
-                                              Container(
-                                                height: config.AppConfig(
-                                                  context,
-                                                ).appHeight(20),
-                                                width: config.AppConfig(
-                                                  context,
-                                                ).appWidth(100),
-                                                decoration: BoxDecoration(
-                                                  color: config.AppColors()
-                                                      .textFieldBackgroundColor(
-                                                    1,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                    config.AppConfig(
-                                                      context,
-                                                    ).appWidth(5),
-                                                  ),
-                                                ),
-                                                alignment: Alignment.center,
+                                              SizedBox(
+                                                width: double.infinity,
                                                 child: CachedNetworkImage(
                                                   imageUrl:
                                                       '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
+                                                  fit: BoxFit.cover,
                                                   errorWidget:
                                                       (context, data, e) {
                                                     return Image.file(
-                                                      File(
-                                                        state.pathFiles[index]
-                                                            .path!,
-                                                      ),
+                                                      File(state
+                                                          .pathFiles[index]
+                                                          .path!),
+                                                      fit: BoxFit.cover,
                                                     );
                                                   },
-                                                  // errorWidget: (context, url, error) =>
-                                                  //     Container(
-                                                  //       color: Theme.of(context).backgroundColor,
-                                                  //     ),
                                                   placeholder: (context, s) =>
                                                       Container(
-                                                    color: Theme.of(
-                                                      context,
-                                                    ).colorScheme.surface,
+                                                    color: MitablColors
+                                                        .surfaceContainerLow,
                                                   ),
                                                 ),
                                               ),
@@ -261,687 +209,294 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                                               .pathFiles[index],
                                                         );
                                                   },
-                                                  child: Icon(
-                                                    Icons.delete,
-                                                    color: Colors.red,
-                                                    size: config.AppConfig(
-                                                      context,
-                                                    ).appWidth(6),
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                    decoration: BoxDecoration(
+                                                      color: MitablColors
+                                                          .surface
+                                                          .withValues(
+                                                              alpha: 0.8),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.delete_outline,
+                                                      color:
+                                                          MitablColors.error,
+                                                      size: 20,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ],
-                                          ),
-                                        );
-                                      },
-                                      itemCount: state.pathFiles.length,
-                                    ),
-                                  )
-                                : Padding(
-                                    padding: EdgeInsets.only(
-                                      left: config.AppConfig(
-                                        context,
-                                      ).appWidth(5),
-                                      right: config.AppConfig(
-                                        context,
-                                      ).appWidth(5),
-                                    ),
-                                    child: Container(
-                                      height: config.AppConfig(
-                                        context,
-                                      ).appHeight(20),
-                                      decoration: BoxDecoration(
-                                        color: config.AppColors()
-                                            .textFieldBackgroundColor(1),
-                                        borderRadius: BorderRadius.circular(
-                                          config.AppConfig(context).appWidth(5),
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        Icons.photo_outlined,
-                                        size: config.AppConfig(
-                                          context,
-                                        ).appWidth(30),
-                                        color: const Color(0xFF9CA3AF),
-                                      ),
-                                    ),
-                                  ),
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: state.pathFiles.isNotEmpty
-                                  ? Container(
-                                      alignment: Alignment.center,
-                                      height: config.AppConfig(
-                                        context,
-                                      ).appHeight(5),
-                                      child: ListView.separated(
-                                        // controller: controller,
-                                        separatorBuilder: (context, index) {
-                                          return SizedBox(
-                                            width: config.AppConfig(
-                                              context,
-                                            ).appWidth(2),
-                                          );
-                                        },
-                                        shrinkWrap: true,
-                                        scrollDirection: Axis.horizontal,
-                                        itemBuilder: (context, index) {
-                                          return Container(
-                                            width: config.AppConfig(
-                                              context,
-                                            ).appWidth(2),
-                                            decoration: BoxDecoration(
-                                              color: state.selectedPage == index
-                                                  ? Colors.blue
-                                                  : const Color(0xFF9CA3AF),
-                                              shape: BoxShape.circle,
-                                            ),
                                           );
                                         },
                                         itemCount: state.pathFiles.length,
+                                      )
+                                    : Container(
+                                        color:
+                                            MitablColors.surfaceContainerLow,
+                                        alignment: Alignment.center,
+                                        child: const Icon(
+                                          Icons.photo_outlined,
+                                          size: 64,
+                                          color:
+                                              MitablColors.onSurfaceVariant,
+                                        ),
                                       ),
-                                    )
-                                  : const SizedBox(),
+                              ),
+                            ),
+                            // Page dots
+                            if (state.pathFiles.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    state.pathFiles.length,
+                                    (index) => Container(
+                                      width: 8,
+                                      height: 8,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 3),
+                                      decoration: BoxDecoration(
+                                        color: state.selectedPage == index
+                                            ? MitablColors.primary
+                                            : MitablColors.outlineVariant,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 12),
+                            // Upload button
+                            const _UploadButton(),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: MitablSpacing.listItem),
+
+                      // ── Item Details ──
+                      MitablTextField(
+                        controller: itemNameController,
+                        label: 'Item Name',
+                        hint: 'Enter item name',
+                        errorText: state.itemName!.invalid
+                            ? 'Please enter a valid name'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      MitablTextField(
+                        controller: priceController,
+                        label: 'Price',
+                        hint: 'Enter price',
+                        keyboardType: TextInputType.number,
+                        errorText: state.price!.invalid
+                            ? 'Please enter a valid price'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      MitablTextField(
+                        controller: descriptionController,
+                        label: 'Description',
+                        hint: 'Describe your dish',
+                        maxLines: 4,
+                        errorText: state.description!.invalid
+                            ? 'Please enter a valid description'
+                            : null,
+                      ),
+                      const SizedBox(height: MitablSpacing.listItem),
+
+                      // ── Cooking Style & Dietary Section ──
+                      MitablCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cooking Style & Dietary',
+                              style: GoogleFonts.nunito(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Special diet trigger
+                            MitablButton(
+                              label: 'Special Diet',
+                              variant: MitablButtonVariant.outline,
+                              icon: const Icon(Icons.restaurant_menu,
+                                  size: 18, color: MitablColors.primary),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (contextB) {
+                                    return BlocProvider(
+                                      create: (context) => SpecialDietCubit(
+                                        specialDietDataList:
+                                            state.specialDietDataList,
+                                      ),
+                                      child: const SpecialDietDialog(),
+                                    );
+                                  },
+                                ).then((value) {
+                                  if (!context.mounted) return;
+                                  if (value != null) {
+                                    for (var element
+                                        in (value as List<SpecialDietData>)) {
+                                      context
+                                          .read<AddMenuCubit>()
+                                          .onSpecialDietChange(
+                                            id: element.id,
+                                            value: element.isSelected,
+                                          );
+                                    }
+                                  }
+                                });
+                              },
+                            ),
+
+                            // Selected special diets as chips
+                            if (state.specialDietDataList!
+                                .where((element) => element.isSelected!)
+                                .toList()
+                                .isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: state.specialDietDataList!
+                                    .where((element) => element.isSelected!)
+                                    .map((diet) {
+                                  return Chip(
+                                    label: Text(
+                                      diet.name!,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: MitablColors.onSurface,
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                        MitablColors.tertiaryFixedDim,
+                                    shape: const StadiumBorder(
+                                      side: BorderSide.none,
+                                    ),
+                                    side: BorderSide.none,
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                    onDeleted: () {
+                                      context
+                                          .read<AddMenuCubit>()
+                                          .onDeleteSpecialDiet(id: diet.id);
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+
+                            const SizedBox(height: 12),
+
+                            // Cooking style trigger
+                            MitablButton(
+                              label: cookingStyleController.text.isNotEmpty
+                                  ? cookingStyleController.text
+                                  : 'Cooking Style',
+                              variant: MitablButtonVariant.outline,
+                              icon: const Icon(Icons.local_fire_department,
+                                  size: 18, color: MitablColors.primary),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (contextB) {
+                                    return const CookingStyleDialog();
+                                  },
+                                ).then((value) {
+                                  if (!context.mounted) return;
+                                  cookingStyleController.text = context
+                                      .read<AddMenuCubit>()
+                                      .state
+                                      .selectedCookingStyle!
+                                      .name
+                                      .toString();
+                                  setState(() {});
+                                });
+                              },
                             ),
                           ],
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: config.AppConfig(context).appHeight(2),
-                            left: config.AppConfig(context).appWidth(5),
-                            right: config.AppConfig(context).appWidth(5),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const _UploadButton(),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(3),
-                              ),
-                              _ItemName(menuForm: this),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              _ItemPrice(menuForm: this),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              TextFormField(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (contextB) {
-                                      return BlocProvider(
-                                        create: (context) => SpecialDietCubit(
-                                          specialDietDataList:
-                                              state.specialDietDataList,
-                                        ),
-                                        child: const SpecialDietDialog(),
-                                      );
-                                    },
-                                  ).then((value) {
-                                    if (!context.mounted) return;
-                                    if (value != null) {
-                                      for (var element
-                                          in (value as List<SpecialDietData>)) {
-                                        context
-                                            .read<AddMenuCubit>()
-                                            .onSpecialDietChange(
-                                              id: element.id,
-                                              value: element.isSelected,
-                                            );
-                                      }
-                                    }
-                                  });
-                                },
-                                readOnly: true,
-                                style: const TextStyle(color: Colors.black),
-                                textInputAction: TextInputAction.next,
-                                keyboardType: TextInputType.name,
-                                // maxLength: 15,
-                                onChanged: (text) {},
-                                decoration: InputDecoration(
-                                  suffixIcon: Icon(
-                                    Icons.arrow_right,
-                                    size: config.AppConfig(context).appWidth(8),
-                                  ),
-                                  counterText: '',
-                                  hintStyle: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).hintColor,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4),
-                                  ),
-                                  hintText: 'Special diet',
-                                  contentPadding: EdgeInsets.only(
-                                    left: config.AppConfig(context).appWidth(5),
-                                  ),
-                                  fillColor: config.AppColors()
-                                      .textFieldBackgroundColor(1),
-                                  filled: true,
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  border: InputBorder.none,
-                                  disabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              state.specialDietDataList!
-                                      .where((element) => element.isSelected!)
-                                      .toList()
-                                      .isNotEmpty
-                                  ? Column(
-                                      children: [
-                                        SizedBox(
-                                          height: config.AppConfig(
-                                            context,
-                                          ).appHeight(0.5),
-                                        ),
-                                        Wrap(
-                                          spacing: 0.0,
-                                          alignment: WrapAlignment.start,
-                                          children: List.generate(
-                                            state.specialDietDataList!
-                                                .where(
-                                                  (element) =>
-                                                      element.isSelected!,
-                                                )
-                                                .toList()
-                                                .length,
-                                            (index) {
-                                              return Transform(
-                                                transform: Matrix4.identity()
-                                                  ..scaleByDouble(
-                                                    0.85,
-                                                    0.85,
-                                                    0.85,
-                                                    1.0,
-                                                  ),
-                                                child: Chip(
-                                                  padding: EdgeInsets.zero,
-                                                  labelStyle: TextStyle(
-                                                    fontFamily: config
-                                                            .FontFamily()
-                                                        .itcAvantGardeGothicStdFontFamily,
-                                                    fontWeight:
-                                                        config.FontFamily()
-                                                            .book,
-                                                    color: Theme.of(
-                                                      context,
-                                                    ).primaryColor,
-                                                  ),
-                                                  shape: StadiumBorder(
-                                                    side: BorderSide(
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).primaryColor,
-                                                      width: 0.5,
-                                                    ),
-                                                  ),
-                                                  backgroundColor: Theme.of(
-                                                    context,
-                                                  ).primaryColor.withValues(
-                                                        alpha: 0.2,
-                                                      ),
-                                                  label: Text(
-                                                    state.specialDietDataList!
-                                                                .where(
-                                                                  (
-                                                                    element,
-                                                                  ) =>
-                                                                      element
-                                                                          .isSelected!,
-                                                                )
-                                                                .toList()[index]
-                                                                .name!
-                                                                .length >
-                                                            15
-                                                        ? '${state.specialDietDataList!.where((element) => element.isSelected!).toList()[index].name!.substring(0, 14)}...'
-                                                        : state
-                                                            .specialDietDataList!
-                                                            .where(
-                                                              (
-                                                                element,
-                                                              ) =>
-                                                                  element
-                                                                      .isSelected!,
-                                                            )
-                                                            .toList()[index]
-                                                            .name!,
-                                                    style: TextStyle(
-                                                      fontFamily: config
-                                                              .FontFamily()
-                                                          .itcAvantGardeGothicStdFontFamily,
-                                                      fontWeight:
-                                                          config.FontFamily()
-                                                              .book,
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).primaryColor,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    maxLines: 1,
-                                                    softWrap: true,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                  onDeleted: () {
-                                                    context
-                                                        .read<AddMenuCubit>()
-                                                        .onDeleteSpecialDiet(
-                                                          id: state
-                                                              .specialDietDataList!
-                                                              .where(
-                                                                (
-                                                                  element,
-                                                                ) =>
-                                                                    element
-                                                                        .isSelected!,
-                                                              )
-                                                              .toList()[index]
-                                                              .id,
-                                                        );
-                                                  },
-                                                  deleteIcon: Container(
-                                                    height: config.AppConfig(
-                                                      context,
-                                                    ).appHeight(1.5),
-                                                    width: config.AppConfig(
-                                                      context,
-                                                    ).appHeight(1.5),
-                                                    padding: EdgeInsets.all(
-                                                      config.AppConfig(
-                                                        context,
-                                                      ).appWidth(0),
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(
-                                                          config.AppConfig(
-                                                            context,
-                                                          ).appWidth(10),
-                                                        ),
-                                                      ),
-                                                      border: Border.all(
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).primaryColor,
-                                                      ),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.clear,
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).primaryColor,
-                                                      size: config.AppConfig(
-                                                        context,
-                                                      ).appWidth(2.5),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: config.AppConfig(
-                                            context,
-                                          ).appHeight(0.5),
-                                        ),
-                                        // GridView.count(
-                                        //   shrinkWrap: true,
-                                        //   physics:
-                                        //       NeverScrollableScrollPhysics(),
-                                        //   crossAxisCount: 3,
-                                        //   childAspectRatio: 2.4,
-                                        //   mainAxisSpacing: 2,
-                                        //   crossAxisSpacing: 2,
-                                        //   padding: EdgeInsets.all(
-                                        //       config.AppConfig(context)
-                                        //           .appWidth(1)),
-                                        //   children: List.generate(
-                                        //       state.specialDietDataList!
-                                        //           .where((element) =>
-                                        //               element.isSelected!)
-                                        //           .toList()
-                                        //           .length, (index) {
-                                        //     return Stack(
-                                        //       children: [
-                                        //         Container(
-                                        //           height:
-                                        //               config.AppConfig(context)
-                                        //                   .appHeight(4),
-                                        //           padding: EdgeInsets.all(
-                                        //               config.AppConfig(context)
-                                        //                   .appWidth(0)),
-                                        //           decoration: BoxDecoration(
-                                        //               color: Theme.of(context)
-                                        //                   .primaryColor
-                                        //                   .withValues(alpha: 0.2),
-                                        //               borderRadius: BorderRadius.all(
-                                        //                   Radius.circular(
-                                        //                       config.AppConfig(
-                                        //                               context)
-                                        //                           .appWidth(
-                                        //                               5))),
-                                        //               border: Border.all(
-                                        //                   color: Theme.of(context)
-                                        //                       .primaryColor)),
-                                        //           alignment: Alignment.center,
-                                        //           child: Text(
-                                        //             state.specialDietDataList!
-                                        //                 .where((element) =>
-                                        //                     element.isSelected!)
-                                        //                 .toList()[index]
-                                        //                 .name!,
-                                        //             style: TextStyle(
-                                        //                 fontFamily: config
-                                        //                         .FontFamily()
-                                        //                     .itcAvantGardeGothicStdFontFamily,
-                                        //                 fontWeight:
-                                        //                     config.FontFamily()
-                                        //                         .book,
-                                        //                 color: Theme.of(context)
-                                        //                     .primaryColor),
-                                        //             maxLines: 1,
-                                        //             softWrap: true,
-                                        //             overflow:
-                                        //                 TextOverflow.ellipsis,
-                                        //           ),
-                                        //         ),
-                                        //         Positioned(
-                                        //           top: 5,
-                                        //           right: 5,
-                                        //           child: InkWell(
-                                        //             splashFactory:
-                                        //                 NoSplash.splashFactory,
-                                        //             onTap: () {
-                                        //               print('delete Chip');
-                                        //               context
-                                        //                   .read<AddMenuCubit>()
-                                        //                   .onDeleteSpecialDiet(
-                                        //                       id: state
-                                        //                           .specialDietDataList!
-                                        //                           .where((element) =>
-                                        //                               element
-                                        //                                   .isSelected!)
-                                        //                           .toList()[
-                                        //                               index]
-                                        //                           .id);
-                                        //             },
-                                        //             child: Container(
-                                        //               height: config.AppConfig(
-                                        //                       context)
-                                        //                   .appHeight(1.5),
-                                        //               width: config.AppConfig(
-                                        //                       context)
-                                        //                   .appHeight(1.5),
-                                        //               padding: EdgeInsets.all(
-                                        //                   config.AppConfig(
-                                        //                           context)
-                                        //                       .appWidth(0)),
-                                        //               alignment:
-                                        //                   Alignment.center,
-                                        //               decoration: BoxDecoration(
-                                        //                   borderRadius: BorderRadius.all(
-                                        //                       Radius.circular(
-                                        //                           config.AppConfig(
-                                        //                                   context)
-                                        //                               .appWidth(
-                                        //                                   10))),
-                                        //                   border: Border.all(
-                                        //                       color: Theme.of(
-                                        //                               context)
-                                        //                           .primaryColor)),
-                                        //               child: Icon(
-                                        //                 Icons.clear,
-                                        //                 color: Theme.of(context)
-                                        //                     .primaryColor,
-                                        //                 size: config.AppConfig(
-                                        //                         context)
-                                        //                     .appWidth(2.5),
-                                        //               ),
-                                        //             ),
-                                        //           ),
-                                        //         ),
-                                        //       ],
-                                        //     );
-                                        //   }),
-                                        // ),
-                                      ],
-                                    )
-                                  : const SizedBox(),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              TextFormField(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (contextB) {
-                                      return const CookingStyleDialog();
-                                    },
-                                  ).then((value) {
-                                    if (!context.mounted) return;
-                                    cookingStyleController.text = context
-                                        .read<AddMenuCubit>()
-                                        .state
-                                        .selectedCookingStyle!
-                                        .name
-                                        .toString();
-                                  });
-                                },
-                                controller: cookingStyleController,
-                                readOnly: true,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: config.AppConfig(
-                                    context,
-                                  ).appWidth(4),
-                                ),
-                                textInputAction: TextInputAction.next,
-                                keyboardType: TextInputType.name,
-                                // maxLength: 15,
-                                onChanged: (text) {},
-                                decoration: InputDecoration(
-                                  suffixIcon: Icon(
-                                    Icons.arrow_right,
-                                    size: config.AppConfig(context).appWidth(8),
-                                  ),
-                                  counterText: '',
-                                  hintStyle: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).hintColor,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4),
-                                  ),
-                                  hintText: 'Cooking style',
-                                  contentPadding: EdgeInsets.only(
-                                    left: config.AppConfig(context).appWidth(5),
-                                  ),
-                                  fillColor: config.AppColors()
-                                      .textFieldBackgroundColor(1),
-                                  filled: true,
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  border: InputBorder.none,
-                                  disabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              _ItemDescription(menuForm: this),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              const _AvailabilityScheduleSection(),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              Container(
-                                height: 45,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.topRight,
-                                    colors: state.formzStatus!.isValidated
-                                        ? [
-                                            Theme.of(context).primaryColor,
-                                            Theme.of(context).primaryColor,
-                                          ]
-                                        : [
-                                            const Color(0xFF9CA3AF),
-                                            const Color(0xFF9CA3AF),
-                                            const Color(0xFF9CA3AF),
-                                          ],
-                                  ),
-                                ),
-                                child: MaterialButton(
-                                  minWidth: config.AppConfig(
-                                    context,
-                                  ).appWidth(100),
-                                  height: 50.0,
-                                  onPressed: () {
-                                    if (state.formzStatus!.isValidated) {
-                                      if (state.pathFiles.isNotEmpty) {
-                                        if (state.specialDietDataList!
-                                            .firstWhere(
-                                          (element) => element.isSelected!,
-                                          orElse: () {
-                                            return SpecialDietData(
-                                              isSelected: false,
-                                            );
-                                          },
-                                        ).isSelected!) {
-                                          if (state.selectedCookingStyle!
-                                                      .isSelected !=
-                                                  null &&
-                                              state.selectedCookingStyle!
-                                                  .isSelected!) {
-                                            context
-                                                .read<AddMenuCubit>()
-                                                .onAddFood(
-                                                  isEdit: widget
-                                                      .routeArguments!.isEdit!,
-                                                  foodId: widget.routeArguments!
-                                                              .foodData !=
-                                                          null
-                                                      ? widget.routeArguments!
-                                                          .foodData!.id
-                                                          .toString()
-                                                      : '',
-                                                );
-                                          } else {
-                                            Helper.showToast(
-                                              'Please select cooking style',
-                                            );
-                                          }
-                                        } else {
-                                          Helper.showToast(
-                                            'Please select special diet',
+                      ),
+                      const SizedBox(height: MitablSpacing.listItem),
+
+                      // ── Availability Schedule ──
+                      const _AvailabilityScheduleSection(),
+                      const SizedBox(height: MitablSpacing.listItem),
+
+                      // ── Save / Update Button ──
+                      MitablButton(
+                        label: isEdit ? 'Update Item' : 'Save Item',
+                        variant: MitablButtonVariant.primary,
+                        onPressed: state.formzStatus!.isValidated
+                            ? () {
+                                if (state.pathFiles.isNotEmpty) {
+                                  if (state.specialDietDataList!
+                                      .firstWhere(
+                                        (element) => element.isSelected!,
+                                        orElse: () {
+                                          return SpecialDietData(
+                                            isSelected: false,
                                           );
-                                        }
-                                      } else {
-                                        Helper.showToast(
-                                          'Please upload images',
-                                        );
-                                      }
+                                        },
+                                      )
+                                      .isSelected!) {
+                                    if (state.selectedCookingStyle!
+                                                .isSelected !=
+                                            null &&
+                                        state.selectedCookingStyle!
+                                            .isSelected!) {
+                                      context
+                                          .read<AddMenuCubit>()
+                                          .onAddFood(
+                                            isEdit: isEdit,
+                                            foodId: widget.routeArguments!
+                                                        .foodData !=
+                                                    null
+                                                ? widget.routeArguments!
+                                                    .foodData!.id
+                                                    .toString()
+                                                : '',
+                                          );
+                                    } else {
+                                      Helper.showToast(
+                                        'Please select cooking style',
+                                      );
                                     }
-                                  },
-                                  child: /* state.addFoodStatus!
-                                              .isSubmissionInProgress
-                                          ? Center(
-                                              child: CupertinoActivityIndicator())
-                                          :*/
-                                      Text(
-                                    widget.routeArguments!.isEdit!
-                                        ? 'UPDATE'
-                                        : 'SAVE',
-                                    style: GoogleFonts.gothicA1(
-                                      fontSize: config.AppConfig(
-                                        context,
-                                      ).appWidth(3.5),
-                                      color: const Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                                  } else {
+                                    Helper.showToast(
+                                      'Please select special diet',
+                                    );
+                                  }
+                                } else {
+                                  Helper.showToast(
+                                    'Please upload images',
+                                  );
+                                }
+                              }
+                            : null,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
-                  state.addFoodStatus!.isSubmissionInProgress
-                      ? const CommonProgressWidget()
-                      : const SizedBox(),
-                ],
-              ),
+                ),
+                if (state.addFoodStatus!.isSubmissionInProgress)
+                  const CommonProgressWidget(),
+              ],
             );
           },
           listener: (context, state) {},
@@ -951,229 +506,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
   }
 }
 
-class _ItemName extends StatefulWidget {
-  final _AddMenuPageState? menuForm;
-
-  const _ItemName({this.menuForm});
-
-  @override
-  State<_ItemName> createState() => _ItemNameState();
-}
-
-class _ItemNameState extends State<_ItemName> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AddMenuCubit, AddMenuState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.menuForm!.itemNameController,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: config.AppConfig(context).appWidth(4),
-            ),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            // maxLength: 15,
-            onChanged: (text) {},
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.itemName!.invalid ? 'Please enter a valid name' : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Item name',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(5),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/////\\\\\
-class _ItemPrice extends StatefulWidget {
-  final _AddMenuPageState? menuForm;
-
-  const _ItemPrice({this.menuForm});
-
-  @override
-  State<_ItemPrice> createState() => _ItemPriceState();
-}
-
-class _ItemPriceState extends State<_ItemPrice> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AddMenuCubit, AddMenuState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.menuForm!.priceController,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: config.AppConfig(context).appWidth(4),
-            ),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.number,
-            // maxLength: 15,
-            onChanged: (text) {},
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.price!.invalid ? 'Please enter a valid price' : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Price',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(5),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-////\\\\\\
-
-class _ItemDescription extends StatefulWidget {
-  final _AddMenuPageState? menuForm;
-
-  const _ItemDescription({this.menuForm});
-
-  @override
-  State<_ItemDescription> createState() => _ItemDescriptionState();
-}
-
-class _ItemDescriptionState extends State<_ItemDescription> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AddMenuCubit, AddMenuState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.menuForm!.descriptionController,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: config.AppConfig(context).appWidth(4),
-            ),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            // maxLength: 15,
-            maxLines: 5,
-            onChanged: (text) {},
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.description!.invalid
-                  ? 'Please enter a valid description'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Description',
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(5),
-                vertical: config.AppConfig(context).appWidth(5),
-
-                // top: config.AppConfig(context).appWidth(5),
-                //   left:config.AppConfig(context).appWidth(5),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
+// ── Availability Schedule Section ──
 
 class _AvailabilityScheduleSection extends StatelessWidget {
   const _AvailabilityScheduleSection();
@@ -1192,49 +525,50 @@ class _AvailabilityScheduleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AddMenuCubit, AddMenuState>(
       builder: (context, state) {
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(config.AppConfig(context).appWidth(4)),
-          decoration: BoxDecoration(
-            color: config.AppColors().textFieldBackgroundColor(1),
-            borderRadius: BorderRadius.circular(20),
-          ),
+        return MitablCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Availability schedule',
-                style: GoogleFonts.gothicA1(
-                  color: Colors.black,
-                  fontSize: config.AppConfig(context).appWidth(4.5),
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
+                  color: MitablColors.onSurface,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 'Choose a specific date, recurring weekdays, and an optional serving window.',
-                style: GoogleFonts.gothicA1(
-                  color: const Color(0xFF9CA3AF),
-                  fontSize: config.AppConfig(context).appWidth(3.3),
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  color: MitablColors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 16),
-              OutlinedButton.icon(
+              MitablButton(
+                label: state.availableDate == null ||
+                        state.availableDate!.isEmpty
+                    ? 'Pick one specific date'
+                    : 'Specific date: ${state.availableDate}',
+                variant: MitablButtonVariant.outline,
+                icon: const Icon(Icons.event_outlined,
+                    size: 18, color: MitablColors.primary),
                 onPressed: () =>
                     _pickAvailableDate(context, state.availableDate),
-                icon: const Icon(Icons.event_outlined),
-                label: Text(
-                  state.availableDate == null || state.availableDate!.isEmpty
-                      ? 'Pick one specific date'
-                      : 'Specific date: ${state.availableDate}',
-                ),
               ),
               if ((state.availableDate ?? '').isNotEmpty)
-                TextButton(
-                  onPressed: () => context
-                      .read<AddMenuCubit>()
-                      .onAvailableDateChanged(value: ''),
-                  child: const Text('Clear specific date'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: TextButton(
+                    onPressed: () => context
+                        .read<AddMenuCubit>()
+                        .onAvailableDateChanged(value: ''),
+                    child: const Text(
+                      'Clear specific date',
+                      style: TextStyle(color: MitablColors.primary),
+                    ),
+                  ),
                 ),
               const SizedBox(height: 12),
               Wrap(
@@ -1242,8 +576,8 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                 runSpacing: 8,
                 children: List<Widget>.generate(_dayLabels.length, (index) {
                   final selected = state.availableDays.contains(index);
-                  return FilterChip(
-                    label: Text(_dayLabels[index]),
+                  return MitablChip(
+                    label: _dayLabels[index],
                     selected: selected,
                     onSelected: (_) => context
                         .read<AddMenuCubit>()
@@ -1255,33 +589,33 @@ class _AvailabilityScheduleSection extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: MitablButton(
+                      label: state.availableFromTime == null ||
+                              state.availableFromTime!.isEmpty
+                          ? 'Start time'
+                          : 'From ${state.availableFromTime}',
+                      variant: MitablButtonVariant.outline,
+                      fullWidth: true,
                       onPressed: () => _pickTime(
                         context,
                         isStart: true,
                         initialValue: state.availableFromTime,
                       ),
-                      child: Text(
-                        state.availableFromTime == null ||
-                                state.availableFromTime!.isEmpty
-                            ? 'Start time'
-                            : 'From ${state.availableFromTime}',
-                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: OutlinedButton(
+                    child: MitablButton(
+                      label: state.availableToTime == null ||
+                              state.availableToTime!.isEmpty
+                          ? 'End time'
+                          : 'To ${state.availableToTime}',
+                      variant: MitablButtonVariant.outline,
+                      fullWidth: true,
                       onPressed: () => _pickTime(
                         context,
                         isStart: false,
                         initialValue: state.availableToTime,
-                      ),
-                      child: Text(
-                        state.availableToTime == null ||
-                                state.availableToTime!.isEmpty
-                            ? 'End time'
-                            : 'To ${state.availableToTime}',
                       ),
                     ),
                   ),
@@ -1289,13 +623,19 @@ class _AvailabilityScheduleSection extends StatelessWidget {
               ),
               if ((state.availableFromTime ?? '').isNotEmpty ||
                   (state.availableToTime ?? '').isNotEmpty)
-                TextButton(
-                  onPressed: () =>
-                      context.read<AddMenuCubit>().onAvailableTimeChanged(
-                            availableFromTime: '',
-                            availableToTime: '',
-                          ),
-                  child: const Text('Clear time window'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: TextButton(
+                    onPressed: () =>
+                        context.read<AddMenuCubit>().onAvailableTimeChanged(
+                              availableFromTime: '',
+                              availableToTime: '',
+                            ),
+                    child: const Text(
+                      'Clear time window',
+                      style: TextStyle(color: MitablColors.primary),
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -1391,7 +731,7 @@ class _AvailabilityScheduleSection extends StatelessWidget {
   }
 }
 
-/////
+// ── Upload Button ──
 
 class _UploadButton extends StatefulWidget {
   const _UploadButton();
@@ -1406,98 +746,69 @@ class _UploadbuttonState extends State<_UploadButton> {
     return BlocConsumer<AddMenuCubit, AddMenuState>(
       listener: (context, state) {},
       builder: (context, state) {
-        return Container(
-          // alignment: Alignment.center,
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor,
-              ],
-            ),
-          ),
-          child: MaterialButton(
-            minWidth: config.AppConfig(context).appWidth(80),
-            height: 50.0,
-            onPressed: () {
-              // _pickImage();
-
-              if (state.pathFiles.length <= 4) {
-                showDialog<bool>(
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text(
-                        'Add image',
-                        style: GoogleFonts.gothicA1(
-                          color: Colors.black,
-                          fontSize: config.AppConfig(context).appWidth(5),
+        return MitablButton(
+          label: 'Upload Photos',
+          variant: MitablButtonVariant.outline,
+          icon: const Icon(Icons.camera_alt_outlined,
+              size: 18, color: MitablColors.primary),
+          onPressed: () {
+            if (state.pathFiles.length <= 4) {
+              showDialog<bool>(
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: MitablColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(MitablRadius.card),
+                    ),
+                    title: Text(
+                      'Add image',
+                      style: GoogleFonts.nunito(
+                        color: MitablColors.onSurface,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        MitablButton(
+                          label: 'Gallery',
+                          variant: MitablButtonVariant.primary,
+                          icon: const Icon(Icons.photo_library_outlined,
+                              size: 18, color: MitablColors.onPrimary),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop(false);
+                          },
                         ),
-                      ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          MaterialButton(
-                            color: Theme.of(context).primaryColor,
-                            child: const Text(
-                              "Gallery",
-                              style: TextStyle(
-                                color: Color(0xB3FFFBF7),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () {
-                              navigatorKey.currentState!.pop(false);
-                            },
-                          ),
-                          MaterialButton(
-                            color: Theme.of(context).primaryColor,
-                            child: const Text(
-                              "Camera",
-                              style: TextStyle(
-                                color: Color(0xB3FFFBF7),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () {
-                              navigatorKey.currentState!.pop(true);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  context: context,
-                ).then((value) {
-                  if (!context.mounted) return;
-                  if (value != null) {
-                    if (value) {
-                      //Get from camera
-                      _openCamera(context);
-                    } else {
-                      //Get from gallery
-                      _openGallery(context);
-                    }
+                        const SizedBox(height: 12),
+                        MitablButton(
+                          label: 'Camera',
+                          variant: MitablButtonVariant.outline,
+                          icon: const Icon(Icons.camera_alt_outlined,
+                              size: 18, color: MitablColors.primary),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop(true);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                context: context,
+              ).then((value) {
+                if (!context.mounted) return;
+                if (value != null) {
+                  if (value) {
+                    _openCamera(context);
+                  } else {
+                    _openGallery(context);
                   }
-                });
-              } else {
-                Helper.showToast('Photos limit reached.');
-              }
-            },
-            child: Text(
-              'Upload Photos',
-              style: TextStyle(
-                fontFamily:
-                    config.FontFamily().itcAvantGardeGothicStdFontFamily,
-                fontSize: config.AppConfig(context).appWidth(3.5),
-                color: const Color(0xFFFFFBF7),
-                fontWeight: config.FontFamily().book,
-              ),
-            ),
-          ),
+                }
+              });
+            } else {
+              Helper.showToast('Photos limit reached.');
+            }
+          },
         );
       },
     );
