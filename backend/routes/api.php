@@ -173,6 +173,21 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);
         Route::post('notification-preferences', [V2AccountController::class, 'updateNotificationPreferences']);
 		Route::get('mobile-contact', [V2AccountController::class, 'mobileContact']);
+		Route::get('dietary-preferences', function () {
+			return response()->json([
+				'preferences' => auth()->user()->dietaryPreferences->pluck('id'),
+			]);
+		});
+		Route::put('dietary-preferences', function (\Illuminate\Http\Request $request) {
+			$validated = $request->validate([
+				'preference_ids' => 'required|array',
+				'preference_ids.*' => 'integer|exists:special_diets,id',
+			]);
+			auth()->user()->dietaryPreferences()->sync($validated['preference_ids']);
+			return response()->json([
+				'preferences' => auth()->user()->fresh()->dietaryPreferences->pluck('id'),
+			]);
+		});
 	});
 
 	// Notifications

@@ -270,6 +270,19 @@ class DiscoveryService
             });
         }
 
+        $specialDiets = $request->input('special_diets');
+        if (!empty($specialDiets)) {
+            $dietIds = array_filter(array_map('intval', explode(',', $specialDiets)));
+            if (!empty($dietIds)) {
+                $query->whereHas('foods', function ($foodQuery) use ($dietIds) {
+                    $foodQuery->where('status', 1);
+                    foreach ($dietIds as $dietId) {
+                        $foodQuery->whereJsonContains('specialDiet', $dietId);
+                    }
+                });
+            }
+        }
+
         if ($request->has('dine_in')) {
             $query->where('mikitchns.dine_in', $request->dine_in);
         }

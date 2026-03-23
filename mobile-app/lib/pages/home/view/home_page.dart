@@ -265,22 +265,28 @@ class _HomePage extends State<HomePage> {
                     vertical: 12,
                   ),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
+                    onTap: () async {
+                      final result = await Navigator.of(context).push<List<int>>(
+                        MaterialPageRoute<List<int>>(
                           builder: (_) => BlocProvider.value(
                             value: context.read<HomeCubit>(),
                             child: const SearchFiltersPage(),
                           ),
                         ),
                       );
+                      // result contains selected dietary filter IDs
+                      // for client-side filtering if needed
+                      if (result != null && result.isNotEmpty && context.mounted) {
+                        // Diet IDs available for client-side filtering
+                        debugPrint('Selected diet IDs: $result');
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 14,
                       ),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: MitablColors.surfaceContainerLow,
                         borderRadius: MitablRadius.pillBorder,
                       ),

@@ -21,7 +21,6 @@ class SearchFiltersPage extends StatefulWidget {
 
 class _SearchFiltersPageState extends State<SearchFiltersPage> {
   final TextEditingController _searchController = TextEditingController();
-  final Set<int> _selectedDietary = {};
   int? _selectedPriceIndex;
 
   @override
@@ -37,20 +36,23 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
     super.dispose();
   }
 
-  static const _dietaryLabels = [
-    'Vegan',
-    'Vegetarian',
-    'Gluten-Free',
-    'Keto',
-    'Pescatarian',
-  ];
+  /// Diet ID to label mapping matching the design.
+  static const Map<int, String> _dietaryOptions = {
+    1: 'Vegan',
+    2: 'Vegetarian',
+    3: 'Gluten-Free',
+    4: 'Keto',
+    5: 'Pescatarian',
+  };
+
+  final Set<int> _selectedDietIds = {};
 
   static const _priceTiers = ['\$', '\$\$', '\$\$\$', '\$\$\$\$'];
 
   void _clearAll() {
     setState(() {
       _searchController.clear();
-      _selectedDietary.clear();
+      _selectedDietIds.clear();
       _selectedPriceIndex = null;
     });
     // Reset cuisine selection and distance to default
@@ -60,7 +62,8 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
 
   void _applyFilters() {
     context.read<HomeCubit>().onApplyFilter();
-    Navigator.of(context).pop();
+    // Pass selected diet IDs back to the home page for client-side filtering
+    Navigator.of(context).pop(_selectedDietIds.toList());
   }
 
   @override
@@ -160,20 +163,24 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: List.generate(_dietaryLabels.length, (index) {
+                        children: _dietaryOptions.entries.map((entry) {
+                          final dietId = entry.key;
+                          final label = entry.value;
+                          final isSelected = _selectedDietIds.contains(dietId);
                           return MitablChip(
-                            label: _dietaryLabels[index],
-                            selected: _selectedDietary.contains(index),
+                            label: label,
+                            selected: isSelected,
                             onSelected: (_) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Coming soon'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedDietIds.remove(dietId);
+                                } else {
+                                  _selectedDietIds.add(dietId);
+                                }
+                              });
                             },
                           );
-                        }),
+                        }).toList(),
                       ),
                       const SizedBox(height: 28),
 

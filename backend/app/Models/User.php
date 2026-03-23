@@ -146,6 +146,11 @@ class User extends Authenticatable implements JWTSubject
             ->exists();
     }
 
+    public function dietaryPreferences()
+    {
+        return $this->belongsToMany(\App\Models\SpecialDiet::class, 'user_dietary_preferences');
+    }
+
     public function restaurant(){
         return $this->hasOne(Mikitchn::class);
     }

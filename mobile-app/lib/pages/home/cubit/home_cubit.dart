@@ -47,6 +47,11 @@ class HomeCubit extends Cubit<HomeState> {
   static const _cacheTtl = Duration(minutes: 10);
   static const _feedPageSize = 10;
 
+  @override
+  void emit(HomeState state) {
+    if (!isClosed) super.emit(state);
+  }
+
   final UserRepository userRepository;
   final HomeRepository _homeRepository;
   final CookRepository _cookRepository;

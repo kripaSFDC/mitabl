@@ -558,6 +558,36 @@ class MikitchnController extends Controller
 
         $data = ['total_earning'=> $earnings, 'n_bookings' => $allOrders, 'n_upcoming_bookings' => $upcoming];
 
+        $completedOrdersQuery = Order::where('mikitchn_id', $kitchen->id)
+            ->where('status', Order::STATUS_COMPLETED);
+
+        // Revenue by period
+        $data['revenue_today'] = (float) (clone $completedOrdersQuery)
+            ->whereDate('delivery_date', today())->sum('total_price');
+        $data['revenue_this_week'] = (float) (clone $completedOrdersQuery)
+            ->whereBetween('delivery_date', [now()->startOfWeek(), now()->endOfWeek()])->sum('total_price');
+        $data['revenue_this_month'] = (float) (clone $completedOrdersQuery)
+            ->whereMonth('delivery_date', now()->month)
+            ->whereYear('delivery_date', now()->year)->sum('total_price');
+
+        // Top dishes
+        $completedOrderIds = (clone $completedOrdersQuery)->pluck('id');
+        $data['top_dishes'] = \App\Models\OrderData::whereIn('order_id', $completedOrderIds)
+            ->join('foods', 'order_data.food_id', '=', 'foods.id')
+            ->groupBy('order_data.food_id', 'foods.food_name', 'foods.price')
+            ->selectRaw('foods.food_name as name, foods.price, COUNT(*) as order_count, SUM(order_data.price * order_data.quantity) as total_revenue')
+            ->orderByDesc('order_count')
+            ->limit(5)
+            ->get();
+
+        // Daily trend (last 7 days)
+        $data['daily_trend'] = (clone $completedOrdersQuery)
+            ->where('delivery_date', '>=', now()->subDays(7))
+            ->groupByRaw('DATE(delivery_date)')
+            ->selectRaw('DATE(delivery_date) as date, SUM(total_price) as revenue, COUNT(*) as orders')
+            ->orderBy('date')
+            ->get();
+
         return $this->responser($data, 'kitchen dashboard data.');
     }
 

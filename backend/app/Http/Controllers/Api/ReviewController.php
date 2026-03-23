@@ -25,6 +25,8 @@ class ReviewController extends Controller
             ],
             'review_tag' => 'required|string',
             'rating' => 'required|numeric|min:0|max:5',
+            'photos' => 'nullable|array|max:5',
+            'photos.*' => 'image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         if($validator->fails()){
@@ -54,6 +56,18 @@ class ReviewController extends Controller
         $review->order_id = $request->order_id;
         $review->by_user = 'customer';
         $review->save();
+
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $path = $photo->store('reviews', 'public');
+                \App\Models\Image::create([
+                    'ref_id' => $review->id,
+                    'model_name' => 'review',
+                    'path' => $path,
+                ]);
+            }
+        }
+
         // auth()->user()->restaurant->reviews()->save($review);
         $rvw = new ReviewsResource($review);
         return $this->responser($rvw, 'Review Added Successfully.');
