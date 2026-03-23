@@ -20,6 +20,8 @@ import 'package:mitabl_user/pages/ordering/view/order_menu_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_tracking_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/view/profile_foodie_page.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cook_profile_page.dart';
+import 'package:mitabl_user/pages/profile_signup_cook/setup_payouts/view/setup_payouts_page.dart';
+import 'package:mitabl_user/pages/profile_signup_cook/kitchen_certification/view/kitchen_certification_page.dart';
 import 'package:mitabl_user/pages/signup/view/signup_page.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/view/add_menu_page.dart';
 import 'package:mitabl_user/pages_cook/bookings/view/bookings_page.dart';
@@ -208,6 +210,12 @@ class RouteGenerator {
 
       case '/Notifications':
         return NotificationsPage.route();
+
+      case '/SetupPayouts':
+        return SetupPayoutsPage.route(routeArguments: routeArguments);
+
+      case '/KitchenCertification':
+        return KitchenCertificationPage.route(routeArguments: routeArguments);
 
       default:
         return _routeError();
