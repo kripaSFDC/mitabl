@@ -55,6 +55,25 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
     return response()->json($summary, $isReady ? 200 : 503);
 });
 
+// DEV ONLY: reset OTP to a known value and return it (local/testing only)
+Route::get('/dev/otp/{userId}', function ($userId) {
+    if (!in_array(config('app.env'), ['local', 'testing'])) {
+        abort(404);
+    }
+    $knownOtp = '123456';
+    \DB::table('verify_otps')->updateOrInsert(
+        ['user_id' => $userId],
+        [
+            'otp' => \Hash::make($knownOtp),
+            'expires_at' => now()->addMinutes(30),
+            'attempts' => 0,
+            'locked_until' => null,
+            'updated_at' => now(),
+        ]
+    );
+    return response()->json(['otp' => $knownOtp]);
+});
+
 // Mobile app version gate — no auth required.
 // Returns minimum/latest version info for the update check dialog.
 Route::get('/app/version', [AppVersionController::class, 'show'])

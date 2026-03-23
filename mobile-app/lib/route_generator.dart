@@ -32,6 +32,10 @@ import 'package:mitabl_user/pages_cook/requests/elements/order_details_view.dart
 import 'package:mitabl_user/pages_cook/settings_page/view/settings_page_cook.dart';
 import 'package:mitabl_user/pages_cook/upcoming_bookings/view/upcoming_bookings.dart';
 import 'package:mitabl_user/pages_cook/user_details_page/user_details.dart';
+import 'package:mitabl_user/pages/order_details_foodie/view/order_details_foodie_page.dart';
+import 'package:mitabl_user/pages/submit_review/view/submit_review_page.dart';
+import 'package:mitabl_user/pages/add_payment_method/view/add_payment_method_page.dart';
+import 'package:mitabl_user/pages/notifications/view/notifications_page.dart';
 import 'package:mitabl_user/splash.dart';
 
 class RouteGenerator {
@@ -189,6 +193,21 @@ class RouteGenerator {
           return Bookings.route();
         }
         return OrderDetails.route(routeArguments: routeArguments);
+
+      case '/OrderDetailsFoodie':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderDetailsFoodie');
+        }
+        return OrderDetailsFoodiePage.route(routeArguments: routeArguments);
+
+      case '/SubmitReview':
+        return SubmitReviewPage.route(routeArguments: routeArguments);
+
+      case '/AddPaymentMethod':
+        return AddPaymentMethodPage.route();
+
+      case '/Notifications':
+        return NotificationsPage.route();
 
       default:
         return _routeError();

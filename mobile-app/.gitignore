@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local dev config overrides (never commit)
+assets/cfg/configuration.local.json

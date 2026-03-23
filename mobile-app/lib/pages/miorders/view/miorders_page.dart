@@ -5,10 +5,15 @@ import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/no_data_widget.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/pages/miorders/element/order_card.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class MiOrdersPage extends StatefulWidget {
   const MiOrdersPage({super.key, this.repository});
@@ -23,9 +28,11 @@ class MiOrdersPage extends StatefulWidget {
   State<MiOrdersPage> createState() => _MiOrdersPageState();
 }
 
-class _MiOrdersPageState extends State<MiOrdersPage> {
+class _MiOrdersPageState extends State<MiOrdersPage>
+    with SingleTickerProviderStateMixin {
   late final MiOrdersRepository _repository;
   late final bool _ownsRepository;
+  late final TabController _tabController;
 
   _ViewStatus _status = _ViewStatus.loading;
   String _errorMessage = 'Unable to fetch orders history';
@@ -34,9 +41,24 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
   bool _attemptedFoodieRecovery = false;
   bool _isCancellingOrder = false;
 
+  // Ongoing: status 2 (Requested), 3 (Confirmed), 5 (In Progress)
+  List<Map<String, dynamic>> get _ongoingOrders =>
+      _orders.where((o) {
+        final s = '${o['status']}';
+        return s == '2' || s == '3' || s == '5';
+      }).toList();
+
+  // Past: status 0 (Cancelled by system), 1 (Completed), 4 (Cancelled by user)
+  List<Map<String, dynamic>> get _pastOrders =>
+      _orders.where((o) {
+        final s = '${o['status']}';
+        return s == '0' || s == '1' || s == '4';
+      }).toList();
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _repository = widget.repository ?? MiOrdersRepository();
     _ownsRepository = widget.repository == null;
     _load();
@@ -44,6 +66,7 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     if (_ownsRepository) {
       _repository.dispose();
     }
@@ -142,7 +165,32 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('miorders')),
+      backgroundColor: MitablColors.surface,
+      appBar: GlassAppBar(
+        title: const Text('My Orders'),
+        bottom: _status == _ViewStatus.loaded
+            ? TabBar(
+                controller: _tabController,
+                labelColor: MitablColors.primary,
+                unselectedLabelColor: MitablColors.onSurfaceVariant,
+                indicatorColor: MitablColors.primary,
+                indicatorWeight: 3,
+                labelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Nunito',
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: [
+                  Tab(text: 'Ongoing (${_ongoingOrders.length})'),
+                  Tab(text: 'Past (${_pastOrders.length})'),
+                ],
+              )
+            : null,
+      ),
       body: switch (_status) {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
@@ -154,94 +202,49 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
           message: _errorMessage,
           onRetry: _load,
         ),
-        _ViewStatus.loaded =>
-          _orders.isEmpty
-              ? const NoDataWidget()
-              : ListView.separated(
-                  itemCount: _orders.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final order = _orders[index];
-                    final title = _orderTitle(order, index);
-                    final subtitle = _orderSubtitle(order);
-                    final statusLabel = _statusLabel(order['status']);
-                    final canCancel = _canCancel(order);
-                    return ListTile(
-                      title: Text(title),
-                      subtitle: Text(subtitle),
-                      trailing: canCancel
-                          ? TextButton(
-                              onPressed: _isCancellingOrder
-                                  ? null
-                                  : () => _cancelOrder(order),
-                              child: Text(
-                                _isCancellingOrder ? 'Cancelling...' : 'Cancel',
-                              ),
-                            )
-                          : Text(statusLabel),
-                    );
-                  },
-                ),
+        _ViewStatus.loaded => TabBarView(
+          controller: _tabController,
+          children: [
+            _buildOrderList(_ongoingOrders),
+            _buildOrderList(_pastOrders),
+          ],
+        ),
       },
     );
   }
 
-  String _orderTitle(Map<String, dynamic> order, int index) {
-    final dynamic kitchen = order['mikitchn'];
-    final kitchenName = kitchen is Map<String, dynamic>
-        ? (kitchen['name']?.toString() ?? '')
-        : '';
-    final orderCode =
-        order['order_type_id']?.toString() ??
-        order['order_id']?.toString() ??
-        'Order ${index + 1}';
-
-    if (kitchenName.isEmpty) {
-      return orderCode;
+  Widget _buildOrderList(List<Map<String, dynamic>> orders) {
+    if (orders.isEmpty) {
+      return const Center(child: NoDataWidget());
     }
 
-    return '$orderCode • $kitchenName';
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: MitablColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: MitablSpacing.listItem / 2),
+            child: OrderCard(
+              order: order,
+              index: index,
+              isCancelling: _isCancellingOrder,
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  '/OrderDetailsFoodie',
+                  arguments: RouteArguments(data: order),
+                );
+              },
+              onCancel: () => _cancelOrder(order),
+            ),
+          );
+        },
+      ),
+    );
   }
-
-  String _orderSubtitle(Map<String, dynamic> order) {
-    final serviceType = (order['dine_in']?.toString() == '1')
-        ? 'Dine-in'
-        : 'Take-away';
-    final date = order['date']?.toString() ?? '';
-    final timeFrom = order['time_from']?.toString() ?? '';
-    final timeTo = order['time_to']?.toString() ?? '';
-    final totalPrice = order['total_price']?.toString() ?? '';
-
-    final parts = <String>[
-      serviceType,
-      if (date.isNotEmpty) date,
-      if (timeFrom.isNotEmpty && timeTo.isNotEmpty) '$timeFrom - $timeTo',
-      if (totalPrice.isNotEmpty) '\$$totalPrice',
-      _statusLabel(order['status']),
-    ];
-
-    return parts.join(' • ');
-  }
-
-  String _statusLabel(dynamic status) {
-    switch ('$status') {
-      case '0':
-      case '4':
-        return 'Cancelled';
-      case '1':
-        return 'Completed';
-      case '2':
-        return 'Requested';
-      case '3':
-        return 'Confirmed';
-      case '5':
-        return 'In progress';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  bool _canCancel(Map<String, dynamic> order) => '${order['status']}' == '2';
 
   Future<void> _cancelOrder(Map<String, dynamic> order) async {
     final comment = await _showCancelDialog();
@@ -288,6 +291,9 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: MitablRadius.cardBorder,
+        ),
         title: const Text('Cancel order'),
         content: TextField(
           controller: controller,
@@ -304,7 +310,10 @@ class _MiOrdersPageState extends State<MiOrdersPage> {
           TextButton(
             onPressed: () =>
                 Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('Cancel order'),
+            child: const Text(
+              'Cancel order',
+              style: TextStyle(color: MitablColors.error),
+            ),
           ),
         ],
       ),
@@ -331,14 +340,26 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Icon(
+              Icons.swap_horiz,
+              size: 48,
+              color: MitablColors.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
             const Text(
               'Switch to mifoodi to access this page',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            MitablButton(
+              label: isLoading ? 'Switching...' : 'Switch to mifoodi',
               onPressed: isLoading ? null : onPressed,
-              child: Text(isLoading ? 'Switching...' : 'Switch to mifoodi'),
+              variant: MitablButtonVariant.primary,
+              fullWidth: false,
             ),
           ],
         ),
@@ -361,9 +382,27 @@ class _ServerErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: MitablColors.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            MitablButton(
+              label: 'Retry',
+              onPressed: onRetry,
+              variant: MitablButtonVariant.outline,
+              fullWidth: false,
+            ),
           ],
         ),
       ),

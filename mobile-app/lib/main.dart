@@ -18,6 +18,12 @@ import 'package:mitabl_user/repos/user_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GlobalConfiguration().loadFromAsset('configuration');
+  // Local dev overrides (gitignored). Silently skip if file doesn't exist.
+  try {
+    await GlobalConfiguration().loadFromAsset('configuration.local');
+  } catch (_) {
+    // No local config — using production defaults.
+  }
   // GothicA1 is used through google_fonts across many screens but is not
   // bundled in assets. Allow runtime fetching to avoid hard crashes.
   GoogleFonts.config.allowRuntimeFetching = true;

@@ -5,10 +5,15 @@ import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/no_data_widget.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
+import 'package:mitabl_user/pages/favourites/element/favourite_cook_card.dart';
 import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/widgets/mitabl_card.dart';
 
 class FavouritesPage extends StatefulWidget {
   const FavouritesPage({super.key, this.repository});
@@ -136,10 +141,43 @@ class _FavouritesPageState extends State<FavouritesPage> {
     }
   }
 
+  Future<void> _unfavourite(Map<String, dynamic> favourite) async {
+    final targetId = (favourite['id'] ??
+            favourite['restaurant_id'] ??
+            favourite['mikitchn_id'] ??
+            '')
+        .toString();
+    if (targetId.isEmpty) return;
+
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      await _repository.toggleFavourite(
+        userModel: userModel,
+        targetId: targetId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _favourites =
+            _favourites.where((f) => f != favourite).toList(growable: false);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Removed from favourites')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to update favourites right now.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('favourites')),
+      backgroundColor: MitablColors.surface,
+      appBar: const GlassAppBar(title: Text('Saved Kitchens')),
       body: switch (_status) {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
@@ -154,24 +192,63 @@ class _FavouritesPageState extends State<FavouritesPage> {
         _ViewStatus.loaded =>
           _favourites.isEmpty
               ? const NoDataWidget()
-              : ListView.separated(
-                  itemCount: _favourites.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+              : ListView.builder(
+                  padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+                  itemCount: _favourites.length + 1, // +1 for CTA at bottom
                   itemBuilder: (context, index) {
+                    if (index == _favourites.length) {
+                      // "Looking for more?" CTA card
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          top: MitablSpacing.listItem / 2,
+                          bottom: 32,
+                        ),
+                        child: MitablCard(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Looking for more?',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onSurface,
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Discover new kitchens near you',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              MitablButton(
+                                label: 'Explore',
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pushNamed('/HomePage');
+                                },
+                                variant: MitablButtonVariant.primary,
+                                fullWidth: false,
+                                icon: const Icon(Icons.explore,
+                                    color: MitablColors.onPrimary, size: 18),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
                     final favourite = _favourites[index];
-                    final title =
-                        (favourite['name'] ??
-                                favourite['title'] ??
-                                'Favourite ${index + 1}')
-                            .toString();
-                    final subtitle =
-                        (favourite['subtitle'] ??
-                                favourite['description'] ??
-                                'Saved item')
-                            .toString();
-                    return ListTile(
-                      title: Text(title),
-                      subtitle: Text(subtitle),
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: MitablSpacing.listItem / 2),
+                      child: FavouriteCookCard(
+                        favourite: favourite,
+                        onUnfavourite: () => _unfavourite(favourite),
+                      ),
                     );
                   },
                 ),
@@ -196,14 +273,26 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Icon(
+              Icons.swap_horiz,
+              size: 48,
+              color: MitablColors.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
             const Text(
               'Switch to mifoodi to access this page',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            MitablButton(
+              label: isLoading ? 'Switching...' : 'Switch to mifoodi',
               onPressed: isLoading ? null : onPressed,
-              child: Text(isLoading ? 'Switching...' : 'Switch to mifoodi'),
+              variant: MitablButtonVariant.primary,
+              fullWidth: false,
             ),
           ],
         ),
@@ -226,9 +315,27 @@ class _ServerErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: MitablColors.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            MitablButton(
+              label: 'Retry',
+              onPressed: onRetry,
+              variant: MitablButtonVariant.outline,
+              fullWidth: false,
+            ),
           ],
         ),
       ),

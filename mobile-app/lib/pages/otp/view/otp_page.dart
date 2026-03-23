@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/otp/cubit/otp_cubit.dart';
@@ -36,8 +40,8 @@ class _OTPPageState extends State<OTPPage> {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     final defaultPinTheme = PinTheme(
-      width: 64,
-      height: 64,
+      width: 52,
+      height: 56,
       textStyle: const TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
@@ -129,7 +133,7 @@ class _OTPPageState extends State<OTPPage> {
 
                     // Pinput
                     Pinput(
-                      length: 4,
+                      length: 6,
                       defaultPinTheme: defaultPinTheme,
                       focusedPinTheme: focusedPinTheme,
                       separatorBuilder: (index) => const SizedBox(width: 12),
@@ -185,16 +189,39 @@ class _OTPPageState extends State<OTPPage> {
 
                     const SizedBox(height: 32),
 
-                    // Demo bypass
+                    // Demo bypass — fetches OTP from backend and auto-submits
                     TextButton(
-                      onPressed: () {
-                        navigatorKey.currentState!.pushNamedAndRemoveUntil(
-                          '/HomePage',
-                          (route) => false,
-                        );
+                      onPressed: () async {
+                        final cubit = context.read<OtpCubit>();
+                        final userId = cubit.routeArguments?.id;
+                        if (userId == null) return;
+
+                        try {
+                          // Fetch the actual OTP from the dev endpoint
+                          final uri = ApiContract.uri('dev/otp/$userId');
+                          final resp = await http.get(uri, headers: {
+                            'Accept': 'application/json',
+                          }).timeout(const Duration(seconds: 10));
+
+                          if (resp.statusCode == 200) {
+                            final otp = json.decode(resp.body)['otp']?.toString() ?? '';
+                            if (otp.isNotEmpty) {
+                              cubit.onOtpChanged(value: otp);
+                              cubit.onSubmitted();
+                              return;
+                            }
+                          }
+                        } catch (_) {}
+
+                        // Fallback: if dev endpoint unavailable, show message
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not auto-verify. Please enter OTP manually.')),
+                          );
+                        }
                       },
                       child: Text(
-                        'Skip Verification (Demo)',
+                        'Auto-Verify (Demo)',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
