@@ -24,6 +24,18 @@ class CustomerReviewPage extends StatefulWidget {
 }
 
 class _CustomerReviewPageState extends State<CustomerReviewPage> {
+  static const Color _starColor = Color(0xFFFFA200);
+
+  /// Compute rating distribution: returns a map from star value (1-5) to count.
+  Map<int, int> _computeDistribution(List reviews) {
+    final Map<int, int> dist = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+    for (final r in reviews) {
+      final star = (r.rating ?? 0).round().clamp(1, 5);
+      dist[star] = (dist[star] ?? 0) + 1;
+    }
+    return dist;
+  }
+
   @override
   Widget build(BuildContext context) {
     final reviews = widget.routeArguments!.kitchen!.reviewsData!;
@@ -38,6 +50,8 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
       }
       avgRating = sum / reviews.length;
     }
+
+    final distribution = _computeDistribution(reviews);
 
     return Scaffold(
       backgroundColor: MitablColors.surface,
@@ -64,7 +78,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                       StarRating(
                         rating: avgRating,
                         size: 28,
-                        color: Colors.amber,
+                        color: _starColor,
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -75,6 +89,62 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                           color: MitablColors.onSurfaceVariant,
                         ),
                       ),
+                      const SizedBox(height: 16),
+
+                      // Rating distribution bars
+                      ...List.generate(5, (i) {
+                        final star = 5 - i;
+                        final count = distribution[star] ?? 0;
+                        final fraction =
+                            reviews.isNotEmpty ? count / reviews.length : 0.0;
+                        final percent = (fraction * 100).round();
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 28,
+                                child: Text(
+                                  '$star\u2605',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: fraction,
+                                    minHeight: 8,
+                                    backgroundColor: MitablColors
+                                        .surfaceContainerLow,
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                            _starColor),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 36,
+                                child: Text(
+                                  '$percent%',
+                                  textAlign: TextAlign.right,
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -134,10 +204,29 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 2),
-                                    StarRating(
-                                      rating: review.rating!,
-                                      size: 16,
-                                      color: Colors.amber,
+                                    Row(
+                                      children: [
+                                        StarRating(
+                                          rating: review.rating!,
+                                          size: 16,
+                                          color: _starColor,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        if (review.reviewTag != null &&
+                                            review.reviewTag!.isNotEmpty)
+                                          Flexible(
+                                            child: Text(
+                                              review.reviewTag!,
+                                              style: GoogleFonts.nunito(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: MitablColors
+                                                    .onSurfaceVariant,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ],
                                 ),

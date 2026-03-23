@@ -71,13 +71,48 @@ class UserDetails extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
+
+            // "Valued Customer" badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: const BoxDecoration(
+                color: MitablColors.secondaryContainer,
+                borderRadius: MitablRadius.pillBorder,
+              ),
+              child: Text(
+                'Valued Customer',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: MitablColors.onSecondaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
 
             // Star rating
             StarRating(
               rating: customer.rating!,
               size: 24,
               color: const Color(0xffFFA200),
+            ),
+            const SizedBox(height: 16),
+
+            // Order stats row (placeholders)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _StatBadge(
+                  icon: Icons.receipt_long_rounded,
+                  label: '24 orders',
+                ),
+                const SizedBox(width: 24),
+                _StatBadge(
+                  icon: Icons.star_rounded,
+                  label: 'Avg Rating 4.9',
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -133,6 +168,7 @@ class UserDetails extends StatelessWidget {
                       MitablChip(label: 'Gluten-Free'),
                       MitablChip(label: 'Dairy-Free'),
                       MitablChip(label: 'No Nuts'),
+                      MitablChip(label: 'Prefers Vegan'),
                     ],
                   ),
                 ],
@@ -152,6 +188,32 @@ class UserDetails extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StatBadge extends StatelessWidget {
+  const _StatBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: MitablColors.primary),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: MitablColors.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

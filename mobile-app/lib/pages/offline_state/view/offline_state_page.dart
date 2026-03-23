@@ -15,23 +15,71 @@ class OfflineStatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MitablColors.surface,
-      body: SafeArea(
-        child: Center(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              MitablColors.surface, // warm oat
+              Color(0xFFFFF8F0), // lighter warm cream
+            ],
+          ),
+        ),
+        child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: MitablSpacing.pagePadding,
+              horizontal: MitablSpacing.pagePadding * 1.5,
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 60),
-                const Icon(
-                  Icons.wifi_off_rounded,
-                  size: 80,
-                  color: MitablColors.onSurfaceVariant,
+
+                // Mitabl logo text at the top
+                Text(
+                  'Mitabl',
+                  style: GoogleFonts.nunito(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.primary,
+                  ),
                 ),
-                const SizedBox(height: 32),
+
+                const Spacer(flex: 2),
+
+                // Illustration placeholder: rounded rect with stacked icons
+                Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: MitablColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(32),
+                  ),
+                  child: const Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.restaurant_menu,
+                        size: 60,
+                        color: MitablColors.outlineVariant,
+                      ),
+                      Positioned(
+                        bottom: 40,
+                        right: 50,
+                        child: Icon(
+                          Icons.wifi_off_rounded,
+                          size: 30,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
                 Text(
                   "Oops! It looks like you're offline.",
                   style: GoogleFonts.nunito(
@@ -51,27 +99,38 @@ class OfflineStatePage extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                MitablButton(
-                  label: 'Retry',
-                  variant: MitablButtonVariant.primary,
-                  icon: const Icon(
-                    Icons.refresh,
-                    color: MitablColors.onPrimary,
-                    size: 20,
+
+                const Spacer(flex: 2),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: MitablButton(
+                    label: 'Retry',
+                    variant: MitablButtonVariant.primary,
+                    fullWidth: true,
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: MitablColors.onPrimary,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  onPressed: () => Navigator.pop(context),
                 ),
                 const SizedBox(height: 16),
-                MitablButton(
-                  label: 'Back to Dashboard',
-                  variant: MitablButtonVariant.outline,
-                  onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/DashboardCook',
-                    (r) => false,
+                SizedBox(
+                  width: double.infinity,
+                  child: MitablButton(
+                    label: 'Back to Dashboard',
+                    variant: MitablButtonVariant.outline,
+                    fullWidth: true,
+                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/DashboardCook',
+                      (r) => false,
+                    ),
                   ),
                 ),
+                const SizedBox(height: 40),
               ],
             ),
           ),

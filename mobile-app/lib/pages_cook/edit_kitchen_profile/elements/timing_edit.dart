@@ -102,98 +102,125 @@ class EditTimingDialog extends StatelessWidget {
                             if (isOn)
                               Padding(
                                 padding: const EdgeInsets.only(left: 4, top: 4),
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Start time box
-                                    _TimeBox(
-                                      time: day.timing?.startTime ?? '--:--',
-                                      onTap: () {
-                                        String date = DateFormat(
-                                          'yyyy-MM-dd ',
-                                        ).format(nowDate);
-                                        String datePreviousStart =
-                                            date + (day.timing?.startTime ?? '00:00');
-                                        DateTime startPreviousTime =
-                                            DateTime.parse(datePreviousStart);
+                                    Row(
+                                      children: [
+                                        // Start time box
+                                        _TimeBox(
+                                          time: day.timing?.startTime ?? '--:--',
+                                          onTap: () {
+                                            String date = DateFormat(
+                                              'yyyy-MM-dd ',
+                                            ).format(nowDate);
+                                            String datePreviousStart =
+                                                date + (day.timing?.startTime ?? '00:00');
+                                            DateTime startPreviousTime =
+                                                DateTime.parse(datePreviousStart);
 
-                                        _showDialog(
-                                          CupertinoDatePicker(
-                                            initialDateTime: startPreviousTime,
-                                            mode: CupertinoDatePickerMode.time,
-                                            use24hFormat: true,
-                                            onDateTimeChanged: (DateTime newTime) {
-                                              String date = DateFormat(
-                                                'yyyy-MM-dd ',
-                                              ).format(newTime);
-                                              String dateStart =
-                                                  date + (day.timing?.endTime ?? '23:59');
-                                              DateTime startTime =
-                                                  DateTime.parse(dateStart);
+                                            _showDialog(
+                                              CupertinoDatePicker(
+                                                initialDateTime: startPreviousTime,
+                                                mode: CupertinoDatePickerMode.time,
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newTime) {
+                                                  String date = DateFormat(
+                                                    'yyyy-MM-dd ',
+                                                  ).format(newTime);
+                                                  String dateStart =
+                                                      date + (day.timing?.endTime ?? '23:59');
+                                                  DateTime startTime =
+                                                      DateTime.parse(dateStart);
 
-                                              if (newTime.isBefore(startTime)) {
-                                                context
-                                                    .read<EditKitchenProfileCubit>()
-                                                    .onSwitchChanged(
-                                                      index: index,
-                                                      startTime: DateFormat('HH:mm')
-                                                          .format(newTime),
-                                                    );
-                                              }
-                                            },
+                                                  if (newTime.isBefore(startTime)) {
+                                                    context
+                                                        .read<EditKitchenProfileCubit>()
+                                                        .onSwitchChanged(
+                                                          index: index,
+                                                          startTime: DateFormat('HH:mm')
+                                                              .format(newTime),
+                                                        );
+                                                  }
+                                                },
+                                              ),
+                                              context,
+                                            );
+                                          },
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          child: Text(
+                                            'to',
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 14,
+                                              color: MitablColors.onSurfaceVariant,
+                                            ),
                                           ),
-                                          context,
+                                        ),
+                                        // End time box
+                                        _TimeBox(
+                                          time: day.timing?.endTime ?? '--:--',
+                                          onTap: () {
+                                            String date = DateFormat(
+                                              'yyyy-MM-dd ',
+                                            ).format(nowDate);
+                                            String datePreviousEnd =
+                                                date + (day.timing?.endTime ?? '23:59');
+                                            DateTime endPreviousTime =
+                                                DateTime.parse(datePreviousEnd);
+
+                                            _showDialog(
+                                              CupertinoDatePicker(
+                                                initialDateTime: endPreviousTime,
+                                                mode: CupertinoDatePickerMode.time,
+                                                use24hFormat: true,
+                                                onDateTimeChanged: (DateTime newTime) {
+                                                  String date = DateFormat(
+                                                    'yyyy-MM-dd ',
+                                                  ).format(newTime);
+                                                  String dateStart =
+                                                      date + (day.timing?.startTime ?? '00:00');
+                                                  DateTime startTime =
+                                                      DateTime.parse(dateStart);
+                                                  if (newTime.isAfter(startTime)) {
+                                                    context
+                                                        .read<EditKitchenProfileCubit>()
+                                                        .onSwitchChanged(
+                                                          index: index,
+                                                          endTime: DateFormat('HH:mm')
+                                                              .format(newTime),
+                                                        );
+                                                  }
+                                                },
+                                              ),
+                                              context,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    // Add Break button
+                                    GestureDetector(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Break scheduling coming soon'),
+                                            duration: Duration(seconds: 2),
+                                          ),
                                         );
                                       },
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                      child: Text(
-                                        'to',
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 14,
-                                          color: MitablColors.onSurfaceVariant,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: Text(
+                                          '+ Add Break',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: MitablColors.primary,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    // End time box
-                                    _TimeBox(
-                                      time: day.timing?.endTime ?? '--:--',
-                                      onTap: () {
-                                        String date = DateFormat(
-                                          'yyyy-MM-dd ',
-                                        ).format(nowDate);
-                                        String datePreviousEnd =
-                                            date + (day.timing?.endTime ?? '23:59');
-                                        DateTime endPreviousTime =
-                                            DateTime.parse(datePreviousEnd);
-
-                                        _showDialog(
-                                          CupertinoDatePicker(
-                                            initialDateTime: endPreviousTime,
-                                            mode: CupertinoDatePickerMode.time,
-                                            use24hFormat: true,
-                                            onDateTimeChanged: (DateTime newTime) {
-                                              String date = DateFormat(
-                                                'yyyy-MM-dd ',
-                                              ).format(newTime);
-                                              String dateStart =
-                                                  date + (day.timing?.startTime ?? '00:00');
-                                              DateTime startTime =
-                                                  DateTime.parse(dateStart);
-                                              if (newTime.isAfter(startTime)) {
-                                                context
-                                                    .read<EditKitchenProfileCubit>()
-                                                    .onSwitchChanged(
-                                                      index: index,
-                                                      endTime: DateFormat('HH:mm')
-                                                          .format(newTime),
-                                                    );
-                                              }
-                                            },
-                                          ),
-                                          context,
-                                        );
-                                      },
                                     ),
                                   ],
                                 ),
