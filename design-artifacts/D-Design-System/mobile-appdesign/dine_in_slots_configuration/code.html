@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "background": "#fcf9f4",
+            "surface-container-highest": "#e5e2dd",
+            "secondary": "#4d6548",
+            "outline": "#89726b",
+            "on-tertiary-container": "#fffbff",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "inverse-primary": "#ffb59f",
+            "tertiary-container": "#837166",
+            "secondary-container": "#cce7c3",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#31302d",
+            "primary-fixed": "#ffdbd0",
+            "on-secondary-fixed-variant": "#364c32",
+            "on-error-container": "#93000a",
+            "primary-fixed-dim": "#ffb59f",
+            "surface-container-low": "#f6f3ee",
+            "surface": "#fcf9f4",
+            "surface-tint": "#9f4122",
+            "on-tertiary-fixed": "#251911",
+            "on-tertiary-fixed-variant": "#53443a",
+            "primary-container": "#bc5636",
+            "surface-container": "#f0ede9",
+            "secondary-fixed": "#cfeac6",
+            "primary": "#9c3e20",
+            "on-secondary-container": "#51694c",
+            "tertiary-fixed": "#f6ded1",
+            "surface-container-lowest": "#ffffff",
+            "on-background": "#1c1c19",
+            "surface-variant": "#e5e2dd",
+            "on-secondary-fixed": "#0b200a",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#56423c",
+            "outline-variant": "#ddc0b8",
+            "on-surface": "#1c1c19",
+            "tertiary-fixed-dim": "#d9c2b6",
+            "surface-dim": "#dcdad5",
+            "surface-bright": "#fcf9f4",
+            "surface-container-high": "#ebe8e3",
+            "on-primary-fixed": "#3a0a00",
+            "on-primary-fixed-variant": "#802a0d",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#fffbff",
+            "inverse-on-surface": "#f3f0eb",
+            "tertiary": "#6a594e",
+            "secondary-fixed-dim": "#b3ceab"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+    }
+    body { font-family: 'Manrope', sans-serif; }
+    h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<button class="text-[#9c3e20] active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-[#9c3e20] font-['Plus_Jakarta_Sans'] font-extrabold">The Culinary Atelier</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-6">
+<a class="text-[#9c3e20] font-bold" href="#">Table</a>
+<a class="text-[#56423c] hover:bg-[#f6f3ee] transition-colors px-2 py-1 rounded" href="#">Explore</a>
+<a class="text-[#56423c] hover:bg-[#f6f3ee] transition-colors px-2 py-1 rounded" href="#">Cook</a>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border-2 border-primary/20">
+<img class="w-full h-full object-cover" data-alt="User profile portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAylg6a6GM9uEyvxTpmgqxlXabzJPPnyq9ujiAZlY0dW_5jwHL8j_kMKQ1PFKR9KuJHDe7wiFrrsJIFbaOQpxXIfmqbh8025mzrIHzAS8XHL1w7Eooufj2uPBh71-BdiREOmJ6ICWQoBS-c3c29qAau0dTjjMDJ0KeNAipvZKk1Pme4C2bhwaSDx0W6m20QPrtPrX882gAfWlu_2Rj9anuM-7XyY5dq23Xpd5Ot4AHtv3k6tofOqETSl9jR3iVV_zHLbiXVXHJEFFbf"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-4 md:px-8 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<div class="mb-10">
+<h2 class="text-4xl md:text-5xl font-extrabold text-on-surface mb-2 tracking-tight">Table Configuration</h2>
+<p class="text-on-surface-variant text-lg max-w-2xl">Manage your atelier's dine-in availability. Define party sizes and seating capacity per hour to curate the perfect community dining experience.</p>
+</div>
+<!-- Main Configuration Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Day Selector (Asymmetric Sidebar) -->
+<div class="lg:col-span-3 space-y-3">
+<h3 class="text-sm font-bold uppercase tracking-widest text-outline mb-4 px-2">Active Schedule</h3>
+<div class="bg-surface-container-low rounded-lg p-2 space-y-1">
+<button class="w-full flex items-center justify-between p-4 bg-primary text-on-primary rounded-lg shadow-sm transition-all">
+<span class="font-bold">Monday</span>
+<span class="material-symbols-outlined text-sm" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Tuesday</span>
+<span class="text-xs opacity-50">12:00 - 22:00</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Wednesday</span>
+<span class="text-xs opacity-50">12:00 - 22:00</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Thursday</span>
+<span class="text-xs opacity-50">12:00 - 23:00</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Friday</span>
+<span class="text-xs opacity-50">12:00 - 00:00</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Saturday</span>
+<span class="text-xs opacity-50">10:00 - 00:00</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-all">
+<span class="font-medium">Sunday</span>
+<span class="text-xs opacity-50">10:00 - 21:00</span>
+</button>
+</div>
+<div class="p-6 bg-secondary-container rounded-lg mt-6">
+<span class="material-symbols-outlined text-on-secondary-container mb-2" data-icon="auto_awesome">auto_awesome</span>
+<p class="text-sm font-bold text-on-secondary-container">Community Smart-Fill</p>
+<p class="text-xs text-on-secondary-container mt-1 opacity-80">Automatically balance table sizes based on previous booking trends.</p>
+<button class="mt-4 w-full py-2 bg-on-secondary-container text-secondary-container rounded-full text-xs font-bold uppercase tracking-wider">Apply Strategy</button>
+</div>
+</div>
+<!-- Slots Configuration (Bento Style) -->
+<div class="lg:col-span-9">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<h3 class="text-2xl font-bold">Monday Slots</h3>
+<span class="px-3 py-1 bg-surface-container-highest text-outline text-xs font-bold rounded-full">8 ACTIVE SLOTS</span>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-full font-bold text-sm shadow-md hover:shadow-lg transition-shadow">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+            Add Hour Slot
+          </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Slot Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-lg border-2 border-transparent hover:border-primary/10 transition-all group">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant font-medium">Lunch Peak</p>
+<p class="text-lg font-extrabold text-on-surface">12:00 - 13:00</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 p-2 text-outline-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between text-sm">
+<span class="text-on-surface-variant">Max Capacity</span>
+<span class="font-bold text-primary">24 Seats</span>
+</div>
+<div class="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3"></div>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="p-3 bg-surface-container-low rounded-lg">
+<p class="text-[10px] uppercase font-bold text-outline">Parties of 2</p>
+<p class="text-xl font-extrabold">8</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg">
+<p class="text-[10px] uppercase font-bold text-outline">Parties of 4+</p>
+<p class="text-xl font-extrabold">2</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Slot Card 2 (Active/Edit State) -->
+<div class="bg-surface-container-lowest p-6 rounded-lg ring-2 ring-primary relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="px-2 py-0.5 bg-primary text-on-primary text-[10px] font-bold rounded-bl-lg uppercase tracking-tighter">Editing</span>
+</div>
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant font-medium">Midday</p>
+<p class="text-lg font-extrabold text-on-surface">13:00 - 14:00</p>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-bold text-outline uppercase mb-2 block">Party Size Allocation</label>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 rounded-full border-2 border-outline-variant flex items-center justify-center text-outline-variant">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+<div class="flex-1 text-center py-2 bg-surface-container-low rounded-lg font-extrabold text-lg">4 Table(s) of 2</div>
+<button class="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 rounded-full border-2 border-outline-variant flex items-center justify-center text-outline-variant">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+<div class="flex-1 text-center py-2 bg-surface-container-low rounded-lg font-extrabold text-lg">2 Table(s) of 4</div>
+<button class="w-10 h-10 rounded-full border-2 border-primary flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+<button class="w-full py-3 bg-primary text-on-primary font-bold rounded-full mt-2 shadow-sm">Save Slot Changes</button>
+</div>
+</div>
+<!-- Slot Card 3 (Visual Layering) -->
+<div class="bg-surface-container-low p-6 rounded-lg opacity-80 hover:opacity-100 transition-opacity">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-outline">
+<span class="material-symbols-outlined" data-icon="coffee">coffee</span>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant font-medium">Afternoon Break</p>
+<p class="text-lg font-extrabold text-on-surface">14:00 - 16:00</p>
+</div>
+</div>
+<div class="flex items-center justify-center h-24 border-2 border-dashed border-outline-variant rounded-lg">
+<p class="text-sm text-outline-variant font-bold italic">Closed for preparation</p>
+</div>
+</div>
+<!-- Slot Card 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-lg border-2 border-transparent hover:border-primary/10 transition-all group">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="dinner_dining">dinner_dining</span>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant font-medium">Early Dinner</p>
+<p class="text-lg font-extrabold text-on-surface">17:00 - 18:00</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 p-2 text-outline-variant hover:text-error transition-all">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between text-sm">
+<span class="text-on-surface-variant">Max Capacity</span>
+<span class="font-bold text-primary">32 Seats</span>
+</div>
+<div class="h-2 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="p-3 bg-surface-container-low rounded-lg">
+<p class="text-[10px] uppercase font-bold text-outline">Parties of 2</p>
+<p class="text-xl font-extrabold">4</p>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg">
+<p class="text-[10px] uppercase font-bold text-outline">Parties of 6+</p>
+<p class="text-xl font-extrabold">4</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Action -->
+<div class="mt-8 flex justify-center">
+<button class="px-8 py-4 bg-secondary-container text-on-secondary-container rounded-full font-bold flex items-center gap-2 hover:scale-105 transition-transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+            Apply Monday's config to all weekdays
+          </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)] md:hidden">
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] text-[#51694c] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70">
+<span class="material-symbols-outlined" data-icon="outdoor_grill">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

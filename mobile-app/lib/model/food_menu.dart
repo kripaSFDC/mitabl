@@ -100,7 +100,12 @@ class FoodData {
     if (json['pictures'] != null) {
       pictures = <Pictures>[];
       json['pictures'].forEach((v) {
-        pictures!.add(Pictures.fromJson(v));
+        if (v is Map<String, dynamic>) {
+          pictures!.add(Pictures.fromJson(v));
+        } else if (v is String && v.isNotEmpty) {
+          // API sometimes returns pictures as plain path strings
+          pictures!.add(Pictures(path: v));
+        }
       });
     }
     price =

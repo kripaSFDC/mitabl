@@ -529,7 +529,7 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
   }
 }
 
-/// Horizontal timeline matching the HTML design with dots and connecting lines.
+/// Horizontal timeline with evenly spaced dots and labels.
 class _HorizontalTimeline extends StatelessWidget {
   const _HorizontalTimeline({required this.status});
 
@@ -542,98 +542,65 @@ class _HorizontalTimeline extends StatelessWidget {
     final steps = [
       ('Placed', statusInt >= 2),
       ('Confirmed', statusInt >= 3),
-      ('Cooking', statusInt >= 3 && statusInt != 0 && statusInt != 4),
-      ('Ready', statusInt == 5 || statusInt == 1),
+      ('Cooking', statusInt >= 5 || statusInt == 1),
+      ('Ready', statusInt == 1),
       ('Picked', statusInt == 1),
     ];
 
-    // Determine how far the active line extends (0-based fraction)
-    int activeUpTo = -1;
-    for (int i = steps.length - 1; i >= 0; i--) {
-      if (steps[i].$2) {
-        activeUpTo = i;
-        break;
-      }
-    }
-
-    return SizedBox(
-      height: 50,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final totalWidth = constraints.maxWidth;
-          final stepSpacing = totalWidth / (steps.length - 1);
-
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Background track
-              Positioned(
-                top: 8,
-                left: 0,
-                right: 0,
+    return Column(
+      children: [
+        // Dots + lines row
+        Row(
+          children: List.generate(steps.length * 2 - 1, (i) {
+            if (i.isEven) {
+              // Dot
+              final stepIdx = i ~/ 2;
+              final isActive = steps[stepIdx].$2;
+              return Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? const Color(0xFF4D6548)
+                      : const Color(0xFFE5E2DD),
+                  shape: BoxShape.circle,
+                ),
+              );
+            } else {
+              // Line between dots
+              final leftIdx = i ~/ 2;
+              final isActive = steps[leftIdx].$2 && steps[leftIdx + 1].$2;
+              return Expanded(
                 child: Container(
                   height: 2,
-                  color: const Color(0xFFE5E2DD),
+                  color: isActive
+                      ? const Color(0xFF4D6548)
+                      : const Color(0xFFE5E2DD),
                 ),
+              );
+            }
+          }),
+        ),
+        const SizedBox(height: 8),
+        // Labels row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: steps.map((step) {
+            final (label, isActive) = step;
+            return Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+                color: isActive
+                    ? const Color(0xFF4D6548)
+                    : MitablColors.onSurfaceVariant,
               ),
-              // Active track
-              if (activeUpTo >= 0)
-                Positioned(
-                  top: 8,
-                  left: 0,
-                  width: activeUpTo * stepSpacing,
-                  child: Container(
-                    height: 2,
-                    color: const Color(0xFF4D6548),
-                  ),
-                ),
-              // Step dots and labels
-              ...List.generate(steps.length, (index) {
-                final (label, isActive) = steps[index];
-                return Positioned(
-                  left: index * stepSpacing - 8,
-                  top: 0,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? const Color(0xFF4D6548)
-                              : const Color(0xFFE5E2DD),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isActive
-                                ? MitablColors.secondaryContainer
-                                : Colors.transparent,
-                            width: 3,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 48,
-                        child: Text(
-                          label.toUpperCase(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: isActive
-                                ? const Color(0xFF4D6548)
-                                : MitablColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
-          );
-        },
-      ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

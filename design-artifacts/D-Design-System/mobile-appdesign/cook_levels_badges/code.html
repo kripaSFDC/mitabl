@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cook Recognition | Culinary Atelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "inverse-surface": "#31302d",
+              "surface-container": "#f0ede9",
+              "secondary": "#4d6548",
+              "on-surface-variant": "#56423c",
+              "tertiary": "#6a594e",
+              "on-tertiary-fixed-variant": "#53443a",
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container-high": "#ebe8e3",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed": "#f6ded1",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#b3ceab",
+              "surface-tint": "#9f4122",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "primary-fixed": "#ffdbd0",
+              "primary": "#9c3e20",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-error-container": "#93000a",
+              "surface": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "on-background": "#1c1c19",
+              "surface-container-low": "#f6f3ee",
+              "on-secondary-fixed": "#0b200a",
+              "inverse-primary": "#ffb59f",
+              "on-secondary": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "surface-variant": "#e5e2dd",
+              "error-container": "#ffdad6",
+              "outline-variant": "#ddc0b8",
+              "on-secondary-fixed-variant": "#364c32",
+              "secondary-container": "#cce7c3",
+              "on-tertiary-fixed": "#251911",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-container": "#fffbff",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary-container": "#837166",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#cfeac6",
+              "primary-container": "#bc5636"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["DM Sans"],
+              "label": ["DM Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "1.25rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+body {
+    background-color: #fcf9f4;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBUSwhF8JUNFu43WHOSOqBm4Q2CddZZzUCRcDp3UXsbt5xLH2DLcPmIcKyydhbAxr0EDoaHcuGSIeYWZQy7P56Ln7qkaObvZ0tyfLx4WkYyvqL0ugxfU7pyW3gp_hqngcUER0bbjc5h5XsGANibtZ1WuxVnIyux7fODfrZQNg4WdCWiEZwo5Ji8wdrnp55ovuy5KVOWC1G8lYlL4vO93dsqsAyic9ndxM5pXf0-Iu7Wj8bop6isxpbXzBJI8B6mWsPWPeQ-iMDGAquh)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-surface selection:bg-primary-fixed">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Professional chef profile headshot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN9YtR0_8OdNwYJhXQku5oZ76ZvA2olvRTXwICCLpWhmqsq_trgVceFnjHDa6KC6Of43PFQL7HiS2yUzOw-QJC0_W49HPMKevveL4N9hxtLXwuRy_B0k_aU1M9sP_JWC0oqhKSvE08EYz72svsoU4X2_FkD_eNvIK1yms810C9VafQQxiy36OJtNliaU-fwlp-xGRxK9b5DQD1dnY-6j9UYW9PxMq8YJtHgYmYX98ZbIy3tdYhl8nJB27Q4z7ndIizLdnYPUbwmRoH"/>
+</div>
+<h1 class="font-headline font-extrabold text-2xl text-[#9c3e20] tracking-tight">Cook Recognition</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#f6f3ee] transition-colors text-[#56423c]">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Progress Hero Card -->
+<section class="relative overflow-hidden bg-primary rounded-lg p-8 text-on-primary shadow-xl">
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-primary-container text-on-primary px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase">Current Level</span>
+</div>
+<div class="flex items-end justify-between mb-6">
+<div>
+<h2 class="font-headline font-extrabold text-4xl mb-1">Rising Cook</h2>
+<p class="text-primary-fixed-dim font-medium">You are in the top 15% of your region</p>
+</div>
+<span class="material-symbols-outlined text-6xl opacity-50" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-sm font-bold">
+<span>Progress to Popular Cook</span>
+<span>72%</span>
+</div>
+<div class="w-full h-3 bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-white rounded-full w-[72%]"></div>
+</div>
+<p class="text-xs text-white/80 italic text-right">Only 14 more completed orders to level up!</p>
+</div>
+</div>
+<!-- Decorative Grain/Abstract Background for Hero -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-primary-container to-primary opacity-90"></div>
+</section>
+<!-- Tier Grid -->
+<section class="space-y-6">
+<h3 class="font-headline font-extrabold text-xl text-on-surface px-1">Recognition Tiers</h3>
+<div class="grid grid-cols-1 gap-4">
+<!-- Level 1: New Cook -->
+<div class="bg-surface-container-low rounded-lg p-6 flex items-start gap-6 border-l-4 border-secondary opacity-80">
+<div class="w-14 h-14 shrink-0 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-3xl" data-icon="potted_plant">potted_plant</span>
+</div>
+<div class="flex-1 space-y-3">
+<div class="flex justify-between items-center">
+<h4 class="font-headline font-bold text-lg text-on-surface">New Cook</h4>
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-secondary text-base mb-1">0+</span> Orders
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-secondary text-base mb-1">--</span> Rating
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-secondary text-base mb-1">10%</span> Cancel
+                            </div>
+</div>
+</div>
+</div>
+<!-- Level 2: Rising Cook (ACTIVE) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex items-start gap-6 ring-2 ring-primary relative shadow-sm">
+<div class="absolute -top-3 left-6 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Active Status</div>
+<div class="w-14 h-14 shrink-0 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex-1 space-y-3">
+<h4 class="font-headline font-bold text-lg text-on-surface">Rising Cook</h4>
+<div class="grid grid-cols-3 gap-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+<div class="bg-surface-container-low p-2 rounded-lg text-center">
+<span class="block text-primary text-base mb-1">50+</span> Orders
+                            </div>
+<div class="bg-surface-container-low p-2 rounded-lg text-center">
+<span class="block text-primary text-base mb-1">4.5★</span> Rating
+                            </div>
+<div class="bg-surface-container-low p-2 rounded-lg text-center">
+<span class="block text-primary text-base mb-1">5%</span> Cancel
+                            </div>
+</div>
+</div>
+</div>
+<!-- Level 3: Popular Cook -->
+<div class="bg-surface-container-low rounded-lg p-6 flex items-start gap-6 border-l-4 border-surface-container-highest">
+<div class="w-14 h-14 shrink-0 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-3xl" data-icon="local_fire_department" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="flex-1 space-y-3">
+<h4 class="font-headline font-bold text-lg text-on-surface">Popular Cook</h4>
+<div class="grid grid-cols-3 gap-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-tertiary text-base mb-1">200+</span> Orders
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-tertiary text-base mb-1">4.8★</span> Rating
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-tertiary text-base mb-1">2%</span> Cancel
+                            </div>
+</div>
+<div class="pt-2 border-t border-outline-variant/20">
+<p class="text-xs text-on-surface-variant"><span class="font-bold text-secondary">Reward:</span> 5% lower commission &amp; Featured badge</p>
+</div>
+</div>
+</div>
+<!-- Level 4: miCook Elite -->
+<div class="bg-surface-container-low rounded-lg p-6 flex items-start gap-6 border-l-4 border-surface-container-highest">
+<div class="w-14 h-14 shrink-0 rounded-full bg-[#d4af37]/20 flex items-center justify-center text-[#9c3e20]">
+<span class="material-symbols-outlined text-3xl" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div class="flex-1 space-y-3">
+<h4 class="font-headline font-bold text-lg text-on-surface">miCook Elite</h4>
+<div class="grid grid-cols-3 gap-2 text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-on-surface text-base mb-1">500+</span> Orders
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-on-surface text-base mb-1">4.9★</span> Rating
+                            </div>
+<div class="bg-surface-container-high p-2 rounded-lg text-center">
+<span class="block text-on-surface text-base mb-1">1%</span> Cancel
+                            </div>
+</div>
+<div class="pt-2 border-t border-outline-variant/20">
+<p class="text-xs text-on-surface-variant"><span class="font-bold text-primary">Elite Perk:</span> VIP Support &amp; 1st place in search results</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Bento Section -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low rounded-lg p-5 space-y-2">
+<span class="material-symbols-outlined text-secondary" data-icon="restaurant_menu">restaurant_menu</span>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Avg. Preparation</p>
+<p class="font-headline font-extrabold text-2xl">24 mins</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-5 space-y-2">
+<span class="material-symbols-outlined text-primary" data-icon="favorite">favorite</span>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Repeat Customers</p>
+<p class="font-headline font-extrabold text-2xl">48%</p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-[#fcf9f4]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)] z-50">
+<div class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all">
+<span class="material-symbols-outlined" data-icon="skillet">skillet</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Cook</span>
+</div>
+<!-- Profile is Active for this view -->
+<div class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full p-3 mb-1 scale-90">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

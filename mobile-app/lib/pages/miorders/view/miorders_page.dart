@@ -182,7 +182,7 @@ class _MiOrdersPageState extends State<MiOrdersPage>
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: () => Navigator.of(context).pushNamed('/ProfileFoodie'),
                       child: const Icon(
                         Icons.menu,
                         color: MitablColors.primary,

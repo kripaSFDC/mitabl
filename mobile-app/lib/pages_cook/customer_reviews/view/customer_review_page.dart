@@ -34,7 +34,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final reviews = widget.routeArguments!.kitchen!.reviewsData!;
+    final reviews = widget.routeArguments?.kitchen?.reviewsData ?? [];
     final hasReviews = reviews.isNotEmpty;
 
     double avgRating = 0;

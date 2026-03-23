@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -495,10 +496,16 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
           ),
         );
       } else {
+        String errorMsg = 'Unable to submit review. Please try again.';
+        try {
+          final body = jsonDecode(response.body);
+          final serverMsg = body['isError'] ?? body['message'] ?? body['errors']?.toString();
+          if (serverMsg is String && serverMsg.isNotEmpty) {
+            errorMsg = serverMsg;
+          }
+        } catch (_) {}
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to submit review. Please try again.'),
-          ),
+          SnackBar(content: Text(errorMsg)),
         );
       }
     } catch (_) {
