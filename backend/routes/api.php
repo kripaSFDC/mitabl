@@ -14,7 +14,10 @@ use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
 use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
+use App\Http\Controllers\Api\FcmController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Services\SystemHealthService;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -170,6 +173,35 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);
         Route::post('notification-preferences', [V2AccountController::class, 'updateNotificationPreferences']);
 		Route::get('mobile-contact', [V2AccountController::class, 'mobileContact']);
+	});
+
+	// Notifications
+	Route::get('notifications', [FcmController::class, 'getAllNotifications']);
+	Route::put('notifications/{id}/read', function ($id) {
+		$notification = auth()->user()->notifications()->findOrFail($id);
+		$notification->markAsRead();
+		return response()->json(['status' => 'ok']);
+	});
+
+	// Reviews
+	Route::post('addreviewtorestaurant', [ReviewController::class, 'addReviewToRestaurant']);
+
+	// Kitchen open/close toggle (cook only)
+	Route::middleware('restaurant')->post('mikitchn/toggle-open', function (Request $request) {
+		$kitchen = \App\Models\Mikitchn::where('user_id', auth()->id())->firstOrFail();
+		$kitchen->update(['open' => $kitchen->open ? 0 : 1]);
+		return response()->json(['open' => (bool) $kitchen->open]);
+	});
+
+	// Single order detail
+	Route::get('orders/{id}', function ($id) {
+		$order = \App\Models\Order::with(['mikitchn', 'customer', 'orderData.food'])
+			->where(function ($q) {
+				$q->where('user_id', auth()->id())
+				  ->orWhereHas('mikitchn', fn($q2) => $q2->where('user_id', auth()->id()));
+			})
+			->findOrFail($id);
+		return new \App\Http\Resources\Order\Order($order);
 	});
 
 	Route::prefix('discovery')->group(function () {

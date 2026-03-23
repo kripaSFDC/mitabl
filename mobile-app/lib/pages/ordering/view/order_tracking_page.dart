@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/ordering/element/cook_contact_card.dart';
 import 'package:mitabl_user/pages/ordering/element/order_status_timeline.dart';
@@ -50,14 +53,17 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   int _orderStatus = 2;
   String _cookLabel = 'Your cook';
   String _etaLabel = '...';
+  String _itemSummary = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchOrderStatus();
+    _itemSummary = widget.data.itemSummary ?? '';
+    _cookLabel = widget.data.kitchenName;
+    _fetchOrderDetail();
     _pollTimer = Timer.periodic(
       const Duration(seconds: 15),
-      (_) => _fetchOrderStatus(),
+      (_) => _fetchOrderDetail(),
     );
   }
 
@@ -68,61 +74,111 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     super.dispose();
   }
 
-  Future<void> _fetchOrderStatus() async {
+  /// Fetch individual order detail from v2/orders/{orderId}.
+  /// Falls back to the bulk list approach if the new endpoint fails.
+  Future<void> _fetchOrderDetail() async {
     try {
       final userRepository = context.read<UserRepository>();
-      final userModel =
-          userRepository.currentUser ?? await userRepository.getUser();
-      final orders = await _repository.fetchOrdersHistory(
-        userModel: userModel,
-        limit: 50,
-      );
+      final headers = await userRepository.authorizedHeaders();
+      final targetId = widget.data.orderId;
+
+      // Try the new single-order endpoint first
+      final uri = ApiContract.uri('v2/orders/$targetId');
+      final response = await http
+          .get(uri, headers: headers)
+          .timeout(ApiContract.requestTimeout);
 
       if (!mounted) return;
 
-      // Find matching order by orderId
-      final targetId = widget.data.orderId;
-      Map<String, dynamic>? matchingOrder;
-      for (final order in orders) {
-        final oid = (order['order_id'] ?? order['id'] ?? '').toString();
-        if (oid == targetId) {
-          matchingOrder = order;
-          break;
-        }
+      if (response.statusCode == 200) {
+        final order = jsonDecode(response.body) as Map<String, dynamic>;
+        _applyOrderData(order);
+        return;
       }
 
-      if (matchingOrder != null) {
-        final rawStatus = matchingOrder['status'];
-        final status = rawStatus is int
-            ? rawStatus
-            : int.tryParse(rawStatus?.toString() ?? '') ?? _orderStatus;
-
-        // Extract cook name from kitchen data
-        final kitchen = matchingOrder['mikitchn'];
-        String cookName = _cookLabel;
-        if (kitchen is Map<String, dynamic>) {
-          final cock = kitchen['cock'];
-          if (cock is Map<String, dynamic>) {
-            cookName = (cock['name'] ?? '').toString();
-          }
-          if (cookName.isEmpty) {
-            cookName = (kitchen['name'] ?? 'Your cook').toString();
-          }
-        }
-
-        setState(() {
-          _orderStatus = status;
-          _cookLabel = cookName;
-          _etaLabel = _estimateEta(status);
-        });
-
-        // Stop polling when order is completed or cancelled
-        if (status == 1 || status == 0 || status == 4) {
-          _pollTimer?.cancel();
-        }
-      }
+      // Fallback: use the old bulk approach
+      await _fetchOrderStatusFallback();
     } catch (_) {
-      // Silently fail on poll -- will retry next interval
+      // Try fallback on any error
+      try {
+        await _fetchOrderStatusFallback();
+      } catch (_) {
+        // Silently fail on poll -- will retry next interval
+      }
+    }
+  }
+
+  /// Fallback: scan order history list for matching order.
+  Future<void> _fetchOrderStatusFallback() async {
+    final userRepository = context.read<UserRepository>();
+    final userModel =
+        userRepository.currentUser ?? await userRepository.getUser();
+    final orders = await _repository.fetchOrdersHistory(
+      userModel: userModel,
+      limit: 50,
+    );
+
+    if (!mounted) return;
+
+    final targetId = widget.data.orderId;
+    Map<String, dynamic>? matchingOrder;
+    for (final order in orders) {
+      final oid = (order['order_id'] ?? order['id'] ?? '').toString();
+      if (oid == targetId) {
+        matchingOrder = order;
+        break;
+      }
+    }
+
+    if (matchingOrder != null) {
+      _applyOrderData(matchingOrder);
+    }
+  }
+
+  void _applyOrderData(Map<String, dynamic> order) {
+    final rawStatus = order['status'];
+    final status = rawStatus is int
+        ? rawStatus
+        : int.tryParse(rawStatus?.toString() ?? '') ?? _orderStatus;
+
+    // Extract cook name from kitchen data
+    final kitchen = order['mikitchn'];
+    String cookName = _cookLabel;
+    if (kitchen is Map<String, dynamic>) {
+      final cook = kitchen['cock'] ?? kitchen['cook'];
+      if (cook is Map<String, dynamic>) {
+        cookName = (cook['name'] ?? '').toString();
+      }
+      if (cookName.isEmpty || cookName == _cookLabel) {
+        cookName = (kitchen['name'] ?? _cookLabel).toString();
+      }
+    }
+
+    // Extract item summary from order items
+    String itemSummary = _itemSummary;
+    final items = order['items'] ?? order['order_items'];
+    if (items is List && items.isNotEmpty) {
+      itemSummary = items
+          .take(3)
+          .map((i) =>
+              (i is Map<String, dynamic>
+                  ? (i['food'] ?? i['name'] ?? '')
+                  : '')
+                  .toString())
+          .where((s) => s.isNotEmpty)
+          .join(', ');
+    }
+
+    setState(() {
+      _orderStatus = status;
+      _cookLabel = cookName;
+      _etaLabel = _estimateEta(status);
+      _itemSummary = itemSummary;
+    });
+
+    // Stop polling when order is completed or cancelled
+    if (status == 1 || status == 0 || status == 4) {
+      _pollTimer?.cancel();
     }
   }
 
@@ -315,7 +371,9 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Order #${widget.data.orderId}',
+            _itemSummary.isNotEmpty
+                ? 'Order #${widget.data.orderId} \u00B7 $_itemSummary'
+                : 'Order #${widget.data.orderId}',
             style: const TextStyle(
               fontSize: 14,
               color: MitablColors.onSurfaceVariant,

@@ -1,34 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/mitabl_card.dart';
-import 'mock_notifications.dart';
 
 /// A tile displaying a single notification with icon, title, body, timestamp,
-/// and unread indicator.
-class NotificationTile extends StatelessWidget {
+/// and unread indicator. Calls PUT v2/notifications/{id}/read on tap.
+class NotificationTile extends StatefulWidget {
   const NotificationTile({
     super.key,
-    required this.notification,
-    this.onTap,
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.type,
+    required this.createdAt,
+    required this.isRead,
+    required this.iconData,
+    this.onMarkedRead,
   });
 
-  final MockNotification notification;
-  final VoidCallback? onTap;
+  final String id;
+  final String title;
+  final String body;
+  final String type;
+  final DateTime createdAt;
+  final bool isRead;
+  final IconData iconData;
+  final VoidCallback? onMarkedRead;
+
+  @override
+  State<NotificationTile> createState() => _NotificationTileState();
+}
+
+class _NotificationTileState extends State<NotificationTile> {
+  late bool _isRead;
+
+  @override
+  void initState() {
+    super.initState();
+    _isRead = widget.isRead;
+  }
+
+  @override
+  void didUpdateWidget(covariant NotificationTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isRead != widget.isRead) {
+      _isRead = widget.isRead;
+    }
+  }
+
+  Future<void> _onTap() async {
+    if (_isRead) return;
+
+    // Optimistically mark as read
+    setState(() => _isRead = true);
+    widget.onMarkedRead?.call();
+
+    try {
+      final userRepository = context.read<UserRepository>();
+      final headers = await userRepository.authorizedHeaders(
+        includeJsonContentType: true,
+      );
+      final uri = ApiContract.uri('v2/notifications/${widget.id}/read');
+
+      await http.put(uri, headers: headers).timeout(ApiContract.requestTimeout);
+      // If it fails silently, the local state still shows read.
+    } catch (_) {
+      // Keep local read state even on failure to avoid flicker.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MitablCard(
-      onTap: onTap,
+      onTap: _onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Colored icon avatar
           CircleAvatar(
             radius: 22,
-            backgroundColor: _typeColor(notification.type).withValues(alpha: 0.12),
+            backgroundColor: _typeColor(widget.type).withValues(alpha: 0.12),
             child: Icon(
-              notification.iconData,
-              color: _typeColor(notification.type),
+              widget.iconData,
+              color: _typeColor(widget.type),
               size: 22,
             ),
           ),
@@ -40,19 +97,18 @@ class NotificationTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  notification.title,
+                  widget.title,
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: notification.isRead
-                        ? FontWeight.w500
-                        : FontWeight.w700,
+                    fontWeight:
+                        _isRead ? FontWeight.w500 : FontWeight.w700,
                     color: MitablColors.onSurface,
                     fontFamily: 'Nunito',
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  notification.body,
+                  widget.body,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -62,10 +118,11 @@ class NotificationTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _timeAgo(notification.timestamp),
+                  _timeAgo(widget.createdAt),
                   style: TextStyle(
                     fontSize: 11,
-                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
+                    color:
+                        MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -73,7 +130,7 @@ class NotificationTile extends StatelessWidget {
           ),
 
           // Unread dot
-          if (!notification.isRead) ...[
+          if (!_isRead) ...[
             const SizedBox(width: 8),
             Container(
               width: 10,
@@ -90,16 +147,18 @@ class NotificationTile extends StatelessWidget {
     );
   }
 
-  Color _typeColor(NotificationType type) {
+  Color _typeColor(String type) {
     switch (type) {
-      case NotificationType.order:
+      case 'order':
         return MitablColors.accent;
-      case NotificationType.promo:
+      case 'promo':
         return const Color(0xFFF59E0B);
-      case NotificationType.social:
+      case 'social':
         return MitablColors.primary;
-      case NotificationType.system:
+      case 'system':
         return const Color(0xFF2563EB);
+      default:
+        return MitablColors.onSurfaceVariant;
     }
   }
 

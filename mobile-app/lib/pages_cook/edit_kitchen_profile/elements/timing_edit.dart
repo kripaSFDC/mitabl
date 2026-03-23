@@ -53,7 +53,12 @@ class EditTimingDialog extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // Quick Status summary row
+                  _QuickStatusRow(daysTiming: state.daysTiming),
+
+                  const SizedBox(height: 16),
 
                   // Day rows
                   Column(
@@ -70,7 +75,7 @@ class EditTimingDialog extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    day.day.toString(),
+                                    _dayAbbrev(day.day.toString()),
                                     style: GoogleFonts.nunito(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -240,6 +245,13 @@ class EditTimingDialog extends StatelessWidget {
     );
   }
 
+  static String _dayAbbrev(String dayName) {
+    if (dayName.length >= 3) {
+      return dayName.substring(0, 3).toUpperCase();
+    }
+    return dayName.toUpperCase();
+  }
+
   void _showDialog(Widget child, BuildContext? context) {
     showCupertinoModalPopup<void>(
       context: context!,
@@ -259,6 +271,89 @@ class EditTimingDialog extends StatelessWidget {
   }
 }
 
+class _QuickStatusRow extends StatelessWidget {
+  const _QuickStatusRow({required this.daysTiming});
+
+  final List daysTiming;
+
+  @override
+  Widget build(BuildContext context) {
+    // Count open days
+    int totalMinutes = 0;
+    final List<String> openDayNames = [];
+
+    for (final day in daysTiming) {
+      if (day.isOn == true) {
+        final name = (day.day ?? '').toString();
+        if (name.length >= 3) {
+          openDayNames.add(name.substring(0, 3));
+        }
+        // Calculate hours from timing
+        final timing = day.timing;
+        if (timing != null &&
+            timing.startTime != null &&
+            timing.endTime != null) {
+          try {
+            final startParts = timing.startTime!.split(':');
+            final endParts = timing.endTime!.split(':');
+            final startMins =
+                int.parse(startParts[0]) * 60 + int.parse(startParts[1]);
+            final endMins =
+                int.parse(endParts[0]) * 60 + int.parse(endParts[1]);
+            if (endMins > startMins) {
+              totalMinutes += (endMins - startMins);
+            }
+          } catch (_) {}
+        }
+      }
+    }
+
+    final totalHours = totalMinutes ~/ 60;
+
+    // Build summary label e.g. "Open Mon-Sat . 64hrs/week"
+    String dayRange;
+    if (openDayNames.isEmpty) {
+      dayRange = 'Closed all week';
+    } else if (openDayNames.length == 7) {
+      dayRange = 'Open every day';
+    } else if (openDayNames.length == 1) {
+      dayRange = 'Open ${openDayNames.first}';
+    } else {
+      dayRange = 'Open ${openDayNames.first}-${openDayNames.last}';
+    }
+
+    final hoursLabel = totalHours > 0 ? ' \u00B7 ${totalHours}hrs/week' : '';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: MitablColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.schedule,
+            size: 18,
+            color: MitablColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '$dayRange$hoursLabel',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: MitablColors.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TimeBox extends StatelessWidget {
   const _TimeBox({required this.time, required this.onTap});
 
@@ -271,6 +366,7 @@ class _TimeBox extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
+        constraints: const BoxConstraints(minWidth: 80),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: MitablColors.surfaceContainerLow,
@@ -278,6 +374,7 @@ class _TimeBox extends StatelessWidget {
         ),
         child: Text(
           time,
+          textAlign: TextAlign.center,
           style: GoogleFonts.nunito(
             fontSize: 15,
             fontWeight: FontWeight.w600,

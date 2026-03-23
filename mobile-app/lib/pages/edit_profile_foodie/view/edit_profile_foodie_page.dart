@@ -13,6 +13,7 @@ import 'package:mitabl_user/widgets/mitabl_button.dart';
 import 'package:mitabl_user/widgets/mitabl_card.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 import 'package:mitabl_user/widgets/mitabl_chip.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
 class EditProfileFoodiePage extends StatefulWidget {
@@ -35,9 +36,21 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   TextEditingController? phone = TextEditingController();
   TextEditingController? description = TextEditingController();
 
+  static const _prefKey = 'foodie_dietary_prefs';
+  static const List<String> _allDietaryOptions = [
+    'Vegetarian',
+    'Vegan',
+    'Gluten-Free',
+    'Halal',
+    'Keto',
+    'Dairy-Free',
+  ];
+  Set<String> _selectedDietaryPrefs = {};
+
   @override
   void initState() {
     super.initState();
+    _loadDietaryPrefs();
     context.read<ProfileFoodieCubit>().resetSubmissionStatus();
     firstName!.addListener(() {
       context.read<ProfileFoodieCubit>().onFirstNameChanged(
@@ -77,6 +90,32 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     phone?.dispose();
     description?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDietaryPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_prefKey);
+    if (saved != null && mounted) {
+      setState(() {
+        _selectedDietaryPrefs = saved.toSet();
+      });
+    }
+  }
+
+  Future<void> _saveDietaryPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_prefKey, _selectedDietaryPrefs.toList());
+  }
+
+  void _toggleDietaryPref(String label) {
+    setState(() {
+      if (_selectedDietaryPrefs.contains(label)) {
+        _selectedDietaryPrefs.remove(label);
+      } else {
+        _selectedDietaryPrefs.add(label);
+      }
+    });
+    _saveDietaryPrefs();
   }
 
   void _openGallery(BuildContext context) async {
@@ -345,14 +384,15 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: const [
-                      MitablChip(label: 'Vegetarian'),
-                      MitablChip(label: 'Vegan'),
-                      MitablChip(label: 'Gluten-Free'),
-                      MitablChip(label: 'Halal'),
-                      MitablChip(label: 'Keto'),
-                      MitablChip(label: 'Dairy-Free'),
-                    ],
+                    children: _allDietaryOptions.map((label) {
+                      final isSelected =
+                          _selectedDietaryPrefs.contains(label);
+                      return MitablChip(
+                        label: label,
+                        selected: isSelected,
+                        onSelected: (_) => _toggleDietaryPref(label),
+                      );
+                    }).toList(),
                   ),
                 ],
               ),

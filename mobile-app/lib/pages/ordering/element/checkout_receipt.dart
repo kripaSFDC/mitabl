@@ -31,11 +31,15 @@ class CheckoutReceipt extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // Subtotal: 14pt, normal weight, onSurfaceVariant
           _ReceiptRow(label: 'Subtotal', value: itemTotal),
           const SizedBox(height: 8),
+          // Taxes: 14pt, normal weight, onSurfaceVariant
           _ReceiptRow(label: 'Taxes', value: taxTotal),
           const SizedBox(height: 8),
+          // Community Fee: 14pt, normal weight, onSurfaceVariant
           const _ReceiptRow(label: 'Community Fee', value: _communityFee),
+          // Divider before total row
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(
@@ -43,11 +47,12 @@ class CheckoutReceipt extends StatelessWidget {
               color: MitablColors.outlineVariant,
             ),
           ),
+          // Total row: 18pt, w700 for both label and amount
           _ReceiptRow(
             label: 'Total',
             value: grandTotal,
             isBold: true,
-            isLarger: true,
+            isTotal: true,
           ),
         ],
       ),
@@ -60,21 +65,21 @@ class _ReceiptRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.isBold = false,
-    this.isLarger = false,
+    this.isTotal = false,
   });
 
   final String label;
   final double value;
   final bool isBold;
-  final bool isLarger;
+  final bool isTotal;
 
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
       fontFamily: 'Nunito',
-      fontSize: isLarger ? 17 : 14,
-      fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
-      color: MitablColors.onSurface,
+      fontSize: isTotal ? 18 : 14,
+      fontWeight: isTotal ? FontWeight.w700 : FontWeight.w400,
+      color: isTotal ? MitablColors.onSurface : MitablColors.onSurfaceVariant,
     );
 
     return Row(

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/model/bookings.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
@@ -21,6 +23,7 @@ class HomePageCook extends StatefulWidget {
 
 class _HomePageCookState extends State<HomePageCook> {
   bool _kitchenLive = true;
+  bool _kitchenToggling = false;
   List<Bookings> _queueOrders = [];
   bool _queueLoading = true;
 
@@ -29,6 +32,65 @@ class _HomePageCookState extends State<HomePageCook> {
     super.initState();
     context.read<DashboardCookCubit>().getDashBoardData();
     _loadCookingQueue();
+  }
+
+  Future<void> _toggleKitchenLive(bool desired) async {
+    if (_kitchenToggling) return;
+
+    final previous = _kitchenLive;
+    setState(() {
+      _kitchenLive = desired;
+      _kitchenToggling = true;
+    });
+
+    try {
+      final userRepository = context.read<UserRepository>();
+      final headers = await userRepository.authorizedHeaders(
+        includeJsonContentType: true,
+      );
+      final uri = ApiContract.uri('v2/mikitchn/toggle-open');
+      final response = await http
+          .post(uri, headers: headers)
+          .timeout(ApiContract.requestTimeout);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverOpen = body['open'] as bool? ?? desired;
+        setState(() {
+          _kitchenLive = serverOpen;
+          _kitchenToggling = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              serverOpen ? 'Kitchen is now live' : 'Kitchen is now offline',
+            ),
+          ),
+        );
+      } else {
+        // Revert on non-200
+        setState(() {
+          _kitchenLive = previous;
+          _kitchenToggling = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update kitchen status')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _kitchenLive = previous;
+        _kitchenToggling = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Something went wrong. Please try again.'),
+        ),
+      );
+    }
   }
 
   Future<void> _loadCookingQueue() async {
@@ -148,7 +210,9 @@ class _HomePageCookState extends State<HomePageCook> {
                         Switch(
                           value: _kitchenLive,
                           activeColor: MitablColors.accent,
-                          onChanged: (v) => setState(() => _kitchenLive = v),
+                          onChanged: _kitchenToggling
+                              ? null
+                              : (v) => _toggleKitchenLive(v),
                         ),
                       ],
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
 /// Slide to confirm payment widget.
@@ -21,8 +22,8 @@ class SlideToPayButton extends StatefulWidget {
 
 class _SlideToPayButtonState extends State<SlideToPayButton>
     with SingleTickerProviderStateMixin {
-  static const double _trackHeight = 56.0;
-  static const double _thumbSize = 48.0;
+  static const double _trackHeight = 60.0;
+  static const double _thumbSize = 52.0;
   static const double _triggerFraction = 0.80;
 
   late final AnimationController _resetController;
@@ -61,9 +62,12 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
 
         return Container(
           height: _trackHeight,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: MitablColors.surfaceContainerLow,
             borderRadius: MitablRadius.pillBorder,
+            border: Border.all(
+              color: MitablColors.outlineVariant.withValues(alpha: 0.15),
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
@@ -99,6 +103,7 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                               _confirmed = true;
                               _dragOffset = maxDrag;
                             });
+                            HapticFeedback.mediumImpact();
                             widget.onConfirmed();
                           } else {
                             final startOffset = _dragOffset;

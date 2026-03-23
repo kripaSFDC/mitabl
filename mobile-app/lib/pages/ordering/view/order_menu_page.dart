@@ -185,79 +185,113 @@ class _MenuContent extends StatelessWidget {
                     ),
             ),
           ),
+          // Cook avatar overlapping hero image bottom-left
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                MitablSpacing.pagePadding,
-                20,
-                MitablSpacing.pagePadding,
-                8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Cook / kitchen name
-                  Text(
-                    kitchen.name,
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: MitablColors.onSurface,
-                    ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    MitablSpacing.pagePadding,
+                    12,
+                    MitablSpacing.pagePadding,
+                    8,
                   ),
-                  const SizedBox(height: 8),
-
-                  // Rating row
-                  Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.star, size: 18, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        kitchen.rating?.toStringAsFixed(1) ?? '--',
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: MitablColors.onSurface,
+                      // Cook / kitchen name
+                      Padding(
+                        padding: const EdgeInsets.only(left: 60),
+                        child: Text(
+                          kitchen.name,
+                          style: const TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: MitablColors.onSurface,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'reviews',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: MitablColors.onSurfaceVariant,
-                        ),
+                      const SizedBox(height: 8),
+
+                      // Rating row: star + "4.9" + "(170+ reviews)"
+                      Row(
+                        children: [
+                          const Icon(Icons.star,
+                              size: 18, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            kitchen.rating?.toStringAsFixed(1) ?? '--',
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: MitablColors.onSurface,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '(170+ reviews)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: MitablColors.onSurfaceVariant
+                                  .withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
                       ),
+
+                      // Description text below rating
+                      if ((kitchen.description ?? '').trim().isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          kitchen.description!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: MitablColors.onSurfaceVariant,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+
+                      if ((session.errorMessage ?? '').isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          _displayError(session.errorMessage!),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: MitablColors.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-
-                  if ((kitchen.description ?? '').trim().isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      kitchen.description!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: MitablColors.onSurfaceVariant,
-                        height: 1.45,
+                ),
+                // Cook avatar circle overlapping hero (48px, offset -24px)
+                Positioned(
+                  top: -24,
+                  left: MitablSpacing.pagePadding,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: MitablColors.primaryContainer,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: MitablColors.surface,
+                        width: 3,
                       ),
                     ),
-                  ],
-
-                  if ((session.errorMessage ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      _displayError(session.errorMessage!),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: MitablColors.error,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: const Icon(
+                      Icons.restaurant,
+                      size: 20,
+                      color: MitablColors.onPrimary,
                     ),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
 

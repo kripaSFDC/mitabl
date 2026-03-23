@@ -397,15 +397,24 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
 
       final restaurantId =
           widget.reviewData['restaurant_id']?.toString() ?? '';
+      final orderId =
+          widget.reviewData['order_id']?.toString() ?? '';
+      final reviewTag = _selectedTags.isNotEmpty
+          ? _selectedTags.join(', ')
+          : 'General';
+      final reviewText = _reviewController.text.trim().isNotEmpty
+          ? _reviewController.text.trim()
+          : reviewTag;
 
       final response = await http.post(
         ApiContract.uri('v2/addreviewtorestaurant'),
         headers: headers,
         body: jsonEncode({
           'restaurant_id': restaurantId,
+          'order_id': orderId,
           'rating': _rating,
-          'review': _reviewController.text.trim(),
-          'tags': _selectedTags.toList(),
+          'review': reviewText,
+          'review_tag': reviewTag,
         }),
       ).timeout(ApiContract.requestTimeout);
 

@@ -41,13 +41,13 @@ class MenuItemTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Food image
+            // Food image - 72x72 square with 12px radius
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: imagePath == null
                   ? Container(
-                      width: 64,
-                      height: 64,
+                      width: 72,
+                      height: 72,
                       color: MitablColors.surfaceContainerLow,
                       alignment: Alignment.center,
                       child: const Icon(
@@ -57,12 +57,12 @@ class MenuItemTile extends StatelessWidget {
                     )
                   : CachedNetworkImage(
                       imageUrl: '$imageBaseUrl$imagePath',
-                      width: 64,
-                      height: 64,
+                      width: 72,
+                      height: 72,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => Container(
-                        width: 64,
-                        height: 64,
+                        width: 72,
+                        height: 72,
                         color: MitablColors.surfaceContainerLow,
                         alignment: Alignment.center,
                         child: const SizedBox(
@@ -72,8 +72,8 @@ class MenuItemTile extends StatelessWidget {
                         ),
                       ),
                       errorWidget: (_, __, ___) => Container(
-                        width: 64,
-                        height: 64,
+                        width: 72,
+                        height: 72,
                         color: MitablColors.surfaceContainerLow,
                         alignment: Alignment.center,
                         child: const Icon(Icons.broken_image_outlined),
@@ -82,20 +82,22 @@ class MenuItemTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Name, description, dietary chips
+            // Name, description
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Name: 15pt, w600
                   Text(
                     item.name,
                     style: const TextStyle(
                       fontFamily: 'Nunito',
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: MitablColors.onSurface,
                     ),
                   ),
+                  // Description: 13pt, max 2 lines, onSurfaceVariant
                   if ((item.description ?? '').trim().isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -110,7 +112,7 @@ class MenuItemTile extends StatelessWidget {
                     ),
                   ],
                   const SizedBox(height: 6),
-                  // Dietary chips (placeholder based on service availability)
+                  // Dietary chips
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
@@ -126,21 +128,22 @@ class MenuItemTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
 
-            // Price and quantity counter
+            // Price (right-aligned, 16pt, w700, primary) and quantity counter
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // Price: right-aligned, 16pt, w700, primary color
                 Text(
                   '\$${item.price.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontFamily: 'Nunito',
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: MitablColors.primary,
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Quantity counter +/-
+                // Quantity counter: compact +/- buttons with count between
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

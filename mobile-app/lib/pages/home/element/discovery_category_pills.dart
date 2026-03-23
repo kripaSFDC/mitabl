@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_chip.dart';
 
 /// Horizontal scrolling category filter chips for the discovery feed.
 ///
@@ -39,20 +38,46 @@ class DiscoveryCategoryPills extends StatelessWidget {
         itemCount: items.length + 1, // +1 for "All"
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
+          final bool isSelected;
+          final String label;
+          final VoidCallback onTap;
+
           if (index == 0) {
-            // "All" chip
-            return MitablChip(
-              label: 'All',
-              selected: selectedId == null,
-              onSelected: (_) => onSelected(null),
-            );
+            label = 'All';
+            isSelected = selectedId == null;
+            onTap = () => onSelected(null);
+          } else {
+            final item = items[index - 1];
+            label = item.name ?? '';
+            isSelected = selectedId == item.id;
+            onTap = () => onSelected(item.id);
           }
 
-          final item = items[index - 1];
-          return MitablChip(
-            label: item.name ?? '',
-            selected: selectedId == item.id,
-            onSelected: (_) => onSelected(item.id),
+          return GestureDetector(
+            onTap: onTap,
+            child: Center(
+              child: Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? MitablColors.primary
+                      : MitablColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected
+                        ? MitablColors.onPrimary
+                        : MitablColors.onSurface,
+                  ),
+                ),
+              ),
+            ),
           );
         },
       ),

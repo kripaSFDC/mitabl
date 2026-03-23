@@ -24,6 +24,8 @@ class DiscoveryCookCard extends StatelessWidget {
     this.onTap,
     this.isFavourited = false,
     this.onFavouriteToggle,
+    this.readyTime,
+    this.priceTier,
   });
 
   final int id;
@@ -37,6 +39,8 @@ class DiscoveryCookCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isFavourited;
   final VoidCallback? onFavouriteToggle;
+  final String? readyTime;
+  final String? priceTier;
 
   String? get _primaryImageUrl {
     final imgList = images;
@@ -56,6 +60,12 @@ class DiscoveryCookCard extends StatelessWidget {
     return '${distance!.toStringAsFixed(1)} mi';
   }
 
+  String get _priceTierLabel {
+    if (priceTier != null && priceTier!.isNotEmpty) return priceTier!;
+    // Default based on nothing
+    return '\$\$';
+  }
+
   @override
   Widget build(BuildContext context) {
     return MitablCard(
@@ -65,10 +75,10 @@ class DiscoveryCookCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Hero image with rating badge and heart button ──
+          // -- Hero image with rating badge and heart button --
           Stack(
             children: [
-              // Image
+              // Image - 200px height per design
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(MitablRadius.card),
@@ -77,11 +87,11 @@ class DiscoveryCookCard extends StatelessWidget {
                 child: _primaryImageUrl != null
                     ? CachedNetworkImage(
                         imageUrl: _primaryImageUrl!,
-                        height: 180,
+                        height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
                         placeholder: (_, __) => Container(
-                          height: 180,
+                          height: 200,
                           color: MitablColors.surfaceContainerLow,
                           child: const Center(
                             child: CircularProgressIndicator(
@@ -95,7 +105,7 @@ class DiscoveryCookCard extends StatelessWidget {
                     : _imageFallback(),
               ),
 
-              // Rating badge (top-left)
+              // Rating badge (top-LEFT) - semi-transparent dark pill with star
               if ((rating ?? 0) > 0)
                 Positioned(
                   top: 10,
@@ -104,16 +114,27 @@ class DiscoveryCookCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: MitablColors.primary,
-                      borderRadius: BorderRadius.circular(MitablRadius.chipSmall),
+                      color: MitablColors.onSurface.withValues(alpha: 0.65),
+                      borderRadius: MitablRadius.pillBorder,
                     ),
-                    child: Text(
-                      '\u2605 $_formattedRating',
-                      style: const TextStyle(
-                        color: MitablColors.onPrimary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: Colors.amber,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          _formattedRating,
+                          style: const TextStyle(
+                            color: MitablColors.onPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -149,71 +170,39 @@ class DiscoveryCookCard extends StatelessWidget {
             ],
           ),
 
-          // ── Cook info section (overlapping avatar + name) ──
-          Transform.translate(
-            offset: const Offset(0, -16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Cook avatar circle
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: MitablColors.primaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: MitablColors.surfaceContainerLowest,
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.restaurant,
-                      size: 16,
-                      color: MitablColors.onPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: MitablColors.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
+          // -- Cook name row --
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: MitablColors.onSurface,
               ),
             ),
           ),
 
-          // ── Description ──
+          // -- Description --
           if (description != null && description!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
-              child: Transform.translate(
-                offset: const Offset(0, -8),
-                child: Text(
-                  description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    color: MitablColors.onSurfaceVariant,
-                  ),
+              padding: const EdgeInsets.only(left: 12, right: 12, top: 4),
+              child: Text(
+                description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  color: MitablColors.onSurfaceVariant,
                 ),
               ),
             ),
 
-          // ── Bottom info row ──
+          // -- Bottom info row: Distance + Ready time + Price tier --
           Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             child: Row(
               children: [
                 // Distance
@@ -231,41 +220,38 @@ class DiscoveryCookCard extends StatelessWidget {
                       color: MitablColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                 ],
 
-                // Service type indicators
-                if (dineIn == 1) ...[
+                // Ready time
+                if (readyTime != null && readyTime!.isNotEmpty) ...[
                   Icon(
-                    Icons.restaurant_outlined,
+                    Icons.access_time,
                     size: 14,
                     color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 2),
                   Text(
-                    'Dine-in',
+                    'Ready $readyTime',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       color: MitablColors.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                 ],
-                if (takeAway == 1) ...[
-                  Icon(
-                    Icons.takeout_dining_outlined,
-                    size: 14,
-                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
+
+                const Spacer(),
+
+                // Price tier
+                Text(
+                  _priceTierLabel,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: MitablColors.onSurfaceVariant,
                   ),
-                  const SizedBox(width: 2),
-                  Text(
-                    'Take-away',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12,
-                      color: MitablColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ],
             ),
           ),
@@ -276,7 +262,7 @@ class DiscoveryCookCard extends StatelessWidget {
 
   Widget _imageFallback() {
     return Container(
-      height: 180,
+      height: 200,
       width: double.infinity,
       decoration: const BoxDecoration(
         color: MitablColors.surfaceContainerLow,
