@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/submit_review/element/interactive_star_rating.dart';
@@ -40,6 +42,8 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
   final _reviewController = TextEditingController();
   bool _isSubmitting = false;
   final Set<String> _selectedTags = {};
+  final List<XFile> _selectedPhotos = [];
+  final ImagePicker _imagePicker = ImagePicker();
 
   static const _reviewTags = [
     'Great taste',
@@ -207,6 +211,111 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
               ),
             ),
 
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // Add Photos section
+            MitablCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Add Photos',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: MitablColors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 80,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Selected photo thumbnails
+                        ..._selectedPhotos.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final photo = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: MitablRadius.cardBorder,
+                                  child: Image.file(
+                                    File(photo.path),
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 2,
+                                  right: 2,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedPhotos.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                        color: MitablColors.error,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        // Add button
+                        GestureDetector(
+                          onTap: _pickPhotos,
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLow,
+                              borderRadius: MitablRadius.cardBorder,
+                              border: Border.all(
+                                color: MitablColors.outlineVariant,
+                              ),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_a_photo_outlined,
+                                  size: 24,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Add',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 24),
 
             // Submit button
@@ -221,6 +330,25 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickPhotos() async {
+    try {
+      final images = await _imagePicker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
+      if (images.isNotEmpty && mounted) {
+        setState(() {
+          _selectedPhotos.addAll(images);
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to pick images.')),
+      );
+    }
   }
 
   Widget _defaultAvatar() {

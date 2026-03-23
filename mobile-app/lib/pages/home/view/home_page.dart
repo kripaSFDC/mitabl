@@ -15,6 +15,7 @@ import 'package:mitabl_user/pages/home/view/search_filters_page.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
+import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
@@ -60,10 +61,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePage extends State<HomePage> {
   late final ScrollController _scrollController;
+  late final FavouritesRepository _favouritesRepository;
+  final Set<int> _favouritedIds = {};
 
   @override
   void initState() {
     _scrollController = ScrollController()..addListener(_handleScroll);
+    _favouritesRepository = FavouritesRepository();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     context.read<ProfileFoodieCubit>().getFoodieProfile();
     super.initState();
@@ -84,7 +88,43 @@ class _HomePage extends State<HomePage> {
     _scrollController
       ..removeListener(_handleScroll)
       ..dispose();
+    _favouritesRepository.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleFavourite(int kitchenId) async {
+    final wasAlreadyFavourited = _favouritedIds.contains(kitchenId);
+    setState(() {
+      if (wasAlreadyFavourited) {
+        _favouritedIds.remove(kitchenId);
+      } else {
+        _favouritedIds.add(kitchenId);
+      }
+    });
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      await _favouritesRepository.toggleFavourite(
+        userModel: userModel,
+        targetId: kitchenId.toString(),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      // Revert on failure
+      setState(() {
+        if (wasAlreadyFavourited) {
+          _favouritedIds.add(kitchenId);
+        } else {
+          _favouritedIds.remove(kitchenId);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to update favourites right now.'),
+        ),
+      );
+    }
   }
 
   String _greetingLabel() {
@@ -386,13 +426,14 @@ class _HomePage extends State<HomePage> {
                         takeAway = item.takeAway;
                       }
 
+                      final resolvedId = kitchenId ?? 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: MitablSpacing.listItem / 2,
                         ),
                         child: DiscoveryCookCard(
-                          id: kitchenId ?? 0,
+                          id: resolvedId,
                           name: name,
                           description: description,
                           rating: rating,
@@ -400,6 +441,11 @@ class _HomePage extends State<HomePage> {
                           distance: distance,
                           dineIn: dineIn,
                           takeAway: takeAway,
+                          isFavourited:
+                              _favouritedIds.contains(resolvedId),
+                          onFavouriteToggle: resolvedId > 0
+                              ? () => _toggleFavourite(resolvedId)
+                              : null,
                           onTap: kitchenId == null
                               ? null
                               : () => _navigateToOrderMenu(

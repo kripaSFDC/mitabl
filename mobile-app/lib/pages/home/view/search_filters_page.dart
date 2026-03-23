@@ -21,7 +21,6 @@ class SearchFiltersPage extends StatefulWidget {
 
 class _SearchFiltersPageState extends State<SearchFiltersPage> {
   final TextEditingController _searchController = TextEditingController();
-  int? _selectedCuisineIndex;
   final Set<int> _selectedDietary = {};
   int? _selectedPriceIndex;
 
@@ -38,13 +37,6 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
     super.dispose();
   }
 
-  static const _cuisines = [
-    _CuisineItem(icon: Icons.local_pizza_outlined, label: 'Italian'),
-    _CuisineItem(icon: Icons.ramen_dining_outlined, label: 'Japanese'),
-    _CuisineItem(icon: Icons.lunch_dining_outlined, label: 'Indian'),
-    _CuisineItem(icon: Icons.kebab_dining_outlined, label: 'Mexican'),
-  ];
-
   static const _dietaryLabels = [
     'Vegan',
     'Vegetarian',
@@ -58,11 +50,11 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
   void _clearAll() {
     setState(() {
       _searchController.clear();
-      _selectedCuisineIndex = null;
       _selectedDietary.clear();
       _selectedPriceIndex = null;
     });
-    // Reset distance to default
+    // Reset cuisine selection and distance to default
+    context.read<HomeCubit>().onCookingStyleChanged(data: null);
     context.read<HomeCubit>().onDistanceChanged(distance: 15);
   }
 
@@ -111,32 +103,51 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                       ),
                       const SizedBox(height: 28),
 
-                      // ── Cuisine section ──
+                      // ── Cuisine section (dynamic from API) ──
                       _sectionTitle('Cuisine'),
                       const SizedBox(height: 12),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 2.2,
-                        ),
-                        itemCount: _cuisines.length,
-                        itemBuilder: (context, index) {
-                          final cuisine = _cuisines[index];
-                          final isSelected = _selectedCuisineIndex == index;
-                          return _CuisineTile(
-                            icon: cuisine.icon,
-                            label: cuisine.label,
-                            isSelected: isSelected,
-                            onTap: () {
-                              setState(() {
-                                _selectedCuisineIndex =
-                                    isSelected ? null : index;
-                              });
+                      Builder(
+                        builder: (context) {
+                          final cuisines = state.cookingStyleList ?? const [];
+                          if (cuisines.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                'Loading cuisines...',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            );
+                          }
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 2.2,
+                            ),
+                            itemCount: cuisines.length,
+                            itemBuilder: (context, index) {
+                              final cuisine = cuisines[index];
+                              final isSelected =
+                                  state.selectedCookingData?.id == cuisine.id;
+                              return _CuisineTile(
+                                icon: Icons.restaurant_outlined,
+                                label: cuisine.name ?? '',
+                                isSelected: isSelected,
+                                onTap: () {
+                                  context
+                                      .read<HomeCubit>()
+                                      .onCookingStyleChanged(
+                                        data: isSelected ? null : cuisine,
+                                      );
+                                },
+                              );
                             },
                           );
                         },
@@ -301,12 +312,6 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
 }
 
 // ── Private helper types ──
-
-class _CuisineItem {
-  const _CuisineItem({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-}
 
 class _CuisineTile extends StatelessWidget {
   const _CuisineTile({

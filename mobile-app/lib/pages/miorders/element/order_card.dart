@@ -29,9 +29,32 @@ class OrderCard extends StatelessWidget {
     final kitchenName = kitchen is Map<String, dynamic>
         ? (kitchen['name']?.toString() ?? 'Kitchen')
         : 'Kitchen';
-    final kitchenAvatar = kitchen is Map<String, dynamic>
-        ? (kitchen['avatar']?.toString() ?? '')
-        : '';
+
+    // Try cook avatar first, then first kitchen image, then kitchen-level avatar
+    String kitchenAvatar = '';
+    if (kitchen is Map<String, dynamic>) {
+      // Try cock.avatar
+      final cock = kitchen['cock'];
+      if (cock is Map<String, dynamic>) {
+        kitchenAvatar = (cock['avatar'] ?? '').toString();
+      }
+      // Fall back to first image from images[]
+      if (kitchenAvatar.isEmpty) {
+        final images = kitchen['images'];
+        if (images is List && images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map) {
+            kitchenAvatar = (firstImage['path'] ?? '').toString();
+          } else if (firstImage is String) {
+            kitchenAvatar = firstImage;
+          }
+        }
+      }
+      // Fall back to kitchen-level avatar
+      if (kitchenAvatar.isEmpty) {
+        kitchenAvatar = (kitchen['avatar'] ?? '').toString();
+      }
+    }
     final avatarUrl = kitchenAvatar.isNotEmpty
         ? '${GlobalConfiguration().getValue<String>('base_url')}/$kitchenAvatar'
         : '';

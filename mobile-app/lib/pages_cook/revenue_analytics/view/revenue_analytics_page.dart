@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/bookings.dart';
+import 'package:mitabl_user/repos/bookings_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_card.dart';
@@ -23,6 +29,9 @@ class RevenueAnalyticsPage extends StatefulWidget {
 
 class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
   bool _isMonthly = true;
+  bool _isLoadingHistory = true;
+  List<Bookings> _completedOrders = [];
+  List<_DishStat> _topDishes = [];
 
   int get _totalEarning {
     final data = widget.routeArguments?.data;
@@ -47,6 +56,75 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
   double get _averageOrderValue {
     if (_nBookings == 0) return 0;
     return _totalEarning / _nBookings;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrderHistory();
+  }
+
+  Future<void> _loadOrderHistory() async {
+    try {
+      final repo = BookingRepository(context.read<UserRepository>());
+      final response = await repo.getBookings(
+        isUpcoming: false,
+        limit: 50,
+        page: 1,
+      );
+      if (response.statusCode == 200) {
+        final booking = Booking.fromJson(jsonDecode(response.body));
+        final orders = booking.data?.bookings ?? [];
+        // Filter to completed orders (status 1)
+        final completed =
+            orders.where((o) => o.status == 1).toList();
+
+        // Aggregate top dishes
+        final dishCounts = <String, int>{};
+        final dishRevenue = <String, double>{};
+        for (final order in completed) {
+          if (order.items != null) {
+            for (final item in order.items!) {
+              final name = item.food ?? 'Unknown';
+              final qty = item.quantity ?? 1;
+              final price = (item.price is num)
+                  ? (item.price as num).toDouble()
+                  : double.tryParse(item.price?.toString() ?? '0') ?? 0;
+              dishCounts[name] = (dishCounts[name] ?? 0) + qty;
+              dishRevenue[name] =
+                  (dishRevenue[name] ?? 0) + (price * qty);
+            }
+          }
+        }
+
+        // Sort by order count descending, take top 5
+        final sortedDishes = dishCounts.keys.toList()
+          ..sort((a, b) => dishCounts[b]!.compareTo(dishCounts[a]!));
+        final maxOrders = sortedDishes.isNotEmpty
+            ? dishCounts[sortedDishes.first]!
+            : 1;
+        final topDishes = sortedDishes.take(5).map((name) {
+          final count = dishCounts[name]!;
+          return _DishStat(
+            name: name,
+            orders: count,
+            fraction: maxOrders > 0 ? count / maxOrders : 0,
+          );
+        }).toList();
+
+        if (mounted) {
+          setState(() {
+            _completedOrders = completed;
+            _topDishes = topDishes;
+            _isLoadingHistory = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoadingHistory = false);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingHistory = false);
+    }
   }
 
   @override
@@ -196,13 +274,38 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
             ),
             const SizedBox(height: 12),
 
-            _buildDishBar('Butter Chicken', 0.85, 42),
-            const SizedBox(height: 12),
-            _buildDishBar('Lamb Biryani', 0.65, 31),
-            const SizedBox(height: 12),
-            _buildDishBar('Paneer Tikka', 0.50, 24),
-            const SizedBox(height: 12),
-            _buildDishBar('Mango Lassi', 0.35, 18),
+            if (_isLoadingHistory)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(
+                    color: MitablColors.primary,
+                  ),
+                ),
+              )
+            else if (_topDishes.isEmpty)
+              const MitablCard(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No dish data available yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: MitablColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              ..._topDishes.map((dish) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildDishBar(
+                      dish.name, dish.fraction, dish.orders),
+                );
+              }),
 
             const SizedBox(height: MitablSpacing.breathe),
 
@@ -218,12 +321,42 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
             ),
             const SizedBox(height: 12),
 
-            _buildTransaction('Mar 22, 2026', 'AUD 85', 'Completed'),
-            _buildTransaction('Mar 21, 2026', 'AUD 120', 'Completed'),
-            _buildTransaction('Mar 20, 2026', 'AUD 45', 'Refunded'),
-            _buildTransaction('Mar 19, 2026', 'AUD 95', 'Completed'),
-            _buildTransaction('Mar 18, 2026', 'AUD 68', 'Completed'),
-            _buildTransaction('Mar 17, 2026', 'AUD 110', 'Completed'),
+            if (_isLoadingHistory)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(
+                    color: MitablColors.primary,
+                  ),
+                ),
+              )
+            else if (_completedOrders.isEmpty)
+              const MitablCard(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No transactions yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: MitablColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              ..._completedOrders.map((order) {
+                final date = order.date ?? order.createdAt ?? '';
+                final price = order.itemTotalPrice ?? 0;
+                final statusLabel =
+                    order.status == 1 ? 'Completed' : 'Pending';
+                return _buildTransaction(
+                  date,
+                  'AUD $price',
+                  statusLabel,
+                );
+              }),
 
             const SizedBox(height: 32),
           ],
@@ -329,4 +462,16 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
       ),
     );
   }
+}
+
+class _DishStat {
+  const _DishStat({
+    required this.name,
+    required this.orders,
+    required this.fraction,
+  });
+
+  final String name;
+  final int orders;
+  final double fraction;
 }

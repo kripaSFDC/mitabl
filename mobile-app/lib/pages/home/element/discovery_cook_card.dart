@@ -22,6 +22,8 @@ class DiscoveryCookCard extends StatelessWidget {
     this.dineIn,
     this.takeAway,
     this.onTap,
+    this.isFavourited = false,
+    this.onFavouriteToggle,
   });
 
   final int id;
@@ -33,6 +35,8 @@ class DiscoveryCookCard extends StatelessWidget {
   final int? dineIn;
   final int? takeAway;
   final VoidCallback? onTap;
+  final bool isFavourited;
+  final VoidCallback? onFavouriteToggle;
 
   String? get _primaryImageUrl {
     final imgList = images;
@@ -122,19 +126,21 @@ class DiscoveryCookCard extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
-                    onTap: () {
-                      // Favourite functionality — UI only for now
-                    },
+                    onTap: onFavouriteToggle,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: MitablColors.surface.withValues(alpha: 0.8),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.favorite_border,
+                      child: Icon(
+                        isFavourited
+                            ? Icons.favorite
+                            : Icons.favorite_border,
                         size: 20,
-                        color: MitablColors.onSurface,
+                        color: isFavourited
+                            ? MitablColors.error
+                            : MitablColors.onSurface,
                       ),
                     ),
                   ),

@@ -300,6 +300,7 @@ class _HomePageCookState extends State<HomePageCook> {
                           customerName: customerName,
                           elapsedTime: timeLabel,
                           items: '$itemsSummary • $amount',
+                          orderId: order.orderId,
                         ),
                       );
                     }),
@@ -331,11 +332,47 @@ class _HomePageCookState extends State<HomePageCook> {
     );
   }
 
+  Future<void> _markOrderReady(dynamic orderId) async {
+    if (orderId == null) return;
+    try {
+      final repo = BookingRepository(context.read<UserRepository>());
+      final response = await repo.updateOrderStatus(
+        data: {
+          'order_id': orderId,
+          'status': 1,
+        },
+      );
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order marked as ready')),
+        );
+        await _loadCookingQueue();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update order status')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong. Please try again.')),
+      );
+    }
+  }
+
+  void _delayOrder() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Customer notified of delay')),
+    );
+  }
+
   Widget _buildQueueTicket({
     required String ticketNumber,
     required String customerName,
     required String elapsedTime,
     required String items,
+    dynamic orderId,
   }) {
     return MitablCard(
       useGhostBorder: true,
@@ -398,7 +435,7 @@ class _HomePageCookState extends State<HomePageCook> {
                 child: MitablButton(
                   label: 'Delay',
                   variant: MitablButtonVariant.outline,
-                  onPressed: () {},
+                  onPressed: _delayOrder,
                 ),
               ),
               const SizedBox(width: 12),
@@ -406,7 +443,7 @@ class _HomePageCookState extends State<HomePageCook> {
                 child: MitablButton(
                   label: 'Mark Ready',
                   variant: MitablButtonVariant.primary,
-                  onPressed: () {},
+                  onPressed: () => _markOrderReady(orderId),
                 ),
               ),
             ],

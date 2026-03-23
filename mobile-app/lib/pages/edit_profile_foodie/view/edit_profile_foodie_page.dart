@@ -365,7 +365,13 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
               listener: (context, state) {
                 if (state.statusUpload!.isSubmissionSuccess &&
                     context.mounted) {
-                  Navigator.of(context).pop(true);
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop(true);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile updated successfully')),
+                    );
+                  }
                 }
               },
               builder: (context, state) {
