@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mitabl_user/widgets/design_tokens.dart';
 
 /// Slide to confirm payment widget.
-/// Draggable thumb slides from left to right. When it passes 80% of track
-/// width, the [onConfirmed] callback fires. If released early, the thumb
-/// animates back.
+/// Design: h-14 bg-surface rounded-full, border border-primary/20,
+/// skillet icon on draggable thumb, "Slide to Pay $xx.xx" centered text,
+/// double arrow right icon pulsing.
 class SlideToPayButton extends StatefulWidget {
   const SlideToPayButton({
     super.key,
@@ -21,12 +20,13 @@ class SlideToPayButton extends StatefulWidget {
 }
 
 class _SlideToPayButtonState extends State<SlideToPayButton>
-    with SingleTickerProviderStateMixin {
-  static const double _trackHeight = 60.0;
-  static const double _thumbSize = 52.0;
+    with TickerProviderStateMixin {
+  static const double _trackHeight = 56.0;
+  static const double _thumbSize = 48.0;
   static const double _triggerFraction = 0.80;
 
   late final AnimationController _resetController;
+  late final AnimationController _pulseController;
   double _dragOffset = 0.0;
   bool _confirmed = false;
 
@@ -41,11 +41,16 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
           _dragOffset = _dragOffset * (1 - _resetController.value);
         });
       });
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _resetController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -63,27 +68,53 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
         return Container(
           height: _trackHeight,
           decoration: BoxDecoration(
-            color: MitablColors.surfaceContainerLow,
-            borderRadius: MitablRadius.pillBorder,
+            color: Colors.white, // surface
+            borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: MitablColors.outlineVariant.withValues(alpha: 0.15),
+              color: const Color(0xFFEF6034).withValues(alpha: 0.2),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEF6034).withValues(alpha: 0.15),
+                blurRadius: 32,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Centered text
-              Text(
-                'Slide to Pay \$${widget.amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
-                ),
+              // Centered text with pulsing arrow
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Slide to Pay \$${widget.amount.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      letterSpacing: 0.5,
+                      color: const Color(0xFFEF6034).withValues(alpha: 0.8),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: 0.4 + (_pulseController.value * 0.4),
+                        child: Icon(
+                          Icons.keyboard_double_arrow_right,
+                          size: 20,
+                          color: const Color(0xFFEF6034).withValues(alpha: 0.4),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
 
-              // Draggable thumb
+              // Draggable thumb with skillet icon
               Positioned(
                 left: 4 + _dragOffset,
                 child: GestureDetector(
@@ -113,7 +144,6 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                                 setState(() => _dragOffset = 0);
                               }
                             });
-                            // Use the start offset for smooth animation
                             _dragOffset = startOffset;
                           }
                         },
@@ -121,13 +151,22 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                     width: _thumbSize,
                     height: _thumbSize,
                     decoration: const BoxDecoration(
-                      gradient: MitablColors.primaryGradient,
+                      color: Color(0xFFEF6034), // primary
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x33000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.restaurant_menu,
-                      color: MitablColors.onPrimary,
-                      size: 22,
+                    child: const Center(
+                      child: Icon(
+                        Icons.soup_kitchen,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ),

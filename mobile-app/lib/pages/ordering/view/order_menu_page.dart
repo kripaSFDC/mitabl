@@ -81,7 +81,7 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
       animation: _session,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: MitablColors.surface,
+          backgroundColor: const Color(0xFFF8F6F6), // background-light
           body: _buildBody(context),
         );
       },
@@ -136,202 +136,400 @@ class _MenuContent extends StatelessWidget {
       'image_base_url',
     );
 
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            backgroundColor: MitablColors.surface,
-            leading: Padding(
-              padding: const EdgeInsets.all(8),
-              child: CircleAvatar(
-                backgroundColor: MitablColors.surface.withValues(alpha: 0.85),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    size: 18,
-                    color: MitablColors.onSurface,
+    return CustomScrollView(
+      slivers: [
+        // Hero image h-[320px] with gradient overlay and back/heart buttons
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              // Hero image
+              SizedBox(
+                height: 320,
+                width: double.infinity,
+                child: imagePath == null
+                    ? Container(
+                        color: const Color(0xFFE2E8F0), // slate-200
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.restaurant_menu,
+                          size: 64,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: '$imageBaseUrl$imagePath',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 320,
+                        placeholder: (_, __) => Container(
+                          color: const Color(0xFFE2E8F0),
+                          alignment: Alignment.center,
+                          child: const CircularProgressIndicator(),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: const Color(0xFFE2E8F0),
+                          alignment: Alignment.center,
+                          child:
+                              const Icon(Icons.broken_image_outlined, size: 48),
+                        ),
+                      ),
+              ),
+              // Gradient overlay from-black/50 to-transparent
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: [0.0, 0.4],
+                      colors: [
+                        Color(0x80000000), // black/50
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: imagePath == null
-                  ? Container(
-                      color: MitablColors.surfaceContainerLow,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.restaurant_menu,
-                        size: 64,
-                        color: MitablColors.onSurfaceVariant,
-                      ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: '$imageBaseUrl$imagePath',
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (_, __) => Container(
-                        color: MitablColors.surfaceContainerLow,
-                        alignment: Alignment.center,
-                        child: const CircularProgressIndicator(),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        color: MitablColors.surfaceContainerLow,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image_outlined, size: 48),
-                      ),
-                    ),
-            ),
-          ),
-          // Cook avatar overlapping hero image bottom-left
-          SliverToBoxAdapter(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    MitablSpacing.pagePadding,
-                    12,
-                    MitablSpacing.pagePadding,
-                    8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Cook / kitchen name
-                      Padding(
-                        padding: const EdgeInsets.only(left: 60),
-                        child: Text(
-                          kitchen.name,
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: MitablColors.onSurface,
+              // Back + Heart buttons
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 8,
+                left: 16,
+                right: 16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-
-                      // Rating row: star + "4.9" + "(170+ reviews)"
-                      Row(
-                        children: [
-                          const Icon(Icons.star,
-                              size: 18, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            kitchen.rating?.toStringAsFixed(1) ?? '--',
-                            style: const TextStyle(
-                              fontFamily: 'Nunito',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.onSurface,
-                            ),
+                    ),
+                    // Heart (favorite) button
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.favorite_border,
+                            size: 20,
+                            color: Colors.white,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '(170+ reviews)',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: MitablColors.onSurfaceVariant
-                                  .withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
 
-                      // Description text below rating
-                      if ((kitchen.description ?? '').trim().isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          kitchen.description!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: MitablColors.onSurfaceVariant,
-                            height: 1.45,
+        // Sliding content surface: -mt-10 rounded-t-xl bg-white
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -40),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Avatar & Basic Info
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Color(0xFFF1F5F9), // slate-100
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Overlapping Avatar: 80px centered, -mt-10, border-4 white
+                        Transform.translate(
+                          offset: const Offset(0, -40),
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE2E8F0),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 4,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const ClipOval(
+                              child: Center(
+                                child: Icon(
+                                  Icons.person,
+                                  size: 36,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Negative margin compensation
+                        const SizedBox(height: 0),
+                        Transform.translate(
+                          offset: const Offset(0, -28),
+                          child: Column(
+                            children: [
+                              // Kitchen name centered
+                              Text(
+                                kitchen.name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0F172A), // slate-900
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Rating row centered
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    size: 18,
+                                    color: Color(0xFFEF6034), // primary filled
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    kitchen.rating?.toStringAsFixed(1) ?? '--',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1E293B), // slate-800
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '(120 reviews)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569), // slate-600
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '\u00B7',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '1.2 mi',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Description italic centered in quotes
+                              if ((kitchen.description ?? '').trim().isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 280),
+                                    child: Text(
+                                      '"${kitchen.description!}"',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontStyle: FontStyle.italic,
+                                        color: Color(0xFF64748B), // slate-500
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],
-
-                      if ((session.errorMessage ?? '').isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        Text(
-                          _displayError(session.errorMessage!),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: MitablColors.error,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
-                // Cook avatar circle overlapping hero (48px, offset -24px)
-                Positioned(
-                  top: -24,
-                  left: MitablSpacing.pagePadding,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: MitablColors.primaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: MitablColors.surface,
-                        width: 3,
+
+                  // Error message
+                  if ((session.errorMessage ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        _displayError(session.errorMessage!),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: MitablColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    child: const Icon(
-                      Icons.restaurant,
-                      size: 20,
-                      color: MitablColors.onPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Tab bar
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabBarDelegate(
-              const TabBar(
-                labelColor: MitablColors.primary,
-                unselectedLabelColor: MitablColors.onSurfaceVariant,
-                indicatorColor: MitablColors.primary,
-                labelStyle: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-                unselectedLabelStyle: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                tabs: [
-                  Tab(text: 'Menu'),
-                  Tab(text: 'About'),
                 ],
               ),
             ),
           ),
-        ];
-      },
-      body: TabBarView(
+        ),
+
+        // Tab bar: rounded-full bg-background-light with white active pill
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _SegmentedControlDelegate(
+            child: Container(
+              color: Colors.white.withValues(alpha: 0.95),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: const _SegmentedTabBar(),
+            ),
+          ),
+        ),
+
+        // Menu content
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -40),
+            child: _MenuTab(session: session),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SegmentedTabBar extends StatefulWidget {
+  const _SegmentedTabBar();
+
+  @override
+  State<_SegmentedTabBar> createState() => _SegmentedTabBarState();
+}
+
+class _SegmentedTabBarState extends State<_SegmentedTabBar> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F6F6), // background-light
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
         children: [
-          // Menu tab
-          _MenuTab(session: session),
-          // About tab
-          _AboutTab(kitchen: kitchen),
+          _buildTab('Menu', 0),
+          _buildTab('About', 1),
         ],
       ),
     );
   }
+
+  Widget _buildTab(String label, int index) {
+    final isSelected = _selectedIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _selectedIndex = index);
+          DefaultTabController.of(context).animateTo(index);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(100),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF0F172A) // slate-900
+                    : const Color(0xFF64748B), // slate-500
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SegmentedControlDelegate extends SliverPersistentHeaderDelegate {
+  _SegmentedControlDelegate({required this.child});
+
+  final Widget child;
+
+  @override
+  double get minExtent => 60;
+
+  @override
+  double get maxExtent => 60;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _SegmentedControlDelegate oldDelegate) => false;
 }
 
 class _MenuTab extends StatelessWidget {
@@ -342,7 +540,12 @@ class _MenuTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (session.isRefreshingMenu) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     if (session.menuItems.isEmpty) {
@@ -361,183 +564,54 @@ class _MenuTab extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return Padding(
       padding: EdgeInsets.fromLTRB(
-        MitablSpacing.pagePadding,
-        MitablSpacing.pagePadding,
-        MitablSpacing.pagePadding,
-        session.totalItems > 0 ? 100 : MitablSpacing.pagePadding,
+        16,
+        8,
+        16,
+        session.totalItems > 0 ? 100 : 16,
       ),
-      itemCount: session.menuItems.length,
-      separatorBuilder: (_, __) =>
-          const SizedBox(height: MitablSpacing.listItem),
-      itemBuilder: (context, index) {
-        final item = session.menuItems[index];
-        return MenuItemTile(
-          item: item,
-          session: session,
-          onTap: () {
-            Navigator.of(context).pushNamed(
-              '/MenuItemDetail',
-              arguments: RouteArguments(
-                data: MenuItemDetailRouteData(
-                  item: item,
-                  session: session,
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // "Specials Today" section header
+          const Text(
+            'Specials Today',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A), // slate-900
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Menu items
+          ...List.generate(session.menuItems.length, (index) {
+            final item = session.menuItems[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: MenuItemTile(
+                item: item,
+                session: session,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    '/MenuItemDetail',
+                    arguments: RouteArguments(
+                      data: MenuItemDetailRouteData(
+                        item: item,
+                        session: session,
+                      ),
+                    ),
+                  );
+                },
               ),
             );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _AboutTab extends StatelessWidget {
-  const _AboutTab({required this.kitchen});
-
-  final OrderKitchenSummary kitchen;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(MitablSpacing.pagePadding),
-      children: [
-        const Text(
-          'About',
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: MitablColors.onSurface,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          (kitchen.description ?? '').trim().isNotEmpty
-              ? kitchen.description!
-              : 'No description available.',
-          style: const TextStyle(
-            fontSize: 14,
-            color: MitablColors.onSurfaceVariant,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Address',
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: MitablColors.onSurface,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(
-              Icons.location_on_outlined,
-              size: 20,
-              color: MitablColors.primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                kitchen.address.isNotEmpty
-                    ? kitchen.address
-                    : 'Address not available.',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: MitablColors.onSurfaceVariant,
-                  height: 1.45,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Service info
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            if (kitchen.dineInAvailable)
-              const _AboutInfoChip(
-                icon: Icons.table_restaurant_outlined,
-                label: 'Dine in available',
-              ),
-            if (kitchen.takeAwayAvailable)
-              const _AboutInfoChip(
-                icon: Icons.shopping_bag_outlined,
-                label: 'Take away available',
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _AboutInfoChip extends StatelessWidget {
-  const _AboutInfoChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: MitablColors.secondaryContainer.withValues(alpha: 0.4),
-        borderRadius: MitablRadius.pillBorder,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: MitablColors.onSecondaryContainer),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: MitablColors.onSecondaryContainer,
-            ),
-          ),
+          }),
         ],
       ),
     );
   }
-}
-
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  _TabBarDelegate(this.tabBar);
-
-  final TabBar tabBar;
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
-
-  @override
-  double get maxExtent => tabBar.preferredSize.height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      color: MitablColors.surface,
-      child: tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
 }
 
 class _LoadError extends StatelessWidget {

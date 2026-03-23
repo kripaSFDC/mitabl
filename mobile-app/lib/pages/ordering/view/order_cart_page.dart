@@ -8,9 +8,6 @@ import 'package:mitabl_user/pages/ordering/element/slide_to_pay_button.dart';
 import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_chip.dart';
 
 class OrderCartPage extends StatelessWidget {
   const OrderCartPage({super.key, required this.session});
@@ -38,34 +35,15 @@ class OrderCartPage extends StatelessWidget {
     return AnimatedBuilder(
       animation: session,
       builder: (context, _) {
-        final kitchen = session.kitchen;
-
         return Scaffold(
-          backgroundColor: MitablColors.surface,
-          appBar: GlassAppBar(
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Checkout'),
-                if (kitchen != null)
-                  Text(
-                    kitchen.name,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: MitablColors.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
+          backgroundColor: const Color(0xFFF8F6F6), // background-light
           body: session.cartItems.isEmpty
               ? const Center(
                   child: Text(
                     'Your cart is empty.',
                     style: TextStyle(
                       fontSize: 15,
-                      color: MitablColors.onSurfaceVariant,
+                      color: Color(0xFF8D7A6F),
                     ),
                   ),
                 )
@@ -85,128 +63,178 @@ class _CartBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final kitchen = session.kitchen;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        MitablSpacing.pagePadding,
-        MitablSpacing.pagePadding,
-        MitablSpacing.pagePadding,
-        32,
-      ),
+    return Column(
       children: [
-        // Pickup / Delivery toggle
-        if (kitchen != null) ...[
-          const Text(
-            'Service Type',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: MitablColors.onSurface,
-            ),
+        // Sticky header
+        Container(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 16,
+            bottom: 16,
+            left: 16,
+            right: 16,
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F6F6).withValues(alpha: 0.9),
+          ),
+          child: Row(
             children: [
-              if (kitchen.takeAwayAvailable)
-                MitablChip(
-                  label: 'Take away',
-                  selected:
-                      session.serviceType == OrderServiceType.takeAway,
-                  onSelected: (_) =>
-                      session.selectServiceType(OrderServiceType.takeAway),
+              // Back button
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.arrow_back, size: 24, color: Color(0xFF3E3129)),
+                  ),
                 ),
-              if (kitchen.dineInAvailable)
-                MitablChip(
-                  label: 'Dine in',
-                  selected:
-                      session.serviceType == OrderServiceType.dineIn,
-                  onSelected: (_) =>
-                      session.selectServiceType(OrderServiceType.dineIn),
-                ),
+              ),
+              const Spacer(),
+              // Centered title
+              Column(
+                children: [
+                  const Text(
+                    'Checkout',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF3E3129),
+                    ),
+                  ),
+                  if (kitchen != null)
+                    Text(
+                      kitchen.name,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF8D7A6F),
+                      ),
+                    ),
+                ],
+              ),
+              const Spacer(),
+              const SizedBox(width: 40), // Spacer for centering
             ],
           ),
-          const SizedBox(height: 24),
-        ],
-
-        // YOUR ORDER section
-        const Text(
-          'YOUR ORDER',
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-            color: MitablColors.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...session.cartItems.map(
-          (line) => Padding(
-            padding: const EdgeInsets.only(bottom: MitablSpacing.listItem),
-            child: CheckoutItemCard(line: line, session: session),
-          ),
         ),
 
-        // + Add more items
-        Center(
-          child: MitablButton(
-            label: '+ Add more items',
-            variant: MitablButtonVariant.outline,
-            fullWidth: false,
-            onPressed: () => Navigator.of(context).pop(),
+        // Scrollable content
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+            children: [
+              // Fulfillment toggle (sliding segmented control)
+              if (kitchen != null) ...[
+                _FulfillmentToggle(session: session, kitchen: kitchen),
+                const SizedBox(height: 24),
+              ],
+
+              // YOUR ORDER section header
+              const Text(
+                'YOUR ORDER',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                  color: Color(0xFF8D7A6F),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Cart items
+              ...session.cartItems.map(
+                (line) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: CheckoutItemCard(line: line, session: session),
+                ),
+              ),
+
+              // Add more items button
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_circle,
+                        size: 18,
+                        color: Color(0xFFEF6034),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Add more items',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFEF6034),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Pickup info section
+              _PickupInfoSection(session: session),
+              const SizedBox(height: 16),
+
+              // Receipt breakdown
+              CheckoutReceipt(
+                itemTotal: session.itemTotal,
+                taxTotal: session.taxTotal,
+                estimatedTotal: session.estimatedTotal,
+              ),
+
+              if ((session.errorMessage ?? '').isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  _displayError(session.errorMessage!),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: MitablColors.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+
+              // Slide to pay
+              if (session.isSubmitting)
+                const Center(child: CircularProgressIndicator())
+              else
+                SlideToPayButton(
+                  amount: session.estimatedTotal + 1.50,
+                  onConfirmed: () => _handleSubmit(context),
+                ),
+
+              const SizedBox(height: 32),
+            ],
           ),
         ),
-        const SizedBox(height: 24),
-
-        // Pickup info
-        _PickupInfoSection(session: session),
-        const SizedBox(height: 24),
-
-        // Receipt breakdown
-        CheckoutReceipt(
-          itemTotal: session.itemTotal,
-          taxTotal: session.taxTotal,
-          estimatedTotal: session.estimatedTotal,
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Your payment method is attached to the order and charged when the miCook accepts it.',
-          style: TextStyle(
-            fontSize: 12,
-            color: MitablColors.onSurfaceVariant,
-          ),
-        ),
-
-        if ((session.errorMessage ?? '').isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Text(
-            _displayError(session.errorMessage!),
-            style: const TextStyle(
-              fontSize: 13,
-              color: MitablColors.error,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-        const SizedBox(height: 24),
-
-        // Slide to pay
-        if (session.isSubmitting)
-          const Center(child: CircularProgressIndicator())
-        else
-          SlideToPayButton(
-            amount: session.estimatedTotal + 1.50, // include community fee
-            onConfirmed: () => _handleSubmit(context),
-          ),
-
-        const SizedBox(height: 16),
       ],
     );
   }
 
   Future<void> _handleSubmit(BuildContext context) async {
-    // 1. Capture cart data before submit clears it
     final items = List<CartLineItem>.from(session.cartItems);
     final kitchenName = session.kitchen?.name ?? '';
     final kitchenAddress = session.kitchen?.address ?? '';
@@ -216,12 +244,10 @@ class _CartBody extends StatelessWidget {
         '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
 
     try {
-      // 2. Submit order
       final result = await session.submit();
 
       if (!context.mounted) return;
 
-      // 3. Navigate to confirmation
       Navigator.of(context).pushReplacementNamed(
         '/OrderConfirmation',
         arguments: RouteArguments(
@@ -237,7 +263,6 @@ class _CartBody extends StatelessWidget {
         ),
       );
     } catch (_) {
-      // 4. Show error
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -249,6 +274,100 @@ class _CartBody extends StatelessWidget {
         ),
       );
     }
+  }
+}
+
+class _FulfillmentToggle extends StatelessWidget {
+  const _FulfillmentToggle({required this.session, required this.kitchen});
+
+  final OrderSessionController session;
+  final OrderKitchenSummary kitchen;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPickup = session.serviceType == OrderServiceType.takeAway;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBE4DB).withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Stack(
+        children: [
+          // Animated highlight pill
+          AnimatedAlign(
+            alignment: isPickup ? Alignment.centerLeft : Alignment.centerRight,
+            duration: const Duration(milliseconds: 300),
+            child: FractionallySizedBox(
+              widthFactor: 0.5,
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Buttons
+          Row(
+            children: [
+              if (kitchen.takeAwayAvailable)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () =>
+                        session.selectServiceType(OrderServiceType.takeAway),
+                    child: Container(
+                      height: 40,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Pickup',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isPickup ? FontWeight.w700 : FontWeight.w500,
+                          color: isPickup
+                              ? const Color(0xFF3E3129)
+                              : const Color(0xFF8D7A6F),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (kitchen.dineInAvailable)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () =>
+                        session.selectServiceType(OrderServiceType.dineIn),
+                    child: Container(
+                      height: 40,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Delivery',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight:
+                              !isPickup ? FontWeight.w700 : FontWeight.w500,
+                          color: !isPickup
+                              ? const Color(0xFF3E3129)
+                              : const Color(0xFF8D7A6F),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -265,74 +384,121 @@ class _PickupInfoSection extends StatelessWidget {
         '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
 
     return Container(
-      padding: const EdgeInsets.all(MitablSpacing.cardPadding),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: MitablColors.surfaceContainerLowest,
-        borderRadius: MitablRadius.cardBorder,
-        border: Border.all(
-          color: MitablColors.outlineVariant.withValues(alpha: 0.15),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Pickup Info',
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: MitablColors.onSurface,
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
-          const SizedBox(height: 10),
-          _InfoRow(
-            icon: Icons.calendar_today_outlined,
-            label: dateLabel,
-          ),
-          const SizedBox(height: 8),
-          _InfoRow(
-            icon: Icons.schedule_outlined,
-            label: timeLabel,
-          ),
-          if (kitchen != null) ...[
-            const SizedBox(height: 8),
-            _InfoRow(
-              icon: Icons.location_on_outlined,
-              label: kitchen.address.isNotEmpty
-                  ? kitchen.address
-                  : 'Address not available',
-            ),
-          ],
         ],
       ),
-    );
-  }
-}
+      child: Column(
+        children: [
+          // Pickup time
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(Icons.schedule, size: 18, color: Color(0xFFEF6034)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Pickup Time',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF3E3129),
+                    ),
+                  ),
+                  Text(
+                    '$dateLabel, $timeLabel',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF8D7A6F),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: MitablColors.primary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: MitablColors.onSurfaceVariant,
+          // Divider
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Container(
+              height: 1,
+              color: const Color(0xFFEBE4DB).withValues(alpha: 0.5),
             ),
           ),
-        ),
-      ],
+
+          // Location
+          if (kitchen != null)
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.location_on, size: 18, color: Color(0xFFEF6034)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        kitchen.name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF3E3129),
+                        ),
+                      ),
+                      Text(
+                        kitchen.address.isNotEmpty
+                            ? kitchen.address
+                            : 'Address not available',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF8D7A6F),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Text(
+                  'Map',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFEF6034),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

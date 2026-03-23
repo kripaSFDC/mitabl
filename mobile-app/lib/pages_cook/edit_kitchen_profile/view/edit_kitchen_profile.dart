@@ -15,7 +15,6 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
 import 'package:mitabl_user/widgets/mitabl_card.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
@@ -126,337 +125,816 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
       builder: (context, state) {
         return Scaffold(
           backgroundColor: MitablColors.surface,
-          appBar: GlassAppBar(
-            title: Text(
-              state.isCreateMode ? 'Add Kitchen Profile' : 'Edit Kitchen Profile',
-            ),
-          ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: MitablSpacing.pagePadding,
-              right: MitablSpacing.pagePadding,
-              top: MitablSpacing.pagePadding,
-              bottom: MediaQuery.of(context).padding.bottom +
-                  MediaQuery.of(context).viewInsets.bottom +
-                  config.AppConfig(context).appHeight(4),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Photo Section ──
-                MitablCard(
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(MitablRadius.card - 4),
-                        child: SizedBox(
-                          height: config.AppConfig(context).appHeight(20),
-                          child: state.pathFiles.isNotEmpty
-                              ? PageView.builder(
-                                  controller: controller,
-                                  onPageChanged: (page) {
-                                    context
-                                        .read<EditKitchenProfileCubit>()
-                                        .onImageScroll(index: page);
-                                  },
-                                  scrollDirection: Axis.horizontal,
-                                  itemBuilder: (context, index) {
-                                    return Stack(
-                                      children: [
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: CachedNetworkImage(
-                                            imageUrl:
-                                                '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
-                                            fit: BoxFit.cover,
-                                            errorWidget: (context, data, e) {
-                                              return Image.file(
-                                                File(state
-                                                    .pathFiles[index].path!),
-                                                fit: BoxFit.cover,
-                                                errorBuilder:
-                                                    (context, data, e) {
-                                                  return const Icon(
-                                                    Icons.error_outline,
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          ),
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  // TopAppBar
+                  SafeArea(
+                    bottom: false,
+                    child: Container(
+                      height: 64,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surface.withValues(alpha: 0.80),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back,
+                                color: MitablColors.primary),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Mitabl',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                              color: MitablColors.primary,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Profile avatar
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFF0EDE9),
+                              border: Border.all(
+                                color: MitablColors.primary
+                                    .withValues(alpha: 0.10),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(Icons.person,
+                                color: MitablColors.onSurfaceVariant,
+                                size: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom +
+                            MediaQuery.of(context).viewInsets.bottom +
+                            config.AppConfig(context).appHeight(4),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header section
+                          Text(
+                            'SETTINGS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: MitablColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            state.isCreateMode
+                                ? 'Add Kitchen Profile'
+                                : 'Edit Kitchen Profile',
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: MitablColors.onSurface,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage how your miKitchn appears to guests.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Go Live toggle card
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: MitablColors.outlineVariant
+                                    .withValues(alpha: 0.10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Go Live Status',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                          color: MitablColors.onSurface,
                                         ),
-                                        Positioned(
-                                          right: 6,
-                                          top: 6,
-                                          child: InkWell(
-                                            onTap: () {
-                                              context
-                                                  .read<
-                                                      EditKitchenProfileCubit>()
-                                                  .onDeleteImage(
-                                                    path: state
-                                                        .pathFiles[index].path,
-                                                    imagesCook: state
-                                                        .pathFiles[index],
-                                                  );
-                                            },
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: MitablColors.surface
-                                                    .withValues(alpha: 0.8),
-                                                shape: BoxShape.circle,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Kitchen is visible',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF4D6548),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Switch(
+                                  value: true,
+                                  activeThumbColor: const Color(0xFF4D6548),
+                                  activeTrackColor:
+                                      MitablColors.secondaryContainer,
+                                  onChanged: (_) {},
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // General Information card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'General Information',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                MitablTextField(
+                                  controller: nameTextEditor,
+                                  label: 'Kitchen Name',
+                                  hint: 'Enter kitchen name',
+                                  errorText: state.nameKitchn!.invalid
+                                      ? 'Please enter a valid name'
+                                      : null,
+                                ),
+                                const SizedBox(height: 16),
+                                MitablTextField(
+                                  controller: addressTextEditor,
+                                  label: 'Location Address',
+                                  hint: 'Kitchen address',
+                                  errorText: state.address!.invalid
+                                      ? 'Please enter a valid address'
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Guest Space card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.secondaryContainer
+                                  .withValues(alpha: 0.30),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: MitablColors.secondaryContainer,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Guest Space',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSecondaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                MitablTextField(
+                                  controller: noOfSeatsTextEditor,
+                                  label: 'Dine-in Capacity',
+                                  hint: 'Enter number of seats',
+                                  keyboardType: TextInputType.number,
+                                  errorText: state.noOfSeats.invalid
+                                      ? 'Please enter valid seats'
+                                      : null,
+                                ),
+                                const SizedBox(height: 16),
+                                // Pro Tip
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: MitablColors.surfaceContainerLowest
+                                        .withValues(alpha: 0.50),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: MitablColors.secondaryContainer
+                                          .withValues(alpha: 0.50),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 20,
+                                        color: const Color(0xFF4D6548),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Pro Tip',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: MitablColors
+                                                    .onSecondaryContainer,
                                               ),
-                                              child: const Icon(
-                                                Icons.delete_outline,
-                                                color: MitablColors.error,
-                                                size: 20,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Keeping capacity accurate helps us manage your booking slots effectively during peak hours.',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: MitablColors
+                                                    .onSecondaryContainer
+                                                    .withValues(alpha: 0.80),
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Kitchen Story card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Kitchen Story',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                MitablTextField(
+                                  controller: bioTextEditor,
+                                  label: 'Long Description',
+                                  hint:
+                                      'Tell your guests about your culinary journey...',
+                                  maxLines: 5,
+                                  errorText: state.bio!.invalid
+                                      ? 'Please enter a valid bio'
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Operating Hours card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Operating Hours',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                // Day rows from state
+                                ...List.generate(
+                                  (state.daysTimingOriginal ??
+                                          state.daysTiming)
+                                      .length,
+                                  (index) {
+                                    final day =
+                                        (state.daysTimingOriginal ??
+                                            state.daysTiming)[index];
+                                    final isOn = day.isOn ?? false;
+                                    final dayLabel =
+                                        _dayAbbrev(day.day.toString());
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 16),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 48,
+                                            child: Text(
+                                              dayLabel,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 14,
+                                                color: MitablColors
+                                                    .onSurfaceVariant,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          if (isOn &&
+                                              day.timing != null) ...[
+                                            _MiniTimeBox(
+                                                time: day.timing!
+                                                        .startTime ??
+                                                    '--:--'),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8),
+                                              child: Text(
+                                                '-',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight.w700,
+                                                  fontSize: 12,
+                                                  color: const Color(
+                                                      0xFF89726B),
+                                                ),
+                                              ),
+                                            ),
+                                            _MiniTimeBox(
+                                                time: day.timing!
+                                                        .endTime ??
+                                                    '--:--'),
+                                            const Spacer(),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  _openTimingDialog(
+                                                      context),
+                                              child: Icon(
+                                                Icons.edit,
+                                                size: 16,
+                                                color:
+                                                    const Color(0xFF89726B),
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            Text(
+                                              'Closed',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: MitablColors
+                                                    .outlineVariant,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  _openTimingDialog(
+                                                      context),
+                                              child: Icon(
+                                                Icons.add_circle_outline,
+                                                size: 16,
+                                                color:
+                                                    const Color(0xFF89726B),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
                                     );
                                   },
-                                  itemCount: state.pathFiles.length,
-                                )
-                              : Container(
-                                  color: MitablColors.surfaceContainerLow,
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.photo_outlined,
-                                    size: 64,
-                                    color: MitablColors.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Kitchen Gallery card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Kitchen Gallery',
+                                      style: TextStyle(
+                                        fontFamily: 'Nunito',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: MitablColors.onSurface,
+                                      ),
+                                    ),
+                                    _UploadButton(loginForm: this),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                // Image grid
+                                SizedBox(
+                                  height: 256,
+                                  child: state.pathFiles.isNotEmpty
+                                      ? GridView.builder(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: 12,
+                                            crossAxisSpacing: 12,
+                                          ),
+                                          itemCount:
+                                              state.pathFiles.length > 4
+                                                  ? 4
+                                                  : state.pathFiles.length,
+                                          itemBuilder: (context, index) {
+                                            return ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Stack(
+                                                fit: StackFit.expand,
+                                                children: [
+                                                  CachedNetworkImage(
+                                                    imageUrl:
+                                                        '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
+                                                    fit: BoxFit.cover,
+                                                    errorWidget:
+                                                        (context, data,
+                                                            e) {
+                                                      return Image.file(
+                                                        File(state
+                                                            .pathFiles[
+                                                                index]
+                                                            .path!),
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (context, data,
+                                                                e) {
+                                                          return const Icon(
+                                                              Icons
+                                                                  .error_outline);
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                  // Delete overlay
+                                                  Positioned(
+                                                    top: 4,
+                                                    right: 4,
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        context
+                                                            .read<
+                                                                EditKitchenProfileCubit>()
+                                                            .onDeleteImage(
+                                                              path: state
+                                                                  .pathFiles[
+                                                                      index]
+                                                                  .path,
+                                                              imagesCook: state
+                                                                      .pathFiles[
+                                                                  index],
+                                                            );
+                                                      },
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(4),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: MitablColors
+                                                              .primary
+                                                              .withValues(
+                                                                  alpha:
+                                                                      0.20),
+                                                          shape: BoxShape
+                                                              .circle,
+                                                        ),
+                                                        child: const Icon(
+                                                          Icons
+                                                              .delete_outline,
+                                                          color:
+                                                              Colors.white,
+                                                          size: 18,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEBE8E3),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: MitablColors
+                                                  .outlineVariant
+                                                  .withValues(alpha: 0.30),
+                                              width: 2,
+                                              strokeAlign: BorderSide
+                                                  .strokeAlignInside,
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.add,
+                                              color: Color(0xFF89726B),
+                                              size: 32,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Service Options card
+                          MitablCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Service Options',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
                                   ),
                                 ),
-                        ),
-                      ),
-                      // Page dots
-                      if (state.pathFiles.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              state.pathFiles.length,
-                              (index) => Container(
-                                width: 8,
-                                height: 8,
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 3),
-                                decoration: BoxDecoration(
-                                  color: state.selectedPage == index
-                                      ? MitablColors.primary
-                                      : MitablColors.outlineVariant,
-                                  shape: BoxShape.circle,
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Dine-in',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: MitablColors.onSurface,
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: state.dineIn ?? false,
+                                      activeThumbColor: MitablColors.accent,
+                                      onChanged: (value) {
+                                        context
+                                            .read<EditKitchenProfileCubit>()
+                                            .onDineInChange(value: value);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Takeaway',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: MitablColors.onSurface,
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: state.takeAway ?? false,
+                                      activeThumbColor: MitablColors.accent,
+                                      onChanged: (value) {
+                                        context
+                                            .read<EditKitchenProfileCubit>()
+                                            .onTakeAwayChange(value: value);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: MitablSpacing.listItem),
+
+                          // Dine-in slots
+                          const _DineInSlotSection(),
+                          const SizedBox(height: MitablSpacing.listItem),
+
+                          // Additional fields
+                          MitablTextField(
+                            controller: mobileNoTextEditor,
+                            label: 'Phone',
+                            hint: 'Enter phone number',
+                            keyboardType: TextInputType.phone,
+                            errorText: state.phone.invalid
+                                ? 'Please enter a valid phone no'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          MitablTextField(
+                            controller: abnNoTextEditor,
+                            label: 'ABN',
+                            hint: 'Enter ABN',
+                          ),
+                          const SizedBox(height: 16),
+                          MitablTextField(
+                            controller: certificateTextEditor,
+                            label: 'Certificate No.',
+                            hint: 'Enter certificate number',
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Save bar
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 52,
+                                  child: TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          MitablColors.onSurfaceVariant,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            MitablRadius.pillBorder,
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Discard',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: MitablButton(
+                                  label: 'Save Changes',
+                                  variant: MitablButtonVariant.primary,
+                                  isLoading:
+                                      state.statusApi!.isSubmissionInProgress,
+                                  onPressed: state.status!.isValidated
+                                      ? () {
+                                          context
+                                              .read<
+                                                  EditKitchenProfileCubit>()
+                                              .onKitchenEditUpload();
+                                        }
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      const SizedBox(height: 12),
-                      _UploadButton(loginForm: this),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Form Fields ──
-                MitablTextField(
-                  controller: nameTextEditor,
-                  label: 'Kitchen Name',
-                  hint: 'Enter kitchen name',
-                  errorText: state.nameKitchn!.invalid
-                      ? 'Please enter a valid name'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                MitablTextField(
-                  controller: addressTextEditor,
-                  label: 'Address',
-                  hint: 'Enter address',
-                  errorText: state.address!.invalid
-                      ? 'Please enter a valid address'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                MitablTextField(
-                  controller: mobileNoTextEditor,
-                  label: 'Phone',
-                  hint: 'Enter phone number',
-                  keyboardType: TextInputType.phone,
-                  errorText: state.phone.invalid
-                      ? 'Please enter a valid phone no'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                MitablTextField(
-                  controller: noOfSeatsTextEditor,
-                  label: 'No. of Seats',
-                  hint: 'Enter number of seats',
-                  keyboardType: TextInputType.number,
-                  errorText: state.noOfSeats.invalid
-                      ? 'Please enter a valid seats'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                MitablTextField(
-                  controller: abnNoTextEditor,
-                  label: 'ABN',
-                  hint: 'Enter ABN',
-                ),
-                const SizedBox(height: 16),
-
-                MitablTextField(
-                  controller: certificateTextEditor,
-                  label: 'Certificate No.',
-                  hint: 'Enter certificate number',
-                ),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Operating Hours ──
-                MitablCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Operating Hours',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: MitablColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      MitablButton(
-                        label: 'Set Timings',
-                        variant: MitablButtonVariant.outline,
-                        icon: const Icon(Icons.access_time_rounded,
-                            size: 18, color: MitablColors.primary),
-                        onPressed: () {
-                          context
-                              .read<EditKitchenProfileCubit>()
-                              .onOpenTimingDialog();
-                          showDialog(
-                            context: context,
-                            builder: (contexts) {
-                              return BlocProvider.value(
-                                value:
-                                    context.read<EditKitchenProfileCubit>(),
-                                child: EditTimingDialog(),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Dine-in / Takeaway toggles ──
-                MitablCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Service Options',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: MitablColors.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Dine-in',
-                            style: GoogleFonts.nunito(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: MitablColors.onSurface,
-                            ),
-                          ),
-                          Switch(
-                            value: state.dineIn ?? false,
-                            activeThumbColor: MitablColors.accent,
-                            onChanged: (value) {
-                              context
-                                  .read<EditKitchenProfileCubit>()
-                                  .onDineInChange(value: value);
-                            },
-                          ),
+                          const SizedBox(height: 24),
                         ],
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Takeaway',
-                            style: GoogleFonts.nunito(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: MitablColors.onSurface,
-                            ),
-                          ),
-                          Switch(
-                            value: state.takeAway ?? false,
-                            activeThumbColor: MitablColors.accent,
-                            onChanged: (value) {
-                              context
-                                  .read<EditKitchenProfileCubit>()
-                                  .onTakeAwayChange(value: value);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Dine-in Slots ──
-                const _DineInSlotSection(),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Bio ──
-                MitablTextField(
-                  controller: bioTextEditor,
-                  label: 'Bio',
-                  hint: 'Tell customers about your kitchen',
-                  maxLines: 4,
-                  errorText: state.bio!.invalid
-                      ? 'Please enter a valid bio'
-                      : null,
-                ),
-                const SizedBox(height: MitablSpacing.listItem),
-
-                // ── Save Button ──
-                MitablButton(
-                  label: 'Save Changes',
-                  variant: MitablButtonVariant.primary,
-                  isLoading: state.statusApi!.isSubmissionInProgress,
-                  onPressed: state.status!.isValidated
-                      ? () {
-                          context
-                              .read<EditKitchenProfileCubit>()
-                              .onKitchenEditUpload();
-                        }
-                      : null,
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  void _openTimingDialog(BuildContext context) {
+    context.read<EditKitchenProfileCubit>().onOpenTimingDialog();
+    showDialog(
+      context: context,
+      builder: (contexts) {
+        return BlocProvider.value(
+          value: context.read<EditKitchenProfileCubit>(),
+          child: EditTimingDialog(),
+        );
+      },
+    );
+  }
+
+  static String _dayAbbrev(String dayName) {
+    if (dayName.length >= 3) {
+      return dayName.substring(0, 3);
+    }
+    return dayName;
+  }
+}
+
+class _MiniTimeBox extends StatelessWidget {
+  const _MiniTimeBox({required this.time});
+
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        time,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: MitablColors.onSurface,
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
@@ -1012,11 +1490,7 @@ class _UploadbuttonState extends State<_UploadButton> {
     return BlocConsumer<EditKitchenProfileCubit, EditKitchenProfileState>(
       listener: (context, state) {},
       builder: (context, state) {
-        return MitablButton(
-          label: 'Upload Photos',
-          variant: MitablButtonVariant.outline,
-          icon: const Icon(Icons.camera_alt_outlined,
-              size: 18, color: MitablColors.primary),
+        return TextButton.icon(
           onPressed: () {
             if (state.pathFiles.length <= 4) {
               showDialog<bool>(
@@ -1076,6 +1550,16 @@ class _UploadbuttonState extends State<_UploadButton> {
               Helper.showToast('Photos limit reached.');
             }
           },
+          icon: const Icon(Icons.add_a_photo_outlined,
+              size: 18, color: MitablColors.primary),
+          label: const Text(
+            'Add Images',
+            style: TextStyle(
+              color: MitablColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
         );
       },
     );

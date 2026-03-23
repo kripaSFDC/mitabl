@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mitabl_user/widgets/design_tokens.dart';
 
-/// Receipt breakdown showing subtotal, taxes, community fee, and total.
+/// Receipt breakdown: "RECEIPT" header, subtotal, taxes, community fee, divider, total.
+/// Design: bg-surface rounded-2xl p-4 shadow-soft.
 class CheckoutReceipt extends StatelessWidget {
   const CheckoutReceipt({
     super.key,
@@ -21,38 +21,86 @@ class CheckoutReceipt extends StatelessWidget {
     final grandTotal = estimatedTotal + _communityFee;
 
     return Container(
-      padding: const EdgeInsets.all(MitablSpacing.cardPadding),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: MitablColors.surfaceContainerLowest,
-        borderRadius: MitablRadius.cardBorder,
-        border: Border.all(
-          color: MitablColors.outlineVariant.withValues(alpha: 0.15),
-        ),
+        color: Colors.white, // surface
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Subtotal: 14pt, normal weight, onSurfaceVariant
-          _ReceiptRow(label: 'Subtotal', value: itemTotal),
-          const SizedBox(height: 8),
-          // Taxes: 14pt, normal weight, onSurfaceVariant
-          _ReceiptRow(label: 'Taxes', value: taxTotal),
-          const SizedBox(height: 8),
-          // Community Fee: 14pt, normal weight, onSurfaceVariant
-          const _ReceiptRow(label: 'Community Fee', value: _communityFee),
-          // Divider before total row
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(
-              height: 1,
-              color: MitablColors.outlineVariant,
+          // "RECEIPT" header
+          const Text(
+            'RECEIPT',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+              color: Color(0xFF8D7A6F), // text-muted
             ),
           ),
-          // Total row: 18pt, w700 for both label and amount
+          const SizedBox(height: 12),
+
+          // Subtotal
           _ReceiptRow(
-            label: 'Total',
-            value: grandTotal,
-            isBold: true,
-            isTotal: true,
+            label: 'Subtotal',
+            value: itemTotal,
+            color: const Color(0xFF3E3129),
+          ),
+          const SizedBox(height: 8),
+
+          // Taxes
+          _ReceiptRow(
+            label: 'Taxes',
+            value: taxTotal,
+            color: const Color(0xFF8D7A6F),
+          ),
+          const SizedBox(height: 8),
+
+          // Community Fee
+          const _ReceiptRow(
+            label: 'Community Fee',
+            value: _communityFee,
+            color: Color(0xFF8D7A6F),
+          ),
+
+          // Divider
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Container(
+              height: 1,
+              color: const Color(0xFFEBE4DB).withValues(alpha: 0.5),
+            ),
+          ),
+
+          // Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF3E3129),
+                ),
+              ),
+              Text(
+                '\$${grandTotal.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF3E3129),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -64,28 +112,26 @@ class _ReceiptRow extends StatelessWidget {
   const _ReceiptRow({
     required this.label,
     required this.value,
-    this.isBold = false,
-    this.isTotal = false,
+    required this.color,
   });
 
   final String label;
   final double value;
-  final bool isBold;
-  final bool isTotal;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontFamily: 'Nunito',
-      fontSize: isTotal ? 18 : 14,
-      fontWeight: isTotal ? FontWeight.w700 : FontWeight.w400,
-      color: isTotal ? MitablColors.onSurface : MitablColors.onSurfaceVariant,
-    );
-
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Text(label, style: style)),
-        Text('\$${value.toStringAsFixed(2)}', style: style),
+        Text(
+          label,
+          style: TextStyle(fontSize: 14, color: color),
+        ),
+        Text(
+          '\$${value.toStringAsFixed(2)}',
+          style: TextStyle(fontSize: 14, color: color),
+        ),
       ],
     );
   }

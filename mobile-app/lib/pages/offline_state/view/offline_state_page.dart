@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class OfflineStatePage extends StatelessWidget {
   const OfflineStatePage({super.key});
@@ -15,126 +13,286 @@ class OfflineStatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              MitablColors.surface, // warm oat
-              Color(0xFFFFF8F0), // lighter warm cream
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MitablSpacing.pagePadding * 1.5,
+      backgroundColor: MitablColors.surface,
+      body: Stack(
+        children: [
+          // Decorative organic blurs
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            right: 0,
+            child: Container(
+              width: 128,
+              height: 128,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD9C2B6).withValues(alpha: 0.20),
+                shape: BoxShape.circle,
+              ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
+          ),
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.25,
+            left: 0,
+            child: Container(
+              width: 192,
+              height: 192,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB3CEAB).withValues(alpha: 0.20),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
 
-                // Mitabl logo text at the top
-                Text(
-                  'Mitabl',
-                  style: GoogleFonts.nunito(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: MitablColors.primary,
-                  ),
-                ),
-
-                const Spacer(flex: 2),
-
-                // Illustration placeholder: rounded rect with stacked icons
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: MitablColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  child: const Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu,
-                        size: 60,
-                        color: MitablColors.outlineVariant,
+          // TopAppBar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                height: 64,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(
+                          Icons.lock_outlined,
+                          color: MitablColors.primary,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Mitabl',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            color: MitablColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: MitablColors.onSurfaceVariant,
                       ),
-                      Positioned(
-                        bottom: 40,
-                        right: 50,
-                        child: Icon(
-                          Icons.wifi_off_rounded,
-                          size: 30,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Main content
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Illustration container with tonal layering
+                    SizedBox(
+                      width: 256,
+                      height: 256,
+                      child: Stack(
+                        children: [
+                          // Back rotated shape
+                          Positioned.fill(
+                            child: Transform.rotate(
+                              angle: 0.1,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: MitablColors.secondaryContainer
+                                      .withValues(alpha: 0.20),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Middle rotated shape
+                          Positioned.fill(
+                            child: Transform.rotate(
+                              angle: -0.05,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFB59F)
+                                      .withValues(alpha: 0.30),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Main illustration card
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: MitablColors.surfaceContainerLowest,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: MitablColors.onSurface
+                                        .withValues(alpha: 0.06),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 24),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Stack(
+                                  children: [
+                                    // Placeholder illustration
+                                    Center(
+                                      child: Icon(
+                                        Icons.restaurant_rounded,
+                                        size: 80,
+                                        color: MitablColors.outlineVariant
+                                            .withValues(alpha: 0.5),
+                                      ),
+                                    ),
+                                    // Disconnected badge
+                                    Positioned(
+                                      bottom: 16,
+                                      right: 16,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: MitablColors.surface
+                                              .withValues(alpha: 0.80),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.signal_wifi_off_rounded,
+                                          color: MitablColors.primary,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Heading
+                    const Text(
+                      "Oops! It looks like you're offline.",
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: MitablColors.onSurface,
+                        letterSpacing: -0.5,
+                        height: 1.15,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Subtitle
+                    SizedBox(
+                      width: 280,
+                      child: Text(
+                        'Please check your internet connection and try again.',
+                        style: TextStyle(
+                          fontSize: 17,
                           color: MitablColors.onSurfaceVariant,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                Text(
-                  "Oops! It looks like you're offline.",
-                  style: GoogleFonts.nunito(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: MitablColors.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Please check your internet connection and try again.',
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    color: MitablColors.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const Spacer(flex: 2),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: MitablButton(
-                    label: 'Retry',
-                    variant: MitablButtonVariant.primary,
-                    fullWidth: true,
-                    icon: const Icon(
-                      Icons.refresh,
-                      color: MitablColors.onPrimary,
-                      size: 20,
                     ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: MitablButton(
-                    label: 'Back to Dashboard',
-                    variant: MitablButtonVariant.outline,
-                    fullWidth: true,
-                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/DashboardCook',
-                      (r) => false,
+                    const SizedBox(height: 48),
+
+                    // Retry button (gradient primary)
+                    SizedBox(
+                      width: 256,
+                      height: 56,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: MitablColors.primaryGradient,
+                          borderRadius: MitablRadius.pillBorder,
+                          boxShadow: [
+                            BoxShadow(
+                              color: MitablColors.primary
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: MitablRadius.pillBorder,
+                            onTap: () => Navigator.pop(context),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.sync,
+                                  color: MitablColors.onPrimary,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 24),
+
+                    // Back to Dashboard (secondary)
+                    SizedBox(
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/DashboardCook',
+                          (r) => false,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MitablColors.secondaryContainer,
+                          foregroundColor:
+                              MitablColors.onSecondaryContainer,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: MitablRadius.pillBorder,
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'BACK TO DASHBOARD',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

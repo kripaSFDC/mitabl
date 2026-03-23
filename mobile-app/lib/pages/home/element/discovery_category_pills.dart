@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
-import 'package:mitabl_user/widgets/design_tokens.dart';
 
 /// Horizontal scrolling category filter chips for the discovery feed.
-///
-/// Prepends a hardcoded "All" chip (id: null). When "All" is selected
-/// [selectedId] should be null.
+/// Design: h-9 rounded-full pills, active = bg-primary text-white,
+/// inactive = bg-surface text-text-muted border border-text-muted/20.
 class DiscoveryCategoryPills extends StatelessWidget {
   const DiscoveryCategoryPills({
     super.key,
@@ -14,13 +12,8 @@ class DiscoveryCategoryPills extends StatelessWidget {
     required this.onSelected,
   });
 
-  /// List of cooking style items (id, name).
   final List<CookingStyleData>? categories;
-
-  /// Currently selected category id. Null means "All".
   final int? selectedId;
-
-  /// Called with the id of the selected category (null for "All").
   final ValueChanged<int?> onSelected;
 
   @override
@@ -29,14 +22,12 @@ class DiscoveryCategoryPills extends StatelessWidget {
 
     return Container(
       height: 50,
-      color: MitablColors.surface,
+      color: const Color(0xFFF7F4EF), // background-light
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: MitablSpacing.pagePadding,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: items.length + 1, // +1 for "All"
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final bool isSelected;
           final String label;
@@ -58,22 +49,38 @@ class DiscoveryCategoryPills extends StatelessWidget {
             child: Center(
               child: Container(
                 height: 36,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? MitablColors.primary
-                      : MitablColors.surfaceContainerLow,
+                      ? const Color(0xFFD96C4A) // primary
+                      : const Color(0xFFFCFAF8), // surface
                   borderRadius: BorderRadius.circular(100),
+                  border: isSelected
+                      ? null
+                      : Border.all(
+                          color: const Color(0xFF8D7A6F)
+                              .withValues(alpha: 0.2),
+                        ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF3E3129)
+                                .withValues(alpha: 0.06),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ]
+                      : null,
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
-                        ? MitablColors.onPrimary
-                        : MitablColors.onSurface,
+                        ? Colors.white
+                        : const Color(0xFF8D7A6F), // text-muted
                   ),
                 ),
               ),

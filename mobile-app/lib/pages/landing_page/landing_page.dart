@@ -8,9 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
-import 'package:mitabl_user/widgets/mitabl_chip.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LandingPage extends StatefulWidget {
@@ -124,7 +121,7 @@ class _LandingPageState extends State<LandingPage> {
               // ── Top bar spacer ──
               SliverToBoxAdapter(
                 child: SizedBox(
-                    height: MediaQuery.of(context).padding.top + 56),
+                    height: MediaQuery.of(context).padding.top + 60),
               ),
 
               // ── Hero Section ──
@@ -135,54 +132,102 @@ class _LandingPageState extends State<LandingPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
+                      // Hero headline – text-5xl = 48px on mobile
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
-                            fontSize: 36,
+                            fontSize: 48,
                             fontWeight: FontWeight.w800,
                             fontFamily: 'Nunito',
                             color: MitablColors.onSurface,
                             height: 1.1,
-                            letterSpacing: -0.5,
+                            letterSpacing: -1.0,
                           ),
                           children: [
-                            TextSpan(text: 'Taste the heart\nof your\n'),
+                            TextSpan(text: 'Taste the\nheart of your '),
                             TextSpan(
                               text: 'neighborhood.',
-                              style: TextStyle(color: MitablColors.primary),
+                              style: TextStyle(
+                                color: MitablColors.primary,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Experience authentic, home-cooked meals prepared by passionate local chefs. From family secrets to modern twists, discover the soul of community dining.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: MitablColors.onSurfaceVariant
-                              .withValues(alpha: 0.8),
-                          height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 24),
 
-                      // CTA buttons — Get Started + Login
-                      Row(
+                      // Subtitle – text-lg = 18px
+                      Text(
+                        'Experience authentic, home-cooked meals prepared by passionate local chefs. From family secrets to modern twists, discover the soul of community dining.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'DM Sans',
+                          color: MitablColors.onSurfaceVariant,
+                          height: 1.6,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // CTA buttons
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 12,
                         children: [
-                          Expanded(
-                            child: MitablButton(
-                              label: 'Get Started',
+                          // Get Started – primary pill
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
                               onPressed: () => navigatorKey.currentState!
                                   .pushNamed('/SignUpPage'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: MitablColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 4,
+                                shadowColor:
+                                    MitablColors.primary.withValues(alpha: 0.3),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 40),
+                              ),
+                              child: const Text(
+                                'Get Started',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'DM Sans',
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: MitablButton(
-                              label: 'Login',
-                              variant: MitablButtonVariant.outline,
+                          // Login – secondary-container pill
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
                               onPressed: () => navigatorKey.currentState!
                                   .pushNamed('/LoginPage'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    MitablColors.secondaryContainer,
+                                foregroundColor:
+                                    MitablColors.onSecondaryContainer,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 40),
+                              ),
+                              child: const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'DM Sans',
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -192,242 +237,247 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
 
-              // ── Food Photo Grid ──
+              // ── Food Photo Grid (2-column editorial) ──
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                  child: _buildFoodPhotoGrid(),
+                  child: _buildEditorialImageGrid(),
                 ),
               ),
 
-              // ── "LOCAL FIRST" + Curated Section ──
+              // ── Bento Grid Features ──
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Large "Local First" feature card
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE74C3C),
-                          borderRadius: BorderRadius.circular(4),
+                          color: const Color(0xFFF6F3EE),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text(
-                          'LOCAL FIRST',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Curated by\nneighbors, for\nneighbors.',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          fontFamily: 'Nunito',
-                          color: MitablColors.onSurface,
-                          height: 1.15,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Every chef on Mitabl is verified for quality and safety, bringing you the same love they put into their own family\'s dinner.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: MitablColors.onSurfaceVariant
-                              .withValues(alpha: 0.8),
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Avatar stack with count
-                      Row(
-                        children: [
-                          _buildAvatarStack(),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: MitablColors.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            child: const Text(
-                              '+24',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: MitablColors.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Feature Cards ──
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                  child: Column(
-                    children: [
-                      // Zero-Waste Prep card
-                      MitablCard(
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: MitablColors.secondaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.eco_outlined,
-                                  color: MitablColors.onSecondaryContainer,
-                                  size: 24),
-                            ),
-                            const SizedBox(width: 16),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Zero-Waste Prep',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: MitablColors.onSurface,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Cooked to order, reducing food waste in your community.',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: MitablColors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Authentic Flavors card
-                      MitablCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Authentic Flavors',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: MitablColors.onSurface,
+                            // Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFDBD0),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: const Text(
+                                'LOCAL FIRST',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.5,
+                                  color: Color(0xFF3A0A00),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: const [
-                                MitablChip(label: 'Family Recipe'),
-                                MitablChip(label: 'Small Batch'),
-                                MitablChip(label: 'Local Herbs'),
-                              ],
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Curated by neighbors, for neighbors.',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                fontFamily: 'Nunito',
+                                color: MitablColors.onSurface,
+                                height: 1.15,
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Every chef on Mitabl is verified for quality and safety, bringing you the same love they put into their own family's dinner.",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'DM Sans',
+                                color: MitablColors.onSurfaceVariant,
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            // Avatar stack
+                            _buildAvatarStack(),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                      const SizedBox(height: 16),
 
-              // ── Culinary Atelier Hero Image ──
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-                  child: ClipRRect(
-                    borderRadius: MitablRadius.cardBorder,
-                    child: Container(
-                      height: 220,
-                      decoration: BoxDecoration(
-                        color: MitablColors.primary.withValues(alpha: 0.15),
-                        borderRadius: MitablRadius.cardBorder,
-                      ),
-                      child: Stack(
-                        fit: StackFit.expand,
+                      // Two small feature cards in a row
+                      Row(
                         children: [
-                          // Gradient overlay
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  MitablColors.onSurface.withValues(alpha: 0.7),
+                          // Zero-Waste Prep
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: MitablColors.secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.eco,
+                                      size: 48,
+                                      color: Color(0xFF4D6548)),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Zero-Waste Prep',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      fontFamily: 'Nunito',
+                                      color: MitablColors.onSecondaryContainer,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Cooked to order, reducing food waste in your community.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: 'DM Sans',
+                                      color: MitablColors.onSecondaryContainer
+                                          .withValues(alpha: 0.8),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           ),
-                          // Text overlay
-                          const Positioned(
-                            left: 20,
-                            right: 20,
-                            bottom: 20,
-                            child: Text(
-                              'Bringing the culinary\natelier experience to your\ndoorstep.',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                fontFamily: 'Nunito',
-                                color: Colors.white,
-                                height: 1.2,
+                          const SizedBox(width: 16),
+                          // Authentic Flavors
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF6DED1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Authentic Flavors',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      fontFamily: 'Nunito',
+                                      color: Color(0xFF251911),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      _buildFlavorTag('Family Recipe'),
+                                      _buildFlavorTag('Small Batch'),
+                                      _buildFlavorTag('Local Herbs'),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 16),
+
+                      // Culinary Atelier hero image card
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          height: 300,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Gradient overlay
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.1),
+                                      Colors.black.withValues(alpha: 0.5),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 24,
+                                left: 24,
+                                right: 24,
+                                child: const Text(
+                                  'Bringing the culinary atelier experience to your doorstep.',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    fontFamily: 'Nunito',
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
               // ── Happening Now Section ──
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+                child: Container(
+                  margin: const EdgeInsets.only(top: 48),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 48),
+                  color: const Color(0xFFF6F3EE),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text(
-                            'Happening now.',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              fontFamily: 'Nunito',
-                              color: MitablColors.onSurface,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Happening now.',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Nunito',
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Explore meals being prepared in your area today.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () => navigatorKey.currentState!
+                          GestureDetector(
+                            onTap: () => navigatorKey.currentState!
                                 .pushNamed('/SignUpPage'),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -435,39 +485,24 @@ class _LandingPageState extends State<LandingPage> {
                                 Text(
                                   'View All Menus',
                                   style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
                                     color: MitablColors.primary,
+                                    fontFamily: 'DM Sans',
                                   ),
                                 ),
-                                SizedBox(width: 4),
+                                SizedBox(width: 8),
                                 Icon(Icons.arrow_forward,
-                                    size: 16, color: MitablColors.primary),
+                                    size: 18, color: MitablColors.primary),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Explore meals being prepared in your area today.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: MitablColors.onSurfaceVariant
-                              .withValues(alpha: 0.7),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 32),
+                      _buildHappeningNowCards(),
                     ],
                   ),
-                ),
-              ),
-
-              // ── Cook Menu Cards ──
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildHappeningNowCards(),
                 ),
               ),
 
@@ -482,6 +517,7 @@ class _LandingPageState extends State<LandingPage> {
                       style: const TextStyle(
                         color: MitablColors.onSurfaceVariant,
                         fontSize: 12,
+                        fontFamily: 'DM Sans',
                       ),
                       children: [
                         TextSpan(
@@ -509,7 +545,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
 
@@ -519,6 +555,14 @@ class _LandingPageState extends State<LandingPage> {
             left: 0,
             right: 0,
             child: _buildTopBar(context),
+          ),
+
+          // ── Bottom nav bar (mobile) ──
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildBottomNavBar(context),
           ),
         ],
       ),
@@ -533,27 +577,28 @@ class _LandingPageState extends State<LandingPage> {
         child: Container(
           color: MitablGlass.background,
           padding: EdgeInsets.only(
-            top: topPadding + 8,
-            bottom: 8,
+            top: topPadding + 12,
+            bottom: 12,
             left: 24,
-            right: 16,
+            right: 24,
           ),
           child: Row(
             children: [
               const Text(
                 'Mitabl',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                   fontFamily: 'Nunito',
                   color: MitablColors.primary,
+                  letterSpacing: -0.5,
                 ),
               ),
               const Spacer(),
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.menu,
-                    color: MitablColors.onSurface, size: 24),
+                    color: MitablColors.onSurfaceVariant, size: 24),
               ),
             ],
           ),
@@ -562,74 +607,275 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  Widget _buildAvatarStack() {
-    final colors = [
-      MitablColors.primary,
-      MitablColors.secondaryContainer,
-      MitablColors.tertiaryFixedDim,
-      const Color(0xFF6B7280),
-    ];
-    return SizedBox(
-      width: 92,
-      height: 36,
-      child: Stack(
-        children: List.generate(4, (i) {
-          return Positioned(
-            left: i * 18.0,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: colors[i],
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: MitablColors.surface,
-                  width: 2,
+  Widget _buildBottomNavBar(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: BackdropFilter(
+        filter: MitablGlass.blur,
+        child: Container(
+          decoration: BoxDecoration(
+            color: MitablGlass.background,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1C1C19).withValues(alpha: 0.06),
+                blurRadius: 24,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(
+            top: 12,
+            bottom: bottomPadding + 24,
+            left: 16,
+            right: 16,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              // Welcome (active)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                decoration: BoxDecoration(
+                  color: MitablColors.primary,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.bakery_dining, color: Colors.white, size: 24),
+                    SizedBox(height: 2),
+                    Text(
+                      'WELCOME',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'DM Sans',
+                        letterSpacing: 0.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: const Icon(Icons.person, size: 18, color: Colors.white),
-            ),
-          );
-        }),
+              // Join (inactive)
+              GestureDetector(
+                onTap: () =>
+                    navigatorKey.currentState!.pushNamed('/SignUpPage'),
+                child: Opacity(
+                  opacity: 0.7,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_add,
+                          color: MitablColors.onSurfaceVariant, size: 24),
+                      const SizedBox(height: 2),
+                      Text(
+                        'JOIN',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'DM Sans',
+                          letterSpacing: 0.5,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Support (inactive)
+              Opacity(
+                opacity: 0.7,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.help_outline,
+                        color: MitablColors.onSurfaceVariant, size: 24),
+                    const SizedBox(height: 2),
+                    Text(
+                      'SUPPORT',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'DM Sans',
+                        letterSpacing: 0.5,
+                        color: MitablColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildFoodPhotoGrid() {
-    // 2x3 grid of food photography placeholders with warm tonal colors
-    final items = [
-      {'color': const Color(0xFF8B4513), 'icon': Icons.ramen_dining},
-      {'color': const Color(0xFFC75B39), 'icon': Icons.local_pizza},
-      {'color': const Color(0xFF6B8E23), 'icon': Icons.set_meal},
-      {'color': const Color(0xFFD4A574), 'icon': Icons.bakery_dining},
-      {'color': const Color(0xFF9C3E20), 'icon': Icons.dinner_dining},
-      {'color': const Color(0xFF8FBC8F), 'icon': Icons.soup_kitchen},
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1.0,
-      ),
-      itemCount: 6,
-      itemBuilder: (_, i) {
-        final item = items[i];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            color: (item['color'] as Color).withValues(alpha: 0.85),
-            child: Icon(
-              item['icon'] as IconData,
-              color: Colors.white.withValues(alpha: 0.5),
-              size: 32,
+  Widget _buildEditorialImageGrid() {
+    // Two columns with staggered heights matching the HTML
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column
+        Expanded(
+          child: Column(
+            children: [
+              // h-64 = 256px
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 256,
+                  color: MitablColors.surfaceContainerLow,
+                  child: const Center(
+                    child: Icon(Icons.ramen_dining,
+                        size: 48,
+                        color: MitablColors.onSurfaceVariant),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // h-48 = 192px
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 192,
+                  color: MitablColors.surfaceContainerLow,
+                  child: const Center(
+                    child: Icon(Icons.local_pizza,
+                        size: 48,
+                        color: MitablColors.onSurfaceVariant),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        // Right column (offset down – pt-12 = 48px top padding)
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 48),
+            child: Column(
+              children: [
+                // h-48 = 192px
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    height: 192,
+                    color: MitablColors.surfaceContainerLow,
+                    child: const Center(
+                      child: Icon(Icons.local_pizza,
+                          size: 48,
+                          color: MitablColors.onSurfaceVariant),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // h-64 = 256px
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    height: 256,
+                    color: MitablColors.surfaceContainerLow,
+                    child: const Center(
+                      child: Icon(Icons.set_meal,
+                          size: 48,
+                          color: MitablColors.onSurfaceVariant),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatarStack() {
+    return Row(
+      children: [
+        SizedBox(
+          width: 124,
+          height: 48,
+          child: Stack(
+            children: [
+              ...List.generate(3, (i) {
+                return Positioned(
+                  left: i * 28.0,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: [
+                        MitablColors.primary,
+                        MitablColors.secondaryContainer,
+                        MitablColors.tertiaryFixedDim,
+                      ][i],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: MitablColors.surface,
+                        width: 4,
+                      ),
+                    ),
+                    child: const Icon(Icons.person,
+                        size: 20, color: Colors.white),
+                  ),
+                );
+              }),
+              // +24 circle
+              Positioned(
+                left: 3 * 28.0,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF6DED1),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: MitablColors.surface,
+                      width: 4,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '+24',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF251911),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlavorTag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: MitablColors.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF251911),
+        ),
+      ),
     );
   }
 
@@ -652,12 +898,12 @@ class _LandingPageState extends State<LandingPage> {
     } else {
       cooks = const [
         {
-          'name': 'Slow-Roasted Ragù',
+          'name': 'Slow-Roasted Ragu',
           'description':
-              'A 12-hour simmered beef ragù using my nonna\'s secret spice blend and local San...',
-          'price': 15,
+              'A 12-hour simmered beef ragu using my nonna\'s secret spice blend and local San Marzano tomatoes.',
+          'price': 18,
           'ready_time': '45m',
-          'distance': '8.2',
+          'distance': '4.2',
         },
         {
           'name': 'Honey Glazed Salmon',
@@ -665,15 +911,15 @@ class _LandingPageState extends State<LandingPage> {
               'Wild-caught salmon with a wildflower honey glaze, served with grilled seasonal asparagus.',
           'price': 22,
           'ready_time': '20m',
-          'distance': '3.1',
+          'distance': '1.8',
         },
         {
           'name': 'Curry Laksa Bowl',
           'description':
-              'Spicy coconut noodle soup with poached chicken, tofu puffs, and fresh Vietnamese...',
+              'Spicy coconut noodle soup with poached chicken, tofu puffs, and fresh Vietnamese mint.',
           'price': 15,
           'ready_time': '7 PM',
-          'distance': '2.8',
+          'distance': '0.5',
         },
       ];
     }
@@ -728,62 +974,76 @@ class _LandingPageState extends State<LandingPage> {
         }
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: MitablCard(
-            padding: EdgeInsets.zero,
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Food image
+                // Food image – h-56 = 224px
                 Stack(
                   children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20)),
-                      child: Container(
-                        height: 180,
-                        width: double.infinity,
-                        color: MitablColors.primary.withValues(alpha: 0.12),
-                        child: imageUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: imageUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) => const Center(
-                                  child: Icon(Icons.restaurant,
-                                      size: 40,
-                                      color: MitablColors.onSurfaceVariant),
-                                ),
-                                errorWidget: (_, __, ___) => const Center(
-                                  child: Icon(Icons.restaurant,
-                                      size: 40,
-                                      color: MitablColors.onSurfaceVariant),
-                                ),
-                              )
-                            : const Center(
+                    Container(
+                      height: 224,
+                      width: double.infinity,
+                      color: MitablColors.surfaceContainerLow,
+                      child: imageUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => const Center(
                                 child: Icon(Icons.restaurant,
                                     size: 40,
                                     color: MitablColors.onSurfaceVariant),
                               ),
-                      ),
+                              errorWidget: (_, __, ___) => const Center(
+                                child: Icon(Icons.restaurant,
+                                    size: 40,
+                                    color: MitablColors.onSurfaceVariant),
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(Icons.restaurant,
+                                  size: 40,
+                                  color: MitablColors.onSurfaceVariant),
+                            ),
                     ),
                     // Distance badge
                     if (distanceLabel.isNotEmpty)
                       Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: MitablColors.secondaryContainer,
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: Text(
-                            distanceLabel,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: MitablColors.onSecondaryContainer,
+                        top: 16,
+                        left: 16,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: BackdropFilter(
+                            filter: MitablGlass.blur,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Text(
+                                distanceLabel,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.primary,
+                                  fontFamily: 'DM Sans',
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -791,22 +1051,23 @@ class _LandingPageState extends State<LandingPage> {
                   ],
                 ),
 
-                // Content
+                // Content – p-6 = 24px
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
                               name,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                                fontFamily: 'Nunito',
+                                fontFamily: 'DM Sans',
                                 color: MitablColors.onSurface,
                               ),
                               maxLines: 1,
@@ -817,40 +1078,42 @@ class _LandingPageState extends State<LandingPage> {
                             Text(
                               '\$${price.toStringAsFixed(0)}',
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: MitablColors.primary,
                               ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
                         desc,
                         style: TextStyle(
-                          fontSize: 13,
-                          color: MitablColors.onSurfaceVariant
-                              .withValues(alpha: 0.8),
-                          height: 1.4,
+                          fontSize: 14,
+                          fontFamily: 'DM Sans',
+                          color: MitablColors.onSurfaceVariant,
+                          height: 1.5,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (readyTime.isNotEmpty) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
-                            Icon(Icons.access_time,
+                            Icon(Icons.schedule,
                                 size: 14,
-                                color: MitablColors.onSurfaceVariant
-                                    .withValues(alpha: 0.6)),
-                            const SizedBox(width: 4),
+                                color: MitablColors.onSurfaceVariant),
+                            const SizedBox(width: 8),
                             Text(
-                              'Ready in $readyTime',
+                              readyTime.contains('PM')
+                                  ? 'Pre-order for $readyTime'
+                                  : 'Ready in $readyTime',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: MitablColors.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'DM Sans',
+                                color: MitablColors.onSurfaceVariant,
                               ),
                             ),
                           ],

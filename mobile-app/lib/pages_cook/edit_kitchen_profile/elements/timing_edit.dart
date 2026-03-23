@@ -1,12 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mitabl_user/pages_cook/edit_kitchen_profile/cubit/edit_kitchen_profile_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class EditTimingDialog extends StatelessWidget {
   EditTimingDialog({super.key});
@@ -19,13 +17,14 @@ class EditTimingDialog extends StatelessWidget {
       listener: (context, state) {},
       builder: (context, state) {
         return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           backgroundColor: MitablColors.surface,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -35,12 +34,14 @@ class EditTimingDialog extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Operating Hours',
-                        style: GoogleFonts.nunito(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 28,
                           fontWeight: FontWeight.w800,
                           color: MitablColors.onSurface,
+                          letterSpacing: -0.5,
                         ),
                       ),
                       IconButton(
@@ -53,201 +54,214 @@ class EditTimingDialog extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Set your kitchen availability. Use breaks to manage peak prep times or staff shift changes.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: MitablColors.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                  // Quick Status summary row
+                  // Quick Status card
                   _QuickStatusRow(daysTiming: state.daysTiming),
+                  const SizedBox(height: 20),
 
-                  const SizedBox(height: 16),
-
-                  // Day rows
+                  // Day cards
                   Column(
-                    children: List.generate(state.daysTiming.length, (index) {
+                    children:
+                        List.generate(state.daysTiming.length, (index) {
                       final day = state.daysTiming[index];
                       final isOn = day.isOn ?? false;
+                      final dayLabel = _dayAbbrev(day.day.toString());
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Column(
-                          children: [
-                            // Day name + switch row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _dayAbbrev(day.day.toString()),
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: MitablColors.onSurface,
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: isOn
+                                ? MitablColors.surfaceContainerLowest
+                                : MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: isOn
+                                ? [
+                                    BoxShadow(
+                                      color: MitablColors.onSurface
+                                          .withValues(alpha: 0.04),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Column(
+                            children: [
+                              // Day name + toggle row
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 48,
+                                    child: Text(
+                                      dayLabel,
+                                      style: TextStyle(
+                                        fontFamily: 'Nunito',
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: isOn
+                                            ? MitablColors.primary
+                                            : MitablColors.onSurfaceVariant,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Switch(
-                                  value: isOn,
-                                  activeThumbColor: MitablColors.accent,
-                                  onChanged: (val) {
-                                    context
-                                        .read<EditKitchenProfileCubit>()
-                                        .onSwitchChanged(
-                                          index: index,
-                                          switchValue: val,
-                                        );
-                                  },
-                                ),
-                              ],
-                            ),
-
-                            // Time row or closed text
-                            if (isOn)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4, top: 4),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        // Start time box
-                                        _TimeBox(
-                                          time: day.timing?.startTime ?? '--:--',
-                                          onTap: () {
-                                            String date = DateFormat(
-                                              'yyyy-MM-dd ',
-                                            ).format(nowDate);
-                                            String datePreviousStart =
-                                                date + (day.timing?.startTime ?? '00:00');
-                                            DateTime startPreviousTime =
-                                                DateTime.parse(datePreviousStart);
-
-                                            _showDialog(
-                                              CupertinoDatePicker(
-                                                initialDateTime: startPreviousTime,
-                                                mode: CupertinoDatePickerMode.time,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newTime) {
-                                                  String date = DateFormat(
-                                                    'yyyy-MM-dd ',
-                                                  ).format(newTime);
-                                                  String dateStart =
-                                                      date + (day.timing?.endTime ?? '23:59');
-                                                  DateTime startTime =
-                                                      DateTime.parse(dateStart);
-
-                                                  if (newTime.isBefore(startTime)) {
-                                                    context
-                                                        .read<EditKitchenProfileCubit>()
-                                                        .onSwitchChanged(
-                                                          index: index,
-                                                          startTime: DateFormat('HH:mm')
-                                                              .format(newTime),
-                                                        );
-                                                  }
-                                                },
+                                  // Custom toggle
+                                  GestureDetector(
+                                    onTap: () {
+                                      context
+                                          .read<EditKitchenProfileCubit>()
+                                          .onSwitchChanged(
+                                            index: index,
+                                            switchValue: !isOn,
+                                          );
+                                    },
+                                    child: Container(
+                                      width: 56,
+                                      height: 32,
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: isOn
+                                            ? MitablColors.primary
+                                            : const Color(0xFFE5E2DD),
+                                        borderRadius:
+                                            BorderRadius.circular(16),
+                                      ),
+                                      child: AnimatedAlign(
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        alignment: isOn
+                                            ? Alignment.centerRight
+                                            : Alignment.centerLeft,
+                                        child: Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: MitablColors.onSurface
+                                                    .withValues(alpha: 0.10),
+                                                blurRadius: 4,
+                                                offset:
+                                                    const Offset(0, 1),
                                               ),
-                                              context,
-                                            );
-                                          },
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                                          child: Text(
-                                            'to',
-                                            style: GoogleFonts.nunito(
-                                              fontSize: 14,
-                                              color: MitablColors.onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ),
-                                        // End time box
-                                        _TimeBox(
-                                          time: day.timing?.endTime ?? '--:--',
-                                          onTap: () {
-                                            String date = DateFormat(
-                                              'yyyy-MM-dd ',
-                                            ).format(nowDate);
-                                            String datePreviousEnd =
-                                                date + (day.timing?.endTime ?? '23:59');
-                                            DateTime endPreviousTime =
-                                                DateTime.parse(datePreviousEnd);
-
-                                            _showDialog(
-                                              CupertinoDatePicker(
-                                                initialDateTime: endPreviousTime,
-                                                mode: CupertinoDatePickerMode.time,
-                                                use24hFormat: true,
-                                                onDateTimeChanged: (DateTime newTime) {
-                                                  String date = DateFormat(
-                                                    'yyyy-MM-dd ',
-                                                  ).format(newTime);
-                                                  String dateStart =
-                                                      date + (day.timing?.startTime ?? '00:00');
-                                                  DateTime startTime =
-                                                      DateTime.parse(dateStart);
-                                                  if (newTime.isAfter(startTime)) {
-                                                    context
-                                                        .read<EditKitchenProfileCubit>()
-                                                        .onSwitchChanged(
-                                                          index: index,
-                                                          endTime: DateFormat('HH:mm')
-                                                              .format(newTime),
-                                                        );
-                                                  }
-                                                },
-                                              ),
-                                              context,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    // Add Break button
-                                    GestureDetector(
-                                      onTap: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Break scheduling coming soon'),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 6),
-                                        child: Text(
-                                          '+ Add Break',
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: MitablColors.primary,
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              )
-                            else
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4, top: 4),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Closed',
-                                    style: GoogleFonts.nunito(
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    isOn ? 'Open' : 'Closed',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 14,
-                                      color: MitablColors.onSurfaceVariant
-                                          .withValues(alpha: 0.6),
-                                      fontStyle: FontStyle.italic,
+                                      color: isOn
+                                          ? MitablColors.onSurface
+                                          : MitablColors.onSurfaceVariant,
                                     ),
                                   ),
-                                ),
+                                  const Spacer(),
+                                  if (isOn)
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Break scheduling coming soon'),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.add,
+                                          size: 14,
+                                          color: MitablColors.primary),
+                                      label: const Text(
+                                        'Add break',
+                                        style: TextStyle(
+                                          color: MitablColors.primary,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFFFFDBD0),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              MitablRadius.pillBorder,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                      ),
+                                    ),
+                                ],
                               ),
 
-                            if (index < state.daysTiming.length - 1)
-                              const Divider(
-                                height: 8,
-                                color: MitablColors.outlineVariant,
-                              ),
-                          ],
+                              // Time pickers (when open)
+                              if (isOn) ...[
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _TimePickerBox(
+                                        label: 'START TIME',
+                                        icon: Icons.schedule,
+                                        time:
+                                            day.timing?.startTime ?? '--:--',
+                                        onTap: () {
+                                          _showTimePicker(
+                                            context: context,
+                                            index: index,
+                                            day: day,
+                                            isStart: true,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: Container(
+                                        width: 8,
+                                        height: 2,
+                                        color: MitablColors.outlineVariant,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: _TimePickerBox(
+                                        label: 'END TIME',
+                                        icon: Icons.bedtime_outlined,
+                                        time: day.timing?.endTime ?? '--:--',
+                                        onTap: () {
+                                          _showTimePicker(
+                                            context: context,
+                                            index: index,
+                                            day: day,
+                                            isStart: false,
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       );
                     }),
@@ -255,13 +269,44 @@ class EditTimingDialog extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // Apply button
-                  MitablButton(
-                    label: 'Apply',
-                    variant: MitablButtonVariant.primary,
-                    fullWidth: true,
-                    onPressed: () {
-                      context.read<EditKitchenProfileCubit>().onApplyDays();
-                    },
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4D6548),
+                        borderRadius: MitablRadius.pillBorder,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF4D6548)
+                                .withValues(alpha: 0.20),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: MitablRadius.pillBorder,
+                          onTap: () {
+                            context
+                                .read<EditKitchenProfileCubit>()
+                                .onApplyDays();
+                          },
+                          child: const Center(
+                            child: Text(
+                              'Save All Changes',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -279,19 +324,64 @@ class EditTimingDialog extends StatelessWidget {
     return dayName.toUpperCase();
   }
 
+  void _showTimePicker({
+    required BuildContext context,
+    required int index,
+    required dynamic day,
+    required bool isStart,
+  }) {
+    String date = DateFormat('yyyy-MM-dd ').format(nowDate);
+    String datePrevious;
+    if (isStart) {
+      datePrevious = date + (day.timing?.startTime ?? '00:00');
+    } else {
+      datePrevious = date + (day.timing?.endTime ?? '23:59');
+    }
+    DateTime previousTime = DateTime.parse(datePrevious);
+
+    _showDialog(
+      CupertinoDatePicker(
+        initialDateTime: previousTime,
+        mode: CupertinoDatePickerMode.time,
+        use24hFormat: true,
+        onDateTimeChanged: (DateTime newTime) {
+          if (isStart) {
+            String dateStr = DateFormat('yyyy-MM-dd ').format(newTime);
+            String dateEnd = dateStr + (day.timing?.endTime ?? '23:59');
+            DateTime endTime = DateTime.parse(dateEnd);
+            if (newTime.isBefore(endTime)) {
+              context.read<EditKitchenProfileCubit>().onSwitchChanged(
+                    index: index,
+                    startTime: DateFormat('HH:mm').format(newTime),
+                  );
+            }
+          } else {
+            String dateStr = DateFormat('yyyy-MM-dd ').format(newTime);
+            String dateStart = dateStr + (day.timing?.startTime ?? '00:00');
+            DateTime startTime = DateTime.parse(dateStart);
+            if (newTime.isAfter(startTime)) {
+              context.read<EditKitchenProfileCubit>().onSwitchChanged(
+                    index: index,
+                    endTime: DateFormat('HH:mm').format(newTime),
+                  );
+            }
+          }
+        },
+      ),
+      context,
+    );
+  }
+
   void _showDialog(Widget child, BuildContext? context) {
     showCupertinoModalPopup<void>(
       context: context!,
       builder: (BuildContext context) => Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
-        // The Bottom margin is provided to align the popup above the system navigation bar.
         margin: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        // Provide a background color for the popup.
         color: CupertinoColors.systemBackground.resolveFrom(context),
-        // Use a SafeArea widget to avoid system overlaps.
         child: SafeArea(top: false, child: child),
       ),
     );
@@ -305,7 +395,6 @@ class _QuickStatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Count open days
     int totalMinutes = 0;
     final List<String> openDayNames = [];
 
@@ -315,7 +404,6 @@ class _QuickStatusRow extends StatelessWidget {
         if (name.length >= 3) {
           openDayNames.add(name.substring(0, 3));
         }
-        // Calculate hours from timing
         final timing = day.timing;
         if (timing != null &&
             timing.startTime != null &&
@@ -337,43 +425,75 @@ class _QuickStatusRow extends StatelessWidget {
 
     final totalHours = totalMinutes ~/ 60;
 
-    // Build summary label e.g. "Open Mon-Sat . 64hrs/week"
-    String dayRange;
-    if (openDayNames.isEmpty) {
-      dayRange = 'Closed all week';
-    } else if (openDayNames.length == 7) {
-      dayRange = 'Open every day';
-    } else if (openDayNames.length == 1) {
-      dayRange = 'Open ${openDayNames.first}';
-    } else {
-      dayRange = 'Open ${openDayNames.first}-${openDayNames.last}';
-    }
-
-    final hoursLabel = totalHours > 0 ? ' \u00B7 ${totalHours}hrs/week' : '';
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: MitablColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: MitablColors.secondaryContainer,
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.schedule,
-            size: 18,
-            color: MitablColors.primary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '$dayRange$hoursLabel',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: MitablColors.onSurface,
-              ),
+          const Text(
+            'Quick Status',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: MitablColors.onSecondaryContainer,
             ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Weekly Total',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: MitablColors.onSecondaryContainer
+                      .withValues(alpha: 0.80),
+                ),
+              ),
+              Text(
+                '$totalHours Hours',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: MitablColors.onSecondaryContainer,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Status',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: MitablColors.onSecondaryContainer
+                      .withValues(alpha: 0.80),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.40),
+                  borderRadius: MitablRadius.pillBorder,
+                ),
+                child: Text(
+                  openDayNames.isNotEmpty ? 'LIVE NOW' : 'CLOSED',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: MitablColors.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -381,32 +501,57 @@ class _QuickStatusRow extends StatelessWidget {
   }
 }
 
-class _TimeBox extends StatelessWidget {
-  const _TimeBox({required this.time, required this.onTap});
+class _TimePickerBox extends StatelessWidget {
+  const _TimePickerBox({
+    required this.label,
+    required this.icon,
+    required this.time,
+    required this.onTap,
+  });
 
+  final String label;
+  final IconData icon;
   final String time;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
       child: Container(
-        constraints: const BoxConstraints(minWidth: 80),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: MitablColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(
-          time,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: MitablColors.onSurface,
-          ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: MitablColors.onSurfaceVariant),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  time,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

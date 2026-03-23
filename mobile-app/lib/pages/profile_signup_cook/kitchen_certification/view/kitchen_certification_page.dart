@@ -1,12 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
-import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 
 import '../element/checklist_item_tile.dart';
 import '../element/uploaded_file_tile.dart';
@@ -35,14 +30,6 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
   };
 
   final List<PlatformFile> _uploadedFiles = [];
-  final TextEditingController _certificateNumberController =
-      TextEditingController();
-
-  @override
-  void dispose() {
-    _certificateNumberController.dispose();
-    super.dispose();
-  }
 
   Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
@@ -54,7 +41,6 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
     if (result != null && result.files.isNotEmpty) {
       setState(() {
         for (final file in result.files) {
-          // Reject files larger than 10 MB
           if ((file.size) <= 10 * 1024 * 1024) {
             _uploadedFiles.add(file);
           }
@@ -73,74 +59,152 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Kitchen Certification')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: MitablSpacing.pagePadding,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
+      body: Column(
+        children: [
+          // TopAppBar
+          SafeArea(
+            bottom: false,
+            child: Container(
+              height: 64,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back,
+                        color: MitablColors.primary),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Mitabl',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      color: MitablColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-            // ── Step indicator ──
-            const Text(
-              'Step 3 of 3',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: MitablColors.onSurfaceVariant,
-                fontFamily: 'Nunito',
-              ),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: MitablRadius.pillBorder,
-              child: LinearProgressIndicator(
-                value: 1.0,
-                color: MitablColors.accent,
-                backgroundColor:
-                    MitablColors.outlineVariant.withValues(alpha: 0.3),
-                minHeight: 6,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Heading ──
-            Text(
-              'Kitchen Certification',
-              style: GoogleFonts.nunito(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: MitablColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Complete your kitchen compliance checklist and upload required documents.',
-              style: TextStyle(
-                fontSize: 14,
-                color: MitablColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ── Required Checklist ──
-            MitablCard(
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Required Checklist',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                  const SizedBox(height: 16),
+
+                  // Hero header
+                  const Text(
+                    'Kitchen Certification',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
                       color: MitablColors.onSurface,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  ..._checklist.entries.map(
-                    (entry) => ChecklistItemTile(
+                  const SizedBox(height: 8),
+                  Text(
+                    'Upload your safety compliance documents to verify your kitchen atelier. Our team will review your submission within 48 hours.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: MitablColors.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Upload Zone
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 48, horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: MitablColors.outlineVariant,
+                        width: 2,
+                        strokeAlign: BorderSide.strokeAlignInside,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Upload icon circle
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFDBD0),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 36,
+                            color: MitablColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Drop your certifications here',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 280,
+                          child: Text(
+                            'Supports PDF, JPG, and PNG up to 10MB. Ensure text is legible for faster verification.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: _pickFiles,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: MitablColors.primary,
+                              foregroundColor: MitablColors.onPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: MitablRadius.pillBorder,
+                              ),
+                              elevation: 4,
+                              shadowColor:
+                                  MitablColors.primary.withValues(alpha: 0.20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                            ),
+                            child: const Text(
+                              'Browse Files',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Status grid - show checklist items as status cards
+                  ..._checklist.entries.map((entry) {
+                    return ChecklistItemTile(
                       title: entry.key,
                       value: entry.value,
                       onChanged: (val) {
@@ -148,124 +212,314 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                           _checklist[entry.key] = val ?? false;
                         });
                       },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: MitablSpacing.listItem),
+                    );
+                  }),
+                  const SizedBox(height: 24),
 
-            // ── Upload Documents ──
-            MitablCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Upload Documents',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Dashed-border upload area
+                  // Required Checklist card
                   Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 28),
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      borderRadius: MitablRadius.cardBorder,
-                      border: Border.all(
-                        color: MitablColors.outlineVariant,
-                        width: 1.5,
-                        strokeAlign: BorderSide.strokeAlignInside,
-                      ),
+                      color: const Color(0xFFF0EDE9),
+                      borderRadius: BorderRadius.circular(32),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.cloud_upload_outlined,
-                          size: 40,
-                          color: MitablColors.onSurfaceVariant
-                              .withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(height: 8),
                         const Text(
-                          'Drop your certifications here',
+                          'Required Checklist',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
                             color: MitablColors.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Supported formats: PDF, JPG, PNG  •  Max 10MB',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: MitablColors.onSurfaceVariant,
-                          ),
+                        const SizedBox(height: 24),
+                        _ChecklistRow(
+                          title: 'Business Registration (ABN/GST)',
+                          subtitle:
+                              'Proof of registered entity in your region.',
+                          isComplete: true,
                         ),
                         const SizedBox(height: 16),
+                        _ChecklistRow(
+                          title: 'Food Safety Certificate',
+                          subtitle:
+                              'Certification of completed Level 2 safety training.',
+                          isComplete: true,
+                        ),
+                        const SizedBox(height: 16),
+                        _ChecklistRow(
+                          title: 'Public Liability Insurance',
+                          subtitle:
+                              'Minimum coverage of \$10M recommended.',
+                          isComplete: false,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Uploaded Files section
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Uploaded Files',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Show uploaded files or static examples
+                        if (_uploadedFiles.isNotEmpty)
+                          ..._uploadedFiles.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final file = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: UploadedFileTile(
+                                fileName: file.name,
+                                fileSize: _formatFileSize(file.size),
+                                onDelete: () {
+                                  setState(() {
+                                    _uploadedFiles.removeAt(index);
+                                  });
+                                },
+                              ),
+                            );
+                          })
+                        else ...[
+                          _UploadedFileRow(
+                            icon: Icons.picture_as_pdf,
+                            name: 'health_cert_2024.pdf',
+                            detail: '2.4 MB',
+                          ),
+                          const SizedBox(height: 12),
+                          _UploadedFileRow(
+                            icon: Icons.image_outlined,
+                            name: 'gst_reg_document.jpg',
+                            detail: '1.1 MB',
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        // View All History button
                         SizedBox(
-                          width: 160,
-                          child: MitablButton(
-                            label: 'Browse Files',
-                            variant: MitablButtonVariant.outline,
-                            fullWidth: false,
-                            onPressed: _pickFiles,
+                          width: double.infinity,
+                          height: 52,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              foregroundColor: MitablColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text(
+                              'View All History',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Uploaded file list
-                  if (_uploadedFiles.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    ..._uploadedFiles.asMap().entries.map(
-                      (entry) {
-                        final index = entry.key;
-                        final file = entry.value;
-                        return UploadedFileTile(
-                          fileName: file.name,
-                          fileSize: _formatFileSize(file.size),
-                          onDelete: () {
-                            setState(() {
-                              _uploadedFiles.removeAt(index);
-                            });
+                  const SizedBox(height: 32),
+
+                  // Complete Setup button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: MitablColors.primaryGradient,
+                        borderRadius: MitablRadius.pillBorder,
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                MitablColors.primary.withValues(alpha: 0.20),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: MitablRadius.pillBorder,
+                          onTap: () {
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/DashboardCook',
+                              (route) => false,
+                            );
                           },
-                        );
-                      },
+                          child: const Center(
+                            child: Text(
+                              'Complete Setup',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
-            const SizedBox(height: MitablSpacing.listItem),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-            // ── Certificate Number ──
-            MitablTextField(
-              label: 'Certificate Number',
-              hint: 'Enter your certificate number',
-              controller: _certificateNumberController,
-            ),
-            const SizedBox(height: 32),
+/// A single checklist row matching the HTML design.
+class _ChecklistRow extends StatelessWidget {
+  const _ChecklistRow({
+    required this.title,
+    required this.subtitle,
+    required this.isComplete,
+  });
 
-            // ── Complete Setup ──
-            MitablButton(
-              label: 'Complete Setup',
-              variant: MitablButtonVariant.primary,
-              fullWidth: true,
-              onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/DashboardCook',
-                  (route) => false,
-                );
-              },
-            ),
-            const SizedBox(height: MitablSpacing.breathe),
-          ],
+  final String title;
+  final String subtitle;
+  final bool isComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          margin: const EdgeInsets.only(top: 4),
+          decoration: BoxDecoration(
+            color: isComplete
+                ? MitablColors.secondaryContainer
+                : const Color(0xFFEBE8E3),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isComplete ? Icons.check : Icons.circle_outlined,
+            size: 14,
+            color: isComplete
+                ? MitablColors.onSecondaryContainer
+                : MitablColors.onSurfaceVariant,
+          ),
         ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: MitablColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: MitablColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A row showing an uploaded file with icon, name, and size.
+class _UploadedFileRow extends StatelessWidget {
+  const _UploadedFileRow({
+    required this.icon,
+    required this.name,
+    required this.detail,
+  });
+
+  final IconData icon;
+  final String name;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: MitablColors.onSurfaceVariant,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(
+              Icons.more_vert,
+              color: MitablColors.onSurfaceVariant,
+              size: 20,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -13,7 +13,6 @@ import 'package:mitabl_user/repos/auth_headers.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 
 class SubmitReviewPage extends StatefulWidget {
@@ -76,174 +75,230 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(MitablSpacing.pagePadding),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── "How was the meal?" heading ──
+            const SizedBox(height: 8),
+
+            // ── "How was the meal?" heading (centered) ──
             const Text(
               'How was the meal?',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 26,
+                fontSize: 32,
                 fontWeight: FontWeight.w800,
                 color: MitablColors.onSurface,
                 fontFamily: 'Nunito',
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             const Text(
-              'Your feedback helps the culinary community grow',
+              'Your feedback helps the culinary community grow.',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
                 color: MitablColors.onSurfaceVariant,
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // ── Cook info: circular food image + kitchen name + order info ──
-            Row(
-              children: [
-                ClipOval(
-                  child: (foodImageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: foodImageUrl,
-                          width: 64,
-                          height: 64,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => avatarUrl.isNotEmpty
+            // ── Restaurant Quick Card ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  // Kitchen avatar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: (foodImageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: foodImageUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>
+                                  avatarUrl.isNotEmpty
+                                      ? CachedNetworkImage(
+                                          imageUrl: avatarUrl,
+                                          fit: BoxFit.cover,
+                                          errorWidget: (_, __, ___) =>
+                                              _defaultAvatar(),
+                                        )
+                                      : _defaultAvatar(),
+                            )
+                          : avatarUrl.isNotEmpty
                               ? CachedNetworkImage(
                                   imageUrl: avatarUrl,
-                                  width: 64,
-                                  height: 64,
                                   fit: BoxFit.cover,
                                   errorWidget: (_, __, ___) =>
                                       _defaultAvatar(),
                                 )
-                              : _defaultAvatar(),
-                        )
-                      : avatarUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: avatarUrl,
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => _defaultAvatar(),
-                            )
-                          : _defaultAvatar()),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        kitchenName,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: MitablColors.onSurface,
-                          fontFamily: 'Nunito',
-                        ),
-                      ),
-                      if (orderId.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+                              : _defaultAvatar()),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'Order #$orderId \u2022 Delivered yesterday',
+                          kitchenName,
                           style: const TextStyle(
-                            fontSize: 13,
-                            color: MitablColors.onSurfaceVariant,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: MitablColors.onSurface,
+                            fontFamily: 'Nunito',
                           ),
                         ),
+                        if (orderId.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Order #$orderId \u2022 Delivered yesterday',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── 5 large gold stars with rating label ──
-            Center(
-              child: Column(
-                children: [
-                  InteractiveStarRating(
-                    rating: _rating,
-                    starSize: 48,
-                    onRatingChanged: (value) {
-                      setState(() => _rating = value);
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _ratingLabel(_rating),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: _rating > 0
-                          ? MitablColors.onSurface
-                          : MitablColors.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            // ── "Write your experience" heading + textarea ──
-            const Text(
-              'Write your experience',
+            // ── Star Rating (centered, large) ──
+            InteractiveStarRating(
+              rating: _rating,
+              starSize: 48,
+              color: MitablColors.primary,
+              onRatingChanged: (value) {
+                setState(() => _rating = value);
+              },
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _ratingLabel(_rating),
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: MitablColors.onSurface,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: _rating > 0
+                    ? MitablColors.primary
+                    : MitablColors.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 32),
+
+            // ── "Write your experience" section ──
+            Align(
+              alignment: Alignment.centerLeft,
+              child: const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(
+                  'Write your experience',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
             MitablTextField(
               controller: _reviewController,
               hint: 'Share your thoughts on $kitchenName...',
-              maxLines: 4,
+              maxLines: 5,
               textInputAction: TextInputAction.done,
             ),
 
             const SizedBox(height: 24),
 
-            // ── "Add photos" with camera icon and Upload text ──
-            const Text(
-              'Add photos',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: MitablColors.onSurface,
+            // ── "Add photos" section ──
+            Align(
+              alignment: Alignment.centerLeft,
+              child: const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(
+                  'Add photos',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
             SizedBox(
-              height: 80,
+              height: 100,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
+                  // Upload button
+                  GestureDetector(
+                    onTap: _pickPhotos,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: MitablColors.outlineVariant.withValues(alpha: 0.3),
+                          width: 2,
+                          strokeAlign: BorderSide.strokeAlignInside,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_a_photo_outlined,
+                            size: 24,
+                            color: const Color(0xFF89726B),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Upload',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF89726B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   // Selected photo thumbnails
                   ..._selectedPhotos.asMap().entries.map((entry) {
                     final index = entry.key;
                     final photo = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(left: 12),
                       child: Stack(
                         children: [
                           ClipRRect(
-                            borderRadius: MitablRadius.cardBorder,
+                            borderRadius: BorderRadius.circular(16),
                             child: Image.file(
                               File(photo.path),
-                              width: 80,
-                              height: 80,
+                              width: 100,
+                              height: 100,
                               fit: BoxFit.cover,
                             ),
                           ),
                           Positioned(
-                            top: 2,
-                            right: 2,
+                            top: 4,
+                            right: 4,
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -251,9 +306,10 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
-                                  color: MitablColors.error,
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.5),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -268,50 +324,66 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
                       ),
                     );
                   }),
-                  // Camera / Upload button
-                  GestureDetector(
-                    onTap: _pickPhotos,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: MitablColors.surfaceContainerLow,
-                        borderRadius: MitablRadius.cardBorder,
-                        border: Border.all(
-                          color: MitablColors.outlineVariant,
-                        ),
-                      ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.camera_alt_outlined,
-                            size: 24,
-                            color: MitablColors.onSurfaceVariant,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Upload',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: MitablColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 32),
 
-            // ── Submit Review full-width primary button ──
-            MitablButton(
-              label: 'Submit Review',
-              isLoading: _isSubmitting,
-              onPressed: _rating > 0 ? _submitReview : null,
+            // ── Submit Review button ──
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: (_rating > 0 && !_isSubmitting)
+                      ? MitablColors.primaryGradient
+                      : null,
+                  color: (_rating > 0 && !_isSubmitting)
+                      ? null
+                      : MitablColors.tertiaryFixedDim,
+                  borderRadius: MitablRadius.pillBorder,
+                  boxShadow: (_rating > 0 && !_isSubmitting)
+                      ? [
+                          BoxShadow(
+                            color:
+                                MitablColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: MitablRadius.pillBorder,
+                    onTap: (_rating > 0 && !_isSubmitting)
+                        ? _submitReview
+                        : null,
+                    child: Center(
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: MitablColors.onPrimary,
+                              ),
+                            )
+                          : const Text(
+                              'Submit Review',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onPrimary,
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -344,14 +416,13 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
     return Container(
       width: 64,
       height: 64,
-      decoration: const BoxDecoration(
-        color: MitablColors.surfaceContainerLow,
-        shape: BoxShape.circle,
-      ),
-      child: const Icon(
-        Icons.restaurant,
-        color: MitablColors.onSurfaceVariant,
-        size: 32,
+      color: const Color(0xFFE5E2DD),
+      child: const Center(
+        child: Icon(
+          Icons.restaurant,
+          color: MitablColors.onSurfaceVariant,
+          size: 32,
+        ),
       ),
     );
   }
@@ -365,7 +436,7 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
       case 3:
         return 'Good';
       case 4:
-        return 'Very Good';
+        return 'Great';
       case 5:
         return 'Excellent';
       default:

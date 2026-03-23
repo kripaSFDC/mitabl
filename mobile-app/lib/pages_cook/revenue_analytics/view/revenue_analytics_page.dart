@@ -9,9 +9,6 @@ import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/repos/auth_headers.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
-import 'package:mitabl_user/widgets/mitabl_chip.dart';
 
 class RevenueAnalyticsPage extends StatefulWidget {
   const RevenueAnalyticsPage({super.key, this.routeArguments});
@@ -30,22 +27,17 @@ class RevenueAnalyticsPage extends StatefulWidget {
 }
 
 class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
-  bool _isMonthly = true;
+  bool _isWeekly = true;
   bool _isLoading = true;
 
-  // Revenue period breakdown
   double _revenueToday = 0;
   double _revenueThisWeek = 0;
   double _revenueThisMonth = 0;
 
-  // From route arguments (fallback)
   int _totalEarning = 0;
   int _nBookings = 0;
 
-  // Top dishes from API
   List<_DishStat> _topDishes = [];
-
-  // Daily trend from API
   List<_DailyTrend> _dailyTrend = [];
 
   double get _averageOrderValue {
@@ -56,15 +48,12 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
   @override
   void initState() {
     super.initState();
-    // Seed from route arguments
     final data = widget.routeArguments?.data;
     if (data is Map<String, dynamic>) {
       final te = data['totalEarning'];
-      _totalEarning =
-          te is int ? te : (te is double ? te.toInt() : 0);
+      _totalEarning = te is int ? te : (te is double ? te.toInt() : 0);
       final nb = data['nBookings'];
-      _nBookings =
-          nb is int ? nb : (nb is double ? nb.toInt() : 0);
+      _nBookings = nb is int ? nb : (nb is double ? nb.toInt() : 0);
     }
     _fetchDashboardData();
   }
@@ -87,7 +76,6 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
       if (response.statusCode == 200 && mounted) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
 
-        // Parse revenue period breakdown
         final revToday = body['revenue_today'];
         final revWeek = body['revenue_this_week'];
         final revMonth = body['revenue_this_month'];
@@ -95,17 +83,17 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
         _revenueThisWeek = _toDouble(revWeek);
         _revenueThisMonth = _toDouble(revMonth);
 
-        // Update totals if available
         final te = body['totalEarning'] ?? body['total_earning'];
         if (te != null) {
-          _totalEarning = te is int ? te : (te is double ? te.toInt() : _totalEarning);
+          _totalEarning =
+              te is int ? te : (te is double ? te.toInt() : _totalEarning);
         }
         final nb = body['nBookings'] ?? body['n_bookings'];
         if (nb != null) {
-          _nBookings = nb is int ? nb : (nb is double ? nb.toInt() : _nBookings);
+          _nBookings =
+              nb is int ? nb : (nb is double ? nb.toInt() : _nBookings);
         }
 
-        // Parse top dishes
         final topDishesRaw = body['top_dishes'];
         if (topDishesRaw is List && topDishesRaw.isNotEmpty) {
           final maxOrders = topDishesRaw.fold<int>(0, (prev, d) {
@@ -128,7 +116,6 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
           }).toList();
         }
 
-        // Parse daily trend
         final trendRaw = body['daily_trend'];
         if (trendRaw is List && trendRaw.isNotEmpty) {
           _dailyTrend = trendRaw.map((d) {
@@ -160,304 +147,669 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Vendor Hub')),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: MitablColors.primary),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(MitablSpacing.pagePadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Header ──
-                  const Text(
-                    'Revenue Analytics',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
+          : CustomScrollView(
+              slivers: [
+                // ── Top App Bar ──
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 16,
+                      left: 24,
+                      right: 24,
+                      bottom: 16,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Monthly / Yearly toggle pills ──
-                  Row(
-                    children: [
-                      MitablChip(
-                        label: 'Monthly',
-                        selected: _isMonthly,
-                        onSelected: (_) =>
-                            setState(() => _isMonthly = true),
-                      ),
-                      const SizedBox(width: 8),
-                      MitablChip(
-                        label: 'Yearly',
-                        selected: !_isMonthly,
-                        onSelected: (_) =>
-                            setState(() => _isMonthly = false),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ── Large total revenue with comparison badge ──
-                  Text(
-                    '\$${_totalEarning.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: MitablColors.accent.withValues(alpha: 0.1),
-                      borderRadius: MitablRadius.pillBorder,
+                      color: MitablColors.surface.withValues(alpha: 0.8),
                     ),
-                    child: Text(
-                      _isMonthly
-                          ? '+12% vs last month'
-                          : '+8% vs last year',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: MitablColors.accent,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ── Period breakdown cards: Today / This Week / This Month ──
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _periodCard(
-                          'Today',
-                          '\$${_revenueToday.toStringAsFixed(2)}',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _periodCard(
-                          'This Week',
-                          '\$${_revenueThisWeek.toStringAsFixed(2)}',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _periodCard(
-                          'This Month',
-                          '\$${_revenueThisMonth.toStringAsFixed(2)}',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ── Orders card with bar chart ──
-                  MitablCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Orders',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: MitablColors.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$_nBookings',
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: MitablColors.onSurface,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text(
-                                  'Avg. Order',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: MitablColors.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '\$${_averageOrderValue.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: MitablColors.onSurface,
-                                    fontFamily: 'Nunito',
-                                  ),
-                                ),
-                              ],
+                            const Icon(Icons.menu,
+                                color: MitablColors.onSurface),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'Vendor Hub',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        // Bar chart from daily_trend (up to 7 bars)
-                        _buildBarChart(),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: MitablColors.secondaryContainer,
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            size: 20,
+                            color: MitablColors.onSecondaryContainer,
+                          ),
+                        ),
                       ],
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: MitablSpacing.breathe),
-
-                  // ── Top Dishes section ──
-                  const Text(
-                    'Top Dishes',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  if (_topDishes.isEmpty)
-                    const MitablCard(
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                            'No dish data available yet',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: MitablColors.onSurfaceVariant,
-                            ),
+                // ── Header Section ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Label
+                        const Text(
+                          'PERFORMANCE OVERVIEW',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.primary,
+                            letterSpacing: 2,
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    ..._topDishes.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final dish = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildDishBar(
-                          rank: index + 1,
-                          name: dish.name,
-                          fraction: dish.fraction,
-                          orders: dish.orders,
-                          revenue: dish.revenue,
+                        const SizedBox(height: 8),
+                        // Title + Toggle row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Revenue\nAnalytics',
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 32,
+                                color: MitablColors.onSurface,
+                                height: 1.1,
+                              ),
+                            ),
+                            // Weekly / Monthly toggle
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: MitablColors.surfaceContainerLow,
+                                borderRadius: MitablRadius.pillBorder,
+                              ),
+                              child: Row(
+                                children: [
+                                  _buildTogglePill('Weekly', _isWeekly, () {
+                                    setState(() => _isWeekly = true);
+                                  }),
+                                  _buildTogglePill('Monthly', !_isWeekly, () {
+                                    setState(() => _isWeekly = false);
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    }),
-
-                  const SizedBox(height: MitablSpacing.breathe),
-
-                  // ── Transaction History from daily_trend ──
-                  const Text(
-                    'Transaction History',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                  if (_dailyTrend.isEmpty)
-                    const MitablCard(
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                            'No transactions yet',
+                // ── Main Earnings Card ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Total Earnings',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '\$${_totalEarning.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Nunito',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 40,
+                                      color: MitablColors.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.trending_up,
+                                        size: 16,
+                                        color: Color(0xFF4D6548),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        _isWeekly
+                                            ? '+12.4% vs last week'
+                                            : '+8% vs last month',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF4D6548),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              // Legend dot
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: MitablColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Gross Revenue',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── Chart area ──
+                          _buildLineChart(),
+
+                          // Day labels
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text('Mon', style: _dayLabelStyle),
+                              Text('Tue', style: _dayLabelStyle),
+                              Text('Wed', style: _dayLabelStyle),
+                              Text('Thu', style: _dayLabelStyle),
+                              Text('Fri', style: _dayLabelStyle),
+                              Text('Sat', style: _dayLabelStyle),
+                              Text('Sun', style: _dayLabelStyle),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                // ── Active Orders + Avg Order Value card ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: MitablColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.receipt_long,
+                            size: 36,
+                            color: MitablColors.onSecondaryContainer,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Active Orders',
                             style: TextStyle(
                               fontSize: 14,
-                              color: MitablColors.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                              color: MitablColors.onSecondaryContainer
+                                  .withValues(alpha: 0.8),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$_nBookings',
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 36,
+                              color: MitablColors.onSecondaryContainer,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'AVERAGE ORDER VALUE',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.5,
+                                    color: MitablColors.onSecondaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '\$${_averageOrderValue.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 24,
+                                    color: MitablColors.onSecondaryContainer,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  else
-                    ..._dailyTrend.map((trend) {
-                      return _buildTransaction(
-                        trend.date,
-                        '\$${trend.revenue.toStringAsFixed(2)}',
-                        '${trend.orders} orders',
-                      );
-                    }),
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                  const SizedBox(height: 32),
-                ],
-              ),
+                // ── Top Dishes ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Top Dishes',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 20,
+                              color: MitablColors.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          if (_topDishes.isEmpty)
+                            const Center(
+                              child: Text(
+                                'No dish data available yet',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            )
+                          else
+                            ..._topDishes.map((dish) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: Row(
+                                  children: [
+                                    // Placeholder image
+                                    Container(
+                                      width: 56,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            MitablColors.surfaceContainerLow,
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.restaurant_menu,
+                                        color: MitablColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            dish.name,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              color: MitablColors.onSurface,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${dish.orders} orders  \$${dish.revenue.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: MitablColors
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            MitablColors.secondaryContainer,
+                                        borderRadius: MitablRadius.pillBorder,
+                                      ),
+                                      child: Text(
+                                        '+${(dish.fraction * 100).toInt()}%',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF4D6548),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                // ── Transaction History ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Transaction History',
+                                style: TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  _buildCircleIconButton(Icons.filter_list),
+                                  const SizedBox(width: 8),
+                                  _buildCircleIconButton(Icons.download),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Table header
+                          Row(
+                            children: const [
+                              Expanded(
+                                flex: 3,
+                                child: Text('ORDER ID',
+                                    style: _tableHeaderStyle),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text('DATE',
+                                    style: _tableHeaderStyle),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text('STATUS',
+                                    style: _tableHeaderStyle),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text('AMOUNT',
+                                    style: _tableHeaderStyle,
+                                    textAlign: TextAlign.right),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          if (_dailyTrend.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text(
+                                  'No transactions yet',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ..._dailyTrend.asMap().entries.map((entry) {
+                              final trend = entry.value;
+                              return Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: MitablColors.surfaceContainerLow,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        '#VH-${entry.key + 9000}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: MitablColors.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        trend.date,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color:
+                                              MitablColors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: MitablColors
+                                                .secondaryContainer,
+                                            borderRadius:
+                                                MitablRadius.pillBorder,
+                                          ),
+                                          child: const Text(
+                                            'Completed',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: MitablColors
+                                                  .onSecondaryContainer,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        '\$${trend.revenue.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: MitablColors.onSurface,
+                                        ),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () {},
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor:
+                                    MitablColors.surfaceContainerLow,
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: MitablRadius.pillBorder,
+                                ),
+                              ),
+                              child: const Text(
+                                'View All Transactions',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
             ),
     );
   }
 
-  Widget _periodCard(String label, String amount) {
-    return MitablCard(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: MitablColors.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
+  Widget _buildTogglePill(String label, bool isActive, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? MitablColors.primary : Colors.transparent,
+          borderRadius: MitablRadius.pillBorder,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: MitablColors.primary.withValues(alpha: 0.15),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: isActive
+                ? MitablColors.onPrimary
+                : MitablColors.onSurfaceVariant,
           ),
-          const SizedBox(height: 4),
-          Text(
-            amount,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: MitablColors.onSurface,
-              fontFamily: 'Nunito',
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildBarChart() {
-    // Use up to 7 most recent daily_trend entries for the bar chart
+  Widget _buildLineChart() {
     final bars = _dailyTrend.length > 7
         ? _dailyTrend.sublist(_dailyTrend.length - 7)
         : _dailyTrend;
 
     if (bars.isEmpty) {
-      return const SizedBox(
-        height: 80,
-        child: Center(
-          child: Text(
-            'No trend data',
-            style: TextStyle(
-              fontSize: 13,
-              color: MitablColors.onSurfaceVariant,
+      return SizedBox(
+        height: 120,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                MitablColors.primary.withValues(alpha: 0.05),
+              ],
+            ),
+          ),
+          child: const Center(
+            child: Text(
+              'No trend data',
+              style: TextStyle(
+                fontSize: 13,
+                color: MitablColors.onSurfaceVariant,
+              ),
             ),
           ),
         ),
@@ -471,15 +823,11 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
     final effectiveMax = maxRevenue > 0 ? maxRevenue : 1.0;
 
     return SizedBox(
-      height: 100,
+      height: 120,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: bars.map((trend) {
           final fraction = trend.revenue / effectiveMax;
-          // Extract short day label from date
-          final dayLabel = trend.date.length >= 10
-              ? trend.date.substring(8, 10)
-              : trend.date;
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -487,20 +835,12 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
-                    height: math.max(4.0, fraction * 72),
-                    decoration: const BoxDecoration(
+                    height: math.max(4.0, fraction * 100),
+                    decoration: BoxDecoration(
                       color: MitablColors.primary,
-                      borderRadius: BorderRadius.vertical(
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(4),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    dayLabel,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: MitablColors.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -512,105 +852,31 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
     );
   }
 
-  Widget _buildDishBar({
-    required int rank,
-    required String name,
-    required double fraction,
-    required int orders,
-    required double revenue,
-  }) {
-    return MitablCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '#$rank  $name',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: MitablColors.onSurface,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '$orders orders  \$${revenue.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: MitablColors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 8,
-              backgroundColor: MitablColors.surfaceContainerLow,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                MitablColors.primary,
-              ),
-            ),
-          ),
-        ],
+  Widget _buildCircleIconButton(IconData icon) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: MitablColors.surfaceContainerLow,
       ),
+      child: Icon(icon, size: 20, color: MitablColors.onSurfaceVariant),
     );
   }
 
-  Widget _buildTransaction(String date, String amount, String orderCount) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: MitablCard(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              size: 18,
-              color: MitablColors.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                date,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: MitablColors.onSurface,
-                ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  amount,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: MitablColors.onSurface,
-                  ),
-                ),
-                Text(
-                  orderCount,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: MitablColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  static const _dayLabelStyle = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+    color: MitablColors.onSurfaceVariant,
+    letterSpacing: 1,
+  );
+
+  static const _tableHeaderStyle = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+    color: MitablColors.onSurfaceVariant,
+    letterSpacing: 2,
+  );
 }
 
 class _DishStat {

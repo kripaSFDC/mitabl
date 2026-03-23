@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/order_details_foodie/element/order_item_row.dart';
-import 'package:mitabl_user/pages/ordering/element/order_status_timeline.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 
 class OrderDetailsFoodiePage extends StatefulWidget {
   const OrderDetailsFoodiePage({super.key, required this.order});
@@ -43,12 +39,6 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
     final kitchenName = kitchen is Map<String, dynamic>
         ? (kitchen['name']?.toString() ?? 'Kitchen')
         : 'Kitchen';
-    final kitchenAvatar = kitchen is Map<String, dynamic>
-        ? (kitchen['avatar']?.toString() ?? '')
-        : '';
-    final avatarUrl = kitchenAvatar.isNotEmpty
-        ? '${GlobalConfiguration().getValue<String>('base_url')}/$kitchenAvatar'
-        : '';
     final orderId = order['order_id']?.toString() ??
         order['id']?.toString() ??
         '';
@@ -60,96 +50,195 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
 
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Order Details')),
+      appBar: GlassAppBar(
+        title: Text('Order #MF-$orderId'),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MitablSpacing.pagePadding,
+          vertical: MitablSpacing.pagePadding,
+        ),
         child: Column(
           children: [
-            // Order header card
-            MitablCard(
+            // ── Order Status Timeline (horizontal) ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '#MF-$orderId',
-                        style: const TextStyle(
-                          fontSize: 18,
+                        'CURRENT STATUS',
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: MitablColors.onSurface,
-                          fontFamily: 'Nunito',
+                          letterSpacing: 2.0,
+                          color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
                         ),
                       ),
-                      const Spacer(),
                       _StatusBadge(status: _status),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      ClipOval(
-                        child: avatarUrl.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: avatarUrl,
-                                width: 44,
-                                height: 44,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) =>
-                                    _defaultAvatar(),
-                              )
-                            : _defaultAvatar(),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              kitchenName,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: MitablColors.onSurface,
-                              ),
-                            ),
-                            if (date.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                [
-                                  date,
-                                  if (timeFrom.isNotEmpty && timeTo.isNotEmpty)
-                                    '$timeFrom - $timeTo',
-                                ].join(' | '),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: MitablColors.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  _HorizontalTimeline(status: _status),
                 ],
               ),
             ),
 
             const SizedBox(height: MitablSpacing.listItem),
 
-            // Items card
-            MitablCard(
+            // ── Customer & Delivery Info ──
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.person, color: MitablColors.primary, size: 20),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Customer Info',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onSurface,
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          kitchenName,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                        if (date.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today,
+                                  size: 12, color: MitablColors.onSurfaceVariant),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  date,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.local_shipping, color: MitablColors.primary, size: 20),
+                            const SizedBox(width: 8),
+                            const Flexible(
+                              child: Text(
+                                'Delivery',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onSurface,
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Doorstep Delivery',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                        if (timeFrom.isNotEmpty && timeTo.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.schedule,
+                                  size: 12, color: MitablColors.onSurfaceVariant),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '$timeFrom - $timeTo',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Order Items ──
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Items Ordered',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: const Text(
+                      'Order Items',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: MitablColors.onSurface,
+                        fontFamily: 'Nunito',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -158,11 +247,14 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                       final itemMap = item is Map<String, dynamic>
                           ? item
                           : <String, dynamic>{};
-                      return OrderItemRow(item: itemMap);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: OrderItemRow(item: itemMap),
+                      );
                     })
                   else
                     const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.all(20),
                       child: Text(
                         'No items available',
                         style: TextStyle(
@@ -171,49 +263,94 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                         ),
                       ),
                     ),
-                  const Divider(color: MitablColors.outlineVariant),
                   const SizedBox(height: 8),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Totals & Breakdown ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
                   _PriceLine(label: 'Subtotal', value: totalPrice),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   _PriceLine(
                     label: 'Taxes & Fees',
                     value: order['tax']?.toString() ?? '0.00',
                   ),
-                  const Divider(color: MitablColors.outlineVariant),
+                  const SizedBox(height: 8),
                   _PriceLine(
-                    label: 'Total',
-                    value: totalPrice,
-                    isBold: true,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: MitablSpacing.listItem),
-
-            // Order Status Timeline
-            MitablCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Order Status',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
-                    ),
+                    label: 'Delivery Fee',
+                    value: order['delivery_fee']?.toString() ?? '0.00',
                   ),
                   const SizedBox(height: 16),
-                  OrderStatusTimeline(steps: _buildTimelineSteps()),
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    color: const Color(0xFFE5E2DD),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TOTAL AMOUNT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2.0,
+                              color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '\$$totalPrice',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: MitablColors.primary,
+                              fontFamily: 'Nunito',
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: MitablColors.primary.withValues(alpha: 0.1),
+                          borderRadius: MitablRadius.pillBorder,
+                        ),
+                        child: const Text(
+                          'PAID',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: MitablSpacing.listItem),
 
-            // Action buttons
+            // ── Action Buttons ──
             ..._buildActionButtons(context),
 
             const SizedBox(height: 32),
@@ -223,73 +360,54 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
     );
   }
 
-  Widget _defaultAvatar() {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(
-        color: MitablColors.surfaceContainerLow,
-        shape: BoxShape.circle,
-      ),
-      child: const Icon(
-        Icons.restaurant,
-        color: MitablColors.onSurfaceVariant,
-        size: 22,
-      ),
-    );
-  }
-
-  List<TimelineStepData> _buildTimelineSteps() {
-    final statusInt = int.tryParse(_status) ?? -1;
-
-    return [
-      TimelineStepData(
-        title: 'Order Placed',
-        subtitle: 'Your order has been submitted',
-        status: statusInt >= 2
-            ? TimelineStepStatus.completed
-            : TimelineStepStatus.pending,
-      ),
-      TimelineStepData(
-        title: 'Confirmed',
-        subtitle: 'Kitchen has accepted your order',
-        status: statusInt >= 3
-            ? TimelineStepStatus.completed
-            : statusInt == 2
-                ? TimelineStepStatus.active
-                : TimelineStepStatus.pending,
-      ),
-      TimelineStepData(
-        title: 'In Progress',
-        subtitle: 'Your meal is being prepared',
-        status: statusInt >= 5
-            ? TimelineStepStatus.completed
-            : statusInt == 3
-                ? TimelineStepStatus.active
-                : TimelineStepStatus.pending,
-      ),
-      TimelineStepData(
-        title: 'Completed',
-        subtitle: 'Order has been fulfilled',
-        status: statusInt == 1
-            ? TimelineStepStatus.completed
-            : statusInt == 5
-                ? TimelineStepStatus.active
-                : TimelineStepStatus.pending,
-      ),
-    ];
-  }
-
   List<Widget> _buildActionButtons(BuildContext context) {
     final widgets = <Widget>[];
 
     // Cancel button (status == 2: Requested)
     if (_status == '2') {
       widgets.add(
-        MitablButton(
-          label: _isCancelling ? 'Cancelling...' : 'Cancel Order',
-          onPressed: _isCancelling ? null : () => _cancelOrder(context),
-          variant: MitablButtonVariant.outline,
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 52,
+                child: Material(
+                  color: const Color(0xFFE5E2DD),
+                  borderRadius: MitablRadius.pillBorder,
+                  child: InkWell(
+                    borderRadius: MitablRadius.pillBorder,
+                    onTap: _isCancelling ? null : () => _cancelOrder(context),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.close,
+                            color: MitablColors.onSurfaceVariant, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isCancelling ? 'Cancelling...' : 'Cancel Order',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: MitablButton(
+                label: 'Track Order',
+                onPressed: () {},
+                variant: MitablButtonVariant.primary,
+                icon: const Icon(Icons.check_circle,
+                    color: MitablColors.onPrimary, size: 20),
+              ),
+            ),
+          ],
         ),
       );
       widgets.add(const SizedBox(height: 12));
@@ -411,6 +529,115 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
   }
 }
 
+/// Horizontal timeline matching the HTML design with dots and connecting lines.
+class _HorizontalTimeline extends StatelessWidget {
+  const _HorizontalTimeline({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusInt = int.tryParse(status) ?? -1;
+
+    final steps = [
+      ('Placed', statusInt >= 2),
+      ('Confirmed', statusInt >= 3),
+      ('Cooking', statusInt >= 3 && statusInt != 0 && statusInt != 4),
+      ('Ready', statusInt == 5 || statusInt == 1),
+      ('Picked', statusInt == 1),
+    ];
+
+    // Determine how far the active line extends (0-based fraction)
+    int activeUpTo = -1;
+    for (int i = steps.length - 1; i >= 0; i--) {
+      if (steps[i].$2) {
+        activeUpTo = i;
+        break;
+      }
+    }
+
+    return SizedBox(
+      height: 50,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          final stepSpacing = totalWidth / (steps.length - 1);
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Background track
+              Positioned(
+                top: 8,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 2,
+                  color: const Color(0xFFE5E2DD),
+                ),
+              ),
+              // Active track
+              if (activeUpTo >= 0)
+                Positioned(
+                  top: 8,
+                  left: 0,
+                  width: activeUpTo * stepSpacing,
+                  child: Container(
+                    height: 2,
+                    color: const Color(0xFF4D6548),
+                  ),
+                ),
+              // Step dots and labels
+              ...List.generate(steps.length, (index) {
+                final (label, isActive) = steps[index];
+                return Positioned(
+                  left: index * stepSpacing - 8,
+                  top: 0,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? const Color(0xFF4D6548)
+                              : const Color(0xFFE5E2DD),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isActive
+                                ? MitablColors.secondaryContainer
+                                : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 48,
+                        child: Text(
+                          label.toUpperCase(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: isActive
+                                ? const Color(0xFF4D6548)
+                                : MitablColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
 
@@ -430,15 +657,16 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: MitablColors.secondaryContainer,
         borderRadius: MitablRadius.pillBorder,
       ),
       child: Text(
-        label,
+        label.toUpperCase(),
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: color,
+          color: MitablColors.onSecondaryContainer,
+          letterSpacing: 1.0,
         ),
       ),
     );
@@ -449,12 +677,10 @@ class _PriceLine extends StatelessWidget {
   const _PriceLine({
     required this.label,
     required this.value,
-    this.isBold = false,
   });
 
   final String label;
   final String value;
-  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
@@ -465,21 +691,18 @@ class _PriceLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: isBold ? 15 : 13,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-              color: isBold
-                  ? MitablColors.onSurface
-                  : MitablColors.onSurfaceVariant,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: MitablColors.onSurfaceVariant,
             ),
           ),
           Text(
             '\$$value',
-            style: TextStyle(
-              fontSize: isBold ? 16 : 13,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: MitablColors.onSurface,
-              fontFamily: isBold ? 'Nunito' : null,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: MitablColors.onSurfaceVariant,
             ),
           ),
         ],

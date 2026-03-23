@@ -14,9 +14,7 @@ import 'package:mitabl_user/model/timing_model.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/element/timing_dialog.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 
 import 'cubit/cook_profile_cubit.dart';
@@ -67,7 +65,6 @@ class _CookProfilePage extends State<CookProfilePage>
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: GlassAppBar(title: const Text('Become a miCook')),
       body: BlocConsumer<CookProfileCubit, CookProfileState>(
         listener: (context, state) {
           if (state.statusApi!.isSubmissionSuccess) {
@@ -85,292 +82,530 @@ class _CookProfilePage extends State<CookProfilePage>
         builder: (context, state) {
           return Stack(
             children: [
-              SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: MitablSpacing.pagePadding,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    // ── Step indicator ──
-                    Text(
-                      'Step 1 of 3',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: MitablColors.onSurfaceVariant,
-                        fontFamily: 'Nunito',
-                      ),
+              Column(
+                children: [
+                  // ── Fixed Top App Bar ──
+                  Container(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 16,
+                      left: 24,
+                      right: 24,
+                      bottom: 16,
                     ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: MitablRadius.pillBorder,
-                      child: LinearProgressIndicator(
-                        value: 0.35,
-                        color: MitablColors.primary,
-                        backgroundColor:
-                            MitablColors.outlineVariant.withValues(alpha: 0.3),
-                        minHeight: 6,
-                      ),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surface.withValues(alpha: 0.8),
                     ),
-                    const SizedBox(height: 24),
-                    // ── Heading ──
-                    Text(
-                      'The Culinary Atelier\nStarts Here.',
-                      style: GoogleFonts.nunito(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: MitablColors.onSurface,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).maybePop(),
+                              child: const Padding(
+                                padding: EdgeInsets.all(4),
+                                child: Icon(
+                                  Icons.arrow_back,
+                                  color: MitablColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Text(
+                              'Mitabl',
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 22,
+                                color: MitablColors.primary,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Text(
+                          'Step 1 of 3',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: MitablColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
+                  ),
 
-                    // ── Kitchen Photos ──
-                    MitablCard(
+                  // ── Scrollable content ──
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Kitchen Photos',
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Showcase your cooking space (up to 5 photos)',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: MitablColors.onSurfaceVariant,
+                          const SizedBox(height: 16),
+
+                          // ── Hero Heading ──
+                          RichText(
+                            text: TextSpan(
+                              style: GoogleFonts.nunito(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                                height: 1.2,
+                                letterSpacing: -0.5,
+                              ),
+                              children: [
+                                const TextSpan(text: 'The Culinary\n'),
+                                TextSpan(
+                                  text: 'Atelier',
+                                  style: GoogleFonts.nunito(
+                                    fontStyle: FontStyle.italic,
+                                    color: MitablColors.primary,
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const TextSpan(text: ' Starts Here.'),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 12),
-                          // Image carousel
-                          state.pathFiles.isNotEmpty
-                              ? SizedBox(
-                                  height: 180,
-                                  child: PageView.builder(
-                                    controller: controller,
-                                    onPageChanged: (page) {
-                                      context
-                                          .read<CookProfileCubit>()
-                                          .onImageScroll(index: page);
-                                    },
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 4),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              height: 180,
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                color: MitablColors
-                                                    .surfaceContainerLow,
-                                                borderRadius:
-                                                    MitablRadius.cardBorder,
-                                              ),
-                                              clipBehavior: Clip.antiAlias,
-                                              child: Image.file(
-                                                File(state.pathFiles[index]),
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                            Positioned(
-                                              right: 8,
-                                              top: 8,
-                                              child: Material(
-                                                color: Colors.black45,
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                                child: InkWell(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  onTap: () {
-                                                    context
-                                                        .read<
-                                                            CookProfileCubit>()
-                                                        .onDeleteImage(
-                                                          path: state
-                                                              .pathFiles[index],
-                                                        );
-                                                  },
-                                                  child: const Padding(
-                                                    padding: EdgeInsets.all(6),
-                                                    child: Icon(
-                                                      Icons.delete_outline,
-                                                      color: Colors.white,
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    itemCount: state.pathFiles.length,
+                          const Text(
+                            'Set the stage for your home-cooked masterpieces. Define your identity as a miCook.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: MitablColors.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // ── Kitchen Name field ──
+                          _buildFieldLabel('KITCHEN NAME'),
+                          const SizedBox(height: 8),
+                          _KitchenName(loginForm: this),
+                          const SizedBox(height: 24),
+
+                          // ── Kitchen Story (description) ──
+                          _buildFieldLabel('KITCHEN STORY'),
+                          const SizedBox(height: 8),
+                          BlocBuilder<CookProfileCubit, CookProfileState>(
+                            builder: (context, state) {
+                              return TextField(
+                                maxLines: 4,
+                                onChanged: (text) {
+                                  // If cubit supports description
+                                },
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Describe the soul of your cooking, the ingredients you love, and the atmosphere you create...',
+                                  hintStyle: TextStyle(
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.4),
+                                    fontSize: 15,
                                   ),
-                                )
-                              : Container(
-                                  height: 180,
+                                  filled: true,
+                                  fillColor: MitablColors.surfaceContainerLow,
+                                  border: OutlineInputBorder(
+                                    borderRadius: MitablRadius.inputBorder,
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: MitablRadius.inputBorder,
+                                    borderSide: BorderSide(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.all(20),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: MitablColors.onSurface,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── Cuisine Style / Kitchen Specs cards ──
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
-                                    color: MitablColors.surfaceContainerLow,
-                                    borderRadius: MitablRadius.cardBorder,
+                                    color: const Color(0xFFF0EDE9),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                  alignment: Alignment.center,
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
-                                        Icons.photo_outlined,
-                                        size: 48,
-                                        color: MitablColors.onSurfaceVariant
-                                            .withValues(alpha: 0.4),
+                                      Row(
+                                        children: const [
+                                          Icon(Icons.restaurant_menu,
+                                              color: MitablColors.primary,
+                                              size: 22),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Cuisine Style',
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color:
+                                                    MitablColors.onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'No photos yet',
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'Artisan, Traditional, Fusion, or Home Comfort.',
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: MitablColors.onSurfaceVariant,
+                                          fontSize: 13,
+                                          color: MitablColors
+                                              .onSurfaceVariant,
+                                          height: 1.4,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                          // Page indicator dots
-                          if (state.pathFiles.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                state.pathFiles.length,
-                                (index) => Container(
-                                  width: 8,
-                                  height: 8,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 3),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
-                                    color: state.selectedPage == index
-                                        ? MitablColors.primary
-                                        : MitablColors.outlineVariant,
-                                    shape: BoxShape.circle,
+                                    color: const Color(0xFFF0EDE9),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: const [
+                                          Icon(Icons.verified_user,
+                                              color: MitablColors.primary,
+                                              size: 22),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Kitchen Specs',
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color:
+                                                    MitablColors.onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'Health certifications and safety standards.',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: MitablColors
+                                              .onSurfaceVariant,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── Kitchen Photo area ──
+                          _buildKitchenPhotoSection(state),
+                          const SizedBox(height: 24),
+
+                          // ── Address ──
+                          _buildFieldLabel('ADDRESS'),
+                          const SizedBox(height: 8),
+                          BlocBuilder<CookProfileCubit, CookProfileState>(
+                            builder: (context, state) {
+                              return MitablTextField(
+                                hint: 'Enter kitchen address',
+                                maxLines: 1,
+                                errorText: state.address!.invalid
+                                    ? 'Please enter a valid address'
+                                    : null,
+                                onChanged: (text) {
+                                  context
+                                      .read<CookProfileCubit>()
+                                      .onAddressChanged(value: text);
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+
+                          // ── Phone ──
+                          _buildFieldLabel('PHONE NUMBER'),
+                          const SizedBox(height: 8),
+                          _PhoneNo(loginForm: this),
+                          const SizedBox(height: 24),
+
+                          // ── Number of Seats ──
+                          _buildFieldLabel('NUMBER OF SEATS'),
+                          const SizedBox(height: 8),
+                          _NoOfSeats(loginForm: this),
+                          const SizedBox(height: 24),
+
+                          // ── Operating Hours ──
+                          _buildFieldLabel('OPERATING HOURS'),
+                          const SizedBox(height: 8),
+                          _Timing(loginForm: this),
+                          const SizedBox(height: 24),
+
+                          // ── Service Type ──
+                          _buildFieldLabel('SERVICE TYPE'),
+                          const SizedBox(height: 8),
+                          _ServiceTypeSection(),
+                          const SizedBox(height: 24),
+
+                          // ── Dine-in Slots ──
+                          const _CreateKitchenSlotSection(),
+                          const SizedBox(height: 32),
+
+                          // Extra space for bottom bar
+                          const SizedBox(height: 100),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // ── Fixed Bottom Bar ──
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    left: 24,
+                    right: 24,
+                    top: 16,
+                    bottom: MediaQuery.of(context).padding.bottom + 24,
+                  ),
+                  decoration: BoxDecoration(
+                    color: MitablColors.surface.withValues(alpha: 0.9),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Progress info
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text(
+                              'ONBOARDING PROFILE',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 2,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '35% COMPLETE',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 2,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
                             ),
                           ],
-                          const SizedBox(height: 12),
-                          _UploadButton(loginForm: this),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Kitchen Name ──
-                    _KitchenName(loginForm: this),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Address ──
-                    BlocBuilder<CookProfileCubit, CookProfileState>(
-                      builder: (context, state) {
-                        return MitablTextField(
-                          label: 'Address',
-                          hint: 'Enter kitchen address',
-                          maxLines: 1,
-                          errorText: state.address!.invalid
-                              ? 'Please enter a valid address'
-                              : null,
-                          onChanged: (text) {
-                            context
-                                .read<CookProfileCubit>()
-                                .onAddressChanged(value: text);
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Phone ──
-                    _PhoneNo(loginForm: this),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Number of Seats ──
-                    _NoOfSeats(loginForm: this),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Operating Hours ──
-                    MitablCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Operating Hours',
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Set your kitchen opening days and hours',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: MitablColors.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _Timing(loginForm: this),
-                        ],
+                      const SizedBox(height: 8),
+                      // Progress bar
+                      ClipRRect(
+                        borderRadius: MitablRadius.pillBorder,
+                        child: LinearProgressIndicator(
+                          value: 0.35,
+                          minHeight: 6,
+                          color: MitablColors.primary,
+                          backgroundColor: const Color(0xFFEBE8E3),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Service Type ──
-                    MitablCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Service Type',
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _ServiceTypeSection(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Dine-in Slots ──
-                    MitablCard(
-                      child: const _CreateKitchenSlotSection(),
-                    ),
-                    const SizedBox(height: MitablSpacing.listItem),
-
-                    // ── Submit Button ──
-                    _LoginButton(loginForm: this),
-                    const SizedBox(height: MitablSpacing.breathe),
-                  ],
+                      const SizedBox(height: 16),
+                      // Next button
+                      _LoginButton(loginForm: this),
+                    ],
+                  ),
                 ),
               ),
+
               if (state.statusApi!.isSubmissionInProgress)
                 const CommonProgressWidget(),
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 2,
+        color: MitablColors.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildKitchenPhotoSection(CookProfileState state) {
+    return Container(
+      height: 240,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBE8E3),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: MitablColors.onSurface.withValues(alpha: 0.06),
+            blurRadius: 48,
+            offset: const Offset(0, 24),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Image or placeholder
+          if (state.pathFiles.isNotEmpty)
+            PageView.builder(
+              controller: controller,
+              onPageChanged: (page) {
+                context
+                    .read<CookProfileCubit>()
+                    .onImageScroll(index: page);
+              },
+              itemCount: state.pathFiles.length,
+              itemBuilder: (context, index) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      File(state.pathFiles[index]),
+                      fit: BoxFit.cover,
+                    ),
+                    // Delete button
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Material(
+                        color: Colors.black45,
+                        borderRadius: BorderRadius.circular(20),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () {
+                            context
+                                .read<CookProfileCubit>()
+                                .onDeleteImage(
+                                  path: state.pathFiles[index],
+                                );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.delete_outline,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFEBE8E3).withValues(alpha: 0.8),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.photo_camera_outlined,
+                  size: 48,
+                  color:
+                      MitablColors.onSurfaceVariant.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+
+          // Gradient overlay at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    const Color(0xFFEBE8E3).withValues(alpha: 0.8),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Add Kitchen Photo button
+          Positioned(
+            left: 24,
+            bottom: 24,
+            child: _UploadButton(loginForm: this),
+          ),
+
+          // Page indicator dots
+          if (state.pathFiles.length > 1)
+            Positioned(
+              bottom: 28,
+              right: 24,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(
+                  state.pathFiles.length,
+                  (index) => Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: state.selectedPage == index
+                          ? MitablColors.primary
+                          : MitablColors.outlineVariant,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -409,7 +644,7 @@ class _TimingState extends State<_Timing> {
           },
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               color: MitablColors.surfaceContainerLow,
               borderRadius: MitablRadius.inputBorder,
@@ -421,12 +656,13 @@ class _TimingState extends State<_Timing> {
                     'Set Timings',
                     style: TextStyle(
                       fontSize: 15,
-                      color: MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: MitablColors.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                       fontWeight: FontWeight.w300,
                     ),
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.access_time_rounded,
                   color: MitablColors.primary,
                 ),
@@ -447,52 +683,62 @@ class _ServiceTypeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
       builder: (context, state) {
-        return Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Dine-in',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: MitablColors.onSurface,
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0EDE9),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Dine-in',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: MitablColors.onSurface,
+                      ),
                     ),
                   ),
-                ),
-                Switch(
-                  value: state.dineIn,
-                  onChanged: (value) => context
-                      .read<CookProfileCubit>()
-                      .onDineInChange(value: value),
-                  activeTrackColor: MitablColors.primary,
-                ),
-              ],
-            ),
-            const Divider(height: 1, color: MitablColors.outlineVariant),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Takeaway',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: MitablColors.onSurface,
+                  Switch(
+                    value: state.dineIn,
+                    onChanged: (value) => context
+                        .read<CookProfileCubit>()
+                        .onDineInChange(value: value),
+                    activeTrackColor: MitablColors.primary,
+                  ),
+                ],
+              ),
+              Divider(
+                height: 1,
+                color: MitablColors.outlineVariant.withValues(alpha: 0.3),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Takeaway',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: MitablColors.onSurface,
+                      ),
                     ),
                   ),
-                ),
-                Switch(
-                  value: state.takeAway,
-                  onChanged: (value) => context
-                      .read<CookProfileCubit>()
-                      .onTakeAwayChange(value: value),
-                  activeTrackColor: MitablColors.primary,
-                ),
-              ],
-            ),
-          ],
+                  Switch(
+                    value: state.takeAway,
+                    onChanged: (value) => context
+                        .read<CookProfileCubit>()
+                        .onTakeAwayChange(value: value),
+                    activeTrackColor: MitablColors.primary,
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
@@ -543,7 +789,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             if (!state.dineIn)
-              Text(
+              const Text(
                 'Enable dine-in to add bookable table slots.',
                 style: TextStyle(
                   fontSize: 13,
@@ -551,7 +797,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                 ),
               )
             else if (availableDays.isEmpty)
-              Text(
+              const Text(
                 'Turn on at least one kitchen opening day first.',
                 style: TextStyle(
                   fontSize: 13,
@@ -559,7 +805,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                 ),
               )
             else if (state.dineInSlots.isEmpty)
-              Text(
+              const Text(
                 'No dine-in slots added yet.',
                 style: TextStyle(
                   fontSize: 13,
@@ -585,7 +831,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                     ),
                     subtitle: Text(
                       'Seats: ${slot.seatCapacity ?? 0}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: MitablColors.onSurfaceVariant,
                       ),
@@ -601,7 +847,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                             existing: slot,
                             index: index,
                           ),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.edit_outlined,
                             size: 20,
                             color: MitablColors.primary,
@@ -611,7 +857,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                           onPressed: () => context
                               .read<CookProfileCubit>()
                               .deleteDineInSlot(index),
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.delete_outline,
                             size: 20,
                             color: MitablColors.error,
@@ -654,7 +900,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<int>(
-                      initialValue: selectedDay,
+                      value: selectedDay,
                       items: availableDays
                           .map(
                             (day) => DropdownMenuItem<int>(
@@ -820,22 +1066,14 @@ class _CreateKitchenSlotSection extends StatelessWidget {
 
   static String _labelForDay(int? dayOfWeek) {
     switch (dayOfWeek) {
-      case 0:
-        return 'Sunday';
-      case 1:
-        return 'Monday';
-      case 2:
-        return 'Tuesday';
-      case 3:
-        return 'Wednesday';
-      case 4:
-        return 'Thursday';
-      case 5:
-        return 'Friday';
-      case 6:
-        return 'Saturday';
-      default:
-        return 'Day';
+      case 0: return 'Sunday';
+      case 1: return 'Monday';
+      case 2: return 'Tuesday';
+      case 3: return 'Wednesday';
+      case 4: return 'Thursday';
+      case 5: return 'Friday';
+      case 6: return 'Saturday';
+      default: return 'Day';
     }
   }
 
@@ -955,8 +1193,7 @@ class _KitchenNameState extends State<_KitchenName> {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
       builder: (context, state) {
         return MitablTextField(
-          label: 'Kitchen Name',
-          hint: 'Enter your kitchen name',
+          hint: "e.g. Grandma's Secret Hearth",
           errorText: state.nameKitchn!.invalid
               ? 'Please enter a valid name'
               : null,
@@ -987,7 +1224,6 @@ class _NoOfSeatsState extends State<_NoOfSeats> {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
       builder: (context, state) {
         return MitablTextField(
-          label: 'Number of Seats',
           hint: 'Enter total seating capacity',
           keyboardType: TextInputType.number,
           errorText: state.noOfSeats.invalid
@@ -1036,141 +1272,125 @@ class _PhoneNoState extends State<_PhoneNo> {
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
       builder: (context, state) {
-        return Column(
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6, left: 4),
-              child: Text(
-                'Phone Number',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+            SizedBox(
+              width: 90,
+              child: TextFormField(
+                controller: _countryCodeController,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
+                maxLength: 5,
+                style: const TextStyle(
+                  fontSize: 15,
                   color: MitablColors.onSurface,
+                ),
+                onChanged: (value) {
+                  context.read<CookProfileCubit>().onCountryCodeChanged(
+                    value: value,
+                    localNumber: _phoneController.text,
+                  );
+                },
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: '+61',
+                  filled: true,
+                  fillColor: MitablColors.surfaceContainerLow,
+                  border: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide(
+                      color: MitablColors.primary.withValues(alpha: 0.2),
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  hintStyle: TextStyle(
+                    color: MitablColors.onSurfaceVariant
+                        .withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w300,
+                  ),
                 ),
               ),
             ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 90,
-                  child: TextFormField(
-                    controller: _countryCodeController,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                    ],
-                    maxLength: 5,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: MitablColors.onSurface,
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextFormField(
+                controller: _phoneController,
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 14,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: MitablColors.onSurface,
+                ),
+                onChanged: (text) {
+                  context.read<CookProfileCubit>().onPhoneChanged(
+                    value: InternationalPhone.compose(
+                      countryCode: _countryCodeController.text,
+                      number: text,
                     ),
-                    onChanged: (value) {
-                      context.read<CookProfileCubit>().onCountryCodeChanged(
-                        value: value,
-                        localNumber: _phoneController.text,
-                      );
-                    },
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: '+61',
-                      filled: true,
-                      fillColor: MitablColors.surfaceContainerLow,
-                      border: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide(
-                          color: MitablColors.primary.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      hintStyle: TextStyle(
-                        color: MitablColors.onSurfaceVariant
-                            .withValues(alpha: 0.5),
-                        fontWeight: FontWeight.w300,
-                      ),
+                  );
+                },
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: 'Phone number',
+                  errorText: state.phone.invalid
+                      ? 'Enter valid country code and phone no'
+                      : null,
+                  filled: true,
+                  fillColor: MitablColors.surfaceContainerLow,
+                  border: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide: BorderSide(
+                      color: MitablColors.primary.withValues(alpha: 0.2),
+                      width: 2,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _phoneController,
-                    textInputAction: TextInputAction.next,
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    maxLength: 14,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: MitablColors.onSurface,
-                    ),
-                    onChanged: (text) {
-                      context.read<CookProfileCubit>().onPhoneChanged(
-                        value: InternationalPhone.compose(
-                          countryCode: _countryCodeController.text,
-                          number: text,
-                        ),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: 'Phone number',
-                      errorText: state.phone.invalid
-                          ? 'Enter valid country code and phone no'
-                          : null,
-                      filled: true,
-                      fillColor: MitablColors.surfaceContainerLow,
-                      border: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide: BorderSide(
-                          color: MitablColors.primary.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                      errorBorder: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide:
-                            BorderSide(color: MitablColors.error, width: 1),
-                      ),
-                      focusedErrorBorder: const OutlineInputBorder(
-                        borderRadius: MitablRadius.inputBorder,
-                        borderSide:
-                            BorderSide(color: MitablColors.error, width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      hintStyle: TextStyle(
-                        color: MitablColors.onSurfaceVariant
-                            .withValues(alpha: 0.5),
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
+                  errorBorder: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide:
+                        BorderSide(color: MitablColors.error, width: 1),
+                  ),
+                  focusedErrorBorder: const OutlineInputBorder(
+                    borderRadius: MitablRadius.inputBorder,
+                    borderSide:
+                        BorderSide(color: MitablColors.error, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  hintStyle: TextStyle(
+                    color: MitablColors.onSurfaceVariant
+                        .withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w300,
                   ),
                 ),
-              ],
+              ),
             ),
           ],
         );
@@ -1197,12 +1417,8 @@ class _UploadbuttonState extends State<_UploadButton> {
     return BlocConsumer<CookProfileCubit, CookProfileState>(
       listener: (context, state) {},
       builder: (context, state) {
-        return MitablButton(
-          label: 'Upload Photos',
-          variant: MitablButtonVariant.outline,
-          icon: const Icon(Icons.add_a_photo_outlined,
-              size: 18, color: MitablColors.primary),
-          onPressed: () {
+        return GestureDetector(
+          onTap: () {
             if (state.pathFiles.length <= 4) {
               showDialog<bool>(
                 builder: (context) {
@@ -1252,6 +1468,34 @@ class _UploadbuttonState extends State<_UploadButton> {
               Helper.showToast('Photos limit reached.');
             }
           },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: MitablColors.surfaceContainerLowest,
+              borderRadius: MitablRadius.pillBorder,
+              boxShadow: [
+                BoxShadow(
+                  color: MitablColors.onSurface.withValues(alpha: 0.06),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.add_a_photo, size: 18, color: MitablColors.primary),
+                SizedBox(width: 8),
+                Text(
+                  'Add Kitchen Photo',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: MitablColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -1262,10 +1506,7 @@ class _UploadbuttonState extends State<_UploadButton> {
     final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (!context.mounted || picture == null) {
-        return;
-      }
-
+      if (!context.mounted || picture == null) return;
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
@@ -1289,7 +1530,6 @@ class _UploadbuttonState extends State<_UploadButton> {
         Helper.showToast('No image captured.');
         return;
       }
-
       cubit.onNewImageAdded(path: picture.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
@@ -1314,14 +1554,67 @@ class _LoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CookProfileCubit, CookProfileState>(
       builder: (context, state) {
-        return MitablButton(
-          label: 'Next: Setup Payout',
-          variant: MitablButtonVariant.primary,
-          onPressed: state.status!.isValidated
-              ? () {
-                  context.read<CookProfileCubit>().onKitchnUpload();
-                }
-              : null,
+        final isEnabled = state.status!.isValidated;
+        return SizedBox(
+          width: double.infinity,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: isEnabled
+                  ? const LinearGradient(
+                      colors: [MitablColors.primary, MitablColors.primaryContainer],
+                    )
+                  : null,
+              color: isEnabled ? null : MitablColors.tertiaryFixedDim,
+              borderRadius: MitablRadius.pillBorder,
+              boxShadow: isEnabled
+                  ? [
+                      BoxShadow(
+                        color: MitablColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 32,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: isEnabled
+                    ? () {
+                        context.read<CookProfileCubit>().onKitchnUpload();
+                      }
+                    : null,
+                borderRadius: MitablRadius.pillBorder,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Next: Setup Payout',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                          color: isEnabled
+                              ? MitablColors.onPrimary
+                              : MitablColors.onPrimary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: isEnabled
+                            ? MitablColors.onPrimary
+                            : MitablColors.onPrimary.withValues(alpha: 0.5),
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );

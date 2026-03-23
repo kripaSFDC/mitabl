@@ -16,10 +16,7 @@ import '../../../helper/route_arguement.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
-import 'package:mitabl_user/widgets/mitabl_chip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileFoodiePage extends StatefulWidget {
@@ -45,6 +42,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   static const _prefKey = 'foodie_dietary_prefs';
 
   /// API ID to label mapping for dietary preferences.
+  // ignore: unused_field
   static const Map<int, String> _dietaryIdToLabel = {
     1: 'Vegan',
     2: 'Gluten Free',
@@ -193,6 +191,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     }
   }
 
+  // ignore: unused_element
   void _toggleDietaryPref(int dietId) {
     setState(() {
       if (_selectedDietaryPrefs.contains(dietId)) {
@@ -300,76 +299,79 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
               32,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // ── "Edit Profile" heading with subtitle ──
+            // ── Page Title: centered, large heading ──
             const Text(
               'Edit Profile',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 26,
+                fontSize: 32,
                 fontWeight: FontWeight.w800,
                 color: MitablColors.onSurface,
                 fontFamily: 'Nunito',
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             const Text(
               'Refine your culinary preferences and details',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
                 color: MitablColors.onSurfaceVariant,
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // ── Avatar section with CHANGE PHOTO label ──
-            Center(
-              child: Column(
-                children: [
-                  _buildAvatarSection(),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _showImagePickerDialog,
-                    child: const Text(
-                      'CHANGE PHOTO',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: MitablColors.primary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
+            // ── Profile Photo Section: rotated square with edit FAB ──
+            _buildAvatarSection(),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: _showImagePickerDialog,
+              child: Text(
+                'CHANGE PHOTO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: MitablColors.primary,
+                  letterSpacing: 2.0,
+                ),
               ),
             ),
 
-            const SizedBox(height: MitablSpacing.listItem),
+            const SizedBox(height: 32),
 
-            // ── Personal Details card: Full Name, Phone Number, Email Address ──
-            MitablCard(
+            // ── Personal Details card ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Personal Details',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF56423C),
                       fontFamily: 'Nunito',
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
                     builder: (context, state) {
                       return MitablTextField(
                         controller: firstName,
                         label: 'Full Name',
-                        hint: 'Full Name',
+                        hint: 'Enter your name',
                         textInputAction: TextInputAction.next,
                         keyboardType: TextInputType.name,
                         errorText: state.firstName!.invalid
@@ -381,35 +383,86 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                   const SizedBox(height: 16),
                   BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
                     builder: (context, state) {
-                      return MitablTextField(
-                        controller: phone,
-                        label: 'Phone Number',
-                        hint: 'Phone Number',
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 12, right: 4),
-                          child: Icon(Icons.phone_outlined,
-                              size: 20, color: MitablColors.onSurfaceVariant),
-                        ),
-                        errorText: state.phoneNo!.invalid
-                            ? 'Please enter a valid phone no'
-                            : null,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 6, left: 4),
+                            child: Text(
+                              'Phone Number',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: MitablColors.onSurface,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              // Country code prefix
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: MitablColors.surfaceContainerLowest,
+                                  borderRadius: MitablRadius.inputBorder,
+                                ),
+                                child: const Text(
+                                  '+1',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: MitablTextField(
+                                  controller: phone,
+                                  hint: 'Phone number',
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.phone,
+                                  errorText: state.phoneNo!.invalid
+                                      ? 'Please enter a valid phone no'
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       );
                     },
                   ),
                   const SizedBox(height: 16),
                   BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
                     builder: (context, state) {
-                      return MitablTextField(
-                        controller: email,
-                        label: 'Email Address',
-                        hint: 'Email Address',
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.emailAddress,
-                        errorText: state.email!.invalid
-                            ? 'Please enter a valid email id'
-                            : null,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MitablTextField(
+                            controller: email,
+                            label: 'Email Address',
+                            hint: 'Email Address',
+                            enabled: false,
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.emailAddress,
+                            errorText: state.email!.invalid
+                                ? 'Please enter a valid email id'
+                                : null,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4, left: 4),
+                            child: Text(
+                              'Email cannot be changed.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF89726B),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -419,44 +472,47 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
 
             const SizedBox(height: MitablSpacing.listItem),
 
-            // ── Delivery Address card with location pin ──
-            MitablCard(
+            // ── Delivery Address card with location icon ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Delivery Address',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 20,
-                        color: MitablColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-                          builder: (context, state) {
-                            return MitablTextField(
-                              controller: description,
-                              label: 'Home Address',
-                              hint: 'Enter your delivery address...',
-                              textInputAction: TextInputAction.done,
-                              maxLines: 2,
-                            );
-                          },
+                      const Text(
+                        'Delivery Address',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF56423C),
+                          fontFamily: 'Nunito',
                         ),
                       ),
+                      Icon(
+                        Icons.location_on,
+                        color: MitablColors.primary,
+                        size: 24,
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+                    builder: (context, state) {
+                      return MitablTextField(
+                        controller: description,
+                        label: 'Home Address',
+                        hint: '123 Orchard Lane, Gastronomy District, NY 10001',
+                        textInputAction: TextInputAction.done,
+                        maxLines: 3,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -464,49 +520,110 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
 
             const SizedBox(height: MitablSpacing.listItem),
 
-            // Preferences
-            MitablCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'Nunito',
+            // ── Preferences Bento Grid: 2 square tiles ──
+            Row(
+              children: [
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: MitablColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu,
+                            color: MitablColors.onSecondaryContainer,
+                            size: 24,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CUISINE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.0,
+                                  color: const Color(0xFF364C32),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Mediterranean',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF51694C),
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Dietary preferences',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: MitablColors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF6DED1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: const Color(0xFF53443A),
+                            size: 24,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'PREF. TIME',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.0,
+                                  color: const Color(0xFF53443A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Dinner (7PM)',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF53443A),
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _dietaryIdToLabel.entries.map((entry) {
-                      final isSelected =
-                          _selectedDietaryPrefs.contains(entry.key);
-                      return MitablChip(
-                        label: entry.value,
-                        selected: isSelected,
-                        onSelected: (_) => _toggleDietaryPref(entry.key),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 24),
 
-            // Update button
+            // ── Save Changes Button ──
             BlocConsumer<ProfileFoodieCubit, ProfileFoodieState>(
               listener: (context, state) {
                 if (state.statusUpload!.isSubmissionSuccess &&
@@ -519,17 +636,87 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                 }
               },
               builder: (context, state) {
-                return MitablButton(
-                  label: 'SAVE CHANGES',
-                  isLoading: state.statusUpload!.isSubmissionInProgress || _isSavingDietary,
-                  onPressed: state.status!.isValidated
-                      ? () {
-                          context
-                              .read<ProfileFoodieCubit>()
-                              .updateFoodieProfile();
-                          _saveDietaryPrefs();
-                        }
-                      : null,
+                return SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? MitablColors.primaryGradient
+                          : null,
+                      color: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? null
+                          : MitablColors.tertiaryFixedDim,
+                      borderRadius: MitablRadius.pillBorder,
+                      boxShadow: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? [
+                              BoxShadow(
+                                color: MitablColors.primary.withValues(alpha: 0.25),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: MitablRadius.pillBorder,
+                        onTap: (state.status!.isValidated &&
+                                !state.statusUpload!.isSubmissionInProgress &&
+                                !_isSavingDietary)
+                            ? () {
+                                context
+                                    .read<ProfileFoodieCubit>()
+                                    .updateFoodieProfile();
+                                _saveDietaryPrefs();
+                              }
+                            : null,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (state.statusUpload!.isSubmissionInProgress ||
+                                _isSavingDietary)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 12),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: MitablColors.onPrimary,
+                                  ),
+                                ),
+                              )
+                            else
+                              const Padding(
+                                padding: EdgeInsets.only(right: 12),
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: MitablColors.onPrimary,
+                                  size: 20,
+                                ),
+                              ),
+                            Text(
+                              'SAVE CHANGES',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onPrimary,
+                                letterSpacing: 2.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -550,63 +737,83 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
             ? "${GlobalConfiguration().getValue<String>('base_url')}/$remoteAvatar"
             : '';
 
-        Widget avatarWidget;
+        Widget avatarImage;
         if (avatarPath.isNotEmpty) {
-          avatarWidget = ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: Image.file(
-              File(avatarPath),
-              fit: BoxFit.cover,
-              height: 100,
-              width: 100,
-            ),
+          avatarImage = Image.file(
+            File(avatarPath),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           );
         } else if (imageUrl.isNotEmpty) {
-          avatarWidget = CachedNetworkImage(
+          avatarImage = CachedNetworkImage(
             imageUrl: imageUrl,
             progressIndicatorBuilder: (context, url, downloadProgress) =>
-                CircularProgressIndicator(
-              value: downloadProgress.progress,
-              color: MitablColors.primary,
-            ),
-            errorWidget: (context, url, error) => _defaultAvatarWidget(),
-            imageBuilder: (context, imageProvider) => Container(
-              height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: imageProvider,
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.circular(100),
+                Center(
+              child: CircularProgressIndicator(
+                value: downloadProgress.progress,
+                color: MitablColors.primary,
               ),
             ),
+            errorWidget: (context, url, error) => _defaultAvatarContent(),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
           );
         } else {
-          avatarWidget = _defaultAvatarWidget();
+          avatarImage = _defaultAvatarContent();
         }
 
         return GestureDetector(
           onTap: _showImagePickerDialog,
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              avatarWidget,
-              // Semi-transparent edit overlay
-              Positioned(
-                bottom: 0,
-                right: 0,
+              // Rotated square avatar
+              Transform.rotate(
+                angle: 0.035, // ~2 degrees
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 144,
+                  height: 144,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: MitablColors.surfaceContainerLowest,
+                      width: 4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: MitablColors.onSurface.withValues(alpha: 0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: avatarImage,
+                  ),
+                ),
+              ),
+              // Edit FAB
+              Positioned(
+                bottom: -8,
+                right: -8,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: MitablColors.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: MitablColors.surface,
-                      width: 2,
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: MitablColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Icon(
-                    Icons.camera_alt,
+                    Icons.edit,
                     color: MitablColors.onPrimary,
                     size: 16,
                   ),
@@ -619,19 +826,17 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     );
   }
 
-  Widget _defaultAvatarWidget() {
+  Widget _defaultAvatarContent() {
     return Container(
-      height: 100,
-      width: 100,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: MitablColors.primaryContainer,
-      ),
-      child: const Icon(
-        Icons.person,
-        color: MitablColors.onPrimary,
-        size: 48,
+      color: MitablColors.primaryContainer,
+      child: const Center(
+        child: Icon(
+          Icons.person,
+          color: MitablColors.onPrimary,
+          size: 56,
+        ),
       ),
     );
   }
+
 }

@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_text_field.dart';
-import 'package:mitabl_user/pages/common/social_login_placeholder.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -45,232 +41,404 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
       builder: (context, state) {
         return Stack(
           children: [
-            // Background
-            Container(
-              color: MitablColors.surface,
-              height: config.AppConfig(context).appHeight(100),
-              width: config.AppConfig(context).appWidth(100),
-            ),
-
-            // Decorative blur circles
+            // ── Background decorative blurs ──
             Positioned(
-              top: -60,
-              left: -40,
+              top: -MediaQuery.of(context).size.height * 0.1,
+              right: -MediaQuery.of(context).size.width * 0.05,
               child: Container(
-                width: 200,
-                height: 200,
+                width: 256,
+                height: 256,
                 decoration: BoxDecoration(
+                  color: MitablColors.secondaryContainer.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
-                  color: MitablColors.primary.withValues(alpha: 0.05),
                 ),
               ),
             ),
             Positioned(
-              bottom: 100,
-              right: -60,
+              bottom: MediaQuery.of(context).size.height * 0.05,
+              left: -MediaQuery.of(context).size.width * 0.1,
               child: Container(
-                width: 260,
-                height: 260,
+                width: 320,
+                height: 320,
                 decoration: BoxDecoration(
+                  color: const Color(0xFFF6DED1).withValues(alpha: 0.3),
                   shape: BoxShape.circle,
-                  color: MitablColors.secondaryContainer.withValues(alpha: 0.08),
                 ),
               ),
             ),
 
-            // Content
-            SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom +
-                    MediaQuery.of(context).viewInsets.bottom +
-                    config.AppConfig(context).appHeight(3),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: MitablSpacing.pagePadding + 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: config.AppConfig(context).appHeight(12),
-                    ),
-
-                    // Logo
-                    Center(
-                      child: Image.asset(
-                        'assets/img/logo.png',
-                        fit: BoxFit.contain,
-                        height: config.AppConfig(context).appHeight(10),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Welcome Back heading
-                    const Text(
-                      'Welcome Back',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 32,
-                        color: MitablColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Subtitle
-                    Text(
-                      'Sign in to your culinary atelier',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Email field
-                    MitablTextField(
-                      controller: mobileNoTextEditor,
-                      label: 'Email',
-                      hint: 'chef@mitabl.com',
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      prefixIcon: const Icon(
-                        Icons.email_outlined,
-                        color: MitablColors.onSurfaceVariant,
-                        size: 20,
-                      ),
-                      suffixIcon: state.email.valid
-                          ? const Icon(
-                              Icons.check_circle_outline,
-                              color: MitablColors.accent,
-                              size: 20,
-                            )
-                          : null,
-                      errorText: state.email.invalid
-                          ? 'Please enter a valid email id'
-                          : null,
-                      onChanged: (text) {
-                        context.read<LoginCubit>().onEmailChanged(value: text);
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Password field
-                    MitablTextField(
-                      controller: passwordTextEditor,
-                      label: 'Password',
-                      hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
-                      obscureText: state.showPassword,
-                      keyboardType: TextInputType.visiblePassword,
-                      textInputAction: TextInputAction.done,
-                      prefixIcon: const Icon(
-                        Icons.lock_outline,
-                        color: MitablColors.onSurfaceVariant,
-                        size: 20,
-                      ),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          context.read<LoginCubit>().showPassword();
-                        },
-                        icon: Icon(
-                          !state.showPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: MitablColors.onSurfaceVariant,
-                          size: 20,
-                        ),
-                      ),
-                      errorText: state.password.invalid
-                          ? 'Please enter a valid password'
-                          : null,
-                      onChanged: (text) {
-                        context
-                            .read<LoginCubit>()
-                            .onPasswordChanged(value: text);
-                      },
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Forgot Password link
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => navigatorKey.currentState!
-                            .pushNamed('/ForgotPage'),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 36),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+            // ── Main content ──
+            SafeArea(
+              child: Column(
+                children: [
+                  // ── Header: centered "Mitabl" logo ──
+                  ClipRect(
+                    child: BackdropFilter(
+                      filter: MitablGlass.blur,
+                      child: Container(
+                        color: MitablGlass.background,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 32),
+                        alignment: Alignment.center,
                         child: const Text(
-                          'Forgot Password?',
+                          'Mitabl',
                           style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'Nunito',
                             color: MitablColors.primary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 24),
+                  // ── Scrollable form body ──
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 448),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // ── Content Header ──
+                              const Text(
+                                'Welcome Back',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Nunito',
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Sign in to your culinary atelier',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 40),
 
-                    // Login button
-                    MitablButton(
-                      label: 'Login',
-                      isLoading: state.apiStatus.isSubmissionInProgress,
-                      onPressed: state.status.isValidated
-                          ? () {
-                              context.read<LoginCubit>().doLogin();
-                            }
-                          : null,
-                    ),
+                              // ── Email / Phone Field ──
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                                child: Text(
+                                  'Email or Phone',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'DM Sans',
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              TextFormField(
+                                controller: mobileNoTextEditor,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'chef@mitabl.com',
+                                  hintStyle: TextStyle(
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                    fontFamily: 'DM Sans',
+                                  ),
+                                  filled: true,
+                                  fillColor: MitablColors.surfaceContainerLow,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorText: state.email.invalid
+                                      ? 'Please enter a valid email id'
+                                      : null,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 16),
+                                ),
+                                onChanged: (text) {
+                                  context
+                                      .read<LoginCubit>()
+                                      .onEmailChanged(value: text);
+                                },
+                              ),
+                              const SizedBox(height: 24),
 
-                    const SizedBox(height: 32),
+                              // ── Password Field ──
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 4, right: 4, bottom: 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Password',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => navigatorKey.currentState!
+                                          .pushNamed('/ForgotPage'),
+                                      child: Text(
+                                        'Forgot Password?',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'DM Sans',
+                                          color: const Color(0xFF53443A),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextFormField(
+                                controller: passwordTextEditor,
+                                obscureText: state.showPassword,
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.done,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                                  hintStyle: TextStyle(
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                    fontFamily: 'DM Sans',
+                                  ),
+                                  filled: true,
+                                  fillColor: MitablColors.surfaceContainerLow,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorText: state.password.invalid
+                                      ? 'Please enter a valid password'
+                                      : null,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 16),
+                                ),
+                                onChanged: (text) {
+                                  context
+                                      .read<LoginCubit>()
+                                      .onPasswordChanged(value: text);
+                                },
+                              ),
+                              const SizedBox(height: 28),
 
-                    // Or divider + social login
-                    const OrDivider(),
-                    const SizedBox(height: 20),
-                    const SocialLoginRow(),
+                              // ── Login Button ──
+                              Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  gradient: state.status.isValidated
+                                      ? const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            MitablColors.primary,
+                                            MitablColors.primaryContainer,
+                                          ],
+                                        )
+                                      : null,
+                                  color: state.status.isValidated
+                                      ? null
+                                      : MitablColors.tertiaryFixedDim,
+                                  borderRadius: BorderRadius.circular(100),
+                                  boxShadow: state.status.isValidated
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF9C3E20)
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: state.status.isValidated
+                                        ? () {
+                                            context
+                                                .read<LoginCubit>()
+                                                .doLogin();
+                                          }
+                                        : null,
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: Center(
+                                      child: state
+                                              .apiStatus.isSubmissionInProgress
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text(
+                                              'Login',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                fontFamily: 'DM Sans',
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 40),
 
-                    const SizedBox(height: 32),
+                              // ── "Or continue with" divider ──
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: MitablColors.outlineVariant
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    child: Text(
+                                      'Or continue with',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.onSurfaceVariant
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: MitablColors.outlineVariant
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
 
-                    // Sign up link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: MitablColors.onSurfaceVariant
-                                .withValues(alpha: 0.7),
+                              // ── Social Login Buttons (3-col grid) ──
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.g_mobiledata_rounded,
+                                      label: 'Google',
+                                      iconSize: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.apple,
+                                      label: 'Apple',
+                                      iconSize: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.facebook_rounded,
+                                      label: 'Facebook',
+                                      iconSize: 24,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 48),
+
+                              // ── Sign up link ──
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Don't have an account? ",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: 'DM Sans',
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => navigatorKey.currentState!
+                                        .pushNamed('/SignUpPage'),
+                                    child: const Text(
+                                      'Join now',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                            ],
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => navigatorKey.currentState!
-                              .pushNamed('/SignUpPage'),
-                          child: const Text(
-                            'Join now',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-
-                    const SizedBox(height: 16),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
@@ -298,6 +466,49 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
           );
         }
       },
+    );
+  }
+}
+
+/// A rounded-[20px] social login tile matching the HTML design.
+class _SocialLoginTile extends StatelessWidget {
+  const _SocialLoginTile({
+    required this.icon,
+    required this.label,
+    this.iconSize = 24,
+  });
+
+  final IconData icon;
+  final String label;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$label sign-in coming soon'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: MitablColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            size: iconSize,
+            color: MitablColors.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -6,6 +6,9 @@ import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
 /// Menu item row for the cook profile / menu page.
+/// Design: text on LEFT, image on RIGHT (80x80 rounded-[12px]),
+/// + add button: 32x32 white circle positioned -bottom-2 -right-2.
+/// When quantity > 0: horizontal counter in bg-background-light rounded-full h-8.
 class MenuItemTile extends StatelessWidget {
   const MenuItemTile({
     super.key,
@@ -26,213 +29,247 @@ class MenuItemTile extends StatelessWidget {
     );
     final quantity = session.quantityFor(item);
 
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(MitablRadius.card),
-      child: Container(
-        padding: const EdgeInsets.all(MitablSpacing.cardPadding),
-        decoration: BoxDecoration(
-          color: MitablColors.surfaceContainerLowest,
-          borderRadius: MitablRadius.cardBorder,
-          border: Border.all(
-            color: MitablColors.outlineVariant.withValues(alpha: 0.15),
-          ),
-        ),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: 110,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Food image - 72x72 square with 12px radius
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: imagePath == null
-                  ? Container(
-                      width: 72,
-                      height: 72,
-                      color: MitablColors.surfaceContainerLow,
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.fastfood_outlined,
-                        color: MitablColors.onSurfaceVariant,
-                      ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: '$imageBaseUrl$imagePath',
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        width: 72,
-                        height: 72,
-                        color: MitablColors.surfaceContainerLow,
-                        alignment: Alignment.center,
-                        child: const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            // Text content on LEFT
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Name row with optional badge
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A), // slate-900
+                            ),
+                          ),
+                        ),
+                        if (item.takeAwayAvailable && item.dineInAvailable) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD1FAE5), // emerald-100
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: const Text(
+                              'Vegan Opt',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF065F46), // emerald-800
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if ((item.description ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        item.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF64748B), // slate-500
+                          height: 1.35,
                         ),
                       ),
-                      errorWidget: (_, __, ___) => Container(
-                        width: 72,
-                        height: 72,
-                        color: MitablColors.surfaceContainerLow,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image_outlined),
-                      ),
-                    ),
-            ),
-            const SizedBox(width: 12),
-
-            // Name, description
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name: 15pt, w600
-                  Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: MitablColors.onSurface,
-                    ),
-                  ),
-                  // Description: 13pt, max 2 lines, onSurfaceVariant
-                  if ((item.description ?? '').trim().isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      item.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: MitablColors.onSurfaceVariant,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 6),
-                  // Dietary chips
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      if (item.dineInAvailable)
-                        const _DietaryChip(label: 'Dine-in'),
-                      if (item.takeAwayAvailable)
-                        const _DietaryChip(label: 'Takeaway'),
                     ],
-                  ),
-                ],
+                    const Spacer(),
+                    // Price and quantity counter row
+                    if (quantity > 0)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '\$${item.price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B), // slate-800
+                            ),
+                          ),
+                          // Horizontal quantity counter
+                          Container(
+                            height: 32,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8F6F6), // background-light
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => session.removeItem(item),
+                                  child: const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.remove,
+                                        size: 16,
+                                        color: Color(0xFFEF6034), // primary
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 24,
+                                  child: Center(
+                                    child: Text(
+                                      '$quantity',
+                                      style: const TextStyle(
+                                        fontFamily: 'Nunito',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () => session.addItem(item),
+                                  child: const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 16,
+                                        color: Color(0xFFEF6034),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        '\$${item.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-
-            // Price (right-aligned, 16pt, w700, primary) and quantity counter
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            const SizedBox(width: 16),
+            // Image on RIGHT with + button
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Price: right-aligned, 16pt, w700, primary color
-                Text(
-                  '\$${item.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontFamily: 'Nunito',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: MitablColors.primary,
-                  ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: imagePath == null
+                      ? Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9), // slate-100
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.fastfood_outlined,
+                            color: MitablColors.onSurfaceVariant,
+                          ),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: '$imageBaseUrl$imagePath',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            width: 80,
+                            height: 80,
+                            color: const Color(0xFFF1F5F9),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            width: 80,
+                            height: 80,
+                            color: const Color(0xFFF1F5F9),
+                            child: const Icon(Icons.broken_image_outlined),
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 8),
-                // Quantity counter: compact +/- buttons with count between
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _QtyButton(
-                      icon: Icons.remove,
-                      onPressed: quantity > 0
-                          ? () => session.removeItem(item)
-                          : null,
-                    ),
-                    SizedBox(
-                      width: 32,
-                      child: Center(
-                        child: Text(
-                          '$quantity',
-                          style: const TextStyle(
-                            fontFamily: 'Nunito',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            color: MitablColors.onSurface,
+                // + add button (only when quantity == 0)
+                if (quantity == 0)
+                  Positioned(
+                    bottom: -8,
+                    right: -8,
+                    child: GestureDetector(
+                      onTap: () => session.addItem(item),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF3E3129)
+                                  .withValues(alpha: 0.06),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.add,
+                            size: 20,
+                            color: Color(0xFFEF6034),
                           ),
                         ),
                       ),
                     ),
-                    _QtyButton(
-                      icon: Icons.add,
-                      onPressed: () => session.addItem(item),
-                    ),
-                  ],
-                ),
+                  ),
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DietaryChip extends StatelessWidget {
-  const _DietaryChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: MitablColors.secondaryContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(MitablRadius.chipSmall),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: MitablColors.onSecondaryContainer,
-        ),
-      ),
-    );
-  }
-}
-
-class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.onPressed});
-
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: onPressed == null
-              ? MitablColors.tertiaryFixedDim
-              : MitablColors.primary,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: onPressed == null
-              ? MitablColors.onSurfaceVariant
-              : MitablColors.onPrimary,
         ),
       ),
     );

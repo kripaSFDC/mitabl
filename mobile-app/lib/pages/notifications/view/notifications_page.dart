@@ -8,7 +8,6 @@ import 'package:mitabl_user/pages/notifications/element/notification_tile.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 
 /// A notification item parsed from the v2/notifications API.
 class _ApiNotification {
@@ -157,24 +156,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: GlassAppBar(
-        title: const Text('Notifications'),
-        actions: [
-          TextButton(
-            onPressed: _unreadCount > 0 ? _markAllRead : null,
-            child: Text(
-              'Mark All Read',
-              style: TextStyle(
-                color: _unreadCount > 0
-                    ? MitablColors.primary
-                    : MitablColors.onSurfaceVariant.withValues(alpha: 0.4),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: const GlassAppBar(title: Text('Mitabl')),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: MitablColors.primary),
@@ -201,84 +183,168 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     ],
                   ),
                 )
-              : ListView.builder(
+              : ListView(
                   padding: const EdgeInsets.all(MitablSpacing.pagePadding),
-                  itemCount: _notifications.length + 1,
-                  itemBuilder: (context, index) {
-                    // Weekly Digest card at top
-                    if (index == 0) {
+                  children: [
+                    // ── Notification Header ──
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text(
+                                  'Notifications',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: MitablColors.onSurface,
+                                    fontFamily: 'Nunito',
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Stay updated with your culinary journey',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Mark all as read button
+                          GestureDetector(
+                            onTap: _unreadCount > 0 ? _markAllRead : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              child: Text(
+                                'MARK ALL AS READ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                  color: _unreadCount > 0
+                                      ? MitablColors.primary
+                                      : MitablColors.onSurfaceVariant
+                                          .withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ── Notification Items ──
+                    ..._notifications.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final notification = entry.value;
                       return Padding(
                         padding: const EdgeInsets.only(
-                            bottom: MitablSpacing.listItem),
-                        child: MitablCard(
-                          color:
-                              MitablColors.primary.withValues(alpha: 0.08),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: MitablColors.primary
-                                      .withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.insights,
-                                  color: MitablColors.primary,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Weekly Digest',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: MitablColors.onSurface,
-                                        fontFamily: 'Nunito',
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'You ordered 3 meals this week and saved \$12 with promotions.',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color:
-                                            MitablColors.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            bottom: MitablSpacing.listItem / 2),
+                        child: NotificationTile(
+                          id: notification.id,
+                          title: notification.title,
+                          body: notification.body,
+                          type: notification.type,
+                          createdAt: notification.createdAt,
+                          isRead: notification.isRead,
+                          iconData: notification.iconData,
+                          onMarkedRead: () => _markRead(index),
                         ),
                       );
-                    }
+                    }),
 
-                    final notifIndex = index - 1;
-                    final notification = _notifications[notifIndex];
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: MitablSpacing.listItem / 2),
-                      child: NotificationTile(
-                        id: notification.id,
-                        title: notification.title,
-                        body: notification.body,
-                        type: notification.type,
-                        createdAt: notification.createdAt,
-                        isRead: notification.isRead,
-                        iconData: notification.iconData,
-                        onMarkedRead: () => _markRead(notifIndex),
+                    // ── Weekly Digest Promotion Card ──
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12, bottom: 32),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: MitablColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Stack(
+                          children: [
+                            // Decorative circle
+                            Positioned(
+                              top: -32,
+                              right: -32,
+                              child: Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4D6548)
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 36,
+                                  color: Color(0xFF51694C),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Weekly Digest',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF51694C),
+                                    fontFamily: 'Nunito',
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'You ordered 3 meals this week. See your performance analytics.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF51694C),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 40,
+                                  child: ElevatedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          const Color(0xFF51694C),
+                                      foregroundColor:
+                                          MitablColors.secondaryContainer,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius:
+                                            MitablRadius.pillBorder,
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: const Text(
+                                      'View Report',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
     );
   }

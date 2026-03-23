@@ -111,7 +111,6 @@ class _HomePage extends State<HomePage> {
       );
     } catch (_) {
       if (!mounted) return;
-      // Revert on failure
       setState(() {
         if (wasAlreadyFavourited) {
           _favouritedIds.add(kitchenId);
@@ -157,11 +156,10 @@ class _HomePage extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MitablColors.surface,
+      backgroundColor: const Color(0xFFF7F4EF), // background-light
       body: BlocConsumer<HomeCubit, HomeState>(
         listener: (context, state) async {},
         builder: (context, state) {
-          // ── Build combined feed list from recommended + nearby ──
           final recommendedItems =
               state.recommendedRestResponse?.recommendedResturantList ??
                   const [];
@@ -177,144 +175,183 @@ class _HomePage extends State<HomePage> {
           return CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // ── Top safe-area spacing ──
+              // Sticky header
               SliverToBoxAdapter(
-                child: SizedBox(
-                  height: MediaQuery.of(context).padding.top + 8,
-                ),
-              ),
-
-              // ── Greeting header ──
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 16,
+                    left: 16,
+                    right: 16,
+                    bottom: 8,
                   ),
-                  child: Row(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F4EF).withValues(alpha: 0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF3E3129)
+                            .withValues(alpha: 0.06),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Good ${_greetingLabel()}$greetingName',
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 24,
-                                color: MitablColors.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
+                      // Greeting row with notification button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.location_on,
-                                  size: 16,
-                                  color: MitablColors.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    (state.locationLabel ?? '').isNotEmpty
-                                        ? state.locationLabel!
-                                        : 'Set location',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.dmSans(
-                                      fontSize: 13,
-                                      color: MitablColors.onSurfaceVariant,
-                                    ),
+                                Text(
+                                  'Good ${_greetingLabel()}$greetingName',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 24,
+                                    color: const Color(0xFF3E3129),
                                   ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Color(0xFF8D7A6F),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        (state.locationLabel ?? '').isNotEmpty
+                                            ? state.locationLabel!
+                                            : 'Set location',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.dmSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF8D7A6F),
+                                        ),
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.expand_more,
+                                      size: 16,
+                                      color: Color(0xFF8D7A6F),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Notification button
+                          Stack(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFCFAF8), // surface
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF3E3129)
+                                          .withValues(alpha: 0.06),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.notifications_outlined,
+                                    color: Color(0xFF3E3129),
+                                  ),
+                                ),
+                              ),
+                              // Red notification dot
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD96C4A), // primary
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFFCFAF8),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      // Profile avatar button
+                      const SizedBox(height: 16),
+
+                      // Search bar
                       GestureDetector(
-                        onTap: () => Navigator.of(context)
-                            .pushNamed('/ProfileFoodie'),
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: MitablColors.primaryContainer,
-                          child: Text(
-                            firstName.isNotEmpty
-                                ? firstName[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: MitablColors.onPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
+                        onTap: () async {
+                          final result =
+                              await Navigator.of(context).push<List<int>>(
+                            MaterialPageRoute<List<int>>(
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<HomeCubit>(),
+                                child: const SearchFiltersPage(),
+                              ),
                             ),
+                          );
+                          if (result != null &&
+                              result.isNotEmpty &&
+                              context.mounted) {
+                            debugPrint('Selected diet IDs: $result');
+                          }
+                        },
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFCFAF8),
+                            borderRadius: BorderRadius.circular(100),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF3E3129)
+                                    .withValues(alpha: 0.06),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              const Icon(
+                                Icons.search,
+                                color: Color(0xFF8D7A6F),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'What are you craving?',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16,
+                                  color: const Color(0xFF8D7A6F),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
               ),
 
-              // ── Search bar ──
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.of(context).push<List<int>>(
-                        MaterialPageRoute<List<int>>(
-                          builder: (_) => BlocProvider.value(
-                            value: context.read<HomeCubit>(),
-                            child: const SearchFiltersPage(),
-                          ),
-                        ),
-                      );
-                      // result contains selected dietary filter IDs
-                      // for client-side filtering if needed
-                      if (result != null && result.isNotEmpty && context.mounted) {
-                        // Diet IDs available for client-side filtering
-                        debugPrint('Selected diet IDs: $result');
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: MitablColors.surfaceContainerLow,
-                        borderRadius: MitablRadius.pillBorder,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
-                            size: 20,
-                            color: MitablColors.onSurfaceVariant
-                                .withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'What are you craving?',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 15,
-                              color: MitablColors.onSurfaceVariant
-                                  .withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ── Category pills (sticky) ──
+              // Category pills (sticky)
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _CategoryPillsDelegate(
@@ -339,12 +376,12 @@ class _HomePage extends State<HomePage> {
                 ),
               ),
 
-              // ── Section title ──
+              // Section title
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(
-                    left: 20,
-                    right: 20,
+                    left: 16,
+                    right: 16,
                     top: 8,
                     bottom: 12,
                   ),
@@ -352,14 +389,14 @@ class _HomePage extends State<HomePage> {
                     'Cooking today near you',
                     style: GoogleFonts.nunito(
                       fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: MitablColors.onSurface,
+                      fontSize: 20,
+                      color: const Color(0xFF3E3129),
                     ),
                   ),
                 ),
               ),
 
-              // ── Loading state ──
+              // Loading state
               if (state.statusApi!.isSubmissionInProgress &&
                   state.statusRecommRes!.isSubmissionInProgress &&
                   totalFeedCount == 0)
@@ -374,7 +411,7 @@ class _HomePage extends State<HomePage> {
                   ),
                 ),
 
-              // ── Error/offline state ──
+              // Error/offline state
               if (state.statusApi!.isSubmissionFailure &&
                   state.statusRecommRes!.isSubmissionFailure &&
                   totalFeedCount == 0)
@@ -386,7 +423,7 @@ class _HomePage extends State<HomePage> {
                   ),
                 ),
 
-              // ── Cook cards feed ──
+              // Cook cards feed
               if (totalFeedCount > 0)
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
@@ -401,7 +438,6 @@ class _HomePage extends State<HomePage> {
                       int? takeAway;
 
                       if (index < recommendedItems.length) {
-                        // Recommended item
                         final item = recommendedItems[index];
                         kitchenId = item.id;
                         name = item.name ?? '';
@@ -411,14 +447,12 @@ class _HomePage extends State<HomePage> {
                         dineIn = item.dineIn;
                         takeAway = item.takeAway;
                       } else {
-                        // Nearby item
                         final nearByIndex =
                             index - recommendedItems.length;
                         final item = nearByItems[nearByIndex];
                         kitchenId = item.id;
                         name = item.name ?? '';
                         description = item.description?.toString();
-                        // Parse rating from dynamic
                         final rawRating = item.ratingCount;
                         if (rawRating is num) {
                           rating = rawRating.toDouble();
@@ -435,7 +469,7 @@ class _HomePage extends State<HomePage> {
                       final resolvedId = kitchenId ?? 0;
                       return Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
+                          horizontal: 16,
                           vertical: MitablSpacing.listItem / 2,
                         ),
                         child: DiscoveryCookCard(
@@ -465,7 +499,7 @@ class _HomePage extends State<HomePage> {
                   ),
                 ),
 
-              // ── Loading more indicator ──
+              // Loading more indicator
               if (state.isLoadingMoreNearBy)
                 const SliverToBoxAdapter(
                   child: Padding(
@@ -478,7 +512,7 @@ class _HomePage extends State<HomePage> {
                   ),
                 ),
 
-              // ── Bottom padding for safe area ──
+              // Bottom padding for safe area
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: MediaQuery.of(context).padding.bottom + 16,
@@ -492,8 +526,7 @@ class _HomePage extends State<HomePage> {
   }
 }
 
-// ── Persistent header delegate for category pills ──
-
+// Persistent header delegate for category pills
 class _CategoryPillsDelegate extends SliverPersistentHeaderDelegate {
   _CategoryPillsDelegate({
     required this.categories,
@@ -517,10 +550,13 @@ class _CategoryPillsDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return DiscoveryCategoryPills(
-      categories: categories,
-      selectedId: selectedId,
-      onSelected: onSelected,
+    return Container(
+      color: const Color(0xFFF7F4EF), // background-light
+      child: DiscoveryCategoryPills(
+        categories: categories,
+        selectedId: selectedId,
+        onSelected: onSelected,
+      ),
     );
   }
 

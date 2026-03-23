@@ -154,7 +154,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
     return Scaffold(
       backgroundColor: MitablColors.surface,
       appBar: GlassAppBar(
-        title: const Text('Payments'),
+        title: const Text('miFoodi'),
         actions: [
           if (_status == _ViewStatus.loaded)
             IconButton(
@@ -200,6 +200,89 @@ class _PaymentsPageState extends State<PaymentsPage> {
                   child: ListView(
                     padding: const EdgeInsets.all(MitablSpacing.pagePadding),
                     children: [
+                      // ── Header Section ──
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Payments',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                                fontFamily: 'Nunito',
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Manage your payment methods and track transactions.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── Bento Grid for Cards ──
+                      // Add New Card button
+                      GestureDetector(
+                        onTap: () => _navigateToAddCard(),
+                        child: Container(
+                          height: 220,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: MitablColors.outlineVariant.withValues(alpha: 0.3),
+                              width: 2,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: MitablColors.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: MitablColors.primary,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Add New Card',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Visa, Mastercard, Amex',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                       // Cards carousel
                       if (_cards.isNotEmpty) ...[
                         SizedBox(
@@ -248,43 +331,185 @@ class _PaymentsPageState extends State<PaymentsPage> {
                           ),
                         ],
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                       ],
 
-                      // Add card button
-                      MitablButton(
-                        label: 'Add Card',
-                        onPressed: () => _navigateToAddCard(),
-                        variant: MitablButtonVariant.outline,
-                        icon: Icon(Icons.add_card,
-                            color: MitablColors.primary, size: 18),
-                      ),
+                      // ── Recent Transactions Section ──
+                      if (_history.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Recent Transactions',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: MitablColors.onSurface,
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {},
+                                    child: const Text(
+                                      'View All',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: MitablColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              ..._history.map(
+                                (transaction) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: TransactionRow(
+                                      transaction: transaction),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 24),
 
-                      // Recent Transactions
-                      if (_history.isNotEmpty) ...[
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 12),
-                          child: Text(
-                            'Recent Transactions',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: MitablColors.onSurface,
-                              fontFamily: 'Nunito',
+                      // ── Insights / Promotions Bento Footer ──
+                      // Save with miFoodi Card
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: MitablColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Save with miFoodi Card',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF51694C),
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Get 5% cashback on all orders using our primary card.',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF364C32),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  MitablButton(
+                                    label: 'Learn More',
+                                    onPressed: () {},
+                                    variant: MitablButtonVariant.primary,
+                                    fullWidth: false,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Transform.rotate(
+                                angle: 0.2,
+                                child: const Icon(
+                                  Icons.savings,
+                                  size: 36,
+                                  color: Color(0xFF51694C),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        ..._history.map(
-                          (transaction) => Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: MitablSpacing.listItem / 2),
-                            child:
-                                TransactionRow(transaction: transaction),
-                          ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Purchase Protection
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6DED1),
+                          borderRadius: BorderRadius.circular(32),
                         ),
-                      ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Icon(
+                                  Icons.security,
+                                  color: Color(0xFF6A594E),
+                                  size: 36,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                    borderRadius: MitablRadius.pillBorder,
+                                  ),
+                                  child: const Text(
+                                    'SECURE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF6A594E),
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Purchase Protection',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF251911),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Every transaction is encrypted and protected by miFoodi SafeCheck.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF53443A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                       const SizedBox(height: 32),
                     ],

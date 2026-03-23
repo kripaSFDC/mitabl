@@ -6,8 +6,6 @@ import 'package:mitabl_user/repos/payments_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
-import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -71,48 +69,153 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
 
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Add Card')),
+      appBar: const GlassAppBar(title: Text('miFoodi')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(MitablSpacing.pagePadding),
         child: Column(
           children: [
-            // Live card preview
-            VisualCreditCard(
-              brand: _detectBrand(_cardNumberController.text),
-              last4: last4,
-              expMonth: expMonth,
-              expYear: expYear,
-              cardholderName: _nameController.text,
+            // ── Header Section: Editorial Authority ──
+            const Padding(
+              padding: EdgeInsets.only(bottom: 24),
+              child: Column(
+                children: [
+                  Text(
+                    'Add New Card',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: MitablColors.onSurface,
+                      fontFamily: 'Nunito',
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Securely save your payment details for a faster checkout experience.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: MitablColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 24),
-
-            // Card form
-            MitablCard(
+            // ── Card form area ──
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: MitablColors.onSurface.withValues(alpha: 0.04),
+                    blurRadius: 48,
+                    offset: const Offset(0, 24),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Secure Badge ──
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: MitablColors.secondaryContainer.withValues(alpha: 0.3),
+                      borderRadius: MitablRadius.pillBorder,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock,
+                          size: 14,
+                          color: const Color(0xFF4D6548),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'BANK-LEVEL SECURITY',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2.0,
+                            color: Color(0xFF51694C),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ── Visual Card Preview (tilted) ──
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Shadow layer
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        right: -8,
+                        bottom: -8,
+                        child: Transform.rotate(
+                          angle: 0.035,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFB3CEAB).withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Card
+                      Transform.rotate(
+                        angle: -0.017,
+                        child: VisualCreditCard(
+                          brand: _detectBrand(_cardNumberController.text),
+                          last4: last4,
+                          expMonth: expMonth,
+                          expYear: expYear,
+                          cardholderName: _nameController.text,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // ── Card Number ──
                   MitablTextField(
                     controller: _cardNumberController,
                     label: 'Card Number',
-                    hint: '4242 4242 4242 4242',
+                    hint: '0000 0000 0000 0000',
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(16),
                       _CardNumberFormatter(),
                     ],
-                    prefixIcon: const Icon(Icons.credit_card,
-                        color: MitablColors.onSurfaceVariant),
+                    suffixIcon: const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(Icons.credit_card,
+                          color: Color(0xFF89726B)),
+                    ),
                   ),
+
                   const SizedBox(height: 16),
+
+                  // ── Expiry + CVC row ──
                   Row(
                     children: [
                       Expanded(
                         child: MitablTextField(
                           controller: _expiryController,
-                          label: 'Expiry',
-                          hint: 'MM/YY',
+                          label: 'Expiry Date',
+                          hint: 'MM / YY',
                           keyboardType: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
@@ -121,53 +224,133 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: MitablTextField(
                           controller: _cvcController,
-                          label: 'CVC',
-                          hint: '123',
+                          label: 'CVC / CVV',
+                          hint: '\u2022\u2022\u2022',
                           keyboardType: TextInputType.number,
                           obscureText: true,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(4),
                           ],
+                          suffixIcon: const Padding(
+                            padding: EdgeInsets.only(right: 12),
+                            child: Icon(Icons.help_outline,
+                                color: Color(0xFF89726B), size: 20),
+                          ),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 16),
+
+                  // ── Cardholder Name ──
                   MitablTextField(
                     controller: _nameController,
                     label: 'Cardholder Name',
-                    hint: 'John Doe',
+                    hint: 'e.g. Julian Casablancas',
                     keyboardType: TextInputType.name,
                     textInputAction: TextInputAction.done,
                   ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-            // Default checkbox
-            MitablCard(
-              child: Row(
-                children: [
-                  Checkbox(
-                    value: _setAsDefault,
-                    onChanged: (val) {
-                      setState(() => _setAsDefault = val ?? false);
+                  // ── Set as default checkbox ──
+                  GestureDetector(
+                    onTap: () {
+                      setState(() => _setAsDefault = !_setAsDefault);
                     },
-                    activeColor: MitablColors.primary,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: _setAsDefault
+                                ? const Color(0xFF4D6548)
+                                : MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(6),
+                            border: _setAsDefault
+                                ? null
+                                : Border.all(
+                                    color: MitablColors.outlineVariant,
+                                    width: 2,
+                                  ),
+                          ),
+                          child: _setAsDefault
+                              ? const Icon(Icons.check,
+                                  size: 16, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Set as default payment method',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: MitablColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Expanded(
-                    child: Text(
-                      'Set as default payment method',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: MitablColors.onSurface,
+
+                  const SizedBox(height: 28),
+
+                  // ── CTA Button ──
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: _isSaving
+                            ? null
+                            : MitablColors.primaryGradient,
+                        color: _isSaving
+                            ? MitablColors.tertiaryFixedDim
+                            : null,
+                        borderRadius: MitablRadius.pillBorder,
+                        boxShadow: _isSaving
+                            ? null
+                            : [
+                                BoxShadow(
+                                  color: MitablColors.primary
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: MitablRadius.pillBorder,
+                          onTap: _isSaving ? null : _saveCard,
+                          child: Center(
+                            child: _isSaving
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: MitablColors.onPrimary,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Save Card Securely',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: MitablColors.onPrimary,
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -175,37 +358,28 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 32),
 
-            // Security badge
+            // ── Trust Signals (bottom) ──
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.lock_outline,
-                  size: 16,
-                  color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
+                  Icons.verified_user,
+                  size: 14,
+                  color: MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Secured by Stripe',
+                  'ENCRYPTED CONNECTION',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w500,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2.0,
+                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
                 ),
               ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Save button
-            MitablButton(
-              label: 'Save Card Securely',
-              isLoading: _isSaving,
-              onPressed: _isSaving ? null : _saveCard,
-              icon: const Icon(Icons.lock, color: MitablColors.onPrimary, size: 18),
             ),
 
             const SizedBox(height: 32),

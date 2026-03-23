@@ -12,7 +12,6 @@ import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class MiOrdersPage extends StatefulWidget {
@@ -32,7 +31,6 @@ class _MiOrdersPageState extends State<MiOrdersPage>
     with SingleTickerProviderStateMixin {
   late final MiOrdersRepository _repository;
   late final bool _ownsRepository;
-  late final TabController _tabController;
 
   _ViewStatus _status = _ViewStatus.loading;
   String _errorMessage = 'Unable to fetch orders history';
@@ -41,14 +39,15 @@ class _MiOrdersPageState extends State<MiOrdersPage>
   bool _attemptedFoodieRecovery = false;
   bool _isCancellingOrder = false;
 
-  // Ongoing: status 2 (Requested), 3 (Confirmed), 5 (In Progress)
+  // Segmented control index: 0 = Ongoing, 1 = Past
+  int _selectedSegment = 0;
+
   List<Map<String, dynamic>> get _ongoingOrders =>
       _orders.where((o) {
         final s = '${o['status']}';
         return s == '2' || s == '3' || s == '5';
       }).toList();
 
-  // Past: status 0 (Cancelled by system), 1 (Completed), 4 (Cancelled by user)
   List<Map<String, dynamic>> get _pastOrders =>
       _orders.where((o) {
         final s = '${o['status']}';
@@ -58,7 +57,6 @@ class _MiOrdersPageState extends State<MiOrdersPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _repository = widget.repository ?? MiOrdersRepository();
     _ownsRepository = widget.repository == null;
     _load();
@@ -66,7 +64,6 @@ class _MiOrdersPageState extends State<MiOrdersPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
     if (_ownsRepository) {
       _repository.dispose();
     }
@@ -166,50 +163,190 @@ class _MiOrdersPageState extends State<MiOrdersPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: GlassAppBar(
-        title: const Text('My Orders'),
-        bottom: _status == _ViewStatus.loaded
-            ? TabBar(
-                controller: _tabController,
-                labelColor: MitablColors.primary,
-                unselectedLabelColor: MitablColors.onSurfaceVariant,
-                indicatorColor: MitablColors.primary,
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Nunito',
+      body: Column(
+        children: [
+          // Top app bar
+          Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              bottom: 16,
+              left: 24,
+              right: 24,
+            ),
+            decoration: BoxDecoration(
+              color: MitablColors.surface.withValues(alpha: 0.8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(
+                        Icons.menu,
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'miFoodi',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: MitablColors.primary,
+                        fontFamily: 'PlusJakartaSans',
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                // Profile avatar
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEBE8E3),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFFFDBD0),
+                      width: 2,
+                    ),
+                  ),
+                  child: const ClipOval(
+                    child: Center(
+                      child: Icon(
+                        Icons.person,
+                        color: MitablColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ),
-                tabs: [
-                  Tab(text: 'Ongoing (${_ongoingOrders.length})'),
-                  Tab(text: 'Past (${_pastOrders.length})'),
-                ],
-              )
-            : null,
+              ],
+            ),
+          ),
+
+          // Content
+          Expanded(
+            child: switch (_status) {
+              _ViewStatus.loading => const CommonProgressWidget(),
+              _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
+              _ViewStatus.forbidden => _SwitchToMifoodiCta(
+                onPressed: _switchToMifoodi,
+                isLoading: _switchingRole,
+              ),
+              _ViewStatus.serverError => _ServerErrorWidget(
+                message: _errorMessage,
+                onRetry: _load,
+              ),
+              _ViewStatus.loaded => _buildLoadedContent(),
+            },
+          ),
+        ],
       ),
-      body: switch (_status) {
-        _ViewStatus.loading => const CommonProgressWidget(),
-        _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
-        _ViewStatus.forbidden => _SwitchToMifoodiCta(
-          onPressed: _switchToMifoodi,
-          isLoading: _switchingRole,
+    );
+  }
+
+  Widget _buildLoadedContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'My Orders',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  color: MitablColors.onSurface,
+                  fontFamily: 'PlusJakartaSans',
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Track and manage your culinary journeys',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: MitablColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
-        _ViewStatus.serverError => _ServerErrorWidget(
-          message: _errorMessage,
-          onRetry: _load,
+        const SizedBox(height: 8),
+
+        // Segmented control (Ongoing / Past Orders)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: MitablColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                _buildSegmentButton('Ongoing', 0),
+                const SizedBox(width: 8),
+                _buildSegmentButton('Past Orders', 1),
+              ],
+            ),
+          ),
         ),
-        _ViewStatus.loaded => TabBarView(
-          controller: _tabController,
-          children: [
-            _buildOrderList(_ongoingOrders),
-            _buildOrderList(_pastOrders),
-          ],
+        const SizedBox(height: 16),
+
+        // Orders list
+        Expanded(
+          child: _selectedSegment == 0
+              ? _buildOrderList(_ongoingOrders)
+              : _buildOrderList(_pastOrders),
         ),
-      },
+      ],
+    );
+  }
+
+  Widget _buildSegmentButton(String label, int index) {
+    final isSelected = _selectedSegment == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedSegment = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? MitablColors.surfaceContainerLowest
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isSelected
+                    ? MitablColors.primary
+                    : MitablColors.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -222,12 +359,12 @@ class _MiOrdersPageState extends State<MiOrdersPage>
       onRefresh: _load,
       color: MitablColors.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         itemCount: orders.length,
         itemBuilder: (context, index) {
           final order = orders[index];
           return Padding(
-            padding: const EdgeInsets.only(bottom: MitablSpacing.listItem / 2),
+            padding: const EdgeInsets.only(bottom: 24),
             child: OrderCard(
               order: order,
               index: index,

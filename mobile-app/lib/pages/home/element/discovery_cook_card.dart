@@ -4,12 +4,15 @@ import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/model/near_by_restaurants_response.dart' as nb;
 import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 
-/// A vertical cook card used in the discovery feed.
-///
-/// Works with any restaurant/kitchen data by accepting common fields
-/// rather than binding to a specific model.
+/// Discovery cook card matching the HTML design:
+/// - rounded-[20px] bg-surface shadow-soft
+/// - h-[180px] hero image with badges (rating top-left, Trending/Vegan top-left)
+/// - Heart button top-right on image
+/// - Cook avatar top-RIGHT of content area (-top-6 right-4)
+/// - Kitchen name text-[22px] font-extrabold
+/// - Description text-sm text-muted
+/// - border-t bottom row with distance, time, price tier
 class DiscoveryCookCard extends StatelessWidget {
   const DiscoveryCookCard({
     super.key,
@@ -62,215 +65,324 @@ class DiscoveryCookCard extends StatelessWidget {
 
   String get _priceTierLabel {
     if (priceTier != null && priceTier!.isNotEmpty) return priceTier!;
-    // Default based on nothing
     return '\$\$';
   }
 
   @override
   Widget build(BuildContext context) {
-    return MitablCard(
-      padding: EdgeInsets.zero,
+    return GestureDetector(
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // -- Hero image with rating badge and heart button --
-          Stack(
-            children: [
-              // Image - 200px height per design
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(MitablRadius.card),
-                  topRight: Radius.circular(MitablRadius.card),
-                ),
-                child: _primaryImageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: _primaryImageUrl!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
-                          height: 200,
-                          color: MitablColors.surfaceContainerLow,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: MitablColors.primary,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFFCFAF8), // surface
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Hero image with badges and heart
+            SizedBox(
+              height: 180,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Image
+                  if (_primaryImageUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: _primaryImageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        color: MitablColors.surfaceContainerLow,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: MitablColors.primary,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => _imageFallback(),
+                    )
+                  else
+                    _imageFallback(),
+
+                  // Badges top-left
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Row(
+                      children: [
+                        // Rating badge
+                        if ((rating ?? 0) > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFCFAF8)
+                                  .withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: Color(0xFFD96C4A), // primary
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formattedRating,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF3E3129),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        errorWidget: (_, __, ___) => _imageFallback(),
-                      )
-                    : _imageFallback(),
-              ),
-
-              // Rating badge (top-LEFT) - semi-transparent dark pill with star
-              if ((rating ?? 0) > 0)
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: MitablColors.onSurface.withValues(alpha: 0.65),
-                      borderRadius: MitablRadius.pillBorder,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.star,
-                          size: 14,
-                          color: Colors.amber,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          _formattedRating,
-                          style: const TextStyle(
-                            color: MitablColors.onPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                        // "Trending" badge (shown for high-rated items)
+                        if ((rating ?? 0) >= 4.9) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD96C4A),
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const Text(
+                              'Trending',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
-                ),
 
-              // Heart icon button (top-right)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: onFavouriteToggle,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: MitablColors.surface.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isFavourited
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        size: 20,
-                        color: isFavourited
-                            ? MitablColors.error
-                            : MitablColors.onSurface,
+                  // Heart button top-right
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: onFavouriteToggle,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFCFAF8)
+                              .withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            isFavourited
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                            color: isFavourited
+                                ? MitablColors.error
+                                : const Color(0xFF3E3129),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-
-          // -- Cook name row --
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                color: MitablColors.onSurface,
-              ),
-            ),
-          ),
-
-          // -- Description --
-          if (description != null && description!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 12, right: 12, top: 4),
-              child: Text(
-                description!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  color: MitablColors.onSurfaceVariant,
-                ),
+                ],
               ),
             ),
 
-          // -- Bottom info row: Distance + Ready time + Price tier --
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            child: Row(
+            // Content area with cook avatar overlapping
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Distance
-                if (_formattedDistance.isNotEmpty) ...[
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 14,
-                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Kitchen name
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          color: const Color(0xFF3E3129),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Description
+                      if (description != null && description!.isNotEmpty)
+                        Text(
+                          description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF8D7A6F),
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      // Bottom info row with border-t
+                      Container(
+                        padding: const EdgeInsets.only(top: 12, bottom: 16),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: Color(0xFFF7F4EF), // background-light
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Distance
+                            if (_formattedDistance.isNotEmpty) ...[
+                              const Icon(
+                                Icons.directions_walk,
+                                size: 16,
+                                color: Color(0xFF8D7A6F),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formattedDistance,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF8D7A6F),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                '\u2022',
+                                style: TextStyle(
+                                  color: Color(0xFF8D7A6F),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            // Ready time
+                            const Icon(
+                              Icons.schedule,
+                              size: 16,
+                              color: Color(0xFF8D7A6F),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                readyTime != null && readyTime!.isNotEmpty
+                                    ? 'Ready $readyTime'
+                                    : 'Available today',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF8D7A6F),
+                                ),
+                              ),
+                            ),
+                            // Price tier
+                            Text(
+                              _priceTierLabel,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF3E3129),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 2),
-                  Text(
-                    _formattedDistance,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12,
-                      color: MitablColors.onSurfaceVariant,
+                ),
+
+                // Cook avatar overlapping top-right
+                Positioned(
+                  top: -24,
+                  right: 16,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLow,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFFCFAF8),
+                        width: 4,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-
-                // Ready time
-                if (readyTime != null && readyTime!.isNotEmpty) ...[
-                  Icon(
-                    Icons.access_time,
-                    size: 14,
-                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.7),
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    'Ready $readyTime',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12,
-                      color: MitablColors.onSurfaceVariant,
+                    child: const ClipOval(
+                      child: Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 24,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-
-                const Spacer(),
-
-                // Price tier
-                Text(
-                  _priceTierLabel,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: MitablColors.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _imageFallback() {
     return Container(
-      height: 200,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: MitablColors.surfaceContainerLow,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(MitablRadius.card),
-          topRight: Radius.circular(MitablRadius.card),
-        ),
-      ),
+      color: MitablColors.surfaceContainerLow,
       child: const Center(
         child: Icon(
           Icons.restaurant_menu,

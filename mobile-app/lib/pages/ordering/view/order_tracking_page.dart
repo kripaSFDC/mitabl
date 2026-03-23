@@ -11,10 +11,10 @@ import 'package:mitabl_user/pages/ordering/element/order_status_timeline.dart';
 import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
-import 'package:mitabl_user/widgets/design_tokens.dart';
-import 'package:mitabl_user/widgets/glass_app_bar.dart';
 
 /// Order tracking page that polls the order status every 15 seconds.
+/// Design: sticky header, aspect-video map, text-3xl heading,
+/// border-l-2 vertical stepper, cook card with photo + online dot + Message.
 class OrderTrackingPage extends StatefulWidget {
   const OrderTrackingPage({
     super.key,
@@ -49,7 +49,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
   Timer? _pollTimer;
   final MiOrdersRepository _repository = MiOrdersRepository();
 
-  // Default status: Requested (2)
   int _orderStatus = 2;
   String _cookLabel = 'Your cook';
   String _etaLabel = '...';
@@ -74,15 +73,12 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     super.dispose();
   }
 
-  /// Fetch individual order detail from v2/orders/{orderId}.
-  /// Falls back to the bulk list approach if the new endpoint fails.
   Future<void> _fetchOrderDetail() async {
     try {
       final userRepository = context.read<UserRepository>();
       final headers = await userRepository.authorizedHeaders();
       final targetId = widget.data.orderId;
 
-      // Try the new single-order endpoint first
       final uri = ApiContract.uri('v2/orders/$targetId');
       final response = await http
           .get(uri, headers: headers)
@@ -96,19 +92,16 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
         return;
       }
 
-      // Fallback: use the old bulk approach
       await _fetchOrderStatusFallback();
     } catch (_) {
-      // Try fallback on any error
       try {
         await _fetchOrderStatusFallback();
       } catch (_) {
-        // Silently fail on poll -- will retry next interval
+        // Silently fail on poll
       }
     }
   }
 
-  /// Fallback: scan order history list for matching order.
   Future<void> _fetchOrderStatusFallback() async {
     final userRepository = context.read<UserRepository>();
     final userModel =
@@ -141,7 +134,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
         ? rawStatus
         : int.tryParse(rawStatus?.toString() ?? '') ?? _orderStatus;
 
-    // Extract cook name from kitchen data
     final kitchen = order['mikitchn'];
     String cookName = _cookLabel;
     if (kitchen is Map<String, dynamic>) {
@@ -154,7 +146,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       }
     }
 
-    // Extract item summary from order items
     String itemSummary = _itemSummary;
     final items = order['items'] ?? order['order_items'];
     if (items is List && items.isNotEmpty) {
@@ -176,7 +167,6 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       _itemSummary = itemSummary;
     });
 
-    // Stop polling when order is completed or cancelled
     if (status == 1 || status == 0 || status == 4) {
       _pollTimer?.cancel();
     }
@@ -199,7 +189,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
 
   List<TimelineStepData> _buildTimelineSteps(int status) {
     switch (status) {
-      case 2: // Requested
+      case 2:
         return const [
           TimelineStepData(
             title: 'Order Placed',
@@ -222,15 +212,15 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             status: TimelineStepStatus.pending,
           ),
         ];
-      case 3: // Confirmed
+      case 3:
         return const [
           TimelineStepData(
-            title: 'Order Placed',
+            title: 'Order Accepted',
             subtitle: 'Your order has been confirmed',
             status: TimelineStepStatus.completed,
           ),
           TimelineStepData(
-            title: 'Order Confirmed',
+            title: 'Prep & Chopping',
             subtitle: 'Cook is getting ready',
             status: TimelineStepStatus.active,
           ),
@@ -245,21 +235,21 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             status: TimelineStepStatus.pending,
           ),
         ];
-      case 5: // In Progress
+      case 5:
         return const [
           TimelineStepData(
-            title: 'Order Placed',
+            title: 'Order Accepted',
             subtitle: 'Your order has been confirmed',
             status: TimelineStepStatus.completed,
           ),
           TimelineStepData(
-            title: 'Order Confirmed',
-            subtitle: 'Cook accepted your order',
+            title: 'Prep & Chopping',
+            subtitle: 'Ingredients prepared',
             status: TimelineStepStatus.completed,
           ),
           TimelineStepData(
             title: 'Cooking',
-            subtitle: 'Your meal is being cooked',
+            subtitle: 'Simmering the spices...',
             status: TimelineStepStatus.active,
           ),
           TimelineStepData(
@@ -268,16 +258,16 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             status: TimelineStepStatus.pending,
           ),
         ];
-      case 1: // Completed
+      case 1:
         return const [
           TimelineStepData(
-            title: 'Order Placed',
+            title: 'Order Accepted',
             subtitle: 'Your order was confirmed',
             status: TimelineStepStatus.completed,
           ),
           TimelineStepData(
-            title: 'Order Confirmed',
-            subtitle: 'Cook accepted your order',
+            title: 'Prep & Chopping',
+            subtitle: 'Ingredients prepared',
             status: TimelineStepStatus.completed,
           ),
           TimelineStepData(
@@ -291,7 +281,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
             status: TimelineStepStatus.completed,
           ),
         ];
-      default: // Cancelled or unknown
+      default:
         return const [
           TimelineStepData(
             title: 'Order Placed',
@@ -312,83 +302,181 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     final steps = _buildTimelineSteps(_orderStatus);
 
     return Scaffold(
-      backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Order Status')),
-      body: ListView(
-        padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+      backgroundColor: const Color(0xFFF8F6F6), // background-light
+      body: Column(
         children: [
-          // Map placeholder
+          // Sticky header
           Container(
-            height: 180,
-            decoration: const BoxDecoration(
-              color: MitablColors.surfaceContainerLow,
-              borderRadius: MitablRadius.cardBorder,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8,
+              bottom: 8,
+              left: 16,
+              right: 16,
             ),
-            child: Stack(
-              alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F6F6).withValues(alpha: 0.9),
+            ),
+            child: Row(
               children: [
-                const Icon(
-                  Icons.location_on,
-                  size: 48,
-                  color: MitablColors.onSurfaceVariant,
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
                     ),
-                    decoration: const BoxDecoration(
-                      color: MitablColors.primary,
-                      borderRadius: MitablRadius.pillBorder,
+                    child: const Center(
+                      child: Icon(Icons.arrow_back, size: 24),
                     ),
+                  ),
+                ),
+                const Expanded(
+                  child: Center(
                     child: Text(
-                      _etaLabel,
-                      style: const TextStyle(
-                        fontSize: 12,
+                      'Order Status',
+                      style: TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: MitablColors.onPrimary,
+                        letterSpacing: -0.3,
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(width: 48), // Spacer
               ],
             ),
           ),
-          const SizedBox(height: 24),
 
-          // Heading
-          Text(
-            '$_cookLabel is cooking your meal',
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: MitablColors.onSurface,
+          // Scrollable content
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                // Map placeholder (aspect-video)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0), // slate-200
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.map_outlined,
+                            size: 48,
+                            color: Color(0xFF94A3B8), // slate-400
+                          ),
+                          // ETA badge top-right
+                          Positioned(
+                            top: 16,
+                            right: 16,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8F6F6),
+                                borderRadius: BorderRadius.circular(100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.schedule,
+                                    size: 14,
+                                    color: Color(0xFFEF6034),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _etaLabel,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Dynamic status header - text-3xl centered
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  child: Column(
+                    children: [
+                      Text(
+                        '$_cookLabel is cooking your meal',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _itemSummary.isNotEmpty
+                            ? 'Order #${widget.data.orderId} \u00B7 $_itemSummary'
+                            : 'Order #${widget.data.orderId}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF64748B), // slate-500
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Vertical progress stepper
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  child: OrderStatusTimeline(steps: steps),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Cook contact card
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: CookContactCard(cookName: widget.data.kitchenName),
+                ),
+
+                const SizedBox(height: 32),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            _itemSummary.isNotEmpty
-                ? 'Order #${widget.data.orderId} \u00B7 $_itemSummary'
-                : 'Order #${widget.data.orderId}',
-            style: const TextStyle(
-              fontSize: 14,
-              color: MitablColors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Timeline
-          OrderStatusTimeline(steps: steps),
-          const SizedBox(height: 32),
-
-          // Cook contact card
-          CookContactCard(cookName: widget.data.kitchenName),
-
-          const SizedBox(height: 24),
         ],
       ),
     );

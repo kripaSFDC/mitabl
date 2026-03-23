@@ -13,7 +13,6 @@ import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/glass_app_bar.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
-import 'package:mitabl_user/widgets/mitabl_card.dart';
 
 class FavouritesPage extends StatefulWidget {
   const FavouritesPage({super.key, this.repository});
@@ -177,7 +176,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Saved Kitchens')),
+      appBar: const GlassAppBar(title: Text('miFoodi')),
       body: switch (_status) {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
@@ -192,65 +191,101 @@ class _FavouritesPageState extends State<FavouritesPage> {
         _ViewStatus.loaded =>
           _favourites.isEmpty
               ? const NoDataWidget()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(MitablSpacing.pagePadding),
-                  itemCount: _favourites.length + 1, // +1 for CTA at bottom
-                  itemBuilder: (context, index) {
-                    if (index == _favourites.length) {
-                      // "Looking for more?" CTA card
-                      return Padding(
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  color: MitablColors.primary,
+                  child: ListView(
+                    padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+                    children: [
+                      // ── Hero Section / Header Title ──
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Saved Kitchens',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                                fontFamily: 'Nunito',
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Your favorite neighborhood spots, all in one place.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── Favourites list ──
+                      ..._favourites.map((favourite) {
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: MitablSpacing.listItem / 2),
+                          child: FavouriteCookCard(
+                            favourite: favourite,
+                            onUnfavourite: () => _unfavourite(favourite),
+                          ),
+                        );
+                      }),
+
+                      // ── "Looking for more?" CTA card ──
+                      Padding(
                         padding: const EdgeInsets.only(
                           top: MitablSpacing.listItem / 2,
                           bottom: 32,
                         ),
-                        child: MitablCard(
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6DED1), // tertiary-fixed
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
                                 'Looking for more?',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
                                   color: MitablColors.onSurface,
                                   fontFamily: 'Nunito',
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               const Text(
-                                'Discover new kitchens near you',
+                                'Discover new kitchens in your neighborhood that match your taste preferences.',
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  color: MitablColors.onSurfaceVariant,
+                                  fontSize: 14,
+                                  color: Color(0xFF53443A),
                                 ),
                               ),
                               const SizedBox(height: 16),
                               MitablButton(
-                                label: 'Explore',
+                                label: 'Explore New',
                                 onPressed: () {
                                   Navigator.of(context)
                                       .pushNamed('/HomePage');
                                 },
                                 variant: MitablButtonVariant.primary,
                                 fullWidth: false,
-                                icon: const Icon(Icons.explore,
-                                    color: MitablColors.onPrimary, size: 18),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }
-
-                    final favourite = _favourites[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: MitablSpacing.listItem / 2),
-                      child: FavouriteCookCard(
-                        favourite: favourite,
-                        onUnfavourite: () => _unfavourite(favourite),
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
       },
     );
