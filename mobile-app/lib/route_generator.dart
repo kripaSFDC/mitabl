@@ -31,6 +31,7 @@ import 'package:mitabl_user/pages_cook/edit_kitchen_profile/view/edit_kitchen_pr
 import 'package:mitabl_user/pages_cook/edit_profile_cook/view/edit_profile_cook_page.dart';
 import 'package:mitabl_user/pages_cook/menu_detail/view/menu_detail.dart';
 import 'package:mitabl_user/pages_cook/requests/elements/order_details_view.dart';
+import 'package:mitabl_user/pages_cook/revenue_analytics/view/revenue_analytics_page.dart';
 import 'package:mitabl_user/pages_cook/settings_page/view/settings_page_cook.dart';
 import 'package:mitabl_user/pages_cook/upcoming_bookings/view/upcoming_bookings.dart';
 import 'package:mitabl_user/pages_cook/user_details_page/user_details.dart';
@@ -207,6 +208,9 @@ class RouteGenerator {
 
       case '/AddPaymentMethod':
         return AddPaymentMethodPage.route();
+
+      case '/RevenueAnalytics':
+        return RevenueAnalyticsPage.route(routeArguments: routeArguments);
 
       case '/Notifications':
         return NotificationsPage.route();

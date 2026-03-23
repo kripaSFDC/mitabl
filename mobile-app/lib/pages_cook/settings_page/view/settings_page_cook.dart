@@ -2,15 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
-import 'package:mitabl_user/helper/common_appbar.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/widgets/mitabl_card.dart';
+import 'package:mitabl_user/widgets/mitabl_chip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsCookPage extends StatefulWidget {
@@ -41,6 +42,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   bool _supportActionInFlight = false;
   bool _notificationsEnabled = true;
   bool _notificationsUpdating = false;
+  bool _emailNotificationsEnabled = true;
   bool _biometricEnabled = false;
   bool _deleteInFlight = false;
 
@@ -285,10 +287,11 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 ),
                 TextField(
                   controller: _replyController,
-                  decoration: const InputDecoration(labelText: 'Reply message'),
+                  decoration:
+                      const InputDecoration(labelText: 'Reply message'),
                   maxLines: 2,
                 ),
-                SizedBox(height: config.AppConfig(context).appHeight(2)),
+                const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -393,193 +396,282 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: const CommonAppBar(title: 'Settings', isFilter: false),
-        backgroundColor: const Color(0xFFFFFBF7),
-        body: Padding(
-          padding: EdgeInsets.only(
-            left: config.AppConfig(context).appWidth(3),
-            right: config.AppConfig(context).appWidth(3),
-          ),
-          child: Column(
-            children: [
-              SizedBox(height: config.AppConfig(context).appHeight(3)),
-              ListTile(
-                onTap: () {
-                  final routeId = widget.routeArguments?.id;
-                  if (routeId == 'foodie') {
-                    navigatorKey.currentState!.pushNamed('/EditProfileFoodie');
-                    return;
-                  }
-                  navigatorKey.currentState!.pushNamed('/ProfileCook');
-                },
-                minVerticalPadding: 0,
-                contentPadding: EdgeInsets.zero,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Stack(
+    return Scaffold(
+      backgroundColor: MitablColors.surface,
+      appBar: GlassAppBar(title: const Text('Settings')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(MitablSpacing.pagePadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Profile Header Card ──
+            MitablCard(
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: MitablColors.primaryContainer,
+                    child: Icon(
+                      Icons.person,
+                      size: 28,
+                      color: MitablColors.onPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: SvgPicture.asset(
-                            'assets/img/background.svg',
-                            height: config.AppConfig(context).appHeight(4.5),
+                        const Text(
+                          'Chef Profile',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                            fontFamily: 'Nunito',
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.center,
-                          widthFactor: 2,
-                          child: SvgPicture.asset(
-                            'assets/img/edit.svg',
-                            height: config.AppConfig(context).appHeight(2),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'chef@mitabl.com',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: MitablColors.onSurfaceVariant,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            MitablChip(
+                              label: 'ACTIVE',
+                              selected: true,
+                            ),
+                            const SizedBox(width: 8),
+                            MitablChip(
+                              label: 'PRO TIER',
+                              selected: false,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    SizedBox(width: config.AppConfig(context).appWidth(4)),
-                    Text(
-                      'Edit profile',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward,
-                  size: config.AppConfig(context).appWidth(6),
-                  color: Theme.of(context).primaryColorDark,
-                ),
+                  ),
+                ],
               ),
-              ListTile(
-                onTap: () {
-                  // navigatorKey.currentState!.pushNamed('/SettingsCook');
-                },
-                minVerticalPadding: 0,
-                contentPadding: EdgeInsets.zero,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset('assets/img/notification.svg'),
-                    SizedBox(width: config.AppConfig(context).appWidth(4)),
-                    Text(
-                      'Notification',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
-                        fontWeight: FontWeight.w400,
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Account Preferences ──
+            const Text(
+              'Account Preferences',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: MitablColors.onSurface,
+                fontFamily: 'Nunito',
+              ),
+            ),
+            const SizedBox(height: 8),
+            MitablCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.person_outline,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Personal Info'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: () {
+                      final routeId = widget.routeArguments?.id;
+                      if (routeId == 'foodie') {
+                        navigatorKey.currentState!
+                            .pushNamed('/EditProfileFoodie');
+                        return;
+                      }
+                      navigatorKey.currentState!.pushNamed('/ProfileCook');
+                    },
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.language,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Language'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: () {},
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.lock_outline,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Login & Security'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Notifications ──
+            const Text(
+              'Notifications',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: MitablColors.onSurface,
+                fontFamily: 'Nunito',
+              ),
+            ),
+            const SizedBox(height: 8),
+            MitablCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.notifications_outlined,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Push Notifications'),
+                    trailing: IgnorePointer(
+                      ignoring: _notificationsUpdating,
+                      child: Switch(
+                        value: _notificationsEnabled,
+                        activeTrackColor: MitablColors.accent,
+                        onChanged: _onNotificationChanged,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                trailing: SizedBox(
-                  width: config.AppConfig(context).appWidth(18),
-                  child: IgnorePointer(
-                    ignoring: _notificationsUpdating,
-                    child: Switch(
-                      value: _notificationsEnabled,
-                      inactiveTrackColor: Theme.of(context).primaryColorDark,
-                      onChanged: _onNotificationChanged,
                     ),
                   ),
-                ),
-              ),
-              ListTile(
-                minVerticalPadding: 0,
-                contentPadding: EdgeInsets.zero,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.fingerprint),
-                    SizedBox(width: config.AppConfig(context).appWidth(4)),
-                    Text(
-                      'Biometric lock',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.email_outlined,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Email Notifications'),
+                    trailing: Switch(
+                      value: _emailNotificationsEnabled,
+                      activeTrackColor: MitablColors.accent,
+                      onChanged: (v) =>
+                          setState(() => _emailNotificationsEnabled = v),
                     ),
-                  ],
-                ),
-                trailing: SizedBox(
-                  width: config.AppConfig(context).appWidth(18),
-                  child: Switch(
-                    value: _biometricEnabled,
-                    inactiveTrackColor: Theme.of(context).primaryColorDark,
-                    onChanged: _onBiometricChanged,
                   ),
-                ),
-              ),
-              ListTile(
-                onTap: () {
-                  _openSupportSheet();
-                },
-                minVerticalPadding: 0,
-                contentPadding: EdgeInsets.zero,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset('assets/img/delete.svg'),
-                    SizedBox(width: config.AppConfig(context).appWidth(4)),
-                    Text(
-                      'Help & Support',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.fingerprint,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Biometric Lock'),
+                    trailing: Switch(
+                      value: _biometricEnabled,
+                      activeTrackColor: MitablColors.accent,
+                      onChanged: _onBiometricChanged,
                     ),
-                  ],
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward,
-                  size: config.AppConfig(context).appWidth(6),
-                  color: Theme.of(context).primaryColorDark,
-                ),
+                  ),
+                ],
               ),
-              ListTile(
-                onTap: _deleteInFlight ? null : _onDeleteAccountTapped,
-                minVerticalPadding: 0,
-                contentPadding: EdgeInsets.zero,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SvgPicture.asset('assets/img/delete.svg'),
-                    SizedBox(width: config.AppConfig(context).appWidth(4)),
-                    Text(
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Support ──
+            const Text(
+              'Support',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: MitablColors.onSurface,
+                fontFamily: 'Nunito',
+              ),
+            ),
+            const SizedBox(height: 8),
+            MitablCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.help_outline,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Help Center'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: _openSupportSheet,
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.chat_bubble_outline,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Contact Us'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: _openSupportSheet,
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined,
+                        color: MitablColors.onSurfaceVariant),
+                    title: const Text('Privacy Policy'),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: MitablColors.onSurfaceVariant),
+                    onTap: () {},
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline,
+                        color: MitablColors.error),
+                    title: const Text(
                       'Delete Account',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: MitablColors.error),
                     ),
-                  ],
-                ),
-                trailing: _deleteInFlight
-                    ? SizedBox(
-                        width: config.AppConfig(context).appWidth(6),
-                        height: config.AppConfig(context).appWidth(6),
-                        child: const CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        Icons.arrow_forward,
-                        size: config.AppConfig(context).appWidth(6),
-                        color: Theme.of(context).primaryColorDark,
-                      ),
+                    trailing: _deleteInFlight
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.chevron_right,
+                            color: MitablColors.error),
+                    onTap: _deleteInFlight ? null : _onDeleteAccountTapped,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Save All Changes
+            MitablButton(
+              label: 'Save All Changes',
+              variant: MitablButtonVariant.primary,
+              onPressed: () {
+                _showSnackBar('Settings saved.');
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Log out
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  context
+                      .read<AuthenticationRepository>()
+                      .logOut();
+                },
+                child: const Text(
+                  'Log out',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: MitablColors.error,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
