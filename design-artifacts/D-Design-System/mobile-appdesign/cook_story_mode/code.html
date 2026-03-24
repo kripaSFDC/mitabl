@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-shadow {
+            box-shadow: 0 24px 40px -10px rgba(28, 28, 25, 0.06);
+        }
+        .glass-header {
+            background: rgba(252, 249, 244, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#fcf9f4",
+                        "surface-container-highest": "#e5e2dd",
+                        "secondary": "#4d6548",
+                        "outline": "#89726b",
+                        "on-tertiary-container": "#fffbff",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#ffb59f",
+                        "tertiary-container": "#837166",
+                        "secondary-container": "#cce7c3",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#31302d",
+                        "primary-fixed": "#ffdbd0",
+                        "on-secondary-fixed-variant": "#364c32",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb59f",
+                        "surface-container-low": "#f6f3ee",
+                        "surface": "#fcf9f4",
+                        "surface-tint": "#9f4122",
+                        "on-tertiary-fixed": "#251911",
+                        "on-tertiary-fixed-variant": "#53443a",
+                        "primary-container": "#bc5636",
+                        "surface-container": "#f0ede9",
+                        "secondary-fixed": "#cfeac6",
+                        "primary": "#9c3e20",
+                        "on-secondary-container": "#51694c",
+                        "tertiary-fixed": "#f6ded1",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#1c1c19",
+                        "surface-variant": "#e5e2dd",
+                        "on-secondary-fixed": "#0b200a",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#56423c",
+                        "outline-variant": "#ddc0b8",
+                        "on-surface": "#1c1c19",
+                        "tertiary-fixed-dim": "#d9c2b6",
+                        "surface-dim": "#dcdad5",
+                        "surface-bright": "#fcf9f4",
+                        "surface-container-high": "#ebe8e3",
+                        "on-primary-fixed": "#3a0a00",
+                        "on-primary-fixed-variant": "#802a0d",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "inverse-on-surface": "#f3f0eb",
+                        "tertiary": "#6a594e",
+                        "secondary-fixed-dim": "#b3ceab"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary-container">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#9c3e20] dark:text-[#d96c4a]">menu</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-xl tracking-tight text-[#9c3e20] dark:text-[#d96c4a]">The Culinary Atelier</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10">
+<img class="w-full h-full object-cover" data-alt="User profile photo of a smiling chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgMxQUCo5ab9cpZWt55b_Hj03VTwYUvgOS_kCkuCBihu7rlfcuGWa2pHI2YnJXuiB4NsGX7KhcDfQjA5EMCX9fvJL5PjpDYBuTIVzonDsxesp31QWqyIRFM_pKfGsuzo_-sG50rFAhFhtLl1H83GvZbsGnvYNX8-MwY2SbIeKM8IM1MzHxMj9EGORAHgWG__hvU4K5-shAkoLBf6DXVmDOpDV_ZZ6LgKNv5c0YRQbSczGi3TcTQy-criE1PWYTNNk0Ejfbpq5LpxL4"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-4xl mx-auto space-y-12">
+<!-- Hero Identity Section -->
+<section class="flex flex-col md:flex-row gap-8 items-start">
+<div class="relative w-full md:w-1/3 aspect-[4/5] rounded-lg overflow-hidden editorial-shadow rotate-[-2deg]">
+<img class="w-full h-full object-cover" data-alt="Professional cook in a warm sunlit kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZVbmDcPRc7jk1u3Sjdb1KqVP6ToKNp6AVydbjI8TVVFJSnu8t0Z2VVCNAwdX45W43PtVlukwNxaQp9aYeivLKvugbekf6MOC4GdA_1HIlMbd3kX-i-uX_vd-kUmhnKLDeXx7xEPIGq5IAH1QLgNeRewlnRZOmEv3Atiu45ifftWXPihaxVNM1t2eMOb7Jgz8PzYlqk2Pwbr7aXL2dS66PFjYsZNHIvabicuQrVoTLKf53s91KAHvasrcccnn6sTOfB6scVnxcPzrc"/>
+<div class="absolute bottom-4 left-4 bg-surface-container-lowest/90 backdrop-blur-sm px-4 py-2 rounded-full">
+<p class="text-primary font-headline font-bold text-sm tracking-wide">CHEF ELIAS</p>
+</div>
+</div>
+<div class="flex-1 space-y-6 pt-4">
+<div class="space-y-2">
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full uppercase tracking-wider">Lebanese grandmother recipes</span>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-bold rounded-full uppercase tracking-wider">Organic Gardener</span>
+</div>
+<h2 class="text-4xl font-headline font-extrabold text-on-surface tracking-tight leading-none">The Story of miCook</h2>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-lg">
+                    Food is the shortest bridge between two hearts. Growing up in the mountains of Lebanon, my grandmother taught me that a pinch of cumin is secondary to a gallon of love. My Atelier is a reflection of those sun-drenched afternoons, where every dish is a chapter of a heritage that spans generations.
+                </p>
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+<div class="flex-shrink-0 flex items-center gap-3 bg-surface-container-low px-5 py-3 rounded-full">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<div>
+<p class="text-xs font-bold uppercase text-on-surface-variant tracking-tighter">100 happy foodies</p>
+</div>
+</div>
+<div class="flex-shrink-0 flex items-center gap-3 bg-surface-container-low px-5 py-3 rounded-full">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">stars</span>
+<div>
+<p class="text-xs font-bold uppercase text-on-surface-variant tracking-tighter">Master of Spices</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Signature Dishes: Bento Grid -->
+<section class="space-y-6">
+<h3 class="text-2xl font-headline font-extrabold px-2">Signature Canvas</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="col-span-2 row-span-2 relative rounded-lg overflow-hidden group">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Platter of vibrant Mediterranean appetizers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4C0J7PGHIB52qKwQtYge_zVbcn7820QooiisSQS4d0UjuBzMHIxCM6qkGZCgzUP6Bbgo744LlgYjEr09_BbnjtMqSD069IVpomaDmvIyHa4NSEQshW431wlu038vgjy59wycLSqNupJovRHxto8Pwyk0qviBN4DjMXq_1pucQZ8T63j8PeM7uXVRuANaWMehDP7AUsfPJa2_wZSVLddgm2YAL9eu1cz8D1CqqSeLazRk2Z_OcZMfs_4_zzdfhnLU3jgQWy2zhp5QX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 to-transparent flex flex-col justify-end p-6">
+<span class="text-white/70 text-xs font-bold uppercase mb-1">Legacy Dish</span>
+<h4 class="text-white text-xl font-headline font-bold">Heirloom Hummus Trio</h4>
+</div>
+</div>
+<div class="col-span-2 aspect-video relative rounded-lg overflow-hidden group">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close up of perfectly grilled sea bass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBT7pZ_2vfsSj_cRpXbe5QI2gL2sj1mz-gAU3-mU3MPoDJ0L6KNwtlfBgUL70ATGAa-9N2hVWxtxvcIu0Uxq_HYLZjlQasMqkUJckGXSufvNso4ZgsL8xn6V_Ckjn4l2LyPNkC-_QzZ-yl2E-JlqStK3QQ1SlaG05xhXz1QcOhzZONdd3WSEjtWHMgdk1srpgCA_GG7krkqyAXtAHVi6KjjnrW3zEweacEtREzahDqCrADm2SAcVblhCGc0GaTcGGeD9kaLssihTyr"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/60 to-transparent flex flex-col justify-end p-4">
+<h4 class="text-white font-headline font-bold">Cedar-Smoked Sea Bass</h4>
+</div>
+</div>
+<div class="col-span-1 aspect-square relative rounded-lg overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Fresh herb salad with vibrant dressing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXkFNoqKENnzxms1I45z4V0FM1KgN2-qkaCJu_du-wYjFeWqaAxl839bVSPbpcILwzh-vGvqrdm_eTjAGEz-TA-6BcQnyDfdSnVcy_icwxGDWNd2_aic2TjNuu0zjFwJohOmhdgy4E61qef2ySMzrwHdV-9anr_txlMyXxTDXMoxGQ8Gm6e5suTp-mvZghE8XBUShM79mLizxWT9NCwZhNavZI0BkKpd3jxC1f6FKamMjlTkNtBlBD1Jq34k_5vvIBIkr6jekVlsvG"/>
+<div class="absolute inset-0 bg-on-surface/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl">add</span>
+</div>
+</div>
+<div class="col-span-1 aspect-square relative rounded-lg overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Golden crispy falafel balls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhWyX1gyWJBeS2E-GiK8-aDc1EwqrZTcaKqCOfx486zplNnwBXQLQEd0uc3JP2j4P8Ueu_hse8lT62afG1aoIEa1hLvXgFPhJlOVEiMgY2P-SVxcb-Y4vBx4lfX4dudHt3ZWP_C5lRZhON5hM_VTuz58XL7Ixs7c-qhXiZwANgMS1Ey97STDvGEO21M_mZpKpJ7voMW8Pp87vRB_H7n3PVzMC3qLzeJlu4ijh4nWI3OGsFwewPPG26A0leZK-iNH_DdM8U3KadDdhb"/>
+<div class="absolute inset-0 bg-on-surface/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl">add</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Kitchen & Garden Gallery: Overlapping Layout -->
+<section class="bg-surface-container-low -mx-4 px-4 py-16 rounded-xl space-y-8">
+<div class="text-center space-y-2 max-w-lg mx-auto">
+<h3 class="text-3xl font-headline font-extrabold text-on-surface">The Atelier's Soul</h3>
+<p class="text-on-surface-variant">Where the ingredients meet the earth and the flame.</p>
+</div>
+<div class="relative h-[400px] md:h-[500px]">
+<!-- Main Garden Image -->
+<div class="absolute left-0 top-0 w-3/4 h-[300px] md:h-[400px] rounded-lg overflow-hidden editorial-shadow z-10">
+<img class="w-full h-full object-cover" data-alt="Lush vegetable garden at sunrise" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOig1djF88Emc4hkS8PVccOF7p6bb0DF_gznx46yuFLb9Bjgkwbkc7jtsNfIYDlzFyhxecve_ZMr0F9KEuPRLPGgQ6LijKF_ArFxFzadvFMiMZKcY31aGCREXNfJsEA8Z-4aoslXE0i0RiAB1wEfW0rZsxfHQvwk_3pOrLjZnEBzggzS7RlXwyr2LXWPtZyfJDs9Mv-_vSD8EuGM7Ko02FQDZchQ8d-yMFrr5xzxGIBoJyANInvAa2EOJiIr8xd8YFPEDTMSQffFqj"/>
+</div>
+<!-- Overlapping Kitchen Detail -->
+<div class="absolute right-0 bottom-0 w-1/2 h-[200px] md:h-[300px] rounded-lg overflow-hidden editorial-shadow z-20 border-8 border-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Rustic kitchen counter with fresh herbs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwjc1O9d-SBvFJ89uXt9WcD1CitV_JMItCbqZbl9qtv8lzf9L0_pbDSYu-YVKZBeIyFfkW1vUYpzxcxOuuBDVNraWXQTQoB-Uac5QNGMLwnO2Uf9HR2jLozCJFzn-2A3emCLwoqbqj1p4m9TNzpkUrTapVT6L9ACkyDIYBI-sX0R_pLt-JJWM-5ggu7JmfgMeT_DiaMUUk-SuMXq1fycWJI0A27gqJBo358wcn0pesC1psL5OeHJgcvMrk91x4ujdnH8M2sD-UBc4c"/>
+</div>
+<!-- Small Floating Detail -->
+<div class="absolute left-1/4 -bottom-4 w-32 h-32 rounded-full overflow-hidden editorial-shadow z-30 border-4 border-surface-container-low hidden md:block">
+<img class="w-full h-full object-cover" data-alt="Extreme close up of fresh mint leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj4UwHADkN6DFxeDPPBuJEehtqx0QFzyBDXA6tBVnn4Qbqp4EQVK-M-4dl5HF06ghM0ONOGZEpaNaY_357GymVuZiXHZ9gA-igmvEWA-hMGYW9MvSE095Nbg9HHjYrnc7gT55fOWJ8pCtqzW_u05m6QhHOCBRdBdoPdl8Y_6CjZZK__OsjR6h6DwAA-qazU_Bg7qc5XVrjz9gwyaZMxEHq-iF_tA1wgQDn7pKf02MRNj7_ETde8HZQjLi3oDOKLD_q2-ltl0i3AtZI"/>
+</div>
+</div>
+</section>
+<!-- Heritage Quote -->
+<section class="py-12 flex flex-col items-center text-center space-y-6">
+<span class="material-symbols-outlined text-primary-container text-5xl opacity-40">format_quote</span>
+<blockquote class="text-2xl font-headline font-bold text-on-surface max-w-2xl leading-tight">
+                "In my garden, the soil speaks Arabic. In my kitchen, the fire speaks the language of welcome."
+            </blockquote>
+<div class="w-12 h-1 bg-primary/20 rounded-full"></div>
+</section>
+</main>
+<!-- Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)] md:hidden">
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="outdoor_grill">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+<!-- Desktop Sidebar/Nav Placeholder for layout consistency -->
+<div class="hidden md:flex fixed top-0 right-0 h-full w-24 flex-col items-center py-20 gap-10 bg-surface-container-low border-l border-outline-variant/10 z-40">
+<div class="text-on-surface-variant/40 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-3xl">restaurant_menu</span>
+</div>
+<div class="text-on-surface-variant/40 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-3xl">auto_stories</span>
+</div>
+<div class="text-on-surface-variant/40 hover:text-primary cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-3xl">group</span>
+</div>
+<div class="text-primary cursor-pointer">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+</div>
+</body></html>

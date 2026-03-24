@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Group Order - Culinary Atelier</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-bright": "#fcf9f4",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-surface": "#31302d",
+                        "surface-container": "#f0ede9",
+                        "secondary": "#4d6548",
+                        "on-surface-variant": "#56423c",
+                        "tertiary": "#6a594e",
+                        "on-tertiary-fixed-variant": "#53443a",
+                        "background": "#fcf9f4",
+                        "surface-container-highest": "#e5e2dd",
+                        "surface-container-high": "#ebe8e3",
+                        "on-secondary-container": "#51694c",
+                        "tertiary-fixed": "#f6ded1",
+                        "on-primary-fixed-variant": "#802a0d",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#b3ceab",
+                        "surface-tint": "#9f4122",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#ffdbd0",
+                        "primary": "#9c3e20",
+                        "tertiary-fixed-dim": "#d9c2b6",
+                        "outline": "#89726b",
+                        "on-primary-fixed": "#3a0a00",
+                        "on-error-container": "#93000a",
+                        "surface": "#fcf9f4",
+                        "on-surface": "#1c1c19",
+                        "on-background": "#1c1c19",
+                        "surface-container-low": "#f6f3ee",
+                        "on-secondary-fixed": "#0b200a",
+                        "inverse-primary": "#ffb59f",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#dcdad5",
+                        "surface-variant": "#e5e2dd",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#ddc0b8",
+                        "on-secondary-fixed-variant": "#364c32",
+                        "secondary-container": "#cce7c3",
+                        "on-tertiary-fixed": "#251911",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb59f",
+                        "on-primary-container": "#fffbff",
+                        "inverse-on-surface": "#f3f0eb",
+                        "tertiary-container": "#837166",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#cfeac6",
+                        "primary-container": "#bc5636"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1.25rem", /* 20px per design system */
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #fcf9f4;
+            color: #1c1c19;
+        }
+        .text-headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#f6f3ee] transition-colors">
+<span class="material-symbols-outlined text-[#56423c]">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl text-[#9c3e20] tracking-tight">Group Order</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Professional male user profile photo portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcbNlfNf-xuRHXua60RsnJRrw_Vc5G4mozDHUYdCNs8Y0WfYgAKIdkwzazoI-QTtd9-LNQ5JndpJJxPwu7bcsTzDEzhEupNVwyIUlxEtpiWCSXAn5L7YWVc96NZxQ23zh0VcT98vXLxjOzs3aFhtl7MKEP5Z0XBjkNClXpYZh8ywROU-ANUhGpclko4NG1dmhoqgb40sZuRkmHKlORDdJynn1VcL1nsO3aJhaOTwDfiJADSt3IvtT6I1tlOezmHOK6HOBZkcqQ4Pw5"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Share Link Section: Bento Style -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<div class="md:col-span-12 bg-surface-container-low rounded-lg p-6 relative overflow-hidden">
+<!-- Decorative herb leaf as per design system -->
+<div class="absolute -right-4 -top-4 opacity-10 rotate-45 select-none pointer-events-none">
+<span class="material-symbols-outlined text-[120px]">eco</span>
+</div>
+<div class="relative z-10 space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">groups</span>
+<h2 class="text-on-surface font-bold text-lg">Invite the Culinary Circle</h2>
+</div>
+<p class="text-on-surface-variant text-sm max-w-md">Share this link with your friends. Once they join, you'll see their selections appear in real-time.</p>
+<div class="flex flex-col sm:flex-row gap-3 mt-4">
+<div class="flex-grow bg-surface-container-lowest border border-outline-variant/15 rounded-full px-5 py-3 flex items-center justify-between">
+<span class="text-sm font-medium text-secondary truncate mr-4">mifoodies.app/group/atelier-7742</span>
+<span class="material-symbols-outlined text-outline text-sm">link</span>
+</div>
+<button class="bg-secondary text-on-secondary px-8 py-3 rounded-full font-bold text-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm">
+                            Copy Link
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Participants Section: Tonal Layering -->
+<section class="space-y-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-headline font-extrabold text-xl text-on-surface">At the Table <span class="text-secondary font-medium ml-1">3</span></h3>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Active Now</span>
+</div>
+<div class="space-y-3">
+<!-- Leader (Self) -->
+<div class="bg-surface-container-lowest rounded-lg p-5 flex flex-col gap-4 border border-outline-variant/15">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Host avatar" class="w-12 h-12 rounded-full object-cover" data-alt="User profile photo of the group host" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3EKAuHhB2BHFaqiJc1fUzY2HaczuzYI6BAlrZC2uS2EEsspsSgvPJk_RxX9IjozvVYp7A0CDzsnijrzWPMg4c4LYCQIasaRg7GWvxO_zqPl-CrBJrmeirdmiyLBF0hBoIe25mGgoQmqc3_LxwnVNVdgKYJpyUVXkkZYsOpTrvmZ_n8C9KwMaEDpWPbbHu44cUQLS5VnH-4horydcJkJuWvheZwY93Gjt-KJMyDzJKv17cEIvRYiVKBibzdUnnKL6sSerazz9ozKDr"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter">Host</div>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Julian M. (You)</h4>
+<p class="text-xs text-on-surface-variant">2 items • Ready to order</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex flex-wrap gap-2 pt-2 border-t border-surface-container">
+<div class="bg-surface-container-low px-4 py-2 rounded-lg flex items-center justify-between group flex-grow max-w-[280px]">
+<span class="text-sm text-on-surface">Truffle Risotto</span>
+<span class="text-xs font-bold text-primary">$24.00</span>
+</div>
+<div class="bg-surface-container-low px-4 py-2 rounded-lg flex items-center justify-between group flex-grow max-w-[280px]">
+<span class="text-sm text-on-surface">Burrata Caprese</span>
+<span class="text-xs font-bold text-primary">$18.50</span>
+</div>
+</div>
+</div>
+<!-- Participant 1 -->
+<div class="bg-surface-container-low/60 rounded-lg p-5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<img alt="Elena's avatar" class="w-12 h-12 rounded-full object-cover" data-alt="Profile photo of a woman smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7YvDF-eiXgugPeRn59iRCrYi_nooXbYduVAO_yNaGVU-ISBZcUyevcpzLp58MJYm2jYexAQQMleJ75wF_aVnqJAETtUyLXxoPedrRrWgk-V4J4NC05WG6zHAxMbC4_mk1nksMWqFUtz731GuTxEvJef1mpLyZHAVRV-Ehr3ON1rfzbGJ_bJYtppqGBhwz0sag962aoMMGw6-UjQAB87mJecq9upPxSGXQFJknBfRXAnwH4Dyo9zn0Gr_yDYvrcccpXfTsO-1aIINf"/>
+<div>
+<h4 class="font-bold text-on-surface">Elena S.</h4>
+<p class="text-xs text-on-surface-variant">1 item • Still browsing...</p>
+</div>
+</div>
+<div class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim animate-pulse"></div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2">
+<div class="bg-surface-container-lowest px-4 py-2 rounded-lg flex items-center justify-between group flex-grow max-w-[280px]">
+<span class="text-sm text-on-surface">Charred Octopus</span>
+<span class="text-xs font-bold text-primary">$21.00</span>
+</div>
+</div>
+</div>
+<!-- Participant 2 -->
+<div class="bg-surface-container-low/60 rounded-lg p-5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">person</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Marcus K.</h4>
+<p class="text-xs text-on-surface-variant">Empty Plate</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Order Summary Card -->
+<section class="bg-surface-container-highest/30 rounded-lg p-6 space-y-4">
+<h3 class="text-headline font-extrabold text-lg text-on-surface">Shared Bill</h3>
+<div class="space-y-2">
+<div class="flex justify-between text-sm text-on-surface-variant">
+<span>Subtotal (3 items)</span>
+<span class="text-on-surface font-medium">$63.50</span>
+</div>
+<div class="flex justify-between text-sm text-on-surface-variant">
+<span>Delivery &amp; Service Fee</span>
+<span class="text-on-surface font-medium">$5.99</span>
+</div>
+<div class="pt-4 flex justify-between items-end border-t border-outline-variant/20">
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Estimated Total</p>
+<p class="text-2xl font-['Plus_Jakarta_Sans'] font-extrabold text-primary">$69.49</p>
+</div>
+<div class="text-right">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase">Community Discount -$2.00</span>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Action Area -->
+<div class="flex flex-col gap-4">
+<div class="flex items-start gap-3 p-4 bg-tertiary-fixed-dim/20 rounded-lg">
+<span class="material-symbols-outlined text-tertiary mt-0.5">info</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-relaxed">As the Host, you will review and finalize the order once everyone is ready. Locking the cart prevents further additions.</p>
+</div>
+<button class="w-full bg-primary text-on-primary py-5 rounded-full font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">lock</span>
+                Lock &amp; Place Order
+            </button>
+<button class="w-full bg-transparent text-secondary py-3 font-bold text-sm hover:bg-secondary/5 transition-colors">
+                Cancel Group Order
+            </button>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-[#fcf9f4]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)] z-50">
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Stories</span>
+</a>
+<div class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full p-3 mb-1 scale-90">
+<span class="material-symbols-outlined" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Table</span>
+</div>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="skillet">skillet</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Cook</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

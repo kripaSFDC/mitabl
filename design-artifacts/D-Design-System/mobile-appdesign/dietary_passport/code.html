@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dietary Passport | The Culinary Atelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "secondary": "#4d6548",
+              "outline": "#89726b",
+              "on-tertiary-container": "#fffbff",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#ffb59f",
+              "tertiary-container": "#837166",
+              "secondary-container": "#cce7c3",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#31302d",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-low": "#f6f3ee",
+              "surface": "#fcf9f4",
+              "surface-tint": "#9f4122",
+              "on-tertiary-fixed": "#251911",
+              "on-tertiary-fixed-variant": "#53443a",
+              "primary-container": "#bc5636",
+              "surface-container": "#f0ede9",
+              "secondary-fixed": "#cfeac6",
+              "primary": "#9c3e20",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed": "#f6ded1",
+              "surface-container-lowest": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-variant": "#e5e2dd",
+              "on-secondary-fixed": "#0b200a",
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#56423c",
+              "outline-variant": "#ddc0b8",
+              "on-surface": "#1c1c19",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "surface-dim": "#dcdad5",
+              "surface-bright": "#fcf9f4",
+              "surface-container-high": "#ebe8e3",
+              "on-primary-fixed": "#3a0a00",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary": "#ffffff",
+              "on-primary-container": "#fffbff",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary": "#6a594e",
+              "secondary-fixed-dim": "#b3ceab"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<button class="text-[#9c3e20] active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="text-xl font-extrabold tracking-tight text-[#9c3e20] font-headline">The Culinary Atelier</span>
+</div>
+<div class="h-10 w-10 rounded-full overflow-hidden bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="User profile photo showing a friendly face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzfGXw8AoptepnjmMrxPJ7cZX2jlFDeDZmQwh0rZIA5Oho8CZ--Z11jOILdkihBxXCLyiUwpZ5ArLwOGCHIZDtZLR4cKjYsLOsOn_T3wkN-C3ZYTa24ktJVkKeTFaR0VFNNFRnD-r_8Tx18fctY2d8TD2l2VPTd4_Nhw3rGh-LTjw5Ax3Ti-LvbKww3i6Adr2r8viiSOVhvCor_-p64O_41rnf_K-Y8nG7gEUY9vab7w_v17112d9_8DZ5pF7lMvYE4UQ7Pc0Ua47G"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Hero Section -->
+<section class="mb-12">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full mb-6">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-xs font-bold tracking-wider uppercase font-label">miFoodie Passport</span>
+</div>
+<h1 class="text-5xl font-extrabold text-on-surface leading-tight mb-4">Craft your culinary identity.</h1>
+<p class="text-lg text-on-surface-variant max-w-md leading-relaxed">Your dietary passport ensures every recipe and restaurant we recommend feels like it was made just for you.</p>
+</section>
+<!-- Bento Grid Settings -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+<!-- Dietary Preferences Card -->
+<div class="bg-surface-container-low p-8 rounded-lg flex flex-col gap-6 col-span-1 md:col-span-2">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-2xl font-bold text-on-surface">Lifestyles</h2>
+<p class="text-on-surface-variant text-sm">Choose your primary dining philosophy.</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="px-6 py-3 rounded-full bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="eco">eco</span>
+                        Vegan
+                    </button>
+<button class="px-6 py-3 rounded-full bg-surface-container-lowest text-on-surface-variant font-medium border-transparent hover:bg-surface-container-high transition-colors flex items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="spa">spa</span>
+                        Vegetarian
+                    </button>
+<button class="px-6 py-3 rounded-full bg-surface-container-lowest text-on-surface-variant font-medium transition-colors flex items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="set_meal">set_meal</span>
+                        Pescatarian
+                    </button>
+<button class="px-6 py-3 rounded-full bg-secondary-container text-on-secondary-container font-bold flex items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="nutrition">nutrition</span>
+                        Keto
+                    </button>
+<button class="px-6 py-3 rounded-full bg-surface-container-lowest text-on-surface-variant font-medium transition-colors flex items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="fitness_center">fitness_center</span>
+                        Paleo
+                    </button>
+</div>
+</div>
+<!-- Allergies & Intolerances -->
+<div class="bg-surface-container-high p-8 rounded-lg flex flex-col gap-6">
+<div>
+<h2 class="text-2xl font-bold text-on-surface">Intolerances</h2>
+<p class="text-on-surface-variant text-sm">What should we keep off the menu?</p>
+</div>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="grain">grain</span>
+<span class="font-bold text-on-surface">Gluten-free</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-xs" data-icon="check">check</span>
+</div>
+</label>
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg cursor-pointer opacity-60">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="water_drop">water_drop</span>
+<span class="font-medium text-on-surface">Dairy-free</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant"></div>
+</label>
+<label class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg cursor-pointer opacity-60">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="bakery_dining">bakery_dining</span>
+<span class="font-medium text-on-surface">Soy-free</span>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant"></div>
+</label>
+</div>
+</div>
+<!-- Allergies Specific -->
+<div class="bg-surface-container-highest p-8 rounded-lg flex flex-col gap-6 overflow-hidden relative">
+<div class="z-10">
+<h2 class="text-2xl font-bold text-on-surface">Allergies</h2>
+<p class="text-on-surface-variant text-sm">Strict exclusions only.</p>
+</div>
+<div class="z-10 grid grid-cols-2 gap-2">
+<div class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-lg" data-icon="pest_control_rodent" style="font-variation-settings: 'FILL' 1;">pest_control_rodent</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Peanuts</span>
+</div>
+<div class="p-3 bg-error-container text-on-error-container rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="cancel" style="font-variation-settings: 'FILL' 1;">cancel</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Shellfish</span>
+</div>
+<div class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="egg">egg</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Eggs</span>
+</div>
+<div class="p-3 bg-surface-container-lowest rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="grass">grass</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Tree Nuts</span>
+</div>
+</div>
+<!-- Abstract visual element for texture -->
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="flex flex-col gap-4">
+<button class="w-full py-5 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-lg font-bold shadow-xl shadow-primary/30 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+                Save to Passport
+            </button>
+<button class="w-full py-4 rounded-full text-on-surface-variant font-semibold hover:bg-surface-container-low transition-colors">
+                Skip for now
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="auto_stories">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="outdoor_grill">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</div>
+<!-- Active Tab: Profile/Settings -->
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] text-[#51694c] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

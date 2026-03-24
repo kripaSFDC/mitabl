@@ -1,22 +1,24 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
-import 'package:mitabl_user/pages/home/element/filter_dialog.dart';
-import 'package:mitabl_user/pages/home/element/near_by_restaurant.dart';
-import 'package:mitabl_user/pages/home/element/recomm_rest_widget.dart';
-import 'package:mitabl_user/pages/home/element/top_rated.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/cooking_style.dart';
+import 'package:mitabl_user/model/near_by_restaurants_response.dart';
+import 'package:mitabl_user/pages/home/cubit/home_cubit.dart';
+import 'package:mitabl_user/pages/home/element/discovery_category_pills.dart';
+import 'package:mitabl_user/pages/home/element/discovery_cook_card.dart';
+import 'package:mitabl_user/pages/home/view/search_filters_page.dart';
+import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/cook_repository.dart';
+import 'package:mitabl_user/repos/favourites_repository.dart';
 import 'package:mitabl_user/repos/home_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,10 +61,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePage extends State<HomePage> {
   late final ScrollController _scrollController;
+  late final FavouritesRepository _favouritesRepository;
+  final Set<int> _favouritedIds = {};
 
   @override
   void initState() {
     _scrollController = ScrollController()..addListener(_handleScroll);
+    _favouritesRepository = FavouritesRepository();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     context.read<ProfileFoodieCubit>().getFoodieProfile();
     super.initState();
@@ -83,430 +88,489 @@ class _HomePage extends State<HomePage> {
     _scrollController
       ..removeListener(_handleScroll)
       ..dispose();
+    _favouritesRepository.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleFavourite(int kitchenId) async {
+    final wasAlreadyFavourited = _favouritedIds.contains(kitchenId);
+    setState(() {
+      if (wasAlreadyFavourited) {
+        _favouritedIds.remove(kitchenId);
+      } else {
+        _favouritedIds.add(kitchenId);
+      }
+    });
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      await _favouritesRepository.toggleFavourite(
+        userModel: userModel,
+        targetId: kitchenId.toString(),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        if (wasAlreadyFavourited) {
+          _favouritedIds.add(kitchenId);
+        } else {
+          _favouritedIds.remove(kitchenId);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to update favourites right now.'),
+        ),
+      );
+    }
+  }
+
+  String _greetingLabel() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  }
+
+  String _firstName(BuildContext context) {
+    try {
+      final profileState = context.read<ProfileFoodieCubit>().state;
+      final name = profileState.firstName?.value;
+      if (name != null && name.isNotEmpty) return name;
+    } catch (_) {
+      // ProfileFoodieCubit might not be available yet
+    }
+    return '';
+  }
+
+  void _navigateToOrderMenu(BuildContext context, int kitchenId) {
+    Navigator.of(context).pushNamed(
+      '/OrderMenu',
+      arguments: RouteArguments(
+        data: OrderRouteData(kitchenId: kitchenId),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F4EF), // background-light
       body: BlocConsumer<HomeCubit, HomeState>(
-        builder: (context, state) {
-          return Container(
-            color: config.AppColors().scaffoldColor(1),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(2),
-              ),
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: config.AppConfig(context).appHeight(1),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Row(
-                      children: [
-                        const Expanded(child: _LocationInput()),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: 'Open profile',
-                              onPressed: () => Navigator.of(
-                                context,
-                              ).pushNamed('/ProfileFoodie'),
-                              icon: Icon(
-                                Icons.person_outline,
-                                color: Theme.of(context).primaryColorDark,
-                                size: config.AppConfig(context).appWidth(6),
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Open filters',
-                              onPressed: () => showDialog(
-                                context: context,
-                                builder: (contexts) {
-                                  return BlocProvider.value(
-                                    value: context.read<HomeCubit>(),
-                                    child: const FilterDialog(),
-                                  );
-                                },
-                              ),
-                              icon: SvgPicture.asset(
-                                'assets/img/filter.svg',
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(2.0),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: _AccountActionsBanner(
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/ProfileFoodie'),
-                    ),
-                  ),
-                  const _SectionTitle(title: 'mitabl recommended'),
-                  SliverToBoxAdapter(
-                    child: state.statusRecommRes!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusRecommRes!.isSubmissionFailure &&
-                              (state
-                                      .recommendedRestResponse
-                                      ?.recommendedResturantList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onRecommendedRestaurants,
-                          )
-                        : (() {
-                            final recommendedItems =
-                                state
-                                    .recommendedRestResponse
-                                    ?.recommendedResturantList ??
-                                const [];
-                            if (recommendedItems.isEmpty &&
-                                state.statusRecommRes!.isSubmissionSuccess) {
-                              return const SizedBox.shrink();
-                            }
-                            return CarouselSlider(
-                              options: CarouselOptions(
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(28.0),
-                                initialPage: 0,
-                                aspectRatio: 2.0,
-                                enableInfiniteScroll: true,
-                                autoPlay: recommendedItems.length > 1,
-                                autoPlayInterval: const Duration(seconds: 3),
-                                autoPlayAnimationDuration: const Duration(
-                                  milliseconds: 1000,
-                                ),
-                                enlargeCenterPage: true,
-                                autoPlayCurve: Curves.fastOutSlowIn,
-                              ),
-                              items: recommendedItems
-                                  .map(
-                                    (item) => RecommendedRestWidget(
-                                      recommendedResturant: item,
-                                    ),
-                                  )
-                                  .toList(),
-                            );
-                          })(),
-                  ),
-                  const _SectionTitle(title: 'top rated restaurants'),
-                  SliverToBoxAdapter(
-                    child: state.statusTopRes!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusTopRes!.isSubmissionFailure &&
-                              (state
-                                      .topReatedRestResponse
-                                      ?.data
-                                      ?.topReatedRestList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onTopratedRestaurants,
-                          )
-                        : TopRatedWidget(
-                            canLoadMore: state.hasMoreTopRated,
-                            isLoadingMore: state.isLoadingMoreTopRated,
-                            onLoadMore: context
-                                .read<HomeCubit>()
-                                .loadMoreTopRated,
-                            topReatedRestList: state
-                                .topReatedRestResponse
-                                ?.data
-                                ?.topReatedRestList,
-                          ),
-                  ),
-                  const _SectionTitle(title: 'micook near my location'),
-                  SliverToBoxAdapter(
-                    child: state.statusApi!.isSubmissionInProgress
-                        ? Center(
-                            child: CupertinoActivityIndicator(
-                              color: config.AppColors().hintTextBackgroundColor(
-                                1,
-                              ),
-                            ),
-                          )
-                        : state.statusApi!.isSubmissionFailure &&
-                              (state
-                                      .nearByRestaurants
-                                      ?.data
-                                      ?.nearByRestaurantsList
-                                      ?.isEmpty ??
-                                  true)
-                        ? OfflineErrorWidget(
-                            onRetry: context
-                                .read<HomeCubit>()
-                                .onNearByRestaurants,
-                          )
-                        : NearByRestaurants(
-                            nearByRestaurantsList: state
-                                .nearByRestaurants
-                                ?.data
-                                ?.nearByRestaurantsList,
-                          ),
-                  ),
-                  if (state.isLoadingMoreNearBy)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: CupertinoActivityIndicator(
-                            color: config.AppColors().hintTextBackgroundColor(
-                              1,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
         listener: (context, state) async {},
-      ),
-    );
-  }
-}
+        builder: (context, state) {
+          final recommendedItems =
+              state.recommendedRestResponse?.recommendedResturantList ??
+                  const [];
+          final nearByItems =
+              state.nearByRestaurants?.data?.nearByRestaurantsList ??
+                  const [];
+          final totalFeedCount =
+              recommendedItems.length + nearByItems.length;
 
-class _AccountActionsBanner extends StatelessWidget {
-  const _AccountActionsBanner({required this.onTap});
+          final firstName = _firstName(context);
+          final greetingName = firstName.isNotEmpty ? ', $firstName' : '';
 
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: config.AppConfig(context).appHeight(1),
-        right: config.AppConfig(context).appHeight(1),
-        bottom: config.AppConfig(context).appHeight(0.8),
-      ),
-      child: Material(
-        color: config.AppColors().textFieldBackgroundColor(1),
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: config.AppConfig(context).appWidth(3),
-              vertical: config.AppConfig(context).appHeight(1.1),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.manage_accounts_outlined,
-                  color: Theme.of(context).primaryColorDark,
-                  size: config.AppConfig(context).appWidth(6),
-                ),
-                SizedBox(width: config.AppConfig(context).appWidth(2.5)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Profile & account actions',
-                        style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: config.AppConfig(context).appWidth(4.1),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(
-                        height: config.AppConfig(context).appHeight(0.2),
-                      ),
-                      Text(
-                        'Switch profile and logout from here',
-                        style: GoogleFonts.gothicA1(
-                          color: Theme.of(context).hintColor,
-                          fontSize: config.AppConfig(context).appWidth(3.2),
-                          fontWeight: FontWeight.w500,
-                        ),
+          return CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              // Sticky header
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 16,
+                    left: 16,
+                    right: 16,
+                    bottom: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F4EF).withValues(alpha: 0.95),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF3E3129)
+                            .withValues(alpha: 0.06),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Theme.of(context).primaryColorDark,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: ListTile(
-        contentPadding: EdgeInsets.only(
-          left: config.AppConfig(context).appHeight(1),
-          right: config.AppConfig(context).appHeight(1),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.gothicA1(
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.w700,
-            fontSize: config.AppConfig(context).appWidth(5),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LocationInput extends StatefulWidget {
-  const _LocationInput();
-
-  @override
-  State<_LocationInput> createState() => _LocationInputState();
-}
-
-class _LocationInputState extends State<_LocationInput> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    _controller = TextEditingController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
-      builder: (context, state) {
-        if (_controller.text != state.locationQuery) {
-          final value = state.locationQuery ?? '';
-          _controller.value = _controller.value.copyWith(
-            text: value,
-            selection: TextSelection.collapsed(offset: value.length),
-            composing: TextRange.empty,
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: _controller,
-              style: const TextStyle(color: Colors.black),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              onChanged: context.read<HomeCubit>().onLocationQueryChanged,
-              onFieldSubmitted: (_) =>
-                  context.read<HomeCubit>().onLocationSubmitted(),
-              decoration: InputDecoration(
-                suffixIconConstraints: const BoxConstraints(minWidth: 88),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Use current location',
-                      onPressed: state.isResolvingLocation
-                          ? null
-                          : context.read<HomeCubit>().onUseCurrentLocation,
-                      icon: state.isResolvingLocation
-                          ? SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CupertinoActivityIndicator(
-                                color: config.AppColors()
-                                    .hintTextBackgroundColor(1),
-                              ),
-                            )
-                          : Icon(
-                              Icons.my_location_outlined,
-                              color: Theme.of(context).primaryColor,
+                  child: Column(
+                    children: [
+                      // Greeting row with notification button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Good ${_greetingLabel()}$greetingName',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 24,
+                                    color: const Color(0xFF3E3129),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                GestureDetector(
+                                  onTap: () {
+                                    context.read<HomeCubit>().onUseCurrentLocation();
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Color(0xFF8D7A6F),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          (state.locationLabel ?? '').isNotEmpty
+                                              ? state.locationLabel!
+                                              : 'Set location',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF8D7A6F),
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.expand_more,
+                                        size: 16,
+                                        color: Color(0xFF8D7A6F),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                    ),
-                    IconButton(
-                      onPressed: context.read<HomeCubit>().onLocationSubmitted,
-                      icon: SvgPicture.asset(
-                        'assets/img/search.svg',
-                        height: config.AppConfig(context).appHeight(2.0),
+                          ),
+                          const SizedBox(width: 12),
+                          // Notification button
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pushNamed('/Notifications'),
+                            child: Stack(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFCFAF8), // surface
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF3E3129)
+                                          .withValues(alpha: 0.06),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.notifications_outlined,
+                                    color: Color(0xFF3E3129),
+                                  ),
+                                ),
+                              ),
+                              // Red notification dot
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD96C4A), // primary
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFFCFAF8),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                hintStyle: GoogleFonts.gothicA1(
-                  color: Theme.of(context).hintColor,
-                  fontSize: config.AppConfig(context).appWidth(4),
-                ),
-                hintText: 'latitude, longitude',
-                helperText: 'Use current location or enter coordinates',
-                contentPadding: EdgeInsets.all(
-                  config.AppConfig(context).appWidth(2),
-                ),
-                fillColor: config.AppColors().textFieldBackgroundColor(1),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            if ((state.locationLabel ?? '').isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  state.locationLabel!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(3.2),
-                    fontWeight: FontWeight.w500,
+                      const SizedBox(height: 16),
+
+                      // Search bar
+                      GestureDetector(
+                        onTap: () async {
+                          final result =
+                              await Navigator.of(context).push<List<int>>(
+                            MaterialPageRoute<List<int>>(
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<HomeCubit>(),
+                                child: const SearchFiltersPage(),
+                              ),
+                            ),
+                          );
+                          if (result != null &&
+                              result.isNotEmpty &&
+                              context.mounted) {
+                            debugPrint('Selected diet IDs: $result');
+                          }
+                        },
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFCFAF8),
+                            borderRadius: BorderRadius.circular(100),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF3E3129)
+                                    .withValues(alpha: 0.06),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              const Icon(
+                                Icons.search,
+                                color: Color(0xFF8D7A6F),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'What are you craving?',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16,
+                                  color: const Color(0xFF8D7A6F),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
               ),
-          ],
-        );
-      },
+
+              // Category pills (sticky)
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _CategoryPillsDelegate(
+                  categories: state.cookingStyleList,
+                  selectedId: state.selectedCookingData?.id,
+                  onSelected: (id) {
+                    if (id == null) {
+                      context
+                          .read<HomeCubit>()
+                          .onCookingStyleChanged(data: null);
+                    } else {
+                      final matching =
+                          state.cookingStyleList?.firstWhere(
+                        (c) => c.id == id,
+                      );
+                      context
+                          .read<HomeCubit>()
+                          .onCookingStyleChanged(data: matching);
+                    }
+                    context.read<HomeCubit>().onApplyFilter();
+                  },
+                ),
+              ),
+
+              // Section title
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 8,
+                    bottom: 12,
+                  ),
+                  child: Text(
+                    'Cooking today near you',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 20,
+                      color: const Color(0xFF3E3129),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Loading state
+              if (state.statusApi!.isSubmissionInProgress &&
+                  state.statusRecommRes!.isSubmissionInProgress &&
+                  totalFeedCount == 0)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 48),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Error/offline state
+              if (state.statusApi!.isSubmissionFailure &&
+                  state.statusRecommRes!.isSubmissionFailure &&
+                  totalFeedCount == 0)
+                SliverToBoxAdapter(
+                  child: OfflineErrorWidget(
+                    onRetry: () {
+                      context.read<HomeCubit>().onApplyFilter();
+                    },
+                  ),
+                ),
+
+              // Cook cards feed
+              if (totalFeedCount > 0)
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      int? kitchenId;
+                      String name = '';
+                      String? description;
+                      double? rating;
+                      List<Images>? images;
+                      double? distance;
+                      int? dineIn;
+                      int? takeAway;
+
+                      if (index < recommendedItems.length) {
+                        final item = recommendedItems[index];
+                        kitchenId = item.id;
+                        name = item.name ?? '';
+                        description = item.description;
+                        rating = item.ratingCount;
+                        images = item.images;
+                        dineIn = item.dineIn;
+                        takeAway = item.takeAway;
+                      } else {
+                        final nearByIndex =
+                            index - recommendedItems.length;
+                        final item = nearByItems[nearByIndex];
+                        kitchenId = item.id;
+                        name = item.name ?? '';
+                        description = item.description?.toString();
+                        final rawRating = item.ratingCount;
+                        if (rawRating is num) {
+                          rating = rawRating.toDouble();
+                        } else {
+                          rating = double.tryParse(
+                              rawRating?.toString() ?? '');
+                        }
+                        images = item.images;
+                        distance = item.distance;
+                        dineIn = item.dineIn;
+                        takeAway = item.takeAway;
+                      }
+
+                      final resolvedId = kitchenId ?? 0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: MitablSpacing.listItem / 2,
+                        ),
+                        child: DiscoveryCookCard(
+                          id: resolvedId,
+                          name: name,
+                          description: description,
+                          rating: rating,
+                          images: images,
+                          distance: distance,
+                          dineIn: dineIn,
+                          takeAway: takeAway,
+                          isFavourited:
+                              _favouritedIds.contains(resolvedId),
+                          onFavouriteToggle: resolvedId > 0
+                              ? () => _toggleFavourite(resolvedId)
+                              : null,
+                          onTap: kitchenId == null
+                              ? null
+                              : () => _navigateToOrderMenu(
+                                    context,
+                                    kitchenId!,
+                                  ),
+                        ),
+                      );
+                    },
+                    childCount: totalFeedCount,
+                  ),
+                ),
+
+              // Loading more indicator
+              if (state.isLoadingMoreNearBy)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CupertinoActivityIndicator(
+                        color: MitablColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Bottom padding for safe area
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 16,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
+  }
+}
+
+// Persistent header delegate for category pills
+class _CategoryPillsDelegate extends SliverPersistentHeaderDelegate {
+  _CategoryPillsDelegate({
+    required this.categories,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  final List<CookingStyleData>? categories;
+  final int? selectedId;
+  final ValueChanged<int?> onSelected;
+
+  @override
+  double get minExtent => 50;
+
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: const Color(0xFFF7F4EF), // background-light
+      child: DiscoveryCategoryPills(
+        categories: categories,
+        selectedId: selectedId,
+        onSelected: onSelected,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CategoryPillsDelegate oldDelegate) {
+    return categories != oldDelegate.categories ||
+        selectedId != oldDelegate.selectedId;
   }
 }

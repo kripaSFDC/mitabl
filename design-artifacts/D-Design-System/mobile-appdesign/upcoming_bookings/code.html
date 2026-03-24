@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>miCook Vendor - Upcoming Bookings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Nunito:wght@400;700;800;900&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#4d6548",
+              "surface-variant": "#e5e2dd",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "surface-dim": "#dcdad5",
+              "secondary-fixed": "#cfeac6",
+              "inverse-surface": "#31302d",
+              "on-surface": "#1c1c19",
+              "inverse-primary": "#ffb59f",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-high": "#ebe8e3",
+              "on-primary": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "surface-container-low": "#f6f3ee",
+              "on-primary-container": "#fffbff",
+              "background": "#fcf9f4",
+              "tertiary-container": "#837166",
+              "on-tertiary-fixed": "#251911",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "secondary-container": "#cce7c3",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container": "#f0ede9",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "on-surface-variant": "#56423c",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #fcf9f4;
+        }
+        .header-font { font-family: 'Nunito', sans-serif; }
+        .plus-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface selection:bg-primary-fixed">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#9c3e20] text-2xl hover:bg-[#f6f3ee] transition-colors p-2 rounded-full active:scale-95">menu</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-2xl tracking-tight text-[#9c3e20]">miCook Vendor</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden md:flex items-center gap-6 mr-6">
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-bold uppercase tracking-wider text-[#56423c] hover:text-[#9c3e20] cursor-pointer">Dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-bold uppercase tracking-wider text-[#9c3e20]">Upcoming</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-bold uppercase tracking-wider text-[#56423c] hover:text-[#9c3e20] cursor-pointer">Reviews</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary/10">
+<img alt="Vendor Profile Picture" class="w-full h-full object-cover" data-alt="Professional chef portrait in a clean kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmeq_Smr2vgWvwdcyjDpeQh7T2lFfgivZfweLzzVPsiZNvdCU74LywvqsnlduQJb2fwRLUGR5kGx-SZJHh8wC5uR-QPnus9W5xDhxMumhgRtt28lLsvnogbLJ8VhcDpN3jNOdGcL3dhfXGykSFOWktwC1RXiwJTQHhqm1-S2ZheA6KvIsCGht_ATKsAfdemkmmOJfJa9ZzEQlEJHWt26LDb8gy8kovN9VV1_d7N55Ag3mCt1neJrlx0fC3GOqU3AwGfZ8z9FjPpfSj"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto">
+<!-- Page Header -->
+<section class="mb-10">
+<h2 class="font-['Nunito'] font-black text-4xl text-on-surface mb-2">Upcoming Bookings</h2>
+<p class="text-on-surface-variant text-lg">Manage your scheduled orders for the day</p>
+</section>
+<!-- Filter Chips (Tactile Primitives) -->
+<div class="flex gap-3 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-6 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm shadow-sm active:scale-95 transition-all">All Bookings</button>
+<button class="px-6 py-2.5 rounded-full bg-secondary-container text-on-secondary-container font-bold text-sm hover:opacity-80 active:scale-95 transition-all">Dine-in</button>
+<button class="px-6 py-2.5 rounded-full bg-secondary-container text-on-secondary-container font-bold text-sm hover:opacity-80 active:scale-95 transition-all">Take-away</button>
+</div>
+<!-- Bento Grid Layout for Bookings -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Booking Card 1: Dine-in -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-300">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black uppercase tracking-widest">Dine-in</span>
+<span class="text-on-surface-variant font-mono text-sm">#ORD-8821</span>
+</div>
+<h3 class="font-headline font-extrabold text-2xl text-on-surface mb-1">Julianne Moore</h3>
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-sm font-semibold">Today • 12:30 PM</span>
+</div>
+<div class="bg-surface-container-low rounded-DEFAULT p-4 mb-6">
+<ul class="space-y-2">
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Signature Truffle Pasta</span>
+<span class="font-bold">x2</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Herbed Focaccia</span>
+<span class="font-bold">x1</span>
+</li>
+</ul>
+<div class="mt-4 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs uppercase font-bold text-outline">Total</span>
+<span class="text-xl font-black text-primary">$74.50</span>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-headline font-extrabold flex items-center justify-center gap-2 hover:bg-primary-container active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Mark In Progress
+                </button>
+</div>
+<!-- Booking Card 2: Take-away (Asymmetric Height) -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between lg:row-span-2 group hover:bg-surface-bright transition-all duration-300">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-black uppercase tracking-widest">Take-away</span>
+<span class="text-on-surface-variant font-mono text-sm">#ORD-8825</span>
+</div>
+<div class="relative w-full h-48 rounded-lg overflow-hidden mb-6">
+<img alt="Order Preview" class="w-full h-full object-cover" data-alt="Fresh vibrant salad bowl with grilled protein" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZyohuE-xO146aipILlIILL2f6wTdCY57cZdj9j9mHhOzlcrGTOC6ypsZBOiL7bEgInkiCBqGLeRmkKhbZ8HtYdxRttMhhead6CRhErynUkFZ-Ng_Y31HYnn3DnuBJKtQ_w39PURr9o9LIMKLxpQ-91pjxMgOvwLcpQ0ko6gqdtSjpBfu73zsePOwUj21nISXYc8CYPaamR0DJalVUFt0z0JptuGzV4oOpTIqSSwFnCdRSPXSYUkfcwBBZ8kuS92G5oCrL93s9mexF"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent"></div>
+<div class="absolute bottom-4 left-4 text-white">
+<p class="text-xs font-bold uppercase tracking-wider opacity-80">Urgent Request</p>
+<p class="font-bold">Gluten Free Option</p>
+</div>
+</div>
+<h3 class="font-headline font-extrabold text-2xl text-on-surface mb-1">Marcus Thorne</h3>
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-sm font-semibold">Today • 1:15 PM</span>
+</div>
+<div class="bg-surface-container-low rounded-DEFAULT p-4 mb-6">
+<ul class="space-y-2">
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Mediterranean Bowl</span>
+<span class="font-bold">x3</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Cold Brew Coffee</span>
+<span class="font-bold">x3</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Lemon Tart</span>
+<span class="font-bold">x1</span>
+</li>
+</ul>
+<div class="mt-4 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs uppercase font-bold text-outline">Total</span>
+<span class="text-xl font-black text-primary">$112.00</span>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-headline font-extrabold flex items-center justify-center gap-2 hover:bg-primary-container active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Mark In Progress
+                </button>
+</div>
+<!-- Booking Card 3: Dine-in -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-300">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black uppercase tracking-widest">Dine-in</span>
+<span class="text-on-surface-variant font-mono text-sm">#ORD-8829</span>
+</div>
+<h3 class="font-headline font-extrabold text-2xl text-on-surface mb-1">Sarah &amp; Tom</h3>
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-sm font-semibold">Today • 2:00 PM</span>
+</div>
+<div class="bg-surface-container-low rounded-DEFAULT p-4 mb-6">
+<ul class="space-y-2">
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Chef's Tasting Menu</span>
+<span class="font-bold">x2</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Wine Pairing Selection</span>
+<span class="font-bold">x2</span>
+</li>
+</ul>
+<div class="mt-4 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs uppercase font-bold text-outline">Total</span>
+<span class="text-xl font-black text-primary">$240.00</span>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-headline font-extrabold flex items-center justify-center gap-2 hover:bg-primary-container active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Mark In Progress
+                </button>
+</div>
+<!-- Booking Card 4: Take-away -->
+<div class="bg-surface-container-lowest rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-bright transition-all duration-300">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-black uppercase tracking-widest">Take-away</span>
+<span class="text-on-surface-variant font-mono text-sm">#ORD-8832</span>
+</div>
+<h3 class="font-headline font-extrabold text-2xl text-on-surface mb-1">Emily Chen</h3>
+<div class="flex items-center gap-2 text-on-surface-variant mb-4">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-sm font-semibold">Today • 2:30 PM</span>
+</div>
+<div class="bg-surface-container-low rounded-DEFAULT p-4 mb-6">
+<ul class="space-y-2">
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Roasted Root Veggies</span>
+<span class="font-bold">x1</span>
+</li>
+<li class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Wild Rice Pilaf</span>
+<span class="font-bold">x1</span>
+</li>
+</ul>
+<div class="mt-4 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs uppercase font-bold text-outline">Total</span>
+<span class="text-xl font-black text-primary">$32.50</span>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-full font-headline font-extrabold flex items-center justify-center gap-2 hover:bg-primary-container active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    Mark In Progress
+                </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 backdrop-blur-xl z-50 rounded-t-[32px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#56423c] opacity-70 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] text-[#51694c] rounded-full px-5 py-1.5 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Upcoming</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] opacity-70 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] opacity-70 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Settings</span>
+</a>
+</nav>
+<!-- NavigationDrawer (Hidden by default, used as sidebar on larger screens) -->
+<aside class="hidden xl:flex fixed inset-y-0 left-0 w-72 z-[60] py-8 flex-col bg-[#fcf9f4] rounded-r-[40px] shadow-2xl overflow-hidden transform -translate-x-full transition-all duration-300 ease-in-out">
+<div class="px-8 mb-10">
+<h2 class="text-[#9c3e20] font-['Nunito'] font-black text-2xl">miCook</h2>
+</div>
+<div class="px-6 mb-10 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container">
+<img alt="Vendor Chef Avatar" class="w-full h-full object-cover" data-alt="Chef in professional white uniform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE6CYt3bzDA-LgJbss8L3UmSB6ywjgyzfss0bxvL00-pxIRiBx8Fb7qpHhPtFW5QLfVGT-EWAXwNexYpVEWPdQqOllsCmzvPl_sqrzyHQI13Z0BAII02yyChIWYPGmJeCEmAf57XwMhfkC0tzK6dv69_n8GsT6wb7Kwn0pQiRkvJQJZdBhtqN695I_QL5_HWcAtSFdYsK82j_VOxcjQI-tl3yZFXR7KT3rCjp9E2V3O0I2NELMXPkuuGa6b4euWklv33sRTgkVX0lm"/>
+</div>
+<div>
+<p class="font-['Plus_Jakarta_Sans'] font-semibold text-on-surface">Chef Maria</p>
+<p class="text-xs text-on-surface-variant">The Culinary Atelier</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 px-6 py-4 text-[#56423c] hover:bg-[#f6f3ee] rounded-full mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 bg-[#9c3e20] text-white rounded-full mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold">Upcoming</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#56423c] hover:bg-[#f6f3ee] rounded-full mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold">History</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#56423c] hover:bg-[#f6f3ee] rounded-full mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">rate_review</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold">Reviews</span>
+</a>
+<div class="mt-auto pt-10">
+<a class="flex items-center gap-4 px-6 py-4 text-[#56423c] hover:bg-[#f6f3ee] rounded-full mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] font-semibold">Profile Settings</span>
+</a>
+</div>
+</nav>
+</aside>
+</body></html>

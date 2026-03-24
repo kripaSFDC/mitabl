@@ -14,7 +14,10 @@ use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
 use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
+use App\Http\Controllers\Api\FcmController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Services\SystemHealthService;
+use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -53,6 +56,25 @@ Route::get('/health/ready', function (SystemHealthService $healthService) {
     $isReady = $errorCount === 0;
 
     return response()->json($summary, $isReady ? 200 : 503);
+});
+
+// DEV ONLY: reset OTP to a known value and return it (local/testing only)
+Route::get('/dev/otp/{userId}', function ($userId) {
+    if (!in_array(config('app.env'), ['local', 'testing'])) {
+        abort(404);
+    }
+    $knownOtp = '123456';
+    \DB::table('verify_otps')->updateOrInsert(
+        ['user_id' => $userId],
+        [
+            'otp' => \Hash::make($knownOtp),
+            'expires_at' => now()->addMinutes(30),
+            'attempts' => 0,
+            'locked_until' => null,
+            'updated_at' => now(),
+        ]
+    );
+    return response()->json(['otp' => $knownOtp]);
 });
 
 // Mobile app version gate — no auth required.
@@ -151,6 +173,50 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		Route::post('notifications/toggle', [V2AccountController::class, 'notificationsToggle']);
         Route::post('notification-preferences', [V2AccountController::class, 'updateNotificationPreferences']);
 		Route::get('mobile-contact', [V2AccountController::class, 'mobileContact']);
+		Route::get('dietary-preferences', function () {
+			return response()->json([
+				'preferences' => auth()->user()->dietaryPreferences->pluck('id'),
+			]);
+		});
+		Route::put('dietary-preferences', function (\Illuminate\Http\Request $request) {
+			$validated = $request->validate([
+				'preference_ids' => 'required|array',
+				'preference_ids.*' => 'integer|exists:special_diets,id',
+			]);
+			auth()->user()->dietaryPreferences()->sync($validated['preference_ids']);
+			return response()->json([
+				'preferences' => auth()->user()->fresh()->dietaryPreferences->pluck('id'),
+			]);
+		});
+	});
+
+	// Notifications
+	Route::get('notifications', [FcmController::class, 'getAllNotifications']);
+	Route::put('notifications/{id}/read', function ($id) {
+		$notification = auth()->user()->notifications()->findOrFail($id);
+		$notification->markAsRead();
+		return response()->json(['status' => 'ok']);
+	});
+
+	// Reviews
+	Route::post('addreviewtorestaurant', [ReviewController::class, 'addReviewToRestaurant']);
+
+	// Kitchen open/close toggle (cook only)
+	Route::middleware('restaurant')->post('mikitchn/toggle-open', function (Request $request) {
+		$kitchen = \App\Models\Mikitchn::where('user_id', auth()->id())->firstOrFail();
+		$kitchen->update(['open' => $kitchen->open ? 0 : 1]);
+		return response()->json(['open' => (bool) $kitchen->open]);
+	});
+
+	// Single order detail
+	Route::get('orders/{id}', function ($id) {
+		$order = \App\Models\Order::with(['mikitchn', 'user', 'orderData.food'])
+			->where(function ($q) {
+				$q->where('user_id', auth()->id())
+				  ->orWhereHas('mikitchn', fn($q2) => $q2->where('user_id', auth()->id()));
+			})
+			->findOrFail($id);
+		return new \App\Http\Resources\Order\Order($order);
 	});
 
 	Route::prefix('discovery')->group(function () {

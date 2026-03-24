@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Nunito:wght@400;700;800;900&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#4d6548",
+              "surface-variant": "#e5e2dd",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "surface-dim": "#dcdad5",
+              "secondary-fixed": "#cfeac6",
+              "inverse-surface": "#31302d",
+              "on-surface": "#1c1c19",
+              "inverse-primary": "#ffb59f",
+              "on-tertiary-fixed-variant": "#53443a",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-high": "#ebe8e3",
+              "on-primary": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "surface-container-low": "#f6f3ee",
+              "on-primary-container": "#fffbff",
+              "background": "#fcf9f4",
+              "tertiary-container": "#837166",
+              "on-tertiary-fixed": "#251911",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "secondary-container": "#cce7c3",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container": "#f0ede9",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "on-surface-variant": "#56423c",
+              "on-tertiary": "#ffffff",
+              "on-error-container": "#93000a",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+      body { background-color: #fcf9f4; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-surface selection:bg-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#9c3e20] dark:text-[#d96c4a] hover:bg-[#f6f3ee] dark:hover:bg-stone-800 transition-colors p-2 rounded-full active:duration-150 scale-95" data-icon="menu">menu</button>
+<h1 class="text-[#9c3e20] dark:text-[#d96c4a] font-['Nunito'] font-black text-2xl tracking-tight">miCook Vendor</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/10">
+<img class="w-full h-full object-cover" data-alt="Vendor Profile Picture of a Professional Chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1MyxRDqRmTIXJW979JXpiZ-ovDkASnKGrg7mAXv3f0MXqlcmr7W5hp3Nt43AHIprKVRzrEhmvdp6z873Ea26-4uKaZcHFDsv_Fkf5pPq_AZ7OEXwhxkwknYBc45FBN7q4DfyvlHlSoQIAPGzl3_cCVpYAipHoBTKexdMiPMqijB2MJN-SRpP9Fc_twe6kqmhGcJ4BcCOjK8YRXvQlr1J7gLq0njf1Wbqlc5ZdXLV99kdzQcheWuovNFYOdrYO6mLDn7r9amFLRYb7"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-2xl mx-auto space-y-8">
+<!-- Profile Bento Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col items-center text-center col-span-1 md:col-span-2">
+<div class="relative group">
+<img class="w-24 h-24 rounded-full object-cover ring-4 ring-primary-fixed mb-4" data-alt="Detailed Chef Profile Image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQUzsYhWrW3j8yjzHo60P6AfdIdjuEqkUi2errhMRPRK5yvg-uTSVb72vRXUzE_Z1R7hr016vSTpbUOXYj9ej0A1plJoYNhGuwlI7xia24WcMt-ZMAS5HPHZeUXnYaIlRgGuiog7IFKVdN6zNuoT3bzg_nyltD5mczJObuS52T1bmDvzwhvxvskyda61knbq7NI-CYJR_f2bhFbiW3JCfFcr08a1N-hSkU5ZHNqZZyUn08JnlyW-M6aBhYn5Ab_-_z0C35Kb-Yd1i3"/>
+<button class="absolute bottom-4 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<h2 class="font-headline font-extrabold text-2xl text-on-surface">Chef Maria</h2>
+<p class="text-on-surface-variant font-medium">The Culinary Atelier • Premium Vendor</p>
+<div class="mt-4 flex gap-2">
+<span class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase">Active</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase">Pro Tier</span>
+</div>
+</div>
+</section>
+<!-- Account Preferences -->
+<section class="space-y-4">
+<h3 class="font-headline font-bold text-lg px-2 text-on-surface-variant">Account Preferences</h3>
+<div class="bg-surface-container-low rounded-lg overflow-hidden">
+<div class="p-5 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Personal Information</p>
+<p class="text-sm text-on-surface-variant">Name, email, and phone number</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="p-5 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Language</p>
+<p class="text-sm text-on-surface-variant">English (United States)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="p-5 flex items-center justify-between hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+</div>
+<div>
+<p class="font-bold text-on-surface">Login &amp; Security</p>
+<p class="text-sm text-on-surface-variant">Password and two-factor auth</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Notifications & Interactions -->
+<section class="space-y-4">
+<h3 class="font-headline font-bold text-lg px-2 text-on-surface-variant">Notifications</h3>
+<div class="bg-surface-container-low rounded-lg p-2">
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-DEFAULT mb-2">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="notifications_active">notifications_active</span>
+<span class="font-semibold text-on-surface">Push Notifications</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-lowest rounded-DEFAULT">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="mail">mail</span>
+<span class="font-semibold text-on-surface">Email Marketing</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Help & Support -->
+<section class="space-y-4">
+<h3 class="font-headline font-bold text-lg px-2 text-on-surface-variant">Support</h3>
+<div class="bg-surface-container-low rounded-lg overflow-hidden">
+<button class="w-full p-5 flex items-center gap-4 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline" data-icon="help_center">help_center</span>
+<span class="font-bold text-on-surface">Help Center</span>
+</button>
+<button class="w-full p-5 flex items-center gap-4 hover:bg-surface-container transition-colors border-t border-outline-variant/10">
+<span class="material-symbols-outlined text-outline" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-bold text-on-surface">Contact Support</span>
+</button>
+<button class="w-full p-5 flex items-center gap-4 hover:bg-surface-container transition-colors border-t border-outline-variant/10">
+<span class="material-symbols-outlined text-outline" data-icon="policy">policy</span>
+<span class="font-bold text-on-surface">Privacy Policy</span>
+</button>
+</div>
+</section>
+<!-- Action Buttons -->
+<div class="pt-4 space-y-4">
+<button class="w-full py-4 rounded-full bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                Save All Changes
+            </button>
+<button class="w-full py-4 rounded-full bg-error-container text-on-error-container font-bold flex items-center justify-center gap-2 hover:bg-error/10 transition-colors">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-xl z-50 rounded-t-[32px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Reviews</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-1.5 tap-highlight-none scale-90 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

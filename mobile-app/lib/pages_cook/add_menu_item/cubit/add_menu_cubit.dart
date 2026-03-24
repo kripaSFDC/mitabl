@@ -116,10 +116,10 @@ class AddMenuCubit extends Cubit<AddMenuState> {
         }
         Helper.showToast(message);
       }
-    } catch (e) {
-      AppLogger.error('Unable to load menu items', e);
+    } catch (e, stackTrace) {
+      AppLogger.error('Unable to load menu items', e, stackTrace);
       emit(state.copyWith(foodMenuStatus: FormzStatus.submissionFailure));
-      Helper.showToast('Unable to load menu items.');
+      Helper.showToast('Unable to load menu items. Error: $e');
     }
   }
 

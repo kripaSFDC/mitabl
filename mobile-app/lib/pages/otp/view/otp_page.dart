@@ -1,17 +1,18 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/common_progress.dart';
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/otp/cubit/otp_cubit.dart';
-
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:pinput/pinput.dart';
-import 'package:mitabl_user/helper/formz_compat.dart';
 
 class OTPPage extends StatefulWidget {
   const OTPPage({super.key});
@@ -27,211 +28,425 @@ class OTPPage extends StatefulWidget {
         child: const OTPPage(),
       ),
     );
-    // );
   }
 
   @override
-  State<StatefulWidget> createState() => _OTPPage();
+  State<StatefulWidget> createState() => _OTPPageState();
 }
 
-class _OTPPage extends State<OTPPage> {
-  // final RouteArguements? routeArguements;
-
-  // int breakPointWidth = 500;
-
-  _OTPPage();
-
-  @override
-  void initState() {
-    // setUpFields();
-    super.initState();
-  }
-
+class _OTPPageState extends State<OTPPage> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-    return SafeArea(
-      child: Scaffold(
-        body: BlocConsumer<OtpCubit, OtpState>(
-          listener: (context, state) {
-            if (state.statusAPI!.isSubmissionFailure) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('${state.serverMessage}')));
-            }
-          },
-          builder: (context, state) {
-            return Stack(
-              children: [
-                Container(
-                  color: const Color(0xFFFFFBF7),
-                  height: config.AppConfig(context).appHeight(100),
-                  width: config.AppConfig(context).appWidth(100),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: config.AppConfig(context).appHeight(14),
-                        left: config.AppConfig(context).appWidth(5),
-                        right: config.AppConfig(context).appWidth(5),
-                      ),
-                      child: SizedBox(
-                        width: config.AppConfig(context).appWidth(90),
-                        child: Padding(
-                          padding: EdgeInsets.zero,
-                          child: Column(
+
+    // Pin theme matching HTML: rounded-2xl, bg surface-container-low
+    final defaultPinTheme = PinTheme(
+      width: 72,
+      height: 72,
+      textStyle: const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        fontFamily: 'DM Sans',
+        color: MitablColors.onSurface,
+      ),
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      color: MitablColors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: MitablColors.primary.withValues(alpha: 0.2),
+        width: 2,
+      ),
+    );
+
+    return Scaffold(
+      backgroundColor: MitablColors.surface,
+      body: BlocConsumer<OtpCubit, OtpState>(
+        listener: (context, state) {
+          if (state.statusAPI!.isSubmissionFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${state.serverMessage}')),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state.statusAPI!.isSubmissionInProgress;
+          final isValidated = state.status!.isValidated;
+
+          return Stack(
+            children: [
+              // ── Decorative background blurs ──
+              Positioned(
+                bottom: -96,
+                left: -96,
+                child: Container(
+                  width: 256,
+                  height: 256,
+                  decoration: BoxDecoration(
+                    color: MitablColors.secondaryContainer
+                        .withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: MediaQuery.of(context).size.height * 0.25,
+                right: -48,
+                child: Container(
+                  width: 192,
+                  height: 192,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFDBD0).withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+
+              // ── Main content ──
+              SafeArea(
+                child: Column(
+                  children: [
+                    // ── Header: back + centered "Mitabl" + spacer ──
+                    ClipRect(
+                      child: BackdropFilter(
+                        filter: MitablGlass.blur,
+                        child: Container(
+                          color: MitablGlass.background,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          child: Row(
                             children: [
-                              Column(
-                                children: [
-                                  Image.asset(
-                                    'assets/img/logo.png',
-                                    fit: BoxFit.contain,
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(15),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(70),
+                              GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.transparent,
                                   ),
-                                  SizedBox(
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(2),
-                                  ),
-                                  Text(
-                                    'Verify Email',
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontSize: 30,
-                                      fontWeight: config.FontFamily().demi,
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.arrow_back,
+                                      color: MitablColors.primary,
+                                      size: 24,
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(1),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              Text(
-                                'We have sent a verification code \non your email ID.',
-                                style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark,
-                                  fontSize: 18,
-                                  fontWeight: config.FontFamily().book,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(4),
-                              ),
-                              Pinput(
-                                separatorBuilder: (index) =>
-                                    const SizedBox(width: 10),
-                                defaultPinTheme: PinTheme(
-                                  width: config.AppConfig(context).appWidth(13),
-                                  height: config.AppConfig(
-                                    context,
-                                  ).appHeight(7),
-                                  textStyle: TextStyle(
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appHeight(3),
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: config.AppColors()
-                                        .textFieldBackgroundColor(1),
-                                    borderRadius: BorderRadius.circular(10),
+                              const Expanded(
+                                child: Text(
+                                  'Mitabl',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    fontFamily: 'Nunito',
+                                    color: MitablColors.primary,
+                                    letterSpacing: -0.5,
                                   ),
                                 ),
-                                length: 4,
-                                pinputAutovalidateMode:
-                                    PinputAutovalidateMode.onSubmit,
-                                showCursor: true,
-                                onChanged: (value) {
-                                  context.read<OtpCubit>().onOtpChanged(
-                                    value: value,
-                                  );
-                                },
-                                onCompleted: (pin) {},
                               ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(4),
-                              ),
-                              const _SubmitButton(),
+                              const SizedBox(width: 40),
                             ],
                           ),
                         ),
                       ),
                     ),
-                  ),
+
+                    // ── Centered scrollable body ──
+                    Expanded(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 448),
+                            child: Column(
+                              children: [
+                                // ── Hero icon ──
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // Soft glow behind
+                                    Container(
+                                      width: 144,
+                                      height: 144,
+                                      decoration: BoxDecoration(
+                                        color: MitablColors.primary
+                                            .withValues(alpha: 0.05),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    // Icon circle
+                                    Container(
+                                      width: 96,
+                                      height: 96,
+                                      decoration: BoxDecoration(
+                                        color: MitablColors
+                                            .surfaceContainerLowest,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.04),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.lock_person,
+                                        size: 40,
+                                        color: MitablColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 40),
+
+                                // ── Heading ──
+                                const Text(
+                                  'Verify Identity',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w800,
+                                    fontFamily: 'Nunito',
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                // ── Subtitle ──
+                                SizedBox(
+                                  width: 280,
+                                  child: Text(
+                                    'We sent a code to your phone. Please enter it below to continue.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: 'DM Sans',
+                                      color: MitablColors.onSurfaceVariant,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 48),
+
+                                // ── OTP Pinput ──
+                                Pinput(
+                                  length: 6,
+                                  defaultPinTheme: defaultPinTheme,
+                                  focusedPinTheme: focusedPinTheme,
+                                  separatorBuilder: (index) =>
+                                      const SizedBox(width: 12),
+                                  pinputAutovalidateMode:
+                                      PinputAutovalidateMode.onSubmit,
+                                  showCursor: true,
+                                  onChanged: (value) {
+                                    context
+                                        .read<OtpCubit>()
+                                        .onOtpChanged(value: value);
+                                  },
+                                  onCompleted: (pin) {},
+                                ),
+                                const SizedBox(height: 48),
+
+                                // ── Verify button ──
+                                Container(
+                                  width: double.infinity,
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 384),
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    gradient: isValidated && !isLoading
+                                        ? const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              MitablColors.primary,
+                                              MitablColors.primaryContainer,
+                                            ],
+                                          )
+                                        : null,
+                                    color: isValidated && !isLoading
+                                        ? null
+                                        : MitablColors.tertiaryFixedDim,
+                                    borderRadius: BorderRadius.circular(100),
+                                    boxShadow: isValidated && !isLoading
+                                        ? [
+                                            BoxShadow(
+                                              color: MitablColors.primary
+                                                  .withValues(alpha: 0.1),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: isValidated && !isLoading
+                                          ? () => context
+                                              .read<OtpCubit>()
+                                              .onSubmitted()
+                                          : null,
+                                      borderRadius:
+                                          BorderRadius.circular(100),
+                                      child: Center(
+                                        child: isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                            : const Text(
+                                                'Verify',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontFamily: 'DM Sans',
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+
+                                // ── Resend code ──
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Didn't receive the code? ",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content:
+                                                  Text('Code resent')),
+                                        );
+                                      },
+                                      child: const Text(
+                                        'Resend Code',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily: 'DM Sans',
+                                          color: MitablColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                // ── Divider bar ──
+                                Container(
+                                  width: 48,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEBE8E3),
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // ── Security badge ──
+                                Text(
+                                  'SECURE 256-BIT ENCRYPTION',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'DM Sans',
+                                    letterSpacing: 1.6,
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+
+                                // ── Demo bypass (debug builds only) ──
+                                if (kDebugMode) TextButton(
+                                  onPressed: () async {
+                                    final cubit = context.read<OtpCubit>();
+                                    final userId =
+                                        cubit.routeArguments?.id;
+                                    if (userId == null) return;
+
+                                    try {
+                                      final uri = ApiContract.uri(
+                                          'dev/otp/$userId');
+                                      final resp =
+                                          await http.get(uri, headers: {
+                                        'Accept': 'application/json',
+                                      }).timeout(
+                                          const Duration(seconds: 10));
+
+                                      if (resp.statusCode == 200) {
+                                        final otp = json
+                                                .decode(resp.body)['otp']
+                                                ?.toString() ??
+                                            '';
+                                        if (otp.isNotEmpty) {
+                                          cubit.onOtpChanged(value: otp);
+                                          cubit.onSubmitted();
+                                          return;
+                                        }
+                                      }
+                                    } catch (_) {}
+
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Could not auto-verify. Please enter OTP manually.')),
+                                      );
+                                    }
+                                  },
+                                  child: Text(
+                                    'Auto-Verify (Demo)',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: MitablColors.accent,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                state.statusAPI!.isSubmissionInProgress
-                    ? const CommonProgressWidget()
-                    : const SizedBox(),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SubmitButton extends StatelessWidget {
-  const _SubmitButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<OtpCubit, OtpState>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: state.status!.isValidated
-                  ? [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor,
-                    ]
-                  : [
-                      const Color(0xFF9CA3AF),
-                      const Color(0xFF9CA3AF),
-                      // Theme.of(context).primaryColorLight,
-                      // Theme.of(context).primaryColorLight,
-                    ],
-            ),
-          ),
-          child: MaterialButton(
-            minWidth: config.AppConfig(context).appWidth(100),
-            height: 50.0,
-            onPressed: () {
-              // navigatorKey.currentState!.popAndPushNamed('/CookProfile',
-              //     arguments: RouteArguments(data: OTPResponse()));
-
-              if (state.status!.isValidated) {
-                context.read<OtpCubit>().onSubmitted();
-              }
-            },
-            child: Text(
-              'SUBMIT',
-              style: TextStyle(
-                color: const Color(0xFFFFFBF7),
-                fontSize: 18,
-                fontWeight: config.FontFamily().book,
               ),
-            ),
-          ),
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }

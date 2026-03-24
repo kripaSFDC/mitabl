@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Flash Special - Culinary Atelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#D96C4A", // Terracotta
+              "background": "#F7F4EF", // Warm Oat
+              "surface": "#FCFAF8", // Soft Cream
+              "on-surface": "#2D2A26",
+              "on-surface-variant": "#6B645C",
+              "outline-variant": "#E0DDD7",
+              "secondary-container": "#F2E8E4"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"],
+              "dm": ["DM Sans"]
+            },
+            borderRadius: {
+              "DEFAULT": "1rem",
+              "card": "20px",
+              "pill": "100px",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Manrope', sans-serif;
+        background-color: #F7F4EF;
+      }
+      .atelier-card {
+        background-color: #FCFAF8;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(45, 42, 38, 0.04);
+      }
+      .pill-input {
+        background-color: #ffffff;
+        border: 1.5px solid #E0DDD7;
+        border-radius: 100px;
+        padding: 0.75rem 1.25rem;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .pill-input:focus {
+        border-color: #D96C4A;
+        box-shadow: 0 0 0 2px rgba(217, 108, 74, 0.1);
+        outline: none;
+      }
+      .segmented-control-btn {
+        border-radius: 100px;
+        transition: all 0.2s ease;
+      }
+    </style>
+</head>
+<body class="text-on-surface bg-background">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-md flex items-center px-4 h-16 border-b border-outline-variant/30">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-outline-variant/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<div class="ml-2 flex flex-col">
+<h1 class="font-headline font-extrabold text-lg text-on-surface tracking-tight leading-tight">Create Flash Special</h1>
+</div>
+</header>
+<main class="pt-20 pb-32 px-4 max-w-md mx-auto min-h-screen overflow-y-auto">
+<!-- Intro Section -->
+<section class="mb-6">
+<h2 class="font-headline font-extrabold text-2xl text-on-surface mb-1">Flash Special</h2>
+<p class="text-on-surface-variant text-sm font-medium">Spontaneous, limited-time offers for your fans.</p>
+</section>
+<!-- Form Section -->
+<div class="space-y-6">
+<!-- Image Upload Section -->
+<div class="relative w-full aspect-video bg-white rounded-card overflow-hidden flex flex-col items-center justify-center border-2 border-dashed border-outline-variant group hover:border-primary transition-colors cursor-pointer shadow-sm">
+<span class="material-symbols-outlined text-4xl text-primary/60 mb-2">add_a_photo</span>
+<span class="font-bold text-xs text-on-surface-variant uppercase tracking-widest">Upload Dish Photo</span>
+</div>
+<!-- Fields Container -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Dish Name (Full Width) -->
+<div class="col-span-2 flex flex-col gap-1.5">
+<label class="font-bold text-[10px] uppercase tracking-widest text-on-surface-variant ml-3">Dish Name</label>
+<input class="pill-input w-full text-base font-medium placeholder:text-on-surface-variant/40" placeholder="e.g. Saffron Risotto" type="text"/>
+</div>
+<!-- Price -->
+<div class="flex flex-col gap-1.5">
+<label class="font-bold text-[10px] uppercase tracking-widest text-on-surface-variant ml-3">Price</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-primary">$</span>
+<input class="pill-input w-full pl-8 font-dm font-bold" placeholder="18.00" step="0.01" type="number"/>
+</div>
+</div>
+<!-- Quantity -->
+<div class="flex flex-col gap-1.5">
+<label class="font-bold text-[10px] uppercase tracking-widest text-on-surface-variant ml-3">Portions</label>
+<input class="pill-input w-full font-dm font-bold" placeholder="5" type="number"/>
+</div>
+<!-- Expiry Selection (Full Width) -->
+<div class="col-span-2 flex flex-col gap-1.5">
+<label class="font-bold text-[10px] uppercase tracking-widest text-on-surface-variant ml-3">Expires In</label>
+<div class="flex p-1 bg-white border border-outline-variant rounded-full">
+<button class="flex-1 py-2.5 segmented-control-btn bg-primary text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">timer</span> 2 Hours
+                        </button>
+<button class="flex-1 py-2.5 segmented-control-btn text-on-surface-variant font-bold text-xs">
+                            4 Hours
+                        </button>
+<button class="flex-1 py-2.5 segmented-control-btn text-on-surface-variant font-bold text-xs">
+                            Sold Out
+                        </button>
+</div>
+</div>
+</div>
+<!-- Settings Toggle -->
+<div class="atelier-card p-4 flex items-center justify-between border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">notifications_active</span>
+</div>
+<div>
+<p class="font-bold text-sm text-on-surface">Notify Followers</p>
+<p class="text-[10px] text-on-surface-variant">Alert 1.2k fans immediately</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-10 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Action Button -->
+<div class="pt-2">
+<button class="w-full py-4 rounded-full bg-primary text-white font-headline font-extrabold text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                    Post Special
+                    <span class="material-symbols-outlined">bolt</span>
+</button>
+<p class="text-center text-[10px] text-on-surface-variant mt-4 font-bold uppercase tracking-widest opacity-60">
+                    Flash offers are live immediately
+                </p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-background/95 backdrop-blur-md z-50 rounded-t-card shadow-[0_-4px_24px_rgba(45,42,38,0.08)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-dm text-[10px] font-bold tracking-tight mt-0.5">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-dm text-[10px] font-bold tracking-tight mt-0.5">Stories</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-dm text-[10px] font-bold tracking-tight mt-0.5">Table</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-white rounded-full p-2.5 -mt-6 shadow-lg shadow-primary/30" href="#">
+<span class="material-symbols-outlined">skillet</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-dm text-[10px] font-bold tracking-tight mt-0.5">Profile</span>
+</a>
+</nav>
+</body></html>

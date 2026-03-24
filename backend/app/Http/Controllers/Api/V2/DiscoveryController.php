@@ -204,6 +204,7 @@ class DiscoveryController extends Controller
             'delivery_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
             'delivery_time_from' => ['nullable', 'date_format:H:i', 'required_with:delivery_time_to'],
             'delivery_time_to' => ['nullable', 'date_format:H:i', 'after:delivery_time_from', 'required_with:delivery_time_from'],
+            'special_diets' => 'nullable|string|max:100',
         ];
 
         if ($includeSearchTerm) {

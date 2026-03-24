@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
@@ -15,6 +14,10 @@ import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/widgets/mitabl_card.dart';
+import 'package:mitabl_user/widgets/mitabl_text_field.dart';
 
 import '../../../helper/helper.dart';
 import '../elements/timing_edit.dart';
@@ -121,623 +124,822 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
       listener: (context, state) {},
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: const Color(0xFFFFFBF7),
-            elevation: 0,
-            leadingWidth: config.AppConfig(context).appWidth(50),
-            leading: Padding(
-              padding: EdgeInsets.only(
-                left: config.AppConfig(context).appWidth(5),
-              ),
-              child: InkWell(
-                onTap: () {
-                  navigatorKey.currentState!.pop();
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.arrow_back_ios,
-                      color: Theme.of(context).primaryColorDark,
-                      size: config.AppConfig(context).appWidth(5),
-                    ),
-                    SizedBox(width: config.AppConfig(context).appWidth(2)),
-                    Text(
-                      state.isCreateMode ? 'Add mikitchn' : 'Edit mikitchn',
-                      style: GoogleFonts.gothicA1(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: config.AppConfig(context).appWidth(5),
-                        fontWeight: FontWeight.w600,
+          backgroundColor: MitablColors.surface,
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  // TopAppBar
+                  SafeArea(
+                    bottom: false,
+                    child: Container(
+                      height: 64,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surface.withValues(alpha: 0.80),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back,
+                                color: MitablColors.primary),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Mitabl',
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                              color: MitablColors.primary,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Profile avatar
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFF0EDE9),
+                              border: Border.all(
+                                color: MitablColors.primary
+                                    .withValues(alpha: 0.10),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(Icons.person,
+                                color: MitablColors.onSurfaceVariant,
+                                size: 20),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          body: Container(
-            alignment: Alignment.center,
-            color: const Color(0xFFFFFBF7),
-            height: config.AppConfig(context).appHeight(100),
-            width: config.AppConfig(context).appWidth(100),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom +
-                    MediaQuery.of(context).viewInsets.bottom +
-                    config.AppConfig(context).appHeight(4),
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: config.AppConfig(context).appHeight(2),
-                  left: config.AppConfig(context).appWidth(5),
-                  right: config.AppConfig(context).appWidth(5),
-                ),
-                child: Container(
-                  alignment: Alignment.center,
-                  width: config.AppConfig(context).appWidth(90),
-                  child: Padding(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: config.AppConfig(context).appHeight(2),
-                        ),
-                        state.pathFiles.isNotEmpty
-                            ? SizedBox(
-                                height: config.AppConfig(context).appHeight(20),
-                                child: PageView.builder(
-                                  controller: controller,
-                                  onPageChanged: (page) {
-                                    context
-                                        .read<EditKitchenProfileCubit>()
-                                        .onImageScroll(index: page);
-                                  },
-                                  scrollDirection: Axis.horizontal,
-                                  itemBuilder: (context, index) {
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: config.AppConfig(
-                                          context,
-                                        ).appWidth(2),
+                  ),
+
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom +
+                            MediaQuery.of(context).viewInsets.bottom +
+                            config.AppConfig(context).appHeight(4),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header section
+                          Text(
+                            'SETTINGS',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: MitablColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            state.isCreateMode
+                                ? 'Add Kitchen Profile'
+                                : 'Edit Kitchen Profile',
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: MitablColors.onSurface,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage how your miKitchn appears to guests.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Go Live toggle card
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: MitablColors.outlineVariant
+                                    .withValues(alpha: 0.10),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Go Live Status',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                          color: MitablColors.onSurface,
+                                        ),
                                       ),
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            height: config.AppConfig(
-                                              context,
-                                            ).appHeight(20),
-                                            width: config.AppConfig(
-                                              context,
-                                            ).appWidth(85),
-                                            decoration: BoxDecoration(
-                                              color: config.AppColors()
-                                                  .textFieldBackgroundColor(1),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                config.AppConfig(
-                                                  context,
-                                                ).appWidth(5),
-                                              ),
-                                            ),
-                                            alignment: Alignment.center,
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                                  '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
-                                              errorWidget: (context, data, e) {
-                                                return Image.file(
-                                                  File(
-                                                    state
-                                                        .pathFiles[index].path!,
-                                                  ),
-                                                  errorBuilder:
-                                                      (context, data, e) {
-                                                    return const Icon(
-                                                      Icons.error_outline,
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          Positioned(
-                                            right: 6,
-                                            top: 6,
-                                            child: InkWell(
-                                              onTap: () {
-                                                context
-                                                    .read<
-                                                        EditKitchenProfileCubit>()
-                                                    .onDeleteImage(
-                                                      path: state
-                                                          .pathFiles[index]
-                                                          .path,
-                                                      imagesCook: state
-                                                          .pathFiles[index],
-                                                    );
-                                              },
-                                              child: Icon(
-                                                Icons.delete,
-                                                color: Colors.red,
-                                                size: config.AppConfig(
-                                                  context,
-                                                ).appWidth(6),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Kitchen is visible',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF4D6548),
+                                        ),
                                       ),
-                                    );
-                                  },
-                                  itemCount: state.pathFiles.length,
-                                ),
-                              )
-                            : Container(
-                                height: config.AppConfig(context).appHeight(20),
-                                decoration: BoxDecoration(
-                                  color: config.AppColors()
-                                      .textFieldBackgroundColor(1),
-                                  borderRadius: BorderRadius.circular(
-                                    config.AppConfig(context).appWidth(5),
+                                    ],
                                   ),
                                 ),
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  Icons.photo_outlined,
-                                  size: config.AppConfig(context).appWidth(30),
-                                  color: const Color(0xFF9CA3AF),
+                                Switch(
+                                  value: true,
+                                  activeThumbColor: const Color(0xFF4D6548),
+                                  activeTrackColor:
+                                      MitablColors.secondaryContainer,
+                                  onChanged: (_) {},
                                 ),
-                              ),
-                        SizedBox(
-                          height: config.AppConfig(context).appHeight(2),
-                        ),
-                        state.pathFiles.isNotEmpty
-                            ? Container(
-                                alignment: Alignment.center,
-                                height: config.AppConfig(context).appHeight(5),
-                                child: ListView.separated(
-                                  // controller: controller,
-                                  separatorBuilder: (context, index) {
-                                    return SizedBox(
-                                      width: config.AppConfig(
-                                        context,
-                                      ).appWidth(2),
-                                    );
-                                  },
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.horizontal,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      width: config.AppConfig(
-                                        context,
-                                      ).appWidth(2),
-                                      decoration: BoxDecoration(
-                                        color: state.selectedPage == index
-                                            ? Colors.blue
-                                            : const Color(0xFF9CA3AF),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    );
-                                  },
-                                  itemCount: state.pathFiles.length,
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // General Information card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
-                              )
-                            : const SizedBox(),
-                        SizedBox(
-                          height: config.AppConfig(context).appHeight(2),
-                        ),
-                        _UploadButton(loginForm: this),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
+                              ],
                             ),
-                            _KitchenName(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.zero,
-                              child: TextFormField(
-                                controller: addressTextEditor,
-                                style: const TextStyle(color: Colors.black),
-                                textInputAction: TextInputAction.next,
-                                keyboardType: TextInputType.name,
-                                maxLength: 55,
-                                onChanged: (text) {},
-                                decoration: InputDecoration(
-                                  counterText: '',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'General Information',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                MitablTextField(
+                                  controller: nameTextEditor,
+                                  label: 'Kitchen Name',
+                                  hint: 'Enter kitchen name',
+                                  errorText: state.nameKitchn!.invalid
+                                      ? 'Please enter a valid name'
+                                      : null,
+                                ),
+                                const SizedBox(height: 16),
+                                MitablTextField(
+                                  controller: addressTextEditor,
+                                  label: 'Location Address',
+                                  hint: 'Kitchen address',
                                   errorText: state.address!.invalid
                                       ? 'Please enter a valid address'
                                       : null,
-
-                                  hintStyle: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).hintColor,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4),
-                                  ),
-                                  // labelText: 'Mobile Number',
-                                  hintText: 'Address',
-                                  contentPadding: EdgeInsets.all(
-                                    config.AppConfig(context).appWidth(2),
-                                  ),
-                                  fillColor: config.AppColors()
-                                      .textFieldBackgroundColor(1),
-                                  filled: true,
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  border: InputBorder.none,
-                                  disabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
-                                    ),
-                                  ),
                                 ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Guest Space card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.secondaryContainer
+                                  .withValues(alpha: 0.30),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: MitablColors.secondaryContainer,
                               ),
                             ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            _PhoneNo(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            _NoOfSeats(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            _AbnField(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            _CertificateField(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(2),
-                            ),
-                            _Timing(loginForm: this),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(3),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(40),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: config.AppColors()
-                                          .textFieldBackgroundColor(1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Checkbox(
-                                                materialTapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                value: state.dineIn,
-                                                onChanged: (value) {
-                                                  context
-                                                      .read<
-                                                          EditKitchenProfileCubit>()
-                                                      .onDineInChange(
-                                                        value: value,
-                                                      );
-                                                },
-                                              ),
-                                              Text(
-                                                'Dine-in',
-                                                style: GoogleFonts.gothicA1(
-                                                  fontSize: config.AppConfig(
-                                                    context,
-                                                  ).appHeight(2),
-                                                  color: const Color(
-                                                    0xFF9CA3AF,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: config.AppConfig(
-                                            context,
-                                          ).appWidth(3),
-                                        ),
-                                      ],
-                                    ),
+                                Text(
+                                  'Guest Space',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSecondaryContainer,
                                   ),
                                 ),
-                                SizedBox(
-                                  width: config.AppConfig(context).appWidth(3),
+                                const SizedBox(height: 24),
+                                MitablTextField(
+                                  controller: noOfSeatsTextEditor,
+                                  label: 'Dine-in Capacity',
+                                  hint: 'Enter number of seats',
+                                  keyboardType: TextInputType.number,
+                                  errorText: state.noOfSeats.invalid
+                                      ? 'Please enter valid seats'
+                                      : null,
                                 ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(40),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: config.AppColors()
-                                          .textFieldBackgroundColor(1),
-                                      borderRadius: BorderRadius.circular(20),
+                                const SizedBox(height: 16),
+                                // Pro Tip
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: MitablColors.surfaceContainerLowest
+                                        .withValues(alpha: 0.50),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: MitablColors.secondaryContainer
+                                          .withValues(alpha: 0.50),
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Checkbox(
-                                                materialTapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                value: state.takeAway,
-                                                onChanged: (value) {
-                                                  context
-                                                      .read<
-                                                          EditKitchenProfileCubit>()
-                                                      .onTakeAwayChange(
-                                                        value: value,
-                                                      );
-                                                },
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 20,
+                                        color: const Color(0xFF4D6548),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Pro Tip',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: MitablColors
+                                                    .onSecondaryContainer,
                                               ),
-                                              Text(
-                                                'Takeaway',
-                                                style: GoogleFonts.gothicA1(
-                                                  fontSize: config.AppConfig(
-                                                    context,
-                                                  ).appHeight(2),
-                                                  color: const Color(
-                                                    0xFF9CA3AF,
-                                                  ),
-                                                ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Keeping capacity accurate helps us manage your booking slots effectively during peak hours.',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: MitablColors
+                                                    .onSecondaryContainer
+                                                    .withValues(alpha: 0.80),
+                                                height: 1.4,
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(3),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Kitchen Story card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            const _DineInSlotSection(),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(3),
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.zero,
-                              child: TextFormField(
-                                controller: bioTextEditor,
-                                style: const TextStyle(color: Colors.black),
-                                textInputAction: TextInputAction.next,
-                                keyboardType: TextInputType.text,
-                                maxLength: 200,
-                                maxLines: 5,
-                                onChanged: (text) {},
-                                decoration: InputDecoration(
-                                  counterText: '',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Kitchen Story',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                MitablTextField(
+                                  controller: bioTextEditor,
+                                  label: 'Long Description',
+                                  hint:
+                                      'Tell your guests about your culinary journey...',
+                                  maxLines: 5,
                                   errorText: state.bio!.invalid
                                       ? 'Please enter a valid bio'
                                       : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
 
-                                  hintStyle: GoogleFonts.gothicA1(
-                                    color: Theme.of(context).hintColor,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(4),
+                          // Operating Hours card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Operating Hours',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
                                   ),
-                                  // labelText: 'Mobile Number',
-                                  hintText: 'Bio',
-                                  contentPadding: EdgeInsets.all(
-                                    config.AppConfig(context).appWidth(2),
-                                  ),
-                                  fillColor: config.AppColors()
-                                      .textFieldBackgroundColor(1),
-                                  filled: true,
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
+                                ),
+                                const SizedBox(height: 24),
+                                // Day rows from state
+                                ...List.generate(
+                                  (state.daysTimingOriginal ??
+                                          state.daysTiming)
+                                      .length,
+                                  (index) {
+                                    final day =
+                                        (state.daysTimingOriginal ??
+                                            state.daysTiming)[index];
+                                    final isOn = day.isOn ?? false;
+                                    final dayLabel =
+                                        _dayAbbrev(day.day.toString());
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 16),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 48,
+                                            child: Text(
+                                              dayLabel,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 14,
+                                                color: MitablColors
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ),
+                                          if (isOn &&
+                                              day.timing != null) ...[
+                                            _MiniTimeBox(
+                                                time: day.timing!
+                                                        .startTime ??
+                                                    '--:--'),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8),
+                                              child: Text(
+                                                '-',
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight.w700,
+                                                  fontSize: 12,
+                                                  color: const Color(
+                                                      0xFF89726B),
+                                                ),
+                                              ),
+                                            ),
+                                            _MiniTimeBox(
+                                                time: day.timing!
+                                                        .endTime ??
+                                                    '--:--'),
+                                            const Spacer(),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  _openTimingDialog(
+                                                      context),
+                                              child: Icon(
+                                                Icons.edit,
+                                                size: 16,
+                                                color:
+                                                    const Color(0xFF89726B),
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            Text(
+                                              'Closed',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: MitablColors
+                                                    .outlineVariant,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  _openTimingDialog(
+                                                      context),
+                                              child: Icon(
+                                                Icons.add_circle_outline,
+                                                size: 16,
+                                                color:
+                                                    const Color(0xFF89726B),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Kitchen Gallery card
+                          Container(
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Kitchen Gallery',
+                                      style: TextStyle(
+                                        fontFamily: 'Nunito',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: MitablColors.onSurface,
+                                      ),
                                     ),
+                                    _UploadButton(loginForm: this),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                // Image grid
+                                SizedBox(
+                                  height: 256,
+                                  child: state.pathFiles.isNotEmpty
+                                      ? GridView.builder(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: 12,
+                                            crossAxisSpacing: 12,
+                                          ),
+                                          itemCount:
+                                              state.pathFiles.length > 4
+                                                  ? 4
+                                                  : state.pathFiles.length,
+                                          itemBuilder: (context, index) {
+                                            return ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              child: Stack(
+                                                fit: StackFit.expand,
+                                                children: [
+                                                  CachedNetworkImage(
+                                                    imageUrl:
+                                                        '${GlobalConfiguration().getValue<String>('image_base_url')}${state.pathFiles[index].path}',
+                                                    fit: BoxFit.cover,
+                                                    errorWidget:
+                                                        (context, data,
+                                                            e) {
+                                                      return Image.file(
+                                                        File(state
+                                                            .pathFiles[
+                                                                index]
+                                                            .path!),
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder:
+                                                            (context, data,
+                                                                e) {
+                                                          return const Icon(
+                                                              Icons
+                                                                  .error_outline);
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                  // Delete overlay
+                                                  Positioned(
+                                                    top: 4,
+                                                    right: 4,
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        context
+                                                            .read<
+                                                                EditKitchenProfileCubit>()
+                                                            .onDeleteImage(
+                                                              path: state
+                                                                  .pathFiles[
+                                                                      index]
+                                                                  .path,
+                                                              imagesCook: state
+                                                                      .pathFiles[
+                                                                  index],
+                                                            );
+                                                      },
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(4),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: MitablColors
+                                                              .primary
+                                                              .withValues(
+                                                                  alpha:
+                                                                      0.20),
+                                                          shape: BoxShape
+                                                              .circle,
+                                                        ),
+                                                        child: const Icon(
+                                                          Icons
+                                                              .delete_outline,
+                                                          color:
+                                                              Colors.white,
+                                                          size: 18,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : Container(
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEBE8E3),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: MitablColors
+                                                  .outlineVariant
+                                                  .withValues(alpha: 0.30),
+                                              width: 2,
+                                              strokeAlign: BorderSide
+                                                  .strokeAlignInside,
+                                            ),
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.add,
+                                              color: Color(0xFF89726B),
+                                              size: 32,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Service Options card
+                          MitablCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Service Options',
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
                                   ),
-                                  border: InputBorder.none,
-                                  disabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Dine-in',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: MitablColors.onSurface,
+                                      ),
                                     ),
-                                  ),
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
+                                    Switch(
+                                      value: state.dineIn ?? false,
+                                      activeThumbColor: MitablColors.accent,
+                                      onChanged: (value) {
+                                        context
+                                            .read<EditKitchenProfileCubit>()
+                                            .onDineInChange(value: value);
+                                      },
                                     ),
-                                  ),
-                                  focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Takeaway',
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w500,
+                                        color: MitablColors.onSurface,
+                                      ),
                                     ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFFFFBF7),
+                                    Switch(
+                                      value: state.takeAway ?? false,
+                                      activeThumbColor: MitablColors.accent,
+                                      onChanged: (value) {
+                                        context
+                                            .read<EditKitchenProfileCubit>()
+                                            .onTakeAwayChange(value: value);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: MitablSpacing.listItem),
+
+                          // Dine-in slots
+                          const _DineInSlotSection(),
+                          const SizedBox(height: MitablSpacing.listItem),
+
+                          // Additional fields
+                          MitablTextField(
+                            controller: mobileNoTextEditor,
+                            label: 'Phone',
+                            hint: 'Enter phone number',
+                            keyboardType: TextInputType.phone,
+                            errorText: state.phone.invalid
+                                ? 'Please enter a valid phone no'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          MitablTextField(
+                            controller: abnNoTextEditor,
+                            label: 'ABN',
+                            hint: 'Enter ABN',
+                          ),
+                          const SizedBox(height: 16),
+                          MitablTextField(
+                            controller: certificateTextEditor,
+                            label: 'Certificate No.',
+                            hint: 'Enter certificate number',
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Save bar
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 52,
+                                  child: TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor:
+                                          MitablColors.onSurfaceVariant,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            MitablRadius.pillBorder,
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Discard',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              height: config.AppConfig(context).appHeight(3),
-                            ),
-                            _LoginButton(loginForm: this),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: MitablButton(
+                                  label: 'Save Changes',
+                                  variant: MitablButtonVariant.primary,
+                                  isLoading:
+                                      state.statusApi!.isSubmissionInProgress,
+                                  onPressed: state.status!.isValidated
+                                      ? () {
+                                          context
+                                              .read<
+                                                  EditKitchenProfileCubit>()
+                                              .onKitchenEditUpload();
+                                        }
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ),
+            ],
           ),
         );
       },
     );
   }
-}
 
-class _Timing extends StatefulWidget {
-  final _EditKitchenProfilePageState? loginForm;
-
-  const _Timing({this.loginForm});
-
-  @override
-  State<_Timing> createState() => _TimingState();
-}
-
-class _TimingState extends State<_Timing> {
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraint) {
-        return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-          builder: (context, state) {
-            return Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.zero,
-              child: TextFormField(
-                readOnly: true,
-                style: const TextStyle(color: Colors.black),
-                textInputAction: TextInputAction.next,
-                keyboardType: TextInputType.name,
-                maxLength: 55,
-                onChanged: (text) {},
-                decoration: InputDecoration(
-                  counterText: '',
-
-                  // errorText:
-                  //     state.email!.invalid ? 'Please enter a valid email id' : null,
-                  suffixIcon: InkWell(
-                    onTap: () {
-                      context
-                          .read<EditKitchenProfileCubit>()
-                          .onOpenTimingDialog();
-                      showDialog(
-                        context: context,
-                        builder: (contexts) {
-                          return BlocProvider.value(
-                            value: context.read<EditKitchenProfileCubit>(),
-                            child: EditTimingDialog(),
-                          );
-                        },
-                      );
-                    },
-                    child: Icon(
-                      Icons.access_time_rounded,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  hintStyle: GoogleFonts.gothicA1(
-                    color: Theme.of(context).hintColor,
-                    fontSize: config.AppConfig(context).appWidth(4),
-                  ),
-                  // labelText: 'Mobile Number',
-                  hintText: 'Timings',
-                  contentPadding: EdgeInsets.all(
-                    config.AppConfig(context).appWidth(2),
-                  ),
-                  fillColor: config.AppColors().textFieldBackgroundColor(1),
-                  filled: true,
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  border: InputBorder.none,
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
+  void _openTimingDialog(BuildContext context) {
+    context.read<EditKitchenProfileCubit>().onOpenTimingDialog();
+    showDialog(
+      context: context,
+      builder: (contexts) {
+        return BlocProvider.value(
+          value: context.read<EditKitchenProfileCubit>(),
+          child: EditTimingDialog(),
         );
       },
     );
   }
+
+  static String _dayAbbrev(String dayName) {
+    if (dayName.length >= 3) {
+      return dayName.substring(0, 3);
+    }
+    return dayName;
+  }
 }
+
+class _MiniTimeBox extends StatelessWidget {
+  const _MiniTimeBox({required this.time});
+
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        time,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: MitablColors.onSurface,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+// ── Dine-In Slot Section ──
 
 class _DineInSlotSection extends StatelessWidget {
   const _DineInSlotSection();
@@ -750,13 +952,7 @@ class _DineInSlotSection extends StatelessWidget {
           state.daysTimingOriginal ?? state.daysTiming,
         );
 
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(config.AppConfig(context).appWidth(4)),
-          decoration: BoxDecoration(
-            color: config.AppColors().textFieldBackgroundColor(1),
-            borderRadius: BorderRadius.circular(20),
-          ),
+        return MitablCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -765,10 +961,10 @@ class _DineInSlotSection extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Dine-in timeslots',
-                      style: GoogleFonts.gothicA1(
-                        color: Colors.black,
-                        fontSize: config.AppConfig(context).appWidth(4.5),
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
+                        color: MitablColors.onSurface,
                       ),
                     ),
                   ),
@@ -780,7 +976,7 @@ class _DineInSlotSection extends StatelessWidget {
                               availableDays: availableDays,
                             )
                         : null,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Icons.add, size: 18),
                     label: const Text('Add slot'),
                   ),
                 ],
@@ -788,35 +984,60 @@ class _DineInSlotSection extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Create bookable tables by day, time, and seat capacity.',
-                style: GoogleFonts.gothicA1(
-                  color: const Color(0xFF9CA3AF),
-                  fontSize: config.AppConfig(context).appWidth(3.3),
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  color: MitablColors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 12),
               if (state.dineIn != true)
-                const Text('Enable dine-in to manage dine-in slots.')
+                Text(
+                  'Enable dine-in to manage dine-in slots.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                )
               else if (availableDays.isEmpty)
-                const Text('Open at least one kitchen day before adding slots.')
+                Text(
+                  'Open at least one kitchen day before adding slots.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                )
               else if (state.dineInSlotsStatus.isSubmissionInProgress)
                 const Center(child: CircularProgressIndicator())
               else if (state.dineInSlots.isEmpty)
-                const Text('No dine-in slots added yet.')
+                Text(
+                  'No dine-in slots added yet.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                )
               else
                 ...List<Widget>.generate(state.dineInSlots.length, (index) {
                   final slot = state.dineInSlots[index];
-                  return Card(
+                  return Container(
                     margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(MitablRadius.card),
+                    ),
                     child: ListTile(
                       title: Text(
                         '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime ?? '--:--'} - ${slot.endTime ?? '--:--'}',
-                        style: GoogleFonts.gothicA1(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w600,
+                          color: MitablColors.onSurface,
                         ),
                       ),
                       subtitle: Text(
                         'Seats: ${slot.seatCapacity ?? 0}',
-                        style: GoogleFonts.gothicA1(),
+                        style: GoogleFonts.nunito(
+                          color: MitablColors.onSurfaceVariant,
+                        ),
                       ),
                       trailing: Wrap(
                         spacing: 4,
@@ -829,13 +1050,15 @@ class _DineInSlotSection extends StatelessWidget {
                               existing: slot,
                               index: index,
                             ),
-                            icon: const Icon(Icons.edit_outlined),
+                            icon: const Icon(Icons.edit_outlined,
+                                color: MitablColors.primary, size: 20),
                           ),
                           IconButton(
                             onPressed: () => context
                                 .read<EditKitchenProfileCubit>()
                                 .deleteDineInSlot(index),
-                            icon: const Icon(Icons.delete_outline),
+                            icon: const Icon(Icons.delete_outline,
+                                color: MitablColors.error, size: 20),
                           ),
                         ],
                       ),
@@ -870,7 +1093,17 @@ class _DineInSlotSection extends StatelessWidget {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
             return AlertDialog(
-              title: Text(existing == null ? 'Add slot' : 'Edit slot'),
+              backgroundColor: MitablColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(MitablRadius.card),
+              ),
+              title: Text(
+                existing == null ? 'Add slot' : 'Edit slot',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700,
+                  color: MitablColors.onSurface,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -907,7 +1140,11 @@ class _DineInSlotSection extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
+                          child: MitablButton(
+                            label: startTime == null || startTime!.isEmpty
+                                ? 'Start time'
+                                : startTime!,
+                            variant: MitablButtonVariant.outline,
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
@@ -922,16 +1159,15 @@ class _DineInSlotSection extends StatelessWidget {
                                 startTime = _formatTime(picked);
                               });
                             },
-                            child: Text(
-                              startTime == null || startTime!.isEmpty
-                                  ? 'Start time'
-                                  : startTime!,
-                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: OutlinedButton(
+                          child: MitablButton(
+                            label: endTime == null || endTime!.isEmpty
+                                ? 'End time'
+                                : endTime!,
+                            variant: MitablButtonVariant.outline,
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
@@ -946,11 +1182,6 @@ class _DineInSlotSection extends StatelessWidget {
                                 endTime = _formatTime(picked);
                               });
                             },
-                            child: Text(
-                              endTime == null || endTime!.isEmpty
-                                  ? 'End time'
-                                  : endTime!,
-                            ),
                           ),
                         ),
                       ],
@@ -959,7 +1190,13 @@ class _DineInSlotSection extends StatelessWidget {
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       value: enabled,
-                      title: const Text('Slot enabled'),
+                      title: Text(
+                        'Slot enabled',
+                        style: GoogleFonts.nunito(
+                          color: MitablColors.onSurface,
+                        ),
+                      ),
+                      activeThumbColor: MitablColors.accent,
                       onChanged: (value) {
                         setDialogState(() {
                           enabled = value;
@@ -974,7 +1211,10 @@ class _DineInSlotSection extends StatelessWidget {
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
+                MitablButton(
+                  label: 'Save',
+                  variant: MitablButtonVariant.primary,
+                  fullWidth: false,
                   onPressed: () {
                     final capacity = int.tryParse(seatController.text.trim());
                     if (capacity == null || capacity <= 0) {
@@ -997,6 +1237,7 @@ class _DineInSlotSection extends StatelessWidget {
                       state.daysTimingOriginal ?? state.daysTiming,
                       selectedDay,
                     );
+
                     if (selectedDayTiming == null) {
                       Helper.showToast(
                         'Select an open kitchen day before adding a slot.',
@@ -1048,7 +1289,6 @@ class _DineInSlotSection extends StatelessWidget {
 
                     Navigator.of(dialogContext).pop();
                   },
-                  child: const Text('Save'),
                 ),
               ],
             );
@@ -1233,329 +1473,7 @@ class _OpenDayOption {
   int get hashCode => dayOfWeek.hashCode;
 }
 
-class _KitchenName extends StatefulWidget {
-  final _EditKitchenProfilePageState? loginForm;
-
-  const _KitchenName({this.loginForm});
-
-  @override
-  State<_KitchenName> createState() => _KitchenNameState();
-}
-
-class _KitchenNameState extends State<_KitchenName> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.loginForm!.nameTextEditor,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 15,
-            onChanged: (text) {
-              context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
-                    value: text,
-                  );
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.nameKitchn!.invalid
-                  ? 'Please enter a valid name'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'mikitchn name',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _NoOfSeats extends StatefulWidget {
-  final _EditKitchenProfilePageState? loginForm;
-
-  const _NoOfSeats({this.loginForm});
-
-  @override
-  State<_NoOfSeats> createState() => _NoOfSeatsState();
-}
-
-class _NoOfSeatsState extends State<_NoOfSeats> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.loginForm!.noOfSeatsTextEditor,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.number,
-            maxLength: 10,
-            onChanged: (text) {
-              context.read<EditKitchenProfileCubit>().onSeatChanged(
-                    value: text,
-                  );
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.noOfSeats.invalid ? 'Please enter a valid seats' : null,
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              hintText: 'No. of seats',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PhoneNo extends StatefulWidget {
-  final _EditKitchenProfilePageState? loginForm;
-
-  const _PhoneNo({this.loginForm});
-
-  @override
-  State<_PhoneNo> createState() => _PhoneNoState();
-}
-
-class _PhoneNoState extends State<_PhoneNo> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<EditKitchenProfileCubit, EditKitchenProfileState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.loginForm!.mobileNoTextEditor,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.phone,
-            maxLength: 15,
-            onChanged: (text) {
-              context.read<EditKitchenProfileCubit>().onPhoneChanged(
-                    value: text,
-                  );
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.phone.invalid ? 'Please enter a valid phone no' : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Phone',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AbnField extends StatelessWidget {
-  const _AbnField({this.loginForm});
-
-  final _EditKitchenProfilePageState? loginForm;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.zero,
-      child: TextFormField(
-        controller: loginForm!.abnNoTextEditor,
-        style: const TextStyle(color: Colors.black),
-        textInputAction: TextInputAction.next,
-        keyboardType: TextInputType.text,
-        maxLength: 20,
-        decoration: InputDecoration(
-          counterText: '',
-          hintStyle: GoogleFonts.gothicA1(
-            color: Theme.of(context).hintColor,
-            fontSize: config.AppConfig(context).appWidth(4),
-          ),
-          hintText: 'ABN',
-          contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-          fillColor: config.AppColors().textFieldBackgroundColor(1),
-          filled: true,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          border: InputBorder.none,
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CertificateField extends StatelessWidget {
-  const _CertificateField({this.loginForm});
-
-  final _EditKitchenProfilePageState? loginForm;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.zero,
-      child: TextFormField(
-        controller: loginForm!.certificateTextEditor,
-        style: const TextStyle(color: Colors.black),
-        textInputAction: TextInputAction.next,
-        keyboardType: TextInputType.text,
-        maxLength: 50,
-        decoration: InputDecoration(
-          counterText: '',
-          hintStyle: GoogleFonts.gothicA1(
-            color: Theme.of(context).hintColor,
-            fontSize: config.AppConfig(context).appWidth(4),
-          ),
-          hintText: 'Certificate number',
-          contentPadding: EdgeInsets.all(config.AppConfig(context).appWidth(2)),
-          fillColor: config.AppColors().textFieldBackgroundColor(1),
-          filled: true,
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          border: InputBorder.none,
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ── Upload Button ──
 
 class _UploadButton extends StatefulWidget {
   const _UploadButton({this.loginForm});
@@ -1572,92 +1490,74 @@ class _UploadbuttonState extends State<_UploadButton> {
     return BlocConsumer<EditKitchenProfileCubit, EditKitchenProfileState>(
       listener: (context, state) {},
       builder: (context, state) {
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor,
-              ],
-            ),
-          ),
-          child: MaterialButton(
-            minWidth: config.AppConfig(context).appWidth(100),
-            height: 50.0,
-            onPressed: () {
-              // _pickImage();
-
-              if (state.pathFiles.length <= 4) {
-                showDialog<bool>(
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text(
-                        'Add image',
-                        style: GoogleFonts.gothicA1(
-                          color: Colors.black,
-                          fontSize: config.AppConfig(context).appWidth(5),
+        return TextButton.icon(
+          onPressed: () {
+            if (state.pathFiles.length <= 4) {
+              showDialog<bool>(
+                builder: (context) {
+                  return AlertDialog(
+                    backgroundColor: MitablColors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(MitablRadius.card),
+                    ),
+                    title: Text(
+                      'Add image',
+                      style: GoogleFonts.nunito(
+                        color: MitablColors.onSurface,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        MitablButton(
+                          label: 'Gallery',
+                          variant: MitablButtonVariant.primary,
+                          icon: const Icon(Icons.photo_library_outlined,
+                              size: 18, color: MitablColors.onPrimary),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop(false);
+                          },
                         ),
-                      ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          MaterialButton(
-                            color: Theme.of(context).primaryColor,
-                            child: const Text(
-                              "Gallery",
-                              style: TextStyle(
-                                color: Color(0xB3FFFBF7),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () {
-                              navigatorKey.currentState!.pop(false);
-                            },
-                          ),
-                          MaterialButton(
-                            color: Theme.of(context).primaryColor,
-                            child: const Text(
-                              "Camera",
-                              style: TextStyle(
-                                color: Color(0xB3FFFBF7),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            onPressed: () {
-                              navigatorKey.currentState!.pop(true);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  context: context,
-                ).then((value) {
-                  if (!context.mounted) return;
-                  if (value != null) {
-                    if (value) {
-                      //Get from camera
-                      _openCamera(context);
-                    } else {
-                      //Get from gallery
-                      _openGallery(context);
-                    }
+                        const SizedBox(height: 12),
+                        MitablButton(
+                          label: 'Camera',
+                          variant: MitablButtonVariant.outline,
+                          icon: const Icon(Icons.camera_alt_outlined,
+                              size: 18, color: MitablColors.primary),
+                          onPressed: () {
+                            navigatorKey.currentState!.pop(true);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                context: context,
+              ).then((value) {
+                if (!context.mounted) return;
+                if (value != null) {
+                  if (value) {
+                    _openCamera(context);
+                  } else {
+                    _openGallery(context);
                   }
-                });
-              } else {
-                Helper.showToast('Photos limit reached.');
-              }
-            },
-            child: Text(
-              'Upload Photos',
-              style: GoogleFonts.gothicA1(
-                fontSize: config.AppConfig(context).appWidth(3.5),
-                color: const Color(0xFFFFFBF7),
-              ),
+                }
+              });
+            } else {
+              Helper.showToast('Photos limit reached.');
+            }
+          },
+          icon: const Icon(Icons.add_a_photo_outlined,
+              size: 18, color: MitablColors.primary),
+          label: const Text(
+            'Add Images',
+            style: TextStyle(
+              color: MitablColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
         );
@@ -1708,61 +1608,5 @@ class _UploadbuttonState extends State<_UploadButton> {
     } catch (e) {
       Helper.showToast('No image captured.');
     }
-  }
-}
-
-class _LoginButton extends StatelessWidget {
-  final _EditKitchenProfilePageState? loginForm;
-
-  const _LoginButton({this.loginForm});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<EditKitchenProfileCubit, EditKitchenProfileState>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: state.status!.isValidated
-                  ? [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor,
-                    ]
-                  : [
-                      Theme.of(context).primaryColorLight,
-                      Theme.of(context).primaryColorLight,
-                    ],
-            ),
-          ),
-          child: MaterialButton(
-            minWidth: config.AppConfig(context).appWidth(100),
-            height: 50.0,
-            onPressed: () {
-              if (state.status!.isValidated) {
-                context.read<EditKitchenProfileCubit>().onKitchenEditUpload();
-              }
-            },
-            child: state.statusApi!.isSubmissionInProgress
-                ? const Center(
-                    child: CupertinoActivityIndicator(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  )
-                : Text(
-                    state.isCreateMode ? 'CREATE MIKITCHN' : 'UPDATE MIKITCHN',
-                    style: GoogleFonts.gothicA1(
-                      fontSize: config.AppConfig(context).appWidth(3.5),
-                      color: const Color(0xFFFFFBF7),
-                    ),
-                  ),
-          ),
-        );
-      },
-    );
   }
 }

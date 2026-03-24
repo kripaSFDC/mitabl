@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OTP Verification | Mitabl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@800&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#f6ded1",
+              "tertiary": "#6a594e",
+              "surface-tint": "#9f4122",
+              "outline-variant": "#ddc0b8",
+              "surface-dim": "#dcdad5",
+              "secondary-container": "#cce7c3",
+              "on-secondary-fixed-variant": "#364c32",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary-container": "#fffbff",
+              "inverse-primary": "#ffb59f",
+              "error-container": "#ffdad6",
+              "secondary-fixed": "#cfeac6",
+              "surface-bright": "#fcf9f4",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "surface-container-low": "#f6f3ee",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "on-tertiary-container": "#fffbff",
+              "on-primary": "#ffffff",
+              "on-surface": "#1c1c19",
+              "tertiary-container": "#837166",
+              "on-secondary": "#ffffff",
+              "outline": "#89726b",
+              "on-error": "#ffffff",
+              "surface-container": "#f0ede9",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#0b200a",
+              "primary-fixed": "#ffdbd0",
+              "on-primary-fixed": "#3a0a00",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#b3ceab",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed": "#251911",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#51694c",
+              "inverse-surface": "#31302d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "on-tertiary-fixed-variant": "#53443a",
+              "background": "#fcf9f4",
+              "surface-variant": "#e5e2dd",
+              "secondary": "#4d6548"
+            },
+            fontFamily: {
+              "headline": ["Nunito"],
+              "body": ["DM Sans"],
+              "label": ["DM Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f4;
+            color: #1c1c19;
+            font-family: 'DM Sans', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation (Conditional Suppression: Back navigation focus) -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex items-center justify-between px-6 py-4">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-2xl font-['Nunito'] font-extrabold text-primary tracking-tight">Mitabl</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</header>
+<main class="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-12">
+<div class="w-full max-w-md mx-auto flex flex-col items-center text-center">
+<!-- Hero Icon/Illustration Area -->
+<div class="mb-10 relative">
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-2xl transform scale-150"></div>
+<div class="relative w-24 h-24 bg-surface-container-lowest rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">lock_person</span>
+</div>
+</div>
+<!-- Content Header -->
+<div class="space-y-3 mb-12">
+<h2 class="text-3xl font-['Nunito'] font-extrabold text-on-surface">Verify Identity</h2>
+<p class="text-on-surface-variant font-['DM_Sans'] leading-relaxed max-w-[280px] mx-auto">
+                    We sent a code to your phone. Please enter it below to continue.
+                </p>
+</div>
+<!-- OTP Input Grid -->
+<div class="grid grid-cols-4 gap-4 mb-12 w-full max-w-sm">
+<input autocomplete="one-time-code" class="w-full aspect-square text-center text-2xl font-bold rounded-2xl border-none bg-surface-container-low focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-on-surface transition-all outline-none" maxlength="1" placeholder="•" type="text"/>
+<input class="w-full aspect-square text-center text-2xl font-bold rounded-2xl border-none bg-surface-container-low focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-on-surface transition-all outline-none" maxlength="1" placeholder="•" type="text"/>
+<input class="w-full aspect-square text-center text-2xl font-bold rounded-2xl border-none bg-surface-container-low focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-on-surface transition-all outline-none" maxlength="1" placeholder="•" type="text"/>
+<input class="w-full aspect-square text-center text-2xl font-bold rounded-2xl border-none bg-surface-container-low focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 text-on-surface transition-all outline-none" maxlength="1" placeholder="•" type="text"/>
+</div>
+<!-- Primary Action -->
+<button class="w-full max-w-sm py-4 bg-gradient-to-br from-primary to-primary-container text-white font-['DM_Sans'] font-bold rounded-full shadow-lg shadow-primary/10 hover:opacity-90 active:scale-95 transition-all mb-8">
+                Verify
+            </button>
+<!-- Secondary Actions -->
+<div class="flex flex-col items-center space-y-6">
+<div class="flex items-center space-x-2">
+<span class="text-on-surface-variant text-sm font-['DM_Sans']">Didn't receive the code?</span>
+<button class="text-primary font-bold text-sm hover:underline underline-offset-4 decoration-primary/30">
+                        Resend Code
+                    </button>
+</div>
+<div class="w-12 h-1 bg-surface-container-high rounded-full"></div>
+<p class="text-[11px] font-['DM_Sans'] uppercase tracking-[0.1em] text-on-surface-variant/60 font-bold">
+                    Secure 256-bit Encryption
+                </p>
+</div>
+</div>
+</main>
+<!-- Visual Embellishment: Organic Shape -->
+<div class="fixed -bottom-24 -left-24 w-64 h-64 bg-secondary-container/20 rounded-full blur-[80px] -z-10"></div>
+<div class="fixed top-1/4 -right-12 w-48 h-48 bg-primary-fixed/20 rounded-full blur-[60px] -z-10"></div>
+<!-- No BottomNavBar rendered: Task-focused transactional screen (Suppression rule applied) -->
+</body></html>

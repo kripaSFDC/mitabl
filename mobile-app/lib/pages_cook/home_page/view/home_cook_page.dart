@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/model/bookings.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
-import 'package:mitabl_user/pages_cook/home_page/element/home_cook_header.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
-
-import '../../../helper/shape_custom.dart';
+import 'package:mitabl_user/repos/bookings_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
 
 class HomePageCook extends StatefulWidget {
   const HomePageCook({super.key});
@@ -16,327 +21,759 @@ class HomePageCook extends StatefulWidget {
 }
 
 class _HomePageCookState extends State<HomePageCook> {
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: const Color(0xFFFFFBF7),
-        body: Padding(
-          padding: EdgeInsets.only(
-            left: config.AppConfig(context).appWidth(3),
-            right: config.AppConfig(context).appWidth(3),
-          ),
-          child: SingleChildScrollView(
-            child: BlocBuilder<DashboardCookCubit, DashboardCookState>(
-              builder: (context, state) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: config.AppConfig(context).appHeight(3)),
-                    const HomeCookHeaderWidget(),
-                    SizedBox(height: config.AppConfig(context).appHeight(4)),
-                    Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.all(
-                        config.AppConfig(context).appWidth(6),
-                      ),
-                      width: config.AppConfig(context).appWidth(100),
-                      height: config.AppConfig(context).appHeight(15),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColorDark,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(16),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Total Earnings',
-                                style: TextStyle(
-                                  color: const Color(0xFFFFFBF7),
-                                  fontSize: 18,
-                                  fontWeight: config.FontFamily().medium,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(1),
-                              ),
-                              Text(
-                                'AUD ${state.dashboardData!.data!.totalEarning.toString()}',
-                                style: TextStyle(
-                                  color: const Color(0xFFFFFBF7),
-                                  fontSize: config.AppConfig(
-                                    context,
-                                  ).appWidth(7),
-                                  fontWeight: config.FontFamily().demi,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          SvgPicture.asset(
-                            'assets/img/dollar.svg',
-                            height: config.AppConfig(context).appHeight(10),
-                            width: config.AppConfig(context).appHeight(10),
-                            colorFilter: const ColorFilter.mode(
-                              Color(0xFFFFFBF7),
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: config.AppConfig(context).appHeight(2)),
-                    GestureDetector(
-                      onTap: () {
-                        navigatorKey.currentState!.pushNamed('/Bookings');
-                      },
-                      child: Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.all(
-                                config.AppConfig(context).appWidth(6),
-                              ),
-                              width: config.AppConfig(context).appWidth(100),
-                              height: config.AppConfig(context).appHeight(15),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFFFFBF7),
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Number Of Bookings',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(
-                                        height: config.AppConfig(
-                                          context,
-                                        ).appHeight(1),
-                                      ),
-                                      Text(
-                                        state.dashboardData!.data!.nBookings
-                                            .toString(),
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).primaryColorDark,
-                                          fontSize: config.AppConfig(
-                                            context,
-                                          ).appWidth(7),
-                                          fontWeight: config.FontFamily().demi,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                  // Spacer(),
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                ),
-                                child: CustomPaint(
-                                  painter: CustomShapeCook(),
-                                  child: Container(
-                                    padding: EdgeInsets.all(
-                                      config.AppConfig(context).appWidth(6),
-                                    ),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(30),
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(15),
-                                    decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(16),
-                                        bottomRight: Radius.circular(16),
-                                      ),
-                                    ),
-                                    child: SvgPicture.asset(
-                                      'assets/img/booking.svg',
-                                      height: config.AppConfig(
-                                        context,
-                                      ).appHeight(10),
-                                      width: config.AppConfig(
-                                        context,
-                                      ).appHeight(10),
-                                      colorFilter: const ColorFilter.mode(
-                                        Color(0xFFFFFBF7),
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: config.AppConfig(context).appHeight(2)),
-                    InkWell(
-                      onTap: () {
-                        navigatorKey.currentState!.pushNamed(
-                          '/UpcomingBookings',
-                        );
-                      },
-                      child: Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: Stack(
-                          children: [
-                            Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.all(
-                                config.AppConfig(context).appWidth(6),
-                              ),
-                              width: config.AppConfig(context).appWidth(100),
-                              height: config.AppConfig(context).appHeight(15),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFFFFBF7),
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Upcoming Bookings',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge!
-                                            .copyWith(
-                                              fontSize: config.AppConfig(
-                                                context,
-                                              ).appWidth(4.5),
-                                            ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(
-                                        height: config.AppConfig(
-                                          context,
-                                        ).appHeight(1),
-                                      ),
-                                      Text(
-                                        state
-                                            .dashboardData!
-                                            .data!
-                                            .nUpcomingBookings
-                                            .toString(),
-                                        style: TextStyle(
-                                          color: Theme.of(
-                                            context,
-                                          ).primaryColorDark,
-                                          fontSize: config.AppConfig(
-                                            context,
-                                          ).appWidth(7),
-                                          fontWeight: config.FontFamily().demi,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                  // Spacer(),
-                                ],
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                ),
-                                child: CustomPaint(
-                                  painter: CustomShapeCook(),
-                                  child: Container(
-                                    padding: EdgeInsets.all(
-                                      config.AppConfig(context).appWidth(6),
-                                    ),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(30),
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(15),
-                                    decoration: const BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(16),
-                                        bottomRight: Radius.circular(16),
-                                      ),
-                                    ),
-                                    child: SvgPicture.asset(
-                                      'assets/img/plate.svg',
-                                      height: config.AppConfig(
-                                        context,
-                                      ).appHeight(10),
-                                      width: config.AppConfig(
-                                        context,
-                                      ).appHeight(10),
-                                      colorFilter: const ColorFilter.mode(
-                                        Color(0xFFFFFBF7),
-                                        BlendMode.srcIn,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  bool _kitchenLive = true;
+  bool _kitchenToggling = false;
+  List<Bookings> _queueOrders = [];
+  bool _queueLoading = true;
 
   @override
   void initState() {
     super.initState();
     context.read<DashboardCookCubit>().getDashBoardData();
+    _loadCookingQueue();
+  }
+
+  Future<void> _toggleKitchenLive(bool desired) async {
+    if (_kitchenToggling) return;
+
+    final previous = _kitchenLive;
+    setState(() {
+      _kitchenLive = desired;
+      _kitchenToggling = true;
+    });
+
+    try {
+      final userRepository = context.read<UserRepository>();
+      final headers = await userRepository.authorizedHeaders(
+        includeJsonContentType: true,
+      );
+      final uri = ApiContract.uri('v2/mikitchn/toggle-open');
+      final response = await http
+          .post(uri, headers: headers)
+          .timeout(ApiContract.requestTimeout);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverOpen = body['open'] as bool? ?? desired;
+        setState(() {
+          _kitchenLive = serverOpen;
+          _kitchenToggling = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              serverOpen ? 'Kitchen is now live' : 'Kitchen is now offline',
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          _kitchenLive = previous;
+          _kitchenToggling = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update kitchen status')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _kitchenLive = previous;
+        _kitchenToggling = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Something went wrong. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadCookingQueue() async {
+    try {
+      final repo = BookingRepository(context.read<UserRepository>());
+      final response = await repo.getBookings(
+        isUpcoming: true,
+        limit: 5,
+        page: 1,
+      );
+      if (response.statusCode == 200) {
+        final booking = Booking.fromJson(jsonDecode(response.body));
+        if (mounted) {
+          setState(() {
+            _queueOrders = booking.data?.bookings ?? [];
+            _queueLoading = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _queueLoading = false);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _queueLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: MitablColors.surface,
+        body: BlocBuilder<DashboardCookCubit, DashboardCookState>(
+          builder: (context, state) {
+            final dashData = state.dashboardData?.data;
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Header (sticky style) ──
+                  Container(
+                    padding: const EdgeInsets.only(
+                      top: 48,
+                      bottom: 16,
+                      left: 24,
+                      right: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      color: MitablColors.surfaceContainerLowest,
+                      boxShadow: [
+                        BoxShadow(
+                          color: MitablColors.onSurface.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Title row + avatar
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Dashboard',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: MitablColors.surfaceContainerLow,
+                                border: Border.all(
+                                  color: MitablColors.surfaceContainerLowest,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: MitablColors.onSurface
+                                        .withValues(alpha: 0.04),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                color: MitablColors.onSurfaceVariant,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ── Go Live Toggle ──
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: MitablColors.onSurface
+                                    .withValues(alpha: 0.06),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.cell_tower,
+                                color: const Color(0xFF738C6D),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Kitchen Live',
+                                      style: TextStyle(
+                                        fontFamily: 'Nunito',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18,
+                                        color: MitablColors.onSurface,
+                                        height: 1.0,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _kitchenLive
+                                          ? 'Accepting orders'
+                                          : 'Kitchen offline',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: MitablColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Toggle switch
+                              SizedBox(
+                                width: 64,
+                                height: 32,
+                                child: FittedBox(
+                                  child: Switch(
+                                    value: _kitchenLive,
+                                    activeColor: Colors.white,
+                                    activeTrackColor: const Color(0xFF738C6D),
+                                    inactiveThumbColor: Colors.white,
+                                    inactiveTrackColor:
+                                        MitablColors.onSurfaceVariant,
+                                    onChanged: _kitchenToggling
+                                        ? null
+                                        : (v) => _toggleKitchenLive(v),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Metrics Row ──
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    child: Row(
+                      children: [
+                        // Active Orders metric
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.06),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Active Orders',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${dashData?.nUpcomingBookings ?? 0}',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 28,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Today's Earnings metric
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: MitablColors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MitablColors.onSurface
+                                      .withValues(alpha: 0.06),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Today's Earnings",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '\$${dashData?.totalEarning ?? 0}',
+                                  style: TextStyle(
+                                    fontFamily: 'Nunito',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 28,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // ── Cooking Queue Section ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Cooking Queue',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        color: MitablColors.onSurface,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (_queueLoading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(
+                          color: MitablColors.primary,
+                        ),
+                      ),
+                    )
+                  else if (_queueOrders.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: MitablColors.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: MitablColors.onSurface
+                                  .withValues(alpha: 0.06),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                          border: Border.all(
+                            color:
+                                MitablColors.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'No active orders in the queue',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...List.generate(_queueOrders.length, (index) {
+                      final order = _queueOrders[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                          bottom: 16,
+                        ),
+                        child: _buildQueueTicket(
+                          order: order,
+                          isDelayed: index == 1, // mock delayed state
+                        ),
+                      );
+                    }),
+
+                  const SizedBox(height: 32),
+
+                  // ── View Revenue Button ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: MitablButton(
+                      label: 'View Revenue',
+                      onPressed: () {
+                        navigatorKey.currentState!.pushNamed(
+                          '/RevenueAnalytics',
+                          arguments: RouteArguments(
+                            data: <String, dynamic>{
+                              'totalEarning': dashData?.totalEarning ?? 0,
+                              'nBookings': dashData?.nBookings ?? 0,
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _markOrderReady(dynamic orderId) async {
+    if (orderId == null) return;
+    try {
+      final repo = BookingRepository(context.read<UserRepository>());
+      final response = await repo.updateOrderStatus(
+        data: {
+          'order_id': orderId,
+          'status': 1,
+        },
+      );
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order marked as ready')),
+        );
+        await _loadCookingQueue();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update order status')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Something went wrong. Please try again.')),
+      );
+    }
+  }
+
+  void _delayOrder() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Customer notified of delay')),
+    );
+  }
+
+  Widget _buildQueueTicket({
+    required Bookings order,
+    bool isDelayed = false,
+  }) {
+    final customerName = order.customer?.name ?? 'Customer';
+    final ticketId = '#${order.orderTypeId ?? order.orderId ?? ''}';
+    final timeLabel = '${order.timeFrom ?? ''} - ${order.timeTo ?? ''}';
+    final itemCount = order.items?.length ?? 0;
+    final borderColor = isDelayed
+        ? MitablColors.primary.withValues(alpha: 0.3)
+        : MitablColors.outlineVariant.withValues(alpha: 0.5);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: MitablColors.onSurface.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: borderColor),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Top danger highlight for delayed
+          if (isDelayed)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 4,
+                color: MitablColors.primary,
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: ticket# + customer + elapsed badge
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                ticketId,
+                                style: TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                customerName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            timeLabel.isNotEmpty ? timeLabel : 'Delivery',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Elapsed time badge
+                    if (isDelayed)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: MitablColors.primary.withValues(alpha: 0.1),
+                          borderRadius: MitablRadius.pillBorder,
+                          border: Border.all(
+                            color:
+                                MitablColors.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 16,
+                              color: MitablColors.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Delayed',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: MitablColors.surfaceContainerLow,
+                          borderRadius: MitablRadius.pillBorder,
+                          border: Border.all(
+                            color: MitablColors.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Text(
+                          'In progress',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Items list with left border
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        width: 2,
+                        color: isDelayed
+                            ? MitablColors.primary.withValues(alpha: 0.3)
+                            : MitablColors.outlineVariant,
+                      ),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (itemCount > 0)
+                        ...order.items!.take(3).map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${item.quantity ?? 1}x ${item.food ?? ''}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        })
+                      else
+                        Text(
+                          'Take-away order',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: MitablColors.onSurface,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Action buttons
+                Container(
+                  padding: const EdgeInsets.only(top: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: MitablColors.outlineVariant
+                            .withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      if (!isDelayed)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _delayOrder,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(
+                                color: MitablColors.onSurfaceVariant
+                                    .withValues(alpha: 0.3),
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: MitablRadius.pillBorder,
+                              ),
+                            ),
+                            child: Text(
+                              'Delay',
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (!isDelayed) const SizedBox(width: 12),
+                      Expanded(
+                        flex: isDelayed ? 1 : 2,
+                        child: ElevatedButton(
+                          onPressed: () => _markOrderReady(order.orderId),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: MitablColors.primary,
+                            foregroundColor: MitablColors.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 4,
+                            shadowColor:
+                                MitablColors.primary.withValues(alpha: 0.15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: MitablRadius.pillBorder,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check_circle, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Mark Ready',
+                                style: TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

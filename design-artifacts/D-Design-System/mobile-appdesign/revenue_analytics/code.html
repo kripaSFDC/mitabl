@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vendor Hub - Revenue Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline": "#89726b",
+              "error-container": "#ffdad6",
+              "background": "#fcf9f4",
+              "on-tertiary-fixed-variant": "#53443a",
+              "inverse-primary": "#ffb59f",
+              "on-surface-variant": "#56423c",
+              "inverse-surface": "#31302d",
+              "tertiary": "#6a594e",
+              "secondary-container": "#cce7c3",
+              "on-background": "#1c1c19",
+              "error": "#ba1a1a",
+              "primary-container": "#bc5636",
+              "on-primary-container": "#fffbff",
+              "surface-dim": "#dcdad5",
+              "surface-container-high": "#ebe8e3",
+              "surface-variant": "#e5e2dd",
+              "surface-bright": "#fcf9f4",
+              "secondary-fixed-dim": "#b3ceab",
+              "secondary-fixed": "#cfeac6",
+              "inverse-on-surface": "#f3f0eb",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-secondary-fixed": "#0b200a",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#837166",
+              "primary": "#9c3e20",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "primary-fixed": "#ffdbd0",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-fixed": "#3a0a00",
+              "surface": "#fcf9f4",
+              "on-primary": "#ffffff",
+              "surface-container": "#f0ede9",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "on-tertiary-fixed": "#251911",
+              "surface-tint": "#9f4122",
+              "on-tertiary": "#ffffff",
+              "surface-container-highest": "#e5e2dd",
+              "on-error-container": "#93000a",
+              "on-surface": "#1c1c19",
+              "tertiary-fixed": "#f6ded1",
+              "outline-variant": "#ddc0b8",
+              "on-tertiary-container": "#fffbff",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["DM Sans"],
+              "label": ["DM Sans"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "1.25rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-header {
+        background: rgba(252, 249, 244, 0.8);
+        backdrop-filter: blur(20px);
+      }
+      .chart-container {
+        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(156,62,32,0.05) 100%);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #ddc0b8;
+        border-radius: 10px;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 w-full glass-header flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface" data-icon="menu">menu</span>
+<h1 class="text-2xl font-extrabold text-[#1c1c19]">Vendor Hub</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden md:flex gap-6 mr-6">
+<a class="text-[#9c3e20] font-bold" href="#">Business</a>
+<a class="text-[#56423c] hover:text-[#9c3e20] transition-colors" href="#">Finance</a>
+<a class="text-[#56423c] hover:text-[#9c3e20] transition-colors" href="#">Docs</a>
+<a class="text-[#56423c] hover:text-[#9c3e20] transition-colors" href="#">Settings</a>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Vendor Profile Picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOFCPyie5HjU6Lc4srq97zcpJMdplsVfA4mKROJ0iLRajhK11yHaXg8mphDfrAFnpTekPIO4nDvtRY1u6xqMbbFLs1gauG1zLjvqzPTp-7ocknM8CanIpOD-yXuR9yJ7FhzMwhxby5_YgfFSRQoQXLBCW0Qq28E1ACgMFrdNRPso1KysQBwcgFrTDWiQ8QZ3v0JCRNcgGtBdliKl5vuFRQNPeH1E_dLOIPyzPevYS2JlP6in89a4ViNCGJmjhwSnwU3a5ZtHemQRVx"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-8">
+<!-- Header Section -->
+<section class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-2 block">Performance Overview</span>
+<h2 class="text-4xl font-headline font-extrabold text-on-surface">Revenue Analytics</h2>
+</div>
+<div class="flex bg-surface-container-low p-1.5 rounded-full self-start">
+<button class="px-6 py-2 rounded-full bg-primary text-white text-sm font-bold shadow-sm">Weekly</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant text-sm font-bold hover:bg-surface-variant transition-colors">Monthly</button>
+</div>
+</section>
+<!-- Bento Grid Analytics -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+<!-- Main Earnings Card (Asymmetric Span) -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-lg p-8 flex flex-col justify-between min-h-[400px]">
+<div>
+<div class="flex justify-between items-start mb-8">
+<div>
+<p class="text-on-surface-variant text-sm mb-1">Total Earnings</p>
+<h3 class="text-5xl font-headline font-extrabold text-on-surface">$12,482.50</h3>
+<div class="flex items-center gap-2 mt-2 text-secondary font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span>+12.4% vs last week</span>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-xs font-bold text-on-surface-variant">Gross Revenue</span>
+</div>
+</div>
+<!-- Visual Chart Placeholder (SVG Curve) -->
+<div class="relative h-48 w-full mt-4 chart-container rounded-lg overflow-hidden">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 1000 200">
+<path d="M0,150 C100,140 200,180 300,120 C400,60 500,100 600,40 C700,-20 800,80 1000,60 L1000,200 L0,200 Z" fill="rgba(156,62,32,0.1)"></path>
+<path d="M0,150 C100,140 200,180 300,120 C400,60 500,100 600,40 C700,-20 800,80 1000,60" fill="none" stroke="#9c3e20" stroke-linecap="round" stroke-width="4"></path>
+<!-- Data Points -->
+<circle cx="300" cy="120" fill="#9c3e20" r="6"></circle>
+<circle cx="600" cy="40" fill="#9c3e20" r="6"></circle>
+</svg>
+<div class="absolute bottom-0 w-full flex justify-between px-2 pb-2 text-[10px] font-bold text-on-surface-variant/50 uppercase">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Total Orders Mini Card -->
+<div class="md:col-span-4 bg-secondary-container rounded-lg p-8 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-on-secondary-container text-4xl mb-4" data-icon="receipt_long">receipt_long</span>
+<p class="text-on-secondary-container/80 text-sm font-medium mb-1">Active Orders</p>
+<h3 class="text-4xl font-headline font-extrabold text-on-secondary-container">1,240</h3>
+</div>
+<div class="bg-white/30 backdrop-blur-sm p-4 rounded-lg mt-6">
+<p class="text-xs text-on-secondary-container font-bold mb-3 uppercase tracking-wider">Average Order Value</p>
+<p class="text-2xl font-headline font-extrabold text-on-secondary-container">$48.30</p>
+</div>
+</div>
+<!-- Top Performing Dishes -->
+<div class="md:col-span-12 lg:col-span-5 bg-surface-container-low rounded-lg p-8">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-xl font-headline font-extrabold">Top Dishes</h4>
+<span class="text-primary font-bold text-sm cursor-pointer hover:underline">View Menu</span>
+</div>
+<div class="space-y-6">
+<div class="flex items-center gap-4 group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Fresh avocado and egg toast dish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCUYud-y9D6qEPTmmseeBl2_pgDLBcG2cbA5TA4DQ9a-V-6neflikW8WJwbZO3vsZl4rBNFXzv0Li37bRoZII5cw2vaD8C6nitKXcEn4l6oQBgN_n99IL6_PSc31_aw25wsSbkWEjU1hrpFsupteuSESSWSc5reh11gTbGsMi5-HfJBx37WWzA9mIG32YqSHFI1xWs6DxFljGWjv6NJe8XCNvE_BRgsOPpoZCit0qqv5b3wefPxR8duoweUJG5nsLP8H9c4LBrnZKG"/>
+</div>
+<div class="flex-grow">
+<p class="font-bold text-on-surface">Artisan Avocado Toast</p>
+<p class="text-on-surface-variant text-sm">342 orders • $5,472.00</p>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-secondary bg-secondary-container px-2 py-1 rounded-full">+18%</span>
+</div>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Mediterranean quinoa power salad bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgzwK5phxY8PBh_spoJzwXxVQFD8Qe6Qq83-SBkr5hUEtzqElZbH8Len0QhNAjZr7dW3SyYIV6Mw7a6eJsT86LDreRqfuRczjiX0q-nS61IWVVgsA22b_g7irV5KJQo8p_yjMZxzXRXrRalJYNg1HP8jPUPbeP8-uw7D3aXqGH3w0nKbMHQuVzkCfJdp-lq7b8GjTs2GfgBctgN257vErVqI6X7wz7vsmFbccIpTOAQsnAuPeUSRcap0QD7qSkYTZJ8n60O-gqTLaL"/>
+</div>
+<div class="flex-grow">
+<p class="font-bold text-on-surface">Quinoa Power Bowl</p>
+<p class="text-on-surface-variant text-sm">215 orders • $3,225.00</p>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-secondary bg-secondary-container px-2 py-1 rounded-full">+5%</span>
+</div>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Rustic thin crust pepperoni pizza" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE0WYAW95kOnMUUHcUihTZRDy7FAspjgtw0Joalld9g7OvLWVhh9z9-iuOKpey6gNx5U1t4ehfkLhMt9s5dBGeRy3m2UssoDDDAshI9nGzeR_RgpUE0v1UkQXsJ4avNR9M_0vhHHb4AZiGUaNcauvMlvyBE-LpEAt1Lj_0tt6lpqrODw-IUkudca1ig562cy0JUAK_dmCH5JRUR9skAn_lDLWkNPJZy2ucqEu9_pg-VciEp6KVDvT9tiBh82zpR95Mp5x7hz5COQjg"/>
+</div>
+<div class="flex-grow">
+<p class="font-bold text-on-surface">Rustic Sourdough Pizza</p>
+<p class="text-on-surface-variant text-sm">189 orders • $2,835.00</p>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-on-surface-variant bg-surface-variant px-2 py-1 rounded-full">Stable</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions Table -->
+<div class="md:col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-lg p-8">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-xl font-headline font-extrabold">Transaction History</h4>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="filter_list">filter_list</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left">
+<thead>
+<tr class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">
+<th class="pb-4 pr-4">Order ID</th>
+<th class="pb-4 px-4">Date</th>
+<th class="pb-4 px-4">Status</th>
+<th class="pb-4 pl-4 text-right">Amount</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 pr-4 font-bold text-on-surface">#VH-9021</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">Oct 24, 14:20</td>
+<td class="py-4 px-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">Completed</span>
+</td>
+<td class="py-4 pl-4 text-right font-bold">$124.50</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 pr-4 font-bold text-on-surface">#VH-8942</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">Oct 24, 13:45</td>
+<td class="py-4 px-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">Completed</span>
+</td>
+<td class="py-4 pl-4 text-right font-bold">$42.00</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 pr-4 font-bold text-on-surface">#VH-8821</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">Oct 24, 12:10</td>
+<td class="py-4 px-4">
+<span class="px-3 py-1 bg-surface-variant text-on-surface-variant text-[10px] font-bold rounded-full">Processing</span>
+</td>
+<td class="py-4 pl-4 text-right font-bold">$89.20</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 pr-4 font-bold text-on-surface">#VH-8790</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">Oct 23, 18:30</td>
+<td class="py-4 px-4">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">Completed</span>
+</td>
+<td class="py-4 pl-4 text-right font-bold">$215.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<button class="w-full mt-6 py-3 rounded-full bg-surface-container-low text-on-surface-variant font-bold text-sm hover:bg-surface-variant transition-all">View All Transactions</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full glass-header flex justify-around items-center pb-safe pt-2 px-4 z-50 rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#56423c]">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span class="text-[10px] font-medium mt-1">Business</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full px-4 py-1">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="text-[10px] font-medium mt-1">Finance</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c]">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-[10px] font-medium mt-1">Docs</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c]">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-medium mt-1">Settings</span>
+</div>
+</nav>
+<!-- NavigationDrawer (Sidebar Desktop - Hidden for focus on Canvas) -->
+<div class="hidden lg:fixed lg:left-0 lg:top-0 lg:h-full lg:w-[280px] lg:bg-background lg:flex lg:flex-col lg:py-8 lg:px-4 lg:shadow-2xl z-40 border-r-0 transform -translate-x-full">
+<!-- Sidebar Content would go here if not suppressed by the Focus rule -->
+</div>
+</body></html>

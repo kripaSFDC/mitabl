@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Status | The Culinary Atelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#fcf9f4",
+                        "surface-container-highest": "#e5e2dd",
+                        "secondary": "#4d6548",
+                        "outline": "#89726b",
+                        "on-tertiary-container": "#fffbff",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#ffb59f",
+                        "tertiary-container": "#837166",
+                        "secondary-container": "#cce7c3",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#31302d",
+                        "primary-fixed": "#ffdbd0",
+                        "on-secondary-fixed-variant": "#364c32",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb59f",
+                        "surface-container-low": "#f6f3ee",
+                        "surface": "#fcf9f4",
+                        "surface-tint": "#9f4122",
+                        "on-tertiary-fixed": "#251911",
+                        "on-tertiary-fixed-variant": "#53443a",
+                        "primary-container": "#bc5636",
+                        "surface-container": "#f0ede9",
+                        "secondary-fixed": "#cfeac6",
+                        "primary": "#9c3e20",
+                        "on-secondary-container": "#51694c",
+                        "tertiary-fixed": "#f6ded1",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#1c1c19",
+                        "surface-variant": "#e5e2dd",
+                        "on-secondary-fixed": "#0b200a",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#56423c",
+                        "outline-variant": "#ddc0b8",
+                        "on-surface": "#1c1c19",
+                        "tertiary-fixed-dim": "#d9c2b6",
+                        "surface-dim": "#dcdad5",
+                        "surface-bright": "#fcf9f4",
+                        "surface-container-high": "#ebe8e3",
+                        "on-primary-fixed": "#3a0a00",
+                        "on-primary-fixed-variant": "#802a0d",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "inverse-on-surface": "#f3f0eb",
+                        "tertiary": "#6a594e",
+                        "secondary-fixed-dim": "#b3ceab"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface cursor-pointer">menu</span>
+<span class="text-xl font-bold tracking-tight text-[#9c3e20] dark:text-[#d96c4a]">The Culinary Atelier</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User Profile" data-alt="Portrait of a smiling professional chef" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqXvAZLIGkRj52X2K-KWL07nb-CLI2c2rAJLyAMCzYTbb6RIc7mffl6wrr1yyiHSEoXnXu_U2X0JzkdPPCa0sC9_TCd2Ra2AV1i107Xc4Myw1uQQhWxAfr0HYr8bP-7M9Sx0kTKhfNmcXnS38Y_XzXIkV4EFuIa9OWsXlXSvGtmIvZLswR7ApIYkHDX-nSnInNOmruMDcQDYvLLoX2l6jzmQCK9bIN5ghJmPmksJJ9y7S8GK_s6R0mUQ1TjO4uxTGgl_N9lsyrWsIM"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Order Identity Section -->
+<section class="space-y-2">
+<div class="flex justify-between items-end">
+<div>
+<span class="text-sm font-bold text-primary tracking-widest uppercase">ORDER #8842</span>
+<h1 class="text-4xl font-extrabold text-on-surface mt-1">Saffron Risotto</h1>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-sm font-bold">
+                    In Progress
+                </div>
+</div>
+</section>
+<!-- Live Status Shell (miFoodie View) -->
+<div class="bg-surface-container-low rounded-lg p-8 space-y-8 relative overflow-hidden">
+<!-- Background Texture Decal -->
+<div class="absolute -top-10 -right-10 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+</div>
+<div class="text-center space-y-4 relative z-10">
+<p class="text-on-surface-variant font-medium">Estimated Arrival</p>
+<div class="flex flex-col items-center">
+<span class="text-7xl font-extrabold text-on-surface tracking-tighter">Ready in 20 mins</span>
+<div class="w-48 h-1.5 bg-surface-container-highest rounded-full mt-6 overflow-hidden">
+<div class="w-2/3 h-full bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Tactile Progress Grid -->
+<div class="grid grid-cols-3 gap-4 pt-4">
+<div class="bg-surface-container-lowest p-4 rounded-DEFAULT flex flex-col items-center gap-2 text-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-xs font-bold text-on-surface uppercase tracking-tight">Confirmed</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-DEFAULT flex flex-col items-center gap-2 text-center border-2 border-primary/10">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">skillet</span>
+<span class="text-xs font-bold text-on-surface uppercase tracking-tight">Cooking</span>
+</div>
+<div class="bg-surface-container-lowest/50 p-4 rounded-DEFAULT flex flex-col items-center gap-2 text-center opacity-40">
+<span class="material-symbols-outlined text-on-surface-variant">takeout_dining</span>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-tight">Ready</span>
+</div>
+</div>
+</div>
+<!-- miCook Management Console (Tactile visual for Chef) -->
+<section class="space-y-4">
+<h2 class="text-xl font-bold text-on-surface px-2">Kitchen Controls</h2>
+<div class="bg-surface-container-lowest rounded-lg p-6 shadow-sm space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Preparation Time</p>
+<p class="text-xs text-on-surface-variant">Started 12 mins ago</p>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface-container text-on-surface-variant rounded-full text-xs font-bold">
+                        +5 Mins
+                    </button>
+</div>
+<!-- Ready Now Action -->
+<button class="w-full py-5 bg-primary text-on-primary rounded-full font-bold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-all hover:bg-primary-container shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+                    Ready Now
+                </button>
+</div>
+</section>
+<!-- Order Summary Bento -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-5 rounded-lg space-y-2">
+<span class="material-symbols-outlined text-tertiary text-xl">person</span>
+<p class="text-xs font-bold text-on-surface-variant uppercase">Customer</p>
+<p class="text-base font-bold text-on-surface">Julian Thorne</p>
+</div>
+<div class="bg-secondary-container/30 p-5 rounded-lg space-y-2">
+<span class="material-symbols-outlined text-secondary text-xl">local_mall</span>
+<p class="text-xs font-bold text-on-surface-variant uppercase">Method</p>
+<p class="text-base font-bold text-on-surface">Curbside Pickup</p>
+</div>
+</div>
+<!-- Details List -->
+<div class="bg-surface-container-low rounded-lg overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10">
+<h3 class="font-bold text-on-surface">Items</h3>
+</div>
+<div class="divide-y divide-outline-variant/10">
+<div class="p-6 flex justify-between items-center">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-12 bg-surface-container-highest rounded-DEFAULT overflow-hidden">
+<img alt="Risotto" data-alt="Gourmet saffron risotto with gold leaf garnish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDazI41TSUr-qCmy0mTkgAIUBKVt8q4wqYj7EKUjhBvpruHEBbNATz_bTTmzNXFrnsUTm-DyPDWhOqQMSjTx5Lp4kz3gj_2n6vQ1Zr_Y9HQON8TmbSPyJftfd3ThDSYKDQH7rS49wf6kGs3RkclnKc299MxEyZXnDrEM1HFA6_lgm1egQYqnsMoAvBauJA_pyAoq8XtRfBEdK2VaVJ9xUMT_zvI4Se2kL0AuRNs45sn2H6H9PZ6prdBuykrkvUqcADJasycI_m1RA4g"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">1x Saffron Risotto</p>
+<p class="text-xs text-on-surface-variant">Extra Parmigiano, No onions</p>
+</div>
+</div>
+<span class="font-bold text-on-surface">$24.00</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-bold">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

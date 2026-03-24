@@ -2,13 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
+import 'package:mitabl_user/pages/ordering/element/floating_cart_bar.dart';
+import 'package:mitabl_user/pages/ordering/element/menu_item_tile.dart';
+import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/repos/ordering_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class OrderMenuPage extends StatelessWidget {
   const OrderMenuPage({super.key});
@@ -78,24 +80,8 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
     return AnimatedBuilder(
       animation: _session,
       builder: (context, _) {
-        final kitchen = _session.kitchen;
-        final title = kitchen?.name ?? 'Kitchen menu';
         return Scaffold(
-          appBar: AppBar(title: Text(title)),
-          floatingActionButton: _session.totalItems > 0
-              ? FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      '/OrderCart',
-                      arguments: RouteArguments(
-                        data: OrderRouteData(session: _session),
-                      ),
-                    );
-                  },
-                  label: Text('Cart (${_session.totalItems})'),
-                  icon: const Icon(Icons.shopping_bag_outlined),
-                )
-              : null,
+          backgroundColor: const Color(0xFFF8F6F6), // background-light
           body: _buildBody(context),
         );
       },
@@ -119,58 +105,29 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
       return const SizedBox.shrink();
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+    return Stack(
       children: [
-        _KitchenHero(kitchen: kitchen),
-        const SizedBox(height: 16),
-        if ((_session.errorMessage ?? '').isNotEmpty) ...[
-          Text(
-            _displayError(_session.errorMessage!),
-            style: GoogleFonts.gothicA1(
-              color: Colors.red.shade600,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        _ServiceTypeSelector(session: _session),
-        const SizedBox(height: 16),
-        Text(
-          'Menu',
-          style: GoogleFonts.gothicA1(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+        DefaultTabController(
+          length: 2,
+          child: _MenuContent(
+            kitchen: kitchen,
+            session: _session,
           ),
         ),
-        const SizedBox(height: 12),
-        if (_session.isRefreshingMenu) ...[
-          const LinearProgressIndicator(),
-          const SizedBox(height: 12),
-        ],
-        if (_session.menuItems.isEmpty)
-          const Text('No menu items are available for this kitchen yet.'),
-        ..._session.menuItems.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _MenuItemCard(
-              item: item,
-              quantity: _session.quantityFor(item),
-              available: _session.isItemAvailable(item),
-              onAdd: () => _session.addItem(item),
-              onRemove: () => _session.removeItem(item),
-            ),
-          ),
-        ),
+        FloatingCartBar(session: _session),
       ],
     );
   }
 }
 
-class _KitchenHero extends StatelessWidget {
-  const _KitchenHero({required this.kitchen});
+class _MenuContent extends StatelessWidget {
+  const _MenuContent({
+    required this.kitchen,
+    required this.session,
+  });
 
   final OrderKitchenSummary kitchen;
+  final OrderSessionController session;
 
   @override
   Widget build(BuildContext context) {
@@ -179,321 +136,478 @@ class _KitchenHero extends StatelessWidget {
       'image_base_url',
     );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: config.AppColors().textFieldBackgroundColor(1),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: imagePath == null
-                ? Container(
-                    height: 180,
-                    color: config.AppColors().colorDivider(1),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.restaurant_menu, size: 48),
-                  )
-                : CachedNetworkImage(
-                    imageUrl: '$imageBaseUrl$imagePath',
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  kitchen.name,
-                  style: GoogleFonts.gothicA1(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+    return CustomScrollView(
+      slivers: [
+        // Hero image h-[320px] with gradient overlay and back/heart buttons
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              // Hero image
+              SizedBox(
+                height: 320,
+                width: double.infinity,
+                child: imagePath == null
+                    ? Container(
+                        color: const Color(0xFFE2E8F0), // slate-200
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.restaurant_menu,
+                          size: 64,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: '$imageBaseUrl$imagePath',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 320,
+                        placeholder: (_, __) => Container(
+                          color: const Color(0xFFE2E8F0),
+                          alignment: Alignment.center,
+                          child: const CircularProgressIndicator(),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          color: const Color(0xFFE2E8F0),
+                          alignment: Alignment.center,
+                          child:
+                              const Icon(Icons.broken_image_outlined, size: 48),
+                        ),
+                      ),
+              ),
+              // Gradient overlay from-black/50 to-transparent
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: [0.0, 0.4],
+                      colors: [
+                        Color(0x80000000), // black/50
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  kitchen.address,
-                  style: GoogleFonts.gothicA1(
-                    fontSize: 14,
-                    color: config.AppColors().hintTextBackgroundColor(1),
-                  ),
-                ),
-                if ((kitchen.description ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    kitchen.description!,
-                    style: GoogleFonts.gothicA1(fontSize: 14, height: 1.45),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+              ),
+              // Back + Heart buttons
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 8,
+                left: 16,
+                right: 16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (kitchen.rating != null)
-                      _InfoChip(
-                        icon: Icons.star_border,
-                        label: kitchen.rating!.toStringAsFixed(1),
+                    // Back button
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    if (kitchen.dineInAvailable)
-                      const _InfoChip(
-                        icon: Icons.table_restaurant_outlined,
-                        label: 'Dine in',
+                    ),
+                    // Heart (favorite) button
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.favorite_border,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    if (kitchen.takeAwayAvailable)
-                      const _InfoChip(
-                        icon: Icons.shopping_bag_outlined,
-                        label: 'Take away',
-                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ServiceTypeSelector extends StatelessWidget {
-  const _ServiceTypeSelector({required this.session});
-
-  final OrderSessionController session;
-
-  @override
-  Widget build(BuildContext context) {
-    final kitchen = session.kitchen;
-    if (kitchen == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Service type',
-          style: GoogleFonts.gothicA1(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 10,
-          children: [
-            if (kitchen.dineInAvailable)
-              ChoiceChip(
-                label: const Text('Dine in'),
-                selected: session.serviceType == OrderServiceType.dineIn,
-                onSelected: (_) =>
-                    session.selectServiceType(OrderServiceType.dineIn),
+
+        // Sliding content surface: -mt-10 rounded-t-xl bg-white
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -40),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            if (kitchen.takeAwayAvailable)
-              ChoiceChip(
-                label: const Text('Take away'),
-                selected: session.serviceType == OrderServiceType.takeAway,
-                onSelected: (_) =>
-                    session.selectServiceType(OrderServiceType.takeAway),
+              child: Column(
+                children: [
+                  // Avatar & Basic Info
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Color(0xFFF1F5F9), // slate-100
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Overlapping Avatar: 80px centered, -mt-10, border-4 white
+                        Transform.translate(
+                          offset: const Offset(0, -40),
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE2E8F0),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 4,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: const ClipOval(
+                              child: Center(
+                                child: Icon(
+                                  Icons.person,
+                                  size: 36,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Negative margin compensation
+                        const SizedBox(height: 0),
+                        Transform.translate(
+                          offset: const Offset(0, -28),
+                          child: Column(
+                            children: [
+                              // Kitchen name centered
+                              Text(
+                                kitchen.name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Nunito',
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0F172A), // slate-900
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Rating row centered
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    size: 18,
+                                    color: Color(0xFFEF6034), // primary filled
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    kitchen.rating?.toStringAsFixed(1) ?? '--',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1E293B), // slate-800
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '(120 reviews)',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569), // slate-600
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '\u00B7',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    '1.2 mi',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Description italic centered in quotes
+                              if ((kitchen.description ?? '').trim().isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 280),
+                                    child: Text(
+                                      '"${kitchen.description!}"',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontStyle: FontStyle.italic,
+                                        color: Color(0xFF64748B), // slate-500
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Error message
+                  if ((session.errorMessage ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        _displayError(session.errorMessage!),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: MitablColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
+            ),
+          ),
+        ),
+
+        // Tab bar: rounded-full bg-background-light with white active pill
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _SegmentedControlDelegate(
+            child: Container(
+              color: Colors.white.withValues(alpha: 0.95),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: const _SegmentedTabBar(),
+            ),
+          ),
+        ),
+
+        // Menu content
+        SliverToBoxAdapter(
+          child: Transform.translate(
+            offset: const Offset(0, -40),
+            child: _MenuTab(session: session),
+          ),
         ),
       ],
     );
   }
 }
 
-class _MenuItemCard extends StatelessWidget {
-  const _MenuItemCard({
-    required this.item,
-    required this.quantity,
-    required this.available,
-    required this.onAdd,
-    required this.onRemove,
-  });
+class _SegmentedTabBar extends StatefulWidget {
+  const _SegmentedTabBar();
 
-  final OrderMenuItem item;
-  final int quantity;
-  final bool available;
-  final VoidCallback onAdd;
-  final VoidCallback onRemove;
+  @override
+  State<_SegmentedTabBar> createState() => _SegmentedTabBarState();
+}
+
+class _SegmentedTabBarState extends State<_SegmentedTabBar> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = item.images.isNotEmpty ? item.images.first : null;
-    final imageBaseUrl = GlobalConfiguration().getValue<String>(
-      'image_base_url',
-    );
-
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: config.AppColors().textFieldBackgroundColor(1),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: available
-              ? config.AppColors().colorDivider(1)
-              : Colors.red.shade100,
-        ),
+        color: const Color(0xFFF8F6F6), // background-light
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: imagePath == null
-                ? Container(
-                    width: 84,
-                    height: 84,
-                    color: config.AppColors().colorDivider(1),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.fastfood_outlined),
-                  )
-                : CachedNetworkImage(
-                    imageUrl: '$imageBaseUrl$imagePath',
-                    width: 84,
-                    height: 84,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: GoogleFonts.gothicA1(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '\$${item.price.toStringAsFixed(2)}',
-                  style: GoogleFonts.gothicA1(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-                if ((item.description ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    item.description!,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.gothicA1(
-                      fontSize: 13,
-                      color: config.AppColors().hintTextBackgroundColor(1),
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 10),
-                if (!available)
-                  Text(
-                    'Unavailable for the selected service type',
-                    style: GoogleFonts.gothicA1(
-                      fontSize: 12,
-                      color: Colors.red.shade600,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                else
-                  Row(
-                    children: [
-                      _QuantityButton(
-                        icon: Icons.remove,
-                        onPressed: quantity > 0 ? onRemove : null,
-                      ),
-                      SizedBox(
-                        width: 36,
-                        child: Center(
-                          child: Text(
-                            '$quantity',
-                            style: GoogleFonts.gothicA1(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                      _QuantityButton(icon: Icons.add, onPressed: onAdd),
-                    ],
-                  ),
-              ],
-            ),
-          ),
+          _buildTab('Menu', 0),
+          _buildTab('About', 1),
         ],
       ),
     );
   }
-}
 
-class _QuantityButton extends StatelessWidget {
-  const _QuantityButton({required this.icon, required this.onPressed});
-
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: onPressed == null
-              ? config.AppColors().colorDivider(1)
-              : Theme.of(context).primaryColorDark,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: onPressed == null
-              ? config.AppColors().hintTextBackgroundColor(1)
-              : Theme.of(context).colorScheme.onPrimary,
+  Widget _buildTab(String label, int index) {
+    final isSelected = _selectedIndex == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _selectedIndex = index);
+          DefaultTabController.of(context).animateTo(index);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(100),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF0F172A) // slate-900
+                    : const Color(0xFF64748B), // slate-500
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.label});
+class _SegmentedControlDelegate extends SliverPersistentHeaderDelegate {
+  _SegmentedControlDelegate({required this.child});
 
-  final IconData icon;
-  final String label;
+  final Widget child;
+
+  @override
+  double get minExtent => 60;
+
+  @override
+  double get maxExtent => 60;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _SegmentedControlDelegate oldDelegate) => false;
+}
+
+class _MenuTab extends StatelessWidget {
+  const _MenuTab({required this.session});
+
+  final OrderSessionController session;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: config.AppColors().colorDivider(0.6),
-        borderRadius: BorderRadius.circular(999),
+    if (session.isRefreshingMenu) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (session.menuItems.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(MitablSpacing.pagePadding),
+          child: Text(
+            'No menu items are available for this kitchen yet.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: MitablColors.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        8,
+        16,
+        session.totalItems > 0 ? 100 : 16,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.gothicA1(fontWeight: FontWeight.w600)),
+          // "Specials Today" section header
+          const Text(
+            'Specials Today',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A), // slate-900
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Menu items
+          ...List.generate(session.menuItems.length, (index) {
+            final item = session.menuItems[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: MenuItemTile(
+                item: item,
+                session: session,
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    '/MenuItemDetail',
+                    arguments: RouteArguments(
+                      data: MenuItemDetailRouteData(
+                        item: item,
+                        session: session,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -517,7 +631,7 @@ class _LoadError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: GoogleFonts.gothicA1(fontSize: 15),
+              style: const TextStyle(fontSize: 15),
             ),
             const SizedBox(height: 12),
             ElevatedButton(

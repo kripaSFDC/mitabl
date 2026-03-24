@@ -5,11 +5,15 @@ import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/no_data_widget.dart';
 import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
+import 'package:mitabl_user/pages/payments/element/transaction_row.dart';
+import 'package:mitabl_user/pages/payments/element/visual_credit_card.dart';
 import 'package:mitabl_user/repos/payments_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_button.dart';
 
 class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key, this.repository});
@@ -34,7 +38,8 @@ class _PaymentsPageState extends State<PaymentsPage> {
   List<Map<String, dynamic>> _cards = const [];
   bool _switchingRole = false;
   bool _attemptedFoodieRecovery = false;
-  bool _startingAddCardFlow = false;
+
+  int _currentCardIndex = 0;
 
   @override
   void initState() {
@@ -144,72 +149,22 @@ class _PaymentsPageState extends State<PaymentsPage> {
     }
   }
 
-  Future<void> _startAddCardFlow() async {
-    if (_startingAddCardFlow) return;
-
-    setState(() => _startingAddCardFlow = true);
-    try {
-      final userRepository = context.read<UserRepository>();
-      final userModel =
-          userRepository.currentUser ?? await userRepository.getUser();
-      final url = await _repository.createCardCheckoutSession(
-        userModel: userModel,
-      );
-      final launched = await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            launched
-                ? 'Complete the secure Stripe card setup, then return here and tap refresh.'
-                : 'Unable to open the secure card setup link.',
-          ),
-        ),
-      );
-    } on RepositoryHttpException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to start secure card setup right now.'),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _startingAddCardFlow = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('payments'),
+      backgroundColor: MitablColors.surface,
+      appBar: GlassAppBar(
+        title: const Text('miFoodi'),
         actions: [
-          IconButton(
-            onPressed: _status == _ViewStatus.loaded ? _load : null,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-          ),
+          if (_status == _ViewStatus.loaded)
+            IconButton(
+              onPressed: _load,
+              icon: const Icon(Icons.refresh,
+                  color: MitablColors.onSurface, size: 22),
+              tooltip: 'Refresh',
+            ),
         ],
       ),
-      floatingActionButton:
-          _status == _ViewStatus.loaded || _status == _ViewStatus.serverError
-          ? FloatingActionButton.extended(
-              onPressed: _startingAddCardFlow ? null : _startAddCardFlow,
-              label: Text(_startingAddCardFlow ? 'Opening...' : 'Add card'),
-              icon: const Icon(Icons.add_card_outlined),
-            )
-          : null,
       body: switch (_status) {
         _ViewStatus.loading => const CommonProgressWidget(),
         _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
@@ -229,64 +184,347 @@ class _PaymentsPageState extends State<PaymentsPage> {
                     children: [
                       const NoDataWidget(),
                       const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _startingAddCardFlow
-                            ? null
-                            : _startAddCardFlow,
-                        icon: const Icon(Icons.add_card_outlined),
-                        label: Text(
-                          _startingAddCardFlow
-                              ? 'Opening secure setup...'
-                              : 'Add your first card',
-                        ),
+                      MitablButton(
+                        label: 'Add Your First Card',
+                        onPressed: () => _navigateToAddCard(),
+                        fullWidth: false,
+                        icon: const Icon(Icons.add_card,
+                            color: MitablColors.onPrimary, size: 18),
                       ),
                     ],
                   ),
                 )
               : RefreshIndicator(
                   onRefresh: _load,
+                  color: MitablColors.primary,
                   child: ListView(
+                    padding: const EdgeInsets.all(MitablSpacing.pagePadding),
                     children: [
+                      // ── Header Section ──
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Payments',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: MitablColors.onSurface,
+                                fontFamily: 'Nunito',
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Manage your payment methods and track transactions.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: MitablColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ── Bento Grid for Cards ──
+                      // Add New Card button
+                      GestureDetector(
+                        onTap: () => _navigateToAddCard(),
+                        child: Container(
+                          height: 220,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: MitablColors.outlineVariant.withValues(alpha: 0.3),
+                              width: 2,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: MitablColors.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: MitablColors.primary,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Add New Card',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Visa, Mastercard, Amex',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Cards carousel
                       if (_cards.isNotEmpty) ...[
-                        const ListTile(title: Text('Saved cards')),
-                        ..._cards.map(
-                          (card) => ListTile(
-                            title: Text((card['brand'] ?? 'Card').toString()),
-                            subtitle: Text(
-                              [
-                                if ((card['last4'] ?? '').toString().isNotEmpty)
-                                  '•••• ${(card['last4'] ?? '').toString()}',
-                                if ((card['exp_month'] ?? '')
-                                        .toString()
-                                        .isNotEmpty &&
-                                    (card['exp_year'] ?? '')
-                                        .toString()
-                                        .isNotEmpty)
-                                  'Expires ${(card['exp_month'] ?? '').toString()}/${(card['exp_year'] ?? '').toString()}',
-                              ].join('  •  '),
-                            ),
+                        SizedBox(
+                          height: 210,
+                          child: PageView.builder(
+                            itemCount: _cards.length,
+                            onPageChanged: (index) {
+                              setState(() => _currentCardIndex = index);
+                            },
+                            itemBuilder: (context, index) {
+                              final card = _cards[index];
+                              return VisualCreditCard(
+                                brand: (card['brand'] ?? 'Card').toString(),
+                                last4: (card['last4'] ?? '').toString(),
+                                expMonth:
+                                    (card['exp_month'] ?? '').toString(),
+                                expYear:
+                                    (card['exp_year'] ?? '').toString(),
+                                cardholderName:
+                                    (card['name'] ?? '').toString(),
+                              );
+                            },
                           ),
                         ),
-                        const Divider(),
+
+                        // Page dots
+                        if (_cards.length > 1) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _cards.length,
+                              (index) => Container(
+                                width: index == _currentCardIndex ? 24 : 8,
+                                height: 8,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 3),
+                                decoration: BoxDecoration(
+                                  color: index == _currentCardIndex
+                                      ? MitablColors.primary
+                                      : MitablColors.outlineVariant,
+                                  borderRadius: MitablRadius.pillBorder,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
                       ],
+
+                      // ── Recent Transactions Section ──
                       if (_history.isNotEmpty) ...[
-                        const ListTile(title: Text('Payment history')),
-                        ..._history.map(
-                          (payment) => ListTile(
-                            title: Text(
-                              (payment['amount'] ?? 'Payment').toString(),
-                            ),
-                            subtitle: Text(
-                              (payment['status'] ?? '').toString(),
-                            ),
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: MitablColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Recent Transactions',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: MitablColors.onSurface,
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {},
+                                    child: const Text(
+                                      'View All',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: MitablColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              ..._history.map(
+                                (transaction) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: TransactionRow(
+                                      transaction: transaction),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
+
+                      const SizedBox(height: 24),
+
+                      // ── Insights / Promotions Bento Footer ──
+                      // Save with miFoodi Card
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: MitablColors.secondaryContainer,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Save with miFoodi Card',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF51694C),
+                                      fontFamily: 'Nunito',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Get 5% cashback on all orders using our primary card.',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF364C32),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  MitablButton(
+                                    label: 'Learn More',
+                                    onPressed: () {},
+                                    variant: MitablButtonVariant.primary,
+                                    fullWidth: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Transform.rotate(
+                                angle: 0.2,
+                                child: const Icon(
+                                  Icons.savings,
+                                  size: 36,
+                                  color: Color(0xFF51694C),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Purchase Protection
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6DED1),
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Icon(
+                                  Icons.security,
+                                  color: Color(0xFF6A594E),
+                                  size: 36,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                    borderRadius: MitablRadius.pillBorder,
+                                  ),
+                                  child: const Text(
+                                    'SECURE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF6A594E),
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Purchase Protection',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF251911),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Every transaction is encrypted and protected by miFoodi SafeCheck.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF53443A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
       },
     );
+  }
+
+  void _navigateToAddCard() {
+    Navigator.of(context).pushNamed('/AddPaymentMethod').then((result) {
+      if (result == true && mounted) {
+        _load();
+      }
+    });
   }
 }
 
@@ -306,14 +544,26 @@ class _SwitchToMifoodiCta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Icon(
+              Icons.swap_horiz,
+              size: 48,
+              color: MitablColors.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
             const Text(
               'Switch to mifoodi to access this page',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
+            const SizedBox(height: 16),
+            MitablButton(
+              label: isLoading ? 'Switching...' : 'Switch to mifoodi',
               onPressed: isLoading ? null : onPressed,
-              child: Text(isLoading ? 'Switching...' : 'Switch to mifoodi'),
+              variant: MitablButtonVariant.primary,
+              fullWidth: false,
             ),
           ],
         ),
@@ -336,9 +586,27 @@ class _ServerErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: MitablColors.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                color: MitablColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            MitablButton(
+              label: 'Retry',
+              onPressed: onRetry,
+              variant: MitablButtonVariant.outline,
+              fullWidth: false,
+            ),
           ],
         ),
       ),

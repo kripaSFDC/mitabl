@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "inverse-primary": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "tertiary-fixed": "#f6ded1",
+              "surface-variant": "#e5e2dd",
+              "on-tertiary": "#ffffff",
+              "background": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed": "#ffdbd0",
+              "on-tertiary-fixed": "#251911",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "on-primary": "#ffffff",
+              "surface": "#fcf9f4",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed-variant": "#53443a",
+              "surface-container": "#f0ede9",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-tertiary-container": "#fffbff",
+              "outline-variant": "#ddc0b8",
+              "tertiary-container": "#837166",
+              "primary-fixed-dim": "#ffb59f",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-secondary-fixed": "#0b200a",
+              "secondary-fixed": "#cfeac6",
+              "on-error": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "surface-container-lowest": "#ffffff",
+              "primary-container": "#bc5636",
+              "inverse-on-surface": "#f3f0eb",
+              "on-error-container": "#93000a",
+              "secondary-container": "#cce7c3",
+              "error-container": "#ffdad6"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      ::-webkit-scrollbar { width: 0; background: transparent; }
+      .slider-thumb::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: #9c3e20;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 4px solid #ffffff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center p-2 hover:bg-[#f6f3ee] rounded-full transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[#9c3e20]" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-black text-[#9c3e20] tracking-tight font-['Plus_Jakarta_Sans']">miFoodi</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_xJtiUotXu8mEtI-9dqeCmeNwrNhBFd9wSqua86IvR8UQORMPIS3uP8XoBx0go-JKBWsshKLE1kAoCREG-_YEsABuWEqZJCxzy-itEV9OXKkxkl4es1u3wDY3-mXUyfGcX5aWGjAtYxPW2N5bSJXffdM7F22qH2Mj81PhUk_7D0rutB_m9ArCwZMQVkcOmJ0yRdXZz2nh6MUz26coa1vQgFhfZSTeR6bZGEFwYm337dlleJsy-ArMOtlyRdmIJlyTslNCeAJtUnAV"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto">
+<!-- Search Section -->
+<div class="mb-10">
+<h2 class="font-headline font-extrabold text-3xl text-on-surface mb-6 leading-tight">What are you <br/><span class="text-primary">craving today?</span></h2>
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+</div>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-on-surface-variant/50 text-on-surface" placeholder="Search dishes, cuisines, or restaurants" type="text"/>
+</div>
+</div>
+<!-- Filter Categories -->
+<div class="space-y-10">
+<!-- Cuisine Section -->
+<section>
+<div class="flex justify-between items-end mb-4">
+<h3 class="font-headline font-bold text-xl text-on-surface">Cuisine</h3>
+<button class="text-primary font-bold text-sm tracking-wide">View All</button>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<!-- Italian -->
+<button class="flex-none flex flex-col items-center gap-2 group">
+<div class="w-20 h-20 rounded-2xl bg-surface-container-low group-hover:bg-primary-container/10 transition-colors flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Close up of delicious Italian pasta" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9_nS4yuqkK11y8CVIFjAvZ5XDAzJyL-8WnLsmZ0eA6OGSmbtnvx4IFi6Zxovn0aLhqejb_g_bGvAqQRXUEG71WIWA-vLIFSrdE27i2lDtk8C3K_LmOBknvDQhhpXEalPUICBQ0rFPb0KEVRLUyYITP2-u8kL5S59R-L61g9IdDOYHP_Oo6SmScphuMN74W-l8N7keJbBpMXTmVIQ0GLWC9nvG7gZaRzQTirQz3J7iApAyxBFSpkJh7qqS5bketE6V-jGWhdMbE86c"/>
+</div>
+<span class="text-sm font-bold text-on-surface-variant">Italian</span>
+</button>
+<!-- Japanese -->
+<button class="flex-none flex flex-col items-center gap-2 group">
+<div class="w-20 h-20 rounded-2xl bg-primary border-4 border-primary/10 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Assorted fresh Japanese sushi rolls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUXW43QxkUzd743t6BmMqQhcetn1aNrX3MCe2B9tdrz2RQcwHmVe9SEi9Eq0gBDDDBc4I1cMYDr8n63C5xTprQptoJWsPPasDuKebhiTCRBDG974gUQBOpmcUEOojUjUBfK-1bW3Q5hLtS84kWiD4rlEBf4ziNe92VUbpEmo5jIZqilfuoDzutCJo8P9WBX4nZXrROPRb_9lNzH8o0N8Y0NGJI7bLefNPk7EMPJPT716hSSgsSX-ZCans75FOsYq6o7VTDuYDn-01z"/>
+</div>
+<span class="text-sm font-bold text-primary">Japanese</span>
+</button>
+<!-- Indian -->
+<button class="flex-none flex flex-col items-center gap-2 group">
+<div class="w-20 h-20 rounded-2xl bg-surface-container-low group-hover:bg-primary-container/10 transition-colors flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Traditional Indian curry and naan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYl-VxfKtSZT-eUZ6RAWKmY64yb6ChuaNzu6_CVFHICPDmmuyghbhm5Lc3LR9Kkw7gcCj_ludVd8x2bsMe6BLYUFA-K_G-ZaZ4bf26NU70jwRtFqnKxP12gpvPjQVfQJJTfUSsq9jVjK-LYCM10rj9evtUg3a49fyg0h1C36HStC1yFd-rgYuIGBcj7qq4VhzpTq4fEcCEJHtsi5jFxCJXNjBZxx5GF9ey-cDHdJiChOVZJUqTZX_j02NZoCC-PBlH_TeuImec2wgD"/>
+</div>
+<span class="text-sm font-bold text-on-surface-variant">Indian</span>
+</button>
+<!-- Mexican -->
+<button class="flex-none flex flex-col items-center gap-2 group">
+<div class="w-20 h-20 rounded-2xl bg-surface-container-low group-hover:bg-primary-container/10 transition-colors flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Flavorful Mexican tacos with lime" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVsVQ29GrCKxmqBvY2sj4ckjh-FUziqmSdi7Wl-ie25_59j16alcy7g6TH8kN1VW6xE9WuKeZqjsodhv8Z1zaUZojW0z7ZkoeYJxKnwmbL1jkH_hH57TGTnEIoHKP2QKD2fOeBVF5ziDIgRbYHp3F_NlS2P3tEK35Dx8Gvl4ozBUijbNteaifu_0oazpxjILjrUb3ROcMJkcltxghtgynTMv4vu1CGMCrnf2Ku371QJxT2vvrnGskSIY5BFwMuVl4Msy7PeP5Bo0kO"/>
+</div>
+<span class="text-sm font-bold text-on-surface-variant">Mexican</span>
+</button>
+<!-- French -->
+<button class="flex-none flex flex-col items-center gap-2 group">
+<div class="w-20 h-20 rounded-2xl bg-surface-container-low group-hover:bg-primary-container/10 transition-colors flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Artisanal French pastries and croissant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLBwO54WDjGP-xVDhJmeIhfPbczYbqTuXE5zIONyv0TmAH9-ltRrn5sTnX1Jts-m0nvdQqoLmj5th3bngx20BJn0PkerzRaQO7_QBWT8kGckN8y3nS0x-76uzdNL94twUA5uXUh_UnDuM_W4TnvcN2e4ES_rgZ8EjOKilUrfoVgh5uQMbj3Fc6p9yYe5ly_MgEonjWx3I6J39Lpz3dcgu6UgNQ-MteGTRtmGx9FzUQUZuBd633nxNWj1XvuiOvo32SkrlEWh8PDU-E"/>
+</div>
+<span class="text-sm font-bold text-on-surface-variant">French</span>
+</button>
+</div>
+</section>
+<!-- Dietary Restrictions -->
+<section>
+<h3 class="font-headline font-bold text-xl text-on-surface mb-4">Dietary Preferences</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-5 py-2 rounded-full bg-secondary-container text-on-secondary-container text-sm font-bold flex items-center gap-2 cursor-pointer transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="eco" style="font-variation-settings: 'FILL' 1;">eco</span>
+                        Vegan
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-sm font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="grass">grass</span>
+                        Vegetarian
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-sm font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="no_food">no_food</span>
+                        Gluten-Free
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-sm font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="nutrition">nutrition</span>
+                        Keto
+                    </span>
+<span class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-sm font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="set_meal">set_meal</span>
+                        Pescatarian
+                    </span>
+</div>
+</section>
+<!-- Distance Slider -->
+<section class="p-6 bg-surface-container-low rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline font-bold text-xl text-on-surface">Distance</h3>
+<span class="bg-primary px-3 py-1 rounded-full text-white text-xs font-bold">Within 5 km</span>
+</div>
+<div class="relative w-full h-2 bg-outline-variant/30 rounded-full mb-2">
+<div class="absolute top-0 left-0 h-full w-1/2 bg-primary rounded-full"></div>
+<input class="absolute top-0 w-full h-full opacity-0 cursor-pointer slider-thumb" max="20" min="1" type="range" value="5"/>
+</div>
+<div class="flex justify-between text-xs font-bold text-on-surface-variant opacity-60">
+<span>1 km</span>
+<span>20 km</span>
+</div>
+</section>
+<!-- Price Range -->
+<section>
+<h3 class="font-headline font-bold text-xl text-on-surface mb-4">Price Range</h3>
+<div class="grid grid-cols-4 gap-3">
+<button class="py-3 rounded-xl bg-surface-container-low text-on-surface-variant font-bold hover:bg-surface-container transition-colors">$</button>
+<button class="py-3 rounded-xl bg-primary text-white font-bold shadow-md shadow-primary/20">$$</button>
+<button class="py-3 rounded-xl bg-surface-container-low text-on-surface-variant font-bold hover:bg-surface-container transition-colors">$$$</button>
+<button class="py-3 rounded-xl bg-surface-container-low text-on-surface-variant font-bold hover:bg-surface-container transition-colors">$$$$</button>
+</div>
+</section>
+<!-- Action Buttons -->
+<div class="flex gap-4 pt-4">
+<button class="flex-1 py-4 bg-surface-container text-on-surface-variant font-bold rounded-full transition-transform active:scale-95">
+                    Clear All
+                </button>
+<button class="flex-[2] py-4 bg-primary text-white font-bold rounded-full shadow-lg shadow-primary/20 transition-transform active:scale-95">
+                    Apply Filters
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-6 pt-3 px-4 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md z-50 rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-1 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="search" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="credit_card">credit_card</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Wallet</span>
+</a>
+</nav>
+</body></html>

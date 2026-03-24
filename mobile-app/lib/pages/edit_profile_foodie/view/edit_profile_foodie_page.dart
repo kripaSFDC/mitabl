@@ -1,17 +1,23 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
+import 'package:mitabl_user/repos/auth_headers.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import '../../../helper/helper.dart';
 import '../../../helper/route_arguement.dart';
-import '../../../repos/authentication_repository.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
-import 'dart:io';
+import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/glass_app_bar.dart';
+import 'package:mitabl_user/widgets/mitabl_text_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileFoodiePage extends StatefulWidget {
   const EditProfileFoodiePage({super.key});
@@ -33,9 +39,28 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
   TextEditingController? phone = TextEditingController();
   TextEditingController? description = TextEditingController();
 
+  static const _prefKey = 'foodie_dietary_prefs';
+
+  /// API ID to label mapping for dietary preferences.
+  // ignore: unused_field
+  static const Map<int, String> _dietaryIdToLabel = {
+    1: 'Vegan',
+    2: 'Gluten Free',
+    3: 'Halal',
+    4: 'Kosher',
+    5: 'Contains Dairy',
+    6: 'Spicy',
+    7: 'Contains Tree nut',
+    8: 'Contains Fish',
+  };
+
+  Set<int> _selectedDietaryPrefs = {};
+  bool _isSavingDietary = false;
+
   @override
   void initState() {
     super.initState();
+    _loadDietaryPrefs();
     context.read<ProfileFoodieCubit>().resetSubmissionStatus();
     firstName!.addListener(() {
       context.read<ProfileFoodieCubit>().onFirstNameChanged(
@@ -77,6 +102,106 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     super.dispose();
   }
 
+  Future<void> _loadDietaryPrefs() async {
+    // Try API first, fall back to SharedPreferences
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      final headers = authorizedHeadersForUser(
+        userModel,
+        includeJsonContentType: true,
+      );
+
+      final response = await http.get(
+        ApiContract.uri('v2/account/dietary-preferences'),
+        headers: headers,
+      ).timeout(ApiContract.requestTimeout);
+
+      if (response.statusCode == 200 && mounted) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final prefs = body['preferences'];
+        if (prefs is List) {
+          final ids = prefs.map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0).toSet();
+          setState(() {
+            _selectedDietaryPrefs = ids;
+          });
+          // Cache to SharedPreferences for offline fallback
+          final sp = await SharedPreferences.getInstance();
+          await sp.setStringList(
+            _prefKey,
+            ids.map((id) => id.toString()).toList(),
+          );
+          return;
+        }
+      }
+    } catch (_) {
+      // Fall through to SharedPreferences fallback
+    }
+
+    // Offline fallback: load from SharedPreferences
+    final sp = await SharedPreferences.getInstance();
+    final saved = sp.getStringList(_prefKey);
+    if (saved != null && mounted) {
+      setState(() {
+        _selectedDietaryPrefs =
+            saved.map((s) => int.tryParse(s) ?? 0).where((id) => id > 0).toSet();
+      });
+    }
+  }
+
+  Future<void> _saveDietaryPrefs() async {
+    setState(() => _isSavingDietary = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final userModel =
+          userRepository.currentUser ?? await userRepository.getUser();
+      final headers = authorizedHeadersForUser(
+        userModel,
+        includeJsonContentType: true,
+      );
+
+      final response = await http.put(
+        ApiContract.uri('v2/account/dietary-preferences'),
+        headers: headers,
+        body: jsonEncode({
+          'preference_ids': _selectedDietaryPrefs.toList(),
+        }),
+      ).timeout(ApiContract.requestTimeout);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Also cache locally for offline fallback
+        final sp = await SharedPreferences.getInstance();
+        await sp.setStringList(
+          _prefKey,
+          _selectedDietaryPrefs.map((id) => id.toString()).toList(),
+        );
+      }
+    } catch (_) {
+      // Save locally as fallback even if API fails
+      final sp = await SharedPreferences.getInstance();
+      await sp.setStringList(
+        _prefKey,
+        _selectedDietaryPrefs.map((id) => id.toString()).toList(),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingDietary = false);
+      }
+    }
+  }
+
+  // ignore: unused_element
+  void _toggleDietaryPref(int dietId) {
+    setState(() {
+      if (_selectedDietaryPrefs.contains(dietId)) {
+        _selectedDietaryPrefs.remove(dietId);
+      } else {
+        _selectedDietaryPrefs.add(dietId);
+      }
+    });
+  }
+
   void _openGallery(BuildContext context) async {
     final cubit = context.read<ProfileFoodieCubit>();
     final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -112,669 +237,606 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     }
   }
 
+  void _showImagePickerDialog() {
+    showDialog<bool>(
+      builder: (context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: MitablRadius.cardBorder,
+          ),
+          title: const Text(
+            'Update Photo',
+            style: TextStyle(
+              color: MitablColors.onSurface,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Nunito',
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library,
+                    color: MitablColors.primary),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.of(context).pop(false),
+              ),
+              ListTile(
+                leading:
+                    const Icon(Icons.camera_alt, color: MitablColors.primary),
+                title: const Text('Take a Photo'),
+                onTap: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+      },
+      context: context,
+    ).then((value) {
+      if (!context.mounted) return;
+      if (value != null) {
+        if (value) {
+          _openCamera(context);
+        } else {
+          _openGallery(context);
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: const Color(0xFFFFFBF7),
-        body: Padding(
-          padding: EdgeInsets.only(
-            left: config.AppConfig(context).appWidth(3),
-            right: config.AppConfig(context).appWidth(3),
-          ),
-          child: Column(
-            children: [
-              SizedBox(height: config.AppConfig(context).appHeight(5)),
-              Row(
+    return Scaffold(
+      backgroundColor: MitablColors.surface,
+      appBar: const GlassAppBar(title: Text('miFoodi')),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: MitablSpacing.pagePadding,
+          right: MitablSpacing.pagePadding,
+          bottom: MediaQuery.of(context).padding.bottom +
+              MediaQuery.of(context).viewInsets.bottom +
+              32,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 24),
+
+            // ── Page Title: centered, large heading ──
+            const Text(
+              'Edit Profile',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: MitablColors.onSurface,
+                fontFamily: 'Nunito',
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Refine your culinary preferences and details',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: MitablColors.onSurfaceVariant,
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // ── Profile Photo Section: rotated square with edit FAB ──
+            _buildAvatarSection(),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: _showImagePickerDialog,
+              child: Text(
+                'CHANGE PHOTO',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: MitablColors.primary,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // ── Personal Details card ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      navigatorKey.currentState!.pop();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.arrow_back_ios,
-                        size: config.AppConfig(context).appWidth(5),
-                        color: Theme.of(context).primaryColorDark,
-                      ),
+                  const Text(
+                    'Personal Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF56423C),
+                      fontFamily: 'Nunito',
                     ),
                   ),
-                  SizedBox(width: config.AppConfig(context).appWidth(2)),
-                  Text(
-                    'Profile',
-                    style: GoogleFonts.gothicA1(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: config.AppConfig(context).appWidth(6),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const SizedBox(height: 20),
+                  BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+                    builder: (context, state) {
+                      return MitablTextField(
+                        controller: firstName,
+                        label: 'Full Name',
+                        hint: 'Enter your name',
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.name,
+                        errorText: state.firstName!.invalid
+                            ? 'Please enter a valid first name'
+                            : null,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+                    builder: (context, state) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 6, left: 4),
+                            child: Text(
+                              'Phone Number',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: MitablColors.onSurface,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              // Country code prefix
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: MitablColors.surfaceContainerLowest,
+                                  borderRadius: MitablRadius.inputBorder,
+                                ),
+                                child: const Text(
+                                  '+1',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: MitablTextField(
+                                  controller: phone,
+                                  hint: 'Phone number',
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.phone,
+                                  errorText: state.phoneNo!.invalid
+                                      ? 'Please enter a valid phone no'
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+                    builder: (context, state) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MitablTextField(
+                            controller: email,
+                            label: 'Email Address',
+                            hint: 'Email Address',
+                            enabled: false,
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.emailAddress,
+                            errorText: state.email!.invalid
+                                ? 'Please enter a valid email id'
+                                : null,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4, left: 4),
+                            child: Text(
+                              'Email cannot be changed.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF89726B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
-              SizedBox(height: config.AppConfig(context).appHeight(4)),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).padding.bottom +
-                        MediaQuery.of(context).viewInsets.bottom +
-                        config.AppConfig(context).appHeight(4),
-                  ),
-                  child: Column(
-                    children: [
-                      BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-                        builder: (context, state) {
-                          final avatarPath = state.avatarPath ?? '';
-                          final remoteAvatar =
-                              state.foodieProfile?.data?.avatar;
-                          final imageUrl = remoteAvatar != null &&
-                                  remoteAvatar.isNotEmpty
-                              ? "${GlobalConfiguration().getValue<String>('base_url')}/$remoteAvatar"
-                              : '';
+            ),
 
-                          return avatarPath.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(100),
-                                  child: Image.file(
-                                    File(avatarPath),
-                                    fit: BoxFit.cover,
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appWidth(18),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appWidth(18),
-                                  ),
-                                )
-                              : imageUrl.isEmpty
-                                  ? Container(
-                                      height: config.AppConfig(context)
-                                          .appWidth(18),
-                                      width: config.AppConfig(context)
-                                          .appWidth(18),
-                                      padding: EdgeInsets.all(
-                                        config.AppConfig(context).appWidth(3),
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                      ),
-                                      child: Icon(
-                                        Icons.person,
-                                        color: const Color(0xFFFFFBF7),
-                                        size: config.AppConfig(context)
-                                            .appWidth(8),
-                                      ),
-                                    )
-                                  : CachedNetworkImage(
-                                      imageUrl: imageUrl,
-                                      progressIndicatorBuilder:
-                                          (context, url, downloadProgress) =>
-                                              CircularProgressIndicator(
-                                        value: downloadProgress.progress,
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          Container(
-                                        height: config.AppConfig(
-                                          context,
-                                        ).appWidth(18),
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(18),
-                                        padding: EdgeInsets.all(
-                                          config.AppConfig(context).appWidth(3),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Theme.of(
-                                            context,
-                                          ).primaryColorDark,
-                                        ),
-                                        child: Icon(
-                                          Icons.person,
-                                          color: const Color(0xFFFFFBF7),
-                                          size: config.AppConfig(
-                                            context,
-                                          ).appWidth(8),
-                                        ),
-                                      ),
-                                      imageBuilder: (context, imageProvider) =>
-                                          Container(
-                                        height: config.AppConfig(
-                                          context,
-                                        ).appWidth(18),
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(18),
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            100,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                        },
-                      ),
-                      SizedBox(height: config.AppConfig(context).appHeight(1)),
-                      InkWell(
-                        onTap: () {
-                          showDialog<bool>(
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Text(
-                                  'Add image',
-                                  style: GoogleFonts.gothicA1(
-                                    color: Colors.black,
-                                    fontSize: config.AppConfig(
-                                      context,
-                                    ).appWidth(5),
-                                  ),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    MaterialButton(
-                                      color: Theme.of(context).primaryColor,
-                                      child: const Text(
-                                        "Gallery",
-                                        style: TextStyle(
-                                          color: Color(0xB3FFFBF7),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        navigatorKey.currentState!.pop(false);
-                                      },
-                                    ),
-                                    MaterialButton(
-                                      color: Theme.of(context).primaryColor,
-                                      child: const Text(
-                                        "Camera",
-                                        style: TextStyle(
-                                          color: Color(0xB3FFFBF7),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        navigatorKey.currentState!.pop(true);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            context: context,
-                          ).then((value) {
-                            if (!context.mounted) return;
-                            if (value != null) {
-                              if (value) {
-                                //Get from camera
-                                _openCamera(context);
-                              } else {
-                                //Get from gallery
-                                _openGallery(context);
-                              }
-                            }
-                          });
-                        },
-                        child: Text(
-                          'Upload image',
-                          style: GoogleFonts.gothicA1(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: config.AppConfig(context).appHeight(2.2),
-                          ),
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Delivery Address card with location icon ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Delivery Address',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF56423C),
+                          fontFamily: 'Nunito',
                         ),
                       ),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _FirstName(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _LastName(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _Email(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _PhoneNo(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _Description(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
-                      _UpdateButton(editProfile: this),
-                      SizedBox(height: config.AppConfig(context).appHeight(2)),
+                      Icon(
+                        Icons.location_on,
+                        color: MitablColors.primary,
+                        size: 24,
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+                    builder: (context, state) {
+                      return MitablTextField(
+                        controller: description,
+                        label: 'Home Address',
+                        hint: '123 Orchard Lane, Gastronomy District, NY 10001',
+                        textInputAction: TextInputAction.done,
+                        maxLines: 3,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: MitablSpacing.listItem),
+
+            // ── Preferences Bento Grid: 2 square tiles ──
+            Row(
+              children: [
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: MitablColors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu,
+                            color: MitablColors.onSecondaryContainer,
+                            size: 24,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CUISINE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.0,
+                                  color: const Color(0xFF364C32),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Mediterranean',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF51694C),
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF6DED1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: const Color(0xFF53443A),
+                            size: 24,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'PREF. TIME',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.0,
+                                  color: const Color(0xFF53443A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Dinner (7PM)',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF53443A),
+                                  fontFamily: 'Nunito',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // ── Save Changes Button ──
+            BlocConsumer<ProfileFoodieCubit, ProfileFoodieState>(
+              listener: (context, state) {
+                if (state.statusUpload!.isSubmissionSuccess &&
+                    context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Profile updated successfully')),
+                  );
+                  // Save dietary preferences alongside profile
+                  _saveDietaryPrefs();
+                }
+              },
+              builder: (context, state) {
+                return SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? MitablColors.primaryGradient
+                          : null,
+                      color: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? null
+                          : MitablColors.tertiaryFixedDim,
+                      borderRadius: MitablRadius.pillBorder,
+                      boxShadow: (state.status!.isValidated &&
+                              !state.statusUpload!.isSubmissionInProgress &&
+                              !_isSavingDietary)
+                          ? [
+                              BoxShadow(
+                                color: MitablColors.primary.withValues(alpha: 0.25),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: MitablRadius.pillBorder,
+                        onTap: (state.status!.isValidated &&
+                                !state.statusUpload!.isSubmissionInProgress &&
+                                !_isSavingDietary)
+                            ? () {
+                                context
+                                    .read<ProfileFoodieCubit>()
+                                    .updateFoodieProfile();
+                                _saveDietaryPrefs();
+                              }
+                            : null,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (state.statusUpload!.isSubmissionInProgress ||
+                                _isSavingDietary)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 12),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: MitablColors.onPrimary,
+                                  ),
+                                ),
+                              )
+                            else
+                              const Padding(
+                                padding: EdgeInsets.only(right: 12),
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: MitablColors.onPrimary,
+                                  size: 20,
+                                ),
+                              ),
+                            Text(
+                              'SAVE CHANGES',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: MitablColors.onPrimary,
+                                letterSpacing: 2.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarSection() {
+    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
+      builder: (context, state) {
+        final avatarPath = state.avatarPath ?? '';
+        final remoteAvatar = state.foodieProfile?.data?.avatar;
+        final imageUrl = remoteAvatar != null && remoteAvatar.isNotEmpty
+            ? "${GlobalConfiguration().getValue<String>('base_url')}/$remoteAvatar"
+            : '';
+
+        Widget avatarImage;
+        if (avatarPath.isNotEmpty) {
+          avatarImage = Image.file(
+            File(avatarPath),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          );
+        } else if (imageUrl.isNotEmpty) {
+          avatarImage = CachedNetworkImage(
+            imageUrl: imageUrl,
+            progressIndicatorBuilder: (context, url, downloadProgress) =>
+                Center(
+              child: CircularProgressIndicator(
+                value: downloadProgress.progress,
+                color: MitablColors.primary,
+              ),
+            ),
+            errorWidget: (context, url, error) => _defaultAvatarContent(),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          );
+        } else {
+          avatarImage = _defaultAvatarContent();
+        }
+
+        return GestureDetector(
+          onTap: _showImagePickerDialog,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Rotated square avatar
+              Transform.rotate(
+                angle: 0.035, // ~2 degrees
+                child: Container(
+                  width: 144,
+                  height: 144,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: MitablColors.surfaceContainerLowest,
+                      width: 4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: MitablColors.onSurface.withValues(alpha: 0.12),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: avatarImage,
+                  ),
+                ),
+              ),
+              // Edit FAB
+              Positioned(
+                bottom: -8,
+                right: -8,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: MitablColors.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: MitablColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: MitablColors.onPrimary,
+                    size: 16,
                   ),
                 ),
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _defaultAvatarContent() {
+    return Container(
+      color: MitablColors.primaryContainer,
+      child: const Center(
+        child: Icon(
+          Icons.person,
+          color: MitablColors.onPrimary,
+          size: 56,
         ),
       ),
     );
   }
-}
 
-class _Email extends StatefulWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _Email({this.editProfile});
-
-  @override
-  State<_Email> createState() => _EmailState();
-}
-
-class _EmailState extends State<_Email> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.editProfile!.email,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 55,
-            onChanged: (text) {
-              // context.read<ProfileFoodieCubit>().onEmailChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText:
-                  state.email!.invalid ? 'Please enter a valid email id' : null,
-
-              // suffixIcon: state.email!.valid
-              //     ? Icon(
-              //         Icons.check_circle_outline,
-              //         color: Theme.of(context).primaryColor,
-              //       )
-              //     : SizedBox(),
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              hintText: 'Email Address',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _FirstName extends StatefulWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _FirstName({this.editProfile});
-
-  @override
-  State<_FirstName> createState() => _FirstNameState();
-}
-
-class _FirstNameState extends State<_FirstName> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.editProfile!.firstName,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 15,
-            onChanged: (text) {
-              // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.firstName!.invalid
-                  ? 'Please enter a valid first name'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'First Name',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _LastName extends StatefulWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _LastName({this.editProfile});
-
-  @override
-  State<_LastName> createState() => _LastNameState();
-}
-
-class _LastNameState extends State<_LastName> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.editProfile!.lastName,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 15,
-            onChanged: (text) {
-              // context.read<ProfileFoodieCubit>().onLastNameChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.lastName!.invalid
-                  ? 'Please enter a valid last name'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Last Name',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Description extends StatefulWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _Description({this.editProfile});
-
-  @override
-  State<_Description> createState() => _DescriptionState();
-}
-
-class _DescriptionState extends State<_Description> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.editProfile!.description,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.name,
-            maxLength: 300,
-            maxLines: 5,
-            onChanged: (text) {
-              // context.read<ProfileFoodieCubit>().onFirstNameChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.description!.invalid
-                  ? 'Please enter a valid description'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Description',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PhoneNo extends StatefulWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _PhoneNo({this.editProfile});
-
-  @override
-  State<_PhoneNo> createState() => _PhoneNoState();
-}
-
-class _PhoneNoState extends State<_PhoneNo> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileFoodieCubit, ProfileFoodieState>(
-      builder: (context, state) {
-        return Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.zero,
-          child: TextFormField(
-            controller: widget.editProfile!.phone,
-            style: const TextStyle(color: Colors.black),
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.phone,
-            maxLength: 15,
-            onChanged: (text) {
-              // context.read<ProfileFoodieCubit>().onPhoneChanged(value: text);
-            },
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: state.phoneNo!.invalid
-                  ? 'Please enter a valid phone no'
-                  : null,
-
-              hintStyle: GoogleFonts.gothicA1(
-                color: Theme.of(context).hintColor,
-                fontSize: config.AppConfig(context).appWidth(4),
-              ),
-              // labelText: 'Mobile Number',
-              hintText: 'Phone',
-              contentPadding: EdgeInsets.all(
-                config.AppConfig(context).appWidth(2),
-              ),
-              fillColor: config.AppColors().textFieldBackgroundColor(1),
-              filled: true,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              border: InputBorder.none,
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _UpdateButton extends StatelessWidget {
-  final _EditProfileFoodiePageState? editProfile;
-
-  const _UpdateButton({this.editProfile});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ProfileFoodieCubit, ProfileFoodieState>(
-      listener: (context, state) {
-        if (state.statusUpload!.isSubmissionSuccess && context.mounted) {
-          Navigator.of(context).pop(true);
-        }
-      },
-      builder: (context, state) {
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: state.status!.isValidated
-                  ? [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor,
-                    ]
-                  : [
-                      Theme.of(context).primaryColorLight,
-                      Theme.of(context).primaryColorLight,
-                    ],
-            ),
-          ),
-          child: MaterialButton(
-            minWidth: config.AppConfig(context).appWidth(100),
-            height: 50.0,
-            onPressed: () {
-              if (state.status!.isValidated) {
-                context.read<ProfileFoodieCubit>().updateFoodieProfile();
-              }
-            },
-            child: state.statusUpload!.isSubmissionInProgress
-                ? const Center(
-                    child: CupertinoActivityIndicator(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  )
-                : Text(
-                    'SAVE CHANGES',
-                    style: GoogleFonts.gothicA1(
-                      fontSize: config.AppConfig(context).appWidth(3.5),
-                      color: const Color(0xFFFFFBF7),
-                    ),
-                  ),
-          ),
-        );
-      },
-    );
-  }
 }

@@ -46,12 +46,14 @@ class AppColors {
     return color.withValues(alpha: _normalizedOpacity(opacity));
   }
 
+  // ── Warm Tactile Design System Colors ──
+
   Color mainColor(double opacity) {
-    return _withOpacity(const Color(0xFFEA580C), opacity);
+    return _withOpacity(const Color(0xFF9C3E20), opacity);
   }
 
   Color secondColor(double opacity) {
-    return _withOpacity(const Color(0xFF9A3412), opacity);
+    return _withOpacity(const Color(0xFF9C3E20), opacity);
   }
 
   Color accentColor(double opacity) {
@@ -59,68 +61,32 @@ class AppColors {
   }
 
   Color colorPrimary(double opacity) {
-    return _withOpacity(const Color(0xFFEA580C), opacity);
+    return _withOpacity(const Color(0xFF9C3E20), opacity);
   }
 
   Color colorPrimaryLight(double opacity) {
-    return _withOpacity(const Color(0xFFF97316), opacity);
+    return _withOpacity(const Color(0xFFBC5636), opacity);
   }
 
   Color colorPrimaryDark(double opacity) {
-    return _withOpacity(const Color(0xFF7C2D12), opacity);
+    return _withOpacity(const Color(0xFF1C1C19), opacity);
   }
 
   Color colorDivider(double opacity) {
-    try {
-      return const Color(0xFFFFEDD5).withValues(alpha: opacity);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xFFF6F3EE), opacity);
   }
 
   Color textFieldBackgroundColor(double opacity) {
-    try {
-      return const Color(0xFFFFF7ED).withValues(alpha: opacity);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xFFF6F3EE), opacity);
   }
 
   Color hintTextBackgroundColor(double opacity) {
-    try {
-      return const Color(0xFF9CA3AF).withValues(alpha: opacity);
-    } catch (e) {
-      return const Color(0xFFCCCCCC).withValues(alpha: opacity);
-    }
+    return _withOpacity(const Color(0xFF56423C), opacity);
   }
-
-  // Color mainDarkColor(double opacity) {
-  //   try {
-  //     return Color(int.parse(settingRepo.setting.value.mainDarkColor.replaceAll("#", "0xFF"))).withValues(alpha: opacity);
-  //   } catch (e) {
-  //     return Color(0xFFCCCCCC).withValues(alpha: opacity);
-  //   }
-  // }
-
-  // Color secondDarkColor(double opacity) {
-  //   try {
-  //     return Color(int.parse(settingRepo.setting.value.secondDarkColor.replaceAll("#", "0xFF"))).withValues(alpha: opacity);
-  //   } catch (e) {
-  //     return Color(0xFFCCCCCC).withValues(alpha: opacity);
-  //   }
-  // }
-
-  // Color accentDarkColor(double opacity) {
-  //   try {
-  //     return Color(int.parse(settingRepo.setting.value.accentDarkColor.replaceAll("#", "0xFF"))).withValues(alpha: opacity);
-  //   } catch (e) {
-  //     return Color(0xFFCCCCCC).withValues(alpha: opacity);
-  //   }
-  // }
 
   Color scaffoldColor(double opacity, {Brightness brightness = Brightness.light}) {
     final baseColor =
-        brightness == Brightness.dark ? const Color(0xFF121212) : const Color(0xFFFFFAF5);
+        brightness == Brightness.dark ? const Color(0xFF121212) : const Color(0xFFFCF9F4);
     return _withOpacity(baseColor, opacity);
   }
 

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "secondary": "#4d6548",
+              "outline": "#89726b",
+              "on-tertiary-container": "#fffbff",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#ffb59f",
+              "tertiary-container": "#837166",
+              "secondary-container": "#cce7c3",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#31302d",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-low": "#f6f3ee",
+              "surface": "#fcf9f4",
+              "surface-tint": "#9f4122",
+              "on-tertiary-fixed": "#251911",
+              "on-tertiary-fixed-variant": "#53443a",
+              "primary-container": "#bc5636",
+              "surface-container": "#f0ede9",
+              "secondary-fixed": "#cfeac6",
+              "primary": "#9c3e20",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed": "#f6ded1",
+              "surface-container-lowest": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-variant": "#e5e2dd",
+              "on-secondary-fixed": "#0b200a",
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#56423c",
+              "outline-variant": "#ddc0b8",
+              "on-surface": "#1c1c19",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "surface-dim": "#dcdad5",
+              "surface-bright": "#fcf9f4",
+              "surface-container-high": "#ebe8e3",
+              "on-primary-fixed": "#3a0a00",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary": "#ffffff",
+              "on-primary-container": "#fffbff",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary": "#6a594e",
+              "secondary-fixed-dim": "#b3ceab"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Manrope', sans-serif;
+        background-color: #fcf9f4;
+        color: #1c1c19;
+      }
+      h1, h2, h3, h4 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .glass-nav {
+        backdrop-filter: blur(12px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#9c3e20]" data-icon="menu">menu</span>
+<h1 class="text-xl font-extrabold tracking-tight text-[#9c3e20]">The Culinary Atelier</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User profile photo" data-alt="Close up portrait of a friendly man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRFJ6r6vLE8KSP_C6D1GmzJya9yeNBBs7fPtXDK97qYuK-57ejGUWnuAM1DIPOugY4zECPAdaYgg33LoapCVKZwp0W4pxEGhKn1BadkXJyfS74GQBeo5Bdu05TY4boZcrEc_xmxxf-Okk_tBy-Bs_NnnyWCUgMzff2cun9Uy4Z2Lr_0hJcOG86S4iKcM13P00Nllr8GUYqpWcGJM-No2OoNXZmBGOqzPT4GVvSryW5hOdJohzAsu0DrS9vwpTJ3MP1iYwH-LLAMyOh"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto space-y-12">
+<!-- Hero: Bento Style Discovery -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<div class="md:col-span-8 relative rounded-lg overflow-hidden h-[400px] group shadow-sm bg-surface-container-low">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Traditional Lebanese mezze spread on wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdFJn-b4MzCZ1rdQTxNR5XnrUcydKQ7dPR1MAqImfL0pNywIBM7TESoQ287XbbpMQ_eSmaMW-N_pFCEPm-TUV-HOzsLQSjJ8JpbZ9Q3PfyWofSXvsGoDgr7ZgR04Til4X1Brl1ltz4PW_Q5XVD0NJco3y6IEn1bFMzX91V8OZq2iigng_FbySA6OXOY6E88Ot_BsKYsURe8uMq_3W2OoHpIZbJN_ozW6Pq7ltMdbPf_KVDFP9AewnUhwzveDc6RvJKdWqUlXg99b9e"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<div class="flex gap-2 mb-3">
+<span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Featured Table</span>
+<span class="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Beirut Nights</span>
+</div>
+<h2 class="text-4xl font-extrabold text-white leading-tight">Authentic Lebanese Mezze &amp; Stories</h2>
+<p class="text-white/80 mt-2 max-w-md font-medium italic">Hosted by Amira in her sun-drenched Brooklyn atelier.</p>
+</div>
+</div>
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-lowest p-6 rounded-lg flex-1 flex flex-col justify-center border border-outline-variant/10">
+<span class="text-on-surface-variant text-sm font-bold uppercase tracking-widest mb-1">Status</span>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-extrabold text-primary">4</span>
+<span class="text-on-surface font-semibold text-xl">Seats Left</span>
+</div>
+<p class="text-on-surface-variant text-sm mt-2">Out of 10 spots available for this Saturday’s gathering.</p>
+</div>
+<div class="bg-primary p-6 rounded-lg flex-1 flex flex-col justify-center text-white">
+<span class="text-white/70 text-sm font-bold uppercase tracking-widest mb-1">Pricing</span>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-extrabold">$75</span>
+<span class="text-white/80 font-medium">/ seat</span>
+</div>
+<p class="text-white/70 text-xs mt-3 leading-relaxed">Includes 12 traditional dishes, house-made arak, and dessert.</p>
+</div>
+</div>
+</section>
+<!-- Booking Flow Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+<div class="space-y-8">
+<div>
+<h3 class="text-3xl font-extrabold mb-4 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="auto_stories">auto_stories</span>
+                        The Experience
+                    </h3>
+<div class="prose prose-stone text-on-surface-variant leading-relaxed">
+<p>Join us for a slow Saturday evening as we recreate the bustling family tables of Beirut. We'll start with warm <i>Man'oushe</i> fresh from the oven, followed by a symphony of cold and hot mezze including walnut-infused <i>Muhammara</i> and silky <i>Hummus</i>.</p>
+<p class="mt-4">This isn't just dinner; it's a shared conversation. Amira will share stories of her grandmother's kitchen while we dine family-style.</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg space-y-4">
+<h4 class="font-bold text-on-surface">At a Glance</h4>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="calendar_today">calendar_today</span>
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant">Date</p>
+<p class="text-sm font-bold">Oct 24, 2023</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="schedule">schedule</span>
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant">Time</p>
+<p class="text-sm font-bold">7:00 PM - 10:00 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="timer">timer</span>
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant">RSVP Deadline</p>
+<p class="text-sm font-bold text-error">Oct 21, 12:00 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant">Location</p>
+<p class="text-sm font-bold">Williamsburg, NY</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Booking Card -->
+<div class="sticky top-24 bg-surface-container-lowest p-8 rounded-lg shadow-xl border border-outline-variant/5">
+<h3 class="text-2xl font-extrabold mb-6">Secure Your Seat</h3>
+<form class="space-y-6">
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Number of Seats</label>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-white text-primary active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+<span class="text-2xl font-bold">2</span>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-white active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Dietary Notes</label>
+<textarea class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40 p-4 min-h-[100px]" placeholder="Allergies, preferences, or a note to the host..."></textarea>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<div class="flex justify-between items-center mb-2">
+<span class="text-on-surface-variant">2 Seats x $75.00</span>
+<span class="font-bold">$150.00</span>
+</div>
+<div class="flex justify-between items-center mb-6">
+<span class="text-on-surface-variant">Service Fee</span>
+<span class="font-bold">$12.00</span>
+</div>
+<div class="flex justify-between items-center text-xl font-extrabold">
+<span>Total</span>
+<span class="text-primary">$162.00</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-container text-white py-4 rounded-full font-bold text-lg transition-all active:scale-[0.98] shadow-lg shadow-primary/20" type="submit">
+                        Request to Join Table
+                    </button>
+<p class="text-center text-[11px] text-on-surface-variant italic">You won't be charged until the host accepts your request.</p>
+</form>
+</div>
+</section>
+<!-- Reviews / Social Proof -->
+<section class="space-y-6">
+<h3 class="text-2xl font-extrabold">Previous Guests Say</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-6 rounded-lg relative">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-8 h-8 rounded-full" data-alt="Portrait of a smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABbM8oiSgMP-6fkqAyvYs4oh5gwUN1jyzAgFL3ID1GvOp1P4uBai41Xt1LY0uDuL2JR46OzLezA7YdNPbTkuX-0QSXv5Hw6jV4hUqhTnfEJ_QqvdnmXVLzJic0-9KZPgaZ390dwgX3hgi8ClXlz5Z7g4_LuBle44yUNv6dcq3EKdQCFA65MBIxJqbSlQFt7QKdVtBYk7xHRFQOZTvGyKO2CgsJ0rdIDgE_K6vkOPdcD9jnQF962rUN0o11DO-RzTpc_Ghp6eM3UuUL"/>
+<span class="font-bold text-sm">Elena R.</span>
+</div>
+<p class="text-sm italic text-on-surface-variant leading-relaxed">"Amira's Hummus is life-changing. I came alone and left with three new friends. The atmosphere is magical."</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg relative">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-8 h-8 rounded-full" data-alt="Portrait of a young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtoO0Fvu7CSQWT_jgDGaizJ5rwzs5KvtmoqjpvPYgTVt3BTY9B05p__3b-grxreJZL1h3iZv8TK8w7cbD-tlh30N9F0qFu1jJgdlPKtdov5OZaMUnARidO8rbY5_8mhMB6L5A5zVVnS54sb-OcYCRXnoEfreMdEn6aqQuDDBBGkM7LaJUhjuHmFA5y-v47bTkuFchCADrR0c1uBegen3GFpTgFMUXuN1ra5ha4J81YIO3pgT0bb4vkgNiT2cfT56qGkG17U0pWEGxs"/>
+<span class="font-bold text-sm">Marcus K.</span>
+</div>
+<p class="text-sm italic text-on-surface-variant leading-relaxed">"Best dining experience in NYC. It felt like being home, even though it was my first time there."</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg relative">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-8 h-8 rounded-full" data-alt="Portrait of a woman with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD48ouzLhBwRCSkX5FycyILTXL9ovXWLoIaxBOSoSxddMxl-5vjh7EKqQ8D-8jPWoQOnivybDbOE5ORUevw9EqV8_4QWuFc8NCtUPipp_Nd2QiBZbEb0WHPPcnrW--W7KHPH20GAGoFoh0PS7mph1Sa4q92nhtYwDh6IbOz_lR5sJ-pw5Q2JkGWXYTUvnPLTRsS68yZzkyp_PADKRH9-4YW6WEqJ4uIgJWxyZaXGLMv9M5psILc6GZ9zlrc8jooL0wR-xEjY6qh2nEU"/>
+<span class="font-bold text-sm">Sonia M.</span>
+</div>
+<p class="text-sm italic text-on-surface-variant leading-relaxed">"The attention to detail in the food and decor is unmatched. Worth every penny for the story alone."</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] text-[#51694c] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="group" data-weight="fill" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Table</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="outdoor_grill">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

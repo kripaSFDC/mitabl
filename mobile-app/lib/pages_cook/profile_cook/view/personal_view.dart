@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:global_configuration/global_configuration.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/appconstants.dart';
+import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/pages_cook/dashboard_cook/cubit/dashboard_cook_cubit.dart';
@@ -15,6 +13,7 @@ import 'package:mitabl_user/pages_cook/profile_cook/cubit/profile_cook_cubit.dar
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/mobile_contact_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class PersonalTabView extends StatefulWidget {
   const PersonalTabView({super.key});
@@ -39,9 +38,73 @@ class _RoleCtaState {
 
 class _PersonalTabViewState extends State<PersonalTabView> {
   bool _switchingRole = false;
+  bool _biometricEnabled = false;
+  bool _biometricAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricPreference();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Biometric helpers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<void> _loadBiometricPreference() async {
+    try {
+      final biometricService = BiometricService.instance;
+      final available = await biometricService.isAvailable();
+      final enabled = available ? await biometricService.isEnabled() : false;
+
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = available;
+        _biometricEnabled = enabled;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _biometricAvailable = false;
+        _biometricEnabled = false;
+      });
+    }
+  }
+
+  Future<void> _onBiometricChanged(bool enabled) async {
+    if (enabled && !_biometricAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Biometric authentication is not available on this device.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await BiometricService.instance.setEnabled(enabled);
+      if (!mounted) return;
+      setState(() => _biometricEnabled = enabled);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to update biometric preference right now.'),
+        ),
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Role-switch helpers (mifoodi)
+  // ─────────────────────────────────────────────────────────────────────────
 
   AvailableRoleMembership? _targetMifoodiRole(ProfileCookState state) {
-    final availableRoles = state.cookProfile?.data?.availableRoles ?? const [];
+    final availableRoles =
+        state.cookProfile?.data?.availableRoles ?? const [];
     for (final role in availableRoles) {
       final normalizedRole = role.role?.trim().toLowerCase();
       if (role.roleId == AppConstants.FOODI ||
@@ -210,340 +273,465 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Contact Us handler
+  // ─────────────────────────────────────────────────────────────────────────
+
+  Future<void> _handleContactUs() async {
+    final userRepository = context.read<UserRepository>();
+    try {
+      final user = await userRepository.getUser();
+      final payload = await MobileContactRepository(
+        httpClient: userRepository.httpClient,
+      ).fetch(user);
+      final message =
+          payload['message']?.toString() ?? 'Contact information loaded.';
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to load contact info: $error'),
+        ),
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Build
+  // ─────────────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCookCubit, ProfileCookState>(
       builder: (context, state) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(height: config.AppConfig(context).appHeight(3)),
-            CachedNetworkImage(
-              imageUrl:
-                  "${GlobalConfiguration().getValue<String>('base_url')}/${state.cookProfile != null ? state.cookProfile!.data!.avatar : ''}",
-              progressIndicatorBuilder: (context, url, downloadProgress) =>
-                  CircularProgressIndicator(value: downloadProgress.progress),
-              errorWidget: (context, url, error) => Container(
-                height: config.AppConfig(context).appWidth(18),
-                width: config.AppConfig(context).appWidth(18),
-                padding: EdgeInsets.all(config.AppConfig(context).appWidth(3)),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColorDark,
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: const Color(0xFFFFFBF7),
-                  size: config.AppConfig(context).appWidth(8),
-                ),
-              ),
-              imageBuilder: (context, imageProvider) => Container(
-                height: config.AppConfig(context).appWidth(18),
-                width: config.AppConfig(context).appWidth(18),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
-                  ),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
-            ),
-            SizedBox(height: config.AppConfig(context).appHeight(1)),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+        final profileData = state.cookProfile?.data;
+        final fullName =
+            '${profileData?.firstName ?? ''} ${profileData?.lastName ?? ''}'
+                .trim();
+        final email = (profileData?.email ?? '').toString();
+        final phone = (profileData?.phone ?? '').toString();
+        final description = profileData?.description ?? '';
+        final avatarPath = profileData?.avatar ?? '';
+        final avatarUrl = avatarPath.isNotEmpty
+            ? "${GlobalConfiguration().getValue<String>('base_url')}/$avatarPath"
+            : '';
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MitablSpacing.pagePadding,
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+
+              // ── 1. Profile hero section ──
+              _buildAvatar(avatarUrl),
+              const SizedBox(height: 16),
+              if (fullName.isNotEmpty)
                 Text(
-                  '${state.cookProfile != null ? state.cookProfile!.data!.firstName : ''} ${state.cookProfile != null ? state.cookProfile!.data!.lastName : ''}',
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(5),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: config.AppConfig(context).appHeight(1)),
-                Text(
-                  '${state.cookProfile != null ? state.cookProfile!.data!.email : ''}',
-                  style: GoogleFonts.gothicA1(
-                    color: const Color(0xffAEAEAE),
-                    fontSize: config.AppConfig(context).appWidth(3.5),
-                    fontWeight: FontWeight.normal,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: config.AppConfig(context).appHeight(0.5)),
-                Text(
-                  '${state.cookProfile != null ? state.cookProfile!.data!.phone : ''}',
-                  style: GoogleFonts.gothicA1(
-                    color: const Color(0xffAEAEAE),
-                    fontSize: config.AppConfig(context).appWidth(3.5),
-                    fontWeight: FontWeight.normal,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: config.AppConfig(context).appHeight(3)),
-                Text(
-                  state.cookProfile != null
-                      ? state.cookProfile!.data!.description ?? ''
-                      : '',
-                  style: GoogleFonts.gothicA1(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: config.AppConfig(context).appWidth(4),
-                    fontWeight: FontWeight.normal,
-                  ),
+                  fullName,
                   textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                    fontFamily: 'Nunito',
+                  ),
                 ),
-                SizedBox(height: config.AppConfig(context).appHeight(2)),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      navigatorKey.currentState!
-                          .pushNamed('/ProfileCook')
-                          .then((value) {
-                        if (!context.mounted) return;
-                        if (value == true) {
-                          context.read<ProfileCookCubit>().getCookProfile();
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      size: config.AppConfig(context).appWidth(4.5),
-                    ),
-                    label: const Text('Edit profile'),
+              if (email.isNotEmpty || phone.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  [email, phone]
+                      .where((s) => s.isNotEmpty)
+                      .join('  |  '),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: MitablColors.onSurfaceVariant,
+                    fontFamily: 'DM Sans',
                   ),
                 ),
               ],
-            ),
-            Divider(
-              color: const Color(0xffAEAEAE),
-              thickness: 0.4,
-              height: config.AppConfig(context).appHeight(5),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    ListTile(
-                      onTap: _switchingRole
-                          ? null
-                          : () {
-                              if (_mifoodiTransitionDisabled(state)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(_disabledMifoodiMessage())),
-                                );
-                                return;
-                              }
-                              _switchToMifoodi();
-                            },
-                      minVerticalPadding: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/img/foodi.png',
-                            height: config.AppConfig(context).appHeight(3),
-                          ),
-                          SizedBox(
-                            width: config.AppConfig(context).appWidth(4),
-                          ),
-                          Text(
-                            _mifoodiCtaText(state),
-                            style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(5),
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                      trailing: _switchingRole
-                          ? SizedBox(
-                              height: config.AppConfig(context).appWidth(5),
-                              width: config.AppConfig(context).appWidth(5),
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            )
-                          : Icon(
-                              Icons.swap_horiz,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
+              if (description.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: MitablColors.onSurfaceVariant,
+                    fontFamily: 'DM Sans',
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 20),
+
+              // ── 2. Edit Profile pill button ──
+              Center(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    navigatorKey.currentState!
+                        .pushNamed('/ProfileCook')
+                        .then((value) {
+                      if (!context.mounted) return;
+                      if (value == true) {
+                        context.read<ProfileCookCubit>().getCookProfile();
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit Profile'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MitablColors.primary,
+                    side: const BorderSide(
+                      color: MitablColors.outlineVariant,
                     ),
-                    ListTile(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/Payments');
-                      },
-                      minVerticalPadding: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/img/payments.png',
-                            height: config.AppConfig(context).appHeight(4),
-                          ),
-                          SizedBox(
-                            width: config.AppConfig(context).appWidth(4),
-                          ),
-                          Text(
-                            'payments',
-                            style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4.5),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
                     ),
-                    ListTile(
-                      onTap: () async {
-                        final userRepository = context.read<UserRepository>();
-                        try {
-                          final user = await userRepository.getUser();
-                          final payload = await MobileContactRepository(
-                            httpClient: userRepository.httpClient,
-                          ).fetch(user);
-                          final message = payload['message']?.toString() ??
-                              'Contact information loaded.';
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(message)));
-                        } catch (error) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Unable to load contact info: $error',
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      minVerticalPadding: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/img/contact.png',
-                            height: config.AppConfig(context).appHeight(4),
-                          ),
-                          SizedBox(
-                            width: config.AppConfig(context).appWidth(4),
-                          ),
-                          Text(
-                            'contact us',
-                            style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4.5),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'DM Sans',
                     ),
-                    ListTile(
-                      onTap: () {
-                        navigatorKey.currentState!.pushNamed(
-                          '/SettingsCook',
-                          arguments: RouteArguments(id: 'cook'),
-                        );
-                      },
-                      minVerticalPadding: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/img/setting.png',
-                            height: config.AppConfig(context).appHeight(4),
-                          ),
-                          SizedBox(
-                            width: config.AppConfig(context).appWidth(4),
-                          ),
-                          Text(
-                            'settings',
-                            style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4.5),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    ListTile(
-                      onTap: () {
-                        context.read<DashboardCookCubit>().doLogout();
-                      },
-                      minVerticalPadding: 0,
-                      contentPadding: EdgeInsets.zero,
-                      leading: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Stack(
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: SvgPicture.asset(
-                                  'assets/img/background.svg',
-                                  height: config.AppConfig(
-                                    context,
-                                  ).appHeight(4.5),
-                                ),
-                              ),
-                              Align(
-                                alignment: Alignment.center,
-                                widthFactor: config.AppConfig(
-                                  context,
-                                ).appWidth(0.38),
-                                child: Icon(
-                                  Icons.exit_to_app,
-                                  size: config.AppConfig(context).appWidth(5.5),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            width: config.AppConfig(context).appWidth(4),
-                          ),
-                          Text(
-                            'logout',
-                            style: GoogleFonts.gothicA1(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: config.AppConfig(context).appWidth(4.5),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: MitablSpacing.listItem),
+
+              // ── 3. Switch to mifoodi CTA ──
+              _buildMifoodiCta(state),
+
+              const SizedBox(height: MitablSpacing.listItem),
+
+              // ── 4a. Account section card ──
+              _buildSectionCard(
+                children: [
+                  _buildMenuRow(
+                    icon: Icons.credit_card,
+                    label: 'Payments',
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/Payments');
+                    },
+                  ),
+                  const _MenuDivider(),
+                  _buildMenuRow(
+                    icon: Icons.phone,
+                    label: 'Contact Us',
+                    onTap: _handleContactUs,
+                  ),
+                  const _MenuDivider(),
+                  _buildMenuRow(
+                    icon: Icons.settings,
+                    label: 'Settings',
+                    onTap: () {
+                      navigatorKey.currentState!.pushNamed(
+                        '/SettingsCook',
+                        arguments: RouteArguments(id: 'cook'),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: MitablSpacing.listItem),
+
+              // ── 4b. Security section card ──
+              _buildSectionCard(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: MitablSpacing.cardPadding,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      children: [
+                        _iconCircle(Icons.fingerprint),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Biometric Lock',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: MitablColors.onSurface,
+                              fontFamily: 'DM Sans',
+                            ),
+                          ),
+                        ),
+                        Switch(
+                          value: _biometricEnabled,
+                          activeTrackColor: MitablColors.primary,
+                          onChanged: _biometricAvailable
+                              ? _onBiometricChanged
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: MitablSpacing.listItem),
+
+              // ── 4c. Logout ──
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    context.read<DashboardCookCubit>().doLogout();
+                  },
+                  icon: const Icon(Icons.exit_to_app, size: 20),
+                  label: const Text('Logout'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: MitablColors.onSurfaceVariant,
+                    textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'DM Sans',
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Bottom spacing for nav bar ──
+              SizedBox(
+                height: MediaQuery.of(context).padding.bottom + 80,
+              ),
+            ],
+          ),
         );
       },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Sub-widgets
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Circular avatar (80px) with CachedNetworkImage.
+  Widget _buildAvatar(String imageUrl) {
+    return Center(
+      child: SizedBox(
+        width: 80,
+        height: 80,
+        child: imageUrl.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: imageUrl,
+                progressIndicatorBuilder: (context, url, progress) => Center(
+                  child: CircularProgressIndicator(
+                    value: progress.progress,
+                    color: MitablColors.primary,
+                    strokeWidth: 2,
+                  ),
+                ),
+                errorWidget: (context, url, error) => _defaultAvatar(),
+                imageBuilder: (context, imageProvider) => Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              )
+            : _defaultAvatar(),
+      ),
+    );
+  }
+
+  Widget _defaultAvatar() {
+    return Container(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: MitablColors.primaryContainer,
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.person,
+          color: MitablColors.onPrimary,
+          size: 36,
+        ),
+      ),
+    );
+  }
+
+  /// mifoodi CTA card.
+  Widget _buildMifoodiCta(ProfileCookState state) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(MitablRadius.card),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(MitablRadius.card),
+          onTap: _switchingRole
+              ? null
+              : () {
+                  if (_mifoodiTransitionDisabled(state)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_disabledMifoodiMessage()),
+                      ),
+                    );
+                    return;
+                  }
+                  _switchToMifoodi();
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: MitablSpacing.cardPadding + 4,
+              vertical: 16,
+            ),
+            child: Row(
+              children: [
+                _iconCircle(Icons.swap_horiz, filled: true),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _mifoodiCtaText(state),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: MitablColors.onSurface,
+                      fontFamily: 'DM Sans',
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (_switchingRole)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: MitablColors.primary,
+                    ),
+                  )
+                else
+                  const Icon(
+                    Icons.swap_horiz,
+                    color: MitablColors.onSurfaceVariant,
+                    size: 22,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A grouped section card with rounded-20 corners.
+  Widget _buildSectionCard({required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(MitablRadius.card),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+
+  /// A single menu row inside a section card.
+  Widget _buildMenuRow({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(MitablRadius.card),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MitablSpacing.cardPadding,
+            vertical: 14,
+          ),
+          child: Row(
+            children: [
+              _iconCircle(icon),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: MitablColors.onSurface,
+                    fontFamily: 'DM Sans',
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: MitablColors.onSurfaceVariant,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 40x40 circle with icon.
+  Widget _iconCircle(IconData icon, {bool filled = false}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: filled
+            ? MitablColors.primary.withValues(alpha: 0.10)
+            : MitablColors.surfaceContainerLowest,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          size: 20,
+          color:
+              filled ? MitablColors.primary : MitablColors.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// Thin divider between menu rows inside a section card.
+class _MenuDivider extends StatelessWidget {
+  const _MenuDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: MitablSpacing.cardPadding + 52, // icon circle + gap
+      ),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: MitablColors.outlineVariant.withValues(alpha: 0.5),
+      ),
     );
   }
 }

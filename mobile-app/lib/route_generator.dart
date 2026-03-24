@@ -5,15 +5,23 @@ import 'package:mitabl_user/pages/forgot/view/forgot_page.dart';
 import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
 import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
 import 'package:mitabl_user/pages/payments/view/payments_page.dart';
-import 'package:mitabl_user/pages/home/view/home_page.dart';
+import 'package:mitabl_user/pages/home_shell/home_shell_page.dart';
 import 'package:mitabl_user/pages/landing_page/landing_page.dart';
 import 'package:mitabl_user/pages/login/view/login_page.dart';
 import 'package:mitabl_user/pages/otp/view/otp_page.dart';
+import 'package:mitabl_user/pages/otp/view/otp_email_page.dart';
+import 'package:mitabl_user/pages/forgot/view/reset_link_sent_page.dart';
+import 'package:mitabl_user/pages/signup_foodie/view/signup_foodie_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_cart_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_checkout_page.dart';
+import 'package:mitabl_user/pages/ordering/view/menu_item_detail_page.dart';
+import 'package:mitabl_user/pages/ordering/view/order_confirmation_page.dart';
 import 'package:mitabl_user/pages/ordering/view/order_menu_page.dart';
+import 'package:mitabl_user/pages/ordering/view/order_tracking_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/view/profile_foodie_page.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/cook_profile_page.dart';
+import 'package:mitabl_user/pages/profile_signup_cook/setup_payouts/view/setup_payouts_page.dart';
+import 'package:mitabl_user/pages/profile_signup_cook/kitchen_certification/view/kitchen_certification_page.dart';
 import 'package:mitabl_user/pages/signup/view/signup_page.dart';
 import 'package:mitabl_user/pages_cook/add_menu_item/view/add_menu_page.dart';
 import 'package:mitabl_user/pages_cook/bookings/view/bookings_page.dart';
@@ -23,9 +31,15 @@ import 'package:mitabl_user/pages_cook/edit_kitchen_profile/view/edit_kitchen_pr
 import 'package:mitabl_user/pages_cook/edit_profile_cook/view/edit_profile_cook_page.dart';
 import 'package:mitabl_user/pages_cook/menu_detail/view/menu_detail.dart';
 import 'package:mitabl_user/pages_cook/requests/elements/order_details_view.dart';
+import 'package:mitabl_user/pages_cook/revenue_analytics/view/revenue_analytics_page.dart';
 import 'package:mitabl_user/pages_cook/settings_page/view/settings_page_cook.dart';
 import 'package:mitabl_user/pages_cook/upcoming_bookings/view/upcoming_bookings.dart';
 import 'package:mitabl_user/pages_cook/user_details_page/user_details.dart';
+import 'package:mitabl_user/pages/order_details_foodie/view/order_details_foodie_page.dart';
+import 'package:mitabl_user/pages/submit_review/view/submit_review_page.dart';
+import 'package:mitabl_user/pages/add_payment_method/view/add_payment_method_page.dart';
+import 'package:mitabl_user/pages/notifications/view/notifications_page.dart';
+import 'package:mitabl_user/pages/offline_state/view/offline_state_page.dart';
 import 'package:mitabl_user/splash.dart';
 
 class RouteGenerator {
@@ -52,8 +66,14 @@ class RouteGenerator {
       case '/SignUpPage':
         return SignupPage.route();
 
+      case '/SignUpFoodie':
+        return SignupFoodiePage.route();
+
       case '/ForgotPage':
         return ForgotPage.route();
+
+      case '/ResetLinkSent':
+        return ResetLinkSentPage.route(routeArguments: routeArguments);
 
       case '/OTPPage':
         if (routeArguments == null) {
@@ -61,8 +81,14 @@ class RouteGenerator {
         }
         return OTPPage.route(routeArguments: routeArguments);
 
+      case '/OTPEmailPage':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OTPEmailPage');
+        }
+        return OtpEmailPage.route(routeArguments: routeArguments);
+
       case '/HomePage':
-        return HomePage.route();
+        return HomeShellPage.route();
 
       case '/CookProfile':
         if (routeArguments == null) {
@@ -105,6 +131,18 @@ class RouteGenerator {
           return _routeError('Missing route arguments for /OrderCart');
         }
         return OrderCartPage.route(routeArguments: routeArguments);
+
+      case '/MenuItemDetail':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments');
+        }
+        return MenuItemDetailPage.route(routeArguments: routeArguments);
+
+      case '/OrderConfirmation':
+        return OrderConfirmationPage.route(routeArguments: routeArguments);
+
+      case '/OrderTracking':
+        return OrderTrackingPage.route(routeArguments: routeArguments);
 
       case '/OrderCheckout':
         if (routeArguments == null) {
@@ -159,6 +197,33 @@ class RouteGenerator {
           return Bookings.route();
         }
         return OrderDetails.route(routeArguments: routeArguments);
+
+      case '/OrderDetailsFoodie':
+        if (routeArguments == null) {
+          return _routeError('Missing route arguments for /OrderDetailsFoodie');
+        }
+        return OrderDetailsFoodiePage.route(routeArguments: routeArguments);
+
+      case '/SubmitReview':
+        return SubmitReviewPage.route(routeArguments: routeArguments);
+
+      case '/AddPaymentMethod':
+        return AddPaymentMethodPage.route();
+
+      case '/RevenueAnalytics':
+        return RevenueAnalyticsPage.route(routeArguments: routeArguments);
+
+      case '/Notifications':
+        return NotificationsPage.route();
+
+      case '/SetupPayouts':
+        return SetupPayoutsPage.route(routeArguments: routeArguments);
+
+      case '/KitchenCertification':
+        return KitchenCertificationPage.route(routeArguments: routeArguments);
+
+      case '/OfflineState':
+        return OfflineStatePage.route();
 
       default:
         return _routeError();

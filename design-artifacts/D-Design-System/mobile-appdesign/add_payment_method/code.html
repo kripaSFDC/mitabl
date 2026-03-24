@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "inverse-primary": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "tertiary-fixed": "#f6ded1",
+              "surface-variant": "#e5e2dd",
+              "on-tertiary": "#ffffff",
+              "background": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed": "#ffdbd0",
+              "on-tertiary-fixed": "#251911",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "on-primary": "#ffffff",
+              "surface": "#fcf9f4",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed-variant": "#53443a",
+              "surface-container": "#f0ede9",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-tertiary-container": "#fffbff",
+              "outline-variant": "#ddc0b8",
+              "tertiary-container": "#837166",
+              "primary-fixed-dim": "#ffb59f",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-secondary-fixed": "#0b200a",
+              "secondary-fixed": "#cfeac6",
+              "on-error": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "surface-container-lowest": "#ffffff",
+              "primary-container": "#bc5636",
+              "inverse-on-surface": "#f3f0eb",
+              "on-error-container": "#93000a",
+              "secondary-container": "#cce7c3",
+              "error-container": "#ffdad6"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["DM Sans"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #fcf9f4;
+        color: #1c1c19;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body antialiased">
+<!-- Top Navigation Anchor (As per JSON hierarchy) -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f6f3ee] transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[#9c3e20]">arrow_back</span>
+</button>
+<h1 class="text-2xl font-black text-[#9c3e20] tracking-tight font-headline">miFoodi</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-white">
+<img alt="Profile" data-alt="User profile photo showing a friendly face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv7C_OJTGQbrC6Wkr3CagZ5jegrrsvgtrk4vdeH-0ekP-Umnhz1-vJsXnZhDm-x28FhH0V5wo7MEf8sAatVimqMdbFMAZ_uKgd9F7wl_0jiAYjRzDMBT9qGIEP14q9KKlqS2a4l1oxVpDA_iVI6mHaO0DN9ZhpzbPKU-khMjzMmVXG57fk1oa5mxvcIcO_2pN1ZVHkBurWB9bDeB0zFeee5MYQkPcCMiMulr1_Kt8D-eU0BT_Lrkkc9VCLYMiTdgG7p1MUmqzD9zO3"/>
+</div>
+</header>
+<main class="pt-24 pb-12 px-6 max-w-lg mx-auto min-h-screen">
+<!-- Header Section: Editorial Authority -->
+<section class="mb-10 text-center">
+<h2 class="text-4xl font-extrabold font-headline text-on-surface leading-tight mb-3">Add New Card</h2>
+<p class="text-on-surface-variant text-lg">Securely save your payment details for a faster checkout experience.</p>
+</section>
+<!-- The "Culinary Atelier" Card Concept -->
+<div class="bg-surface-container-lowest rounded-lg p-8 shadow-[0_24px_48px_rgba(28,28,25,0.04)] relative overflow-hidden">
+<!-- Secure Badge -->
+<div class="flex items-center gap-2 mb-8 bg-secondary-container/30 w-fit px-4 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="text-xs font-bold font-label uppercase tracking-widest text-on-secondary-container">Bank-level Security</span>
+</div>
+<!-- Visual Card Representation (Asymmetric/Tactile) -->
+<div class="mb-10 relative">
+<div class="w-full aspect-[1.6/1] bg-gradient-to-br from-primary to-primary-container rounded-lg p-6 text-white flex flex-col justify-between shadow-lg transform -rotate-1">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-4xl opacity-80">contactless</span>
+<div class="w-12 h-8 bg-white/20 rounded-md backdrop-blur-sm"></div>
+</div>
+<div>
+<div class="text-xl font-headline tracking-widest mb-4">•••• •••• •••• ••••</div>
+<div class="flex justify-between items-end">
+<div class="uppercase text-[10px] tracking-widest opacity-70 font-label">Card Holder</div>
+<div class="uppercase text-[10px] tracking-widest opacity-70 font-label">Expires</div>
+</div>
+</div>
+</div>
+<!-- Decorative Layer -->
+<div class="absolute -z-10 top-2 left-2 w-full h-full bg-secondary-fixed-dim/30 rounded-lg transform rotate-2"></div>
+</div>
+<!-- Focused Form Fields -->
+<form class="space-y-6">
+<!-- Card Number -->
+<div class="space-y-2">
+<label class="block text-sm font-bold font-label text-on-surface-variant px-1">Card Number</label>
+<div class="relative group">
+<input class="w-full bg-surface-container-low border-none rounded-DEFAULT px-4 py-4 text-on-surface placeholder:text-outline/60 focus:ring-2 focus:ring-primary/20 transition-all font-body text-lg tracking-wider" placeholder="0000 0000 0000 0000" type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+<span class="material-symbols-outlined text-outline">credit_card</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Expiry Date -->
+<div class="space-y-2">
+<label class="block text-sm font-bold font-label text-on-surface-variant px-1">Expiry Date</label>
+<input class="w-full bg-surface-container-low border-none rounded-DEFAULT px-4 py-4 text-on-surface placeholder:text-outline/60 focus:ring-2 focus:ring-primary/20 transition-all font-body" placeholder="MM / YY" type="text"/>
+</div>
+<!-- CVC -->
+<div class="space-y-2">
+<label class="block text-sm font-bold font-label text-on-surface-variant px-1">CVC / CVV</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-DEFAULT px-4 py-4 text-on-surface placeholder:text-outline/60 focus:ring-2 focus:ring-primary/20 transition-all font-body" placeholder="•••" type="password"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline text-xl">help_outline</span>
+</div>
+</div>
+</div>
+<!-- Cardholder Name -->
+<div class="space-y-2">
+<label class="block text-sm font-bold font-label text-on-surface-variant px-1">Cardholder Name</label>
+<input class="w-full bg-surface-container-low border-none rounded-DEFAULT px-4 py-4 text-on-surface placeholder:text-outline/60 focus:ring-2 focus:ring-primary/20 transition-all font-body" placeholder="e.g. Julian Casablancas" type="text"/>
+</div>
+<!-- Checkbox Option -->
+<label class="flex items-center gap-3 cursor-pointer group mt-4">
+<div class="relative">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="w-6 h-6 rounded-md bg-surface-container border-2 border-outline-variant peer-checked:bg-secondary peer-checked:border-secondary transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm scale-0 peer-checked:scale-100 transition-transform">check</span>
+</div>
+</div>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors">Set as default payment method</span>
+</label>
+<!-- CTA Button: signature textures -->
+<button class="w-full mt-8 bg-gradient-to-br from-primary to-primary-container text-white py-5 rounded-full font-headline font-bold text-lg shadow-[0_12px_24px_rgba(156,62,32,0.25)] hover:shadow-[0_16px_32px_rgba(156,62,32,0.35)] active:scale-95 transition-all duration-200" type="button">
+                    Save Card Securely
+                </button>
+</form>
+</div>
+<!-- Trust Signals -->
+<div class="mt-12 flex flex-wrap justify-center items-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+<img alt="Visa" class="h-5 object-contain" data-alt="Visa payment network logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO4p2MgZ_SPoxCvTEDO5tUYNylxPiCYUF0Uz2a7QAHde_B8bSqsvMdWtLVyNXnh-_OxUYByRU3J-i4rSUEiUCEC4LP1KIZ88PhCj5yRCbSbw0o7R9wgTGkwQgW0LGf0GrbfOupUeZTTMw_gY-c0A_pJ1pfO68doEqfeuYhLf9XoP4oXqA23saIsDcc9nQR5bQnkn8FiWDezIjg2X7b16PTk-MJdEjT0ZEgEAO388kTInwxQk8tqKDQhQ0kkyNwYJzpfP-g_YyZdXaB"/>
+<img alt="Mastercard" class="h-8 object-contain" data-alt="Mastercard payment network logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDvaAXnyo8cBrGUGSF3I-LWfRoEEbXumyRrB1zpAZGaYZ8yK5-Np6CF0qUSu5mxN5c-zPfe1JUFOUB_3xABJrvgltNr0DCjuQc-J3rOlvqsXTGfhmv_mS2q7kiGQXMaUiUFbxceTVNzbBzxcG249d-t_dA2QrX_js6OxtYKKR_92H-pJeT9MpCIaZ2C_0-Ca1wJpQCvF0d8Npb2Bnm7BCnHDvNbGlJ2Sk3meV1bvKpDj7nDnNo-Bdh5O9xYtd5EQoHbtlajBdpy32f"/>
+<img alt="Stripe" class="h-6 object-contain" data-alt="Stripe payment processor logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtKU0dLTd0Kf1VvKgyZhyFpfmb5wb1PJ_8ByfiXovU2TyEyWjBPmgB4G-q2NMkautynKZYKzmZ12gaNxaiDtmAsxX2DtxrCJq2zn9p9yoglST2e1Z22pdMmb6zZ2M84-rorO_nnqnJS-HSY_YRKLeIxzRRYWhKWtpuLFfyJpJgaBPuQIsCJ4SUUN1GXomdqL_4lHRz_bkfI1bmnd56w0bpB1XvzNBq-Az5TNdVqxMkZLmgwOkXPjkIdTc4hb9b6QsknmPQrxX9bjKR"/>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Suppressed because this is Task-Focused/Linear sub-page) -->
+<!-- As per 'Shell Visibility & Relevance' rule, we omit BottomNavBar here to focus on the payment task -->
+<div class="fixed bottom-0 left-0 w-full p-4 flex justify-center pointer-events-none">
+<div class="bg-surface-container-low/90 backdrop-blur-md px-6 py-2 rounded-full shadow-lg pointer-events-auto border border-white/20">
+<p class="text-[10px] font-label font-bold uppercase tracking-[0.2em] text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+                Encrypted Connection
+            </p>
+</div>
+</div>
+</body></html>

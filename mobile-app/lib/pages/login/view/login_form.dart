@@ -1,32 +1,22 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/common_progress.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/pages/login/cubit/login_cubit.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class LoginForm extends StatefulWidget {
-  // final RouteArguements? routeArguements;
-
-  const LoginForm({
-    super.key,
-    /*this.routeArguements*/
-  });
+  const LoginForm({super.key});
 
   @override
   State<StatefulWidget> createState() => _LoginForm();
 }
 
 class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
-  // final RouteArguements? routeArguements;
-
-  // int breakPointWidth = 500;
-
   _LoginForm();
 
   @override
@@ -51,128 +41,410 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
       builder: (context, state) {
         return Stack(
           children: [
-            Container(
-              color: const Color(0xFFFFFBF7),
-              height: config.AppConfig(context).appHeight(100),
-              width: config.AppConfig(context).appWidth(100),
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom +
-                      MediaQuery.of(context).viewInsets.bottom +
-                      config.AppConfig(context).appHeight(3),
+            // ── Background decorative blurs ──
+            Positioned(
+              top: -MediaQuery.of(context).size.height * 0.1,
+              right: -MediaQuery.of(context).size.width * 0.05,
+              child: Container(
+                width: 256,
+                height: 256,
+                decoration: BoxDecoration(
+                  color: MitablColors.secondaryContainer.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
                 ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: config.AppConfig(context).appHeight(2),
-                    left: config.AppConfig(context).appWidth(5),
-                    right: config.AppConfig(context).appWidth(5),
+              ),
+            ),
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.05,
+              left: -MediaQuery.of(context).size.width * 0.1,
+              child: Container(
+                width: 320,
+                height: 320,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6DED1).withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+
+            // ── Main content ──
+            SafeArea(
+              child: Column(
+                children: [
+                  // ── Header: centered "Mitabl" logo ──
+                  ClipRect(
+                    child: BackdropFilter(
+                      filter: MitablGlass.blur,
+                      child: Container(
+                        color: MitablGlass.background,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 32),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Mitabl',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'Nunito',
+                            color: MitablColors.primary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Container(
-                    alignment: Alignment.center,
-                    width: config.AppConfig(context).appWidth(90),
-                    child: Padding(
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          Container(
-                            alignment: Alignment.centerLeft,
-                            child: InkWell(
-                              onTap: () {
-                                navigatorKey.currentState!.pop();
-                              },
-                              child: Icon(
-                                Icons.arrow_back_ios,
-                                color: Theme.of(context).primaryColorDark,
-                                size: config.AppConfig(context).appWidth(5),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: config.AppConfig(context).appHeight(10),
-                          ),
-                          Column(
+
+                  // ── Scrollable form body ──
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 448),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Image.asset(
-                                'assets/img/logo.png',
-                                fit: BoxFit.contain,
-                                height: config.AppConfig(context).appHeight(15),
-                                width: config.AppConfig(context).appWidth(70),
-                              ),
-                              SizedBox(
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(2.5),
-                              ),
-                              Text(
-                                'Welcome Back!',
+                              // ── Content Header ──
+                              const Text(
+                                'Welcome Back',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark,
                                   fontSize: 30,
-                                  fontWeight: config.FontFamily().demi,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Nunito',
+                                  color: MitablColors.onSurface,
                                 ),
                               ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(1),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Sign in to your culinary atelier',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
                               ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: config.AppConfig(context).appHeight(8),
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _MobilePhone(loginForm: this),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(2),
-                              ),
-                              _Password(loginForm: this),
-                              SizedBox(
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(0.5),
-                              ),
-                              InkWell(
-                                onTap: () => navigatorKey.currentState!
-                                    .pushNamed('/ForgotPage'),
-                                child: Container(
-                                  padding: EdgeInsets.only(
-                                    left: config.AppConfig(
-                                      context,
-                                    ).appWidth(4.0),
+                              const SizedBox(height: 40),
+
+                              // ── Email / Phone Field ──
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                                child: Text(
+                                  'Email or Phone',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'DM Sans',
+                                    color: MitablColors.onSurfaceVariant,
                                   ),
-                                  child: Text(
-                                    ' Forgot password?',
-                                    style: TextStyle(
-                                      color: Theme.of(context).primaryColor,
-                                      fontSize: 14,
-                                      fontWeight: config.FontFamily().medium,
+                                ),
+                              ),
+                              TextFormField(
+                                controller: mobileNoTextEditor,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'chef@mitabl.com',
+                                  hintStyle: TextStyle(
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                    fontFamily: 'DM Sans',
+                                  ),
+                                  filled: true,
+                                  fillColor: MitablColors.surfaceContainerLow,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorText: state.email.invalid
+                                      ? 'Please enter a valid email id'
+                                      : null,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 16),
+                                ),
+                                onChanged: (text) {
+                                  context
+                                      .read<LoginCubit>()
+                                      .onEmailChanged(value: text);
+                                },
+                              ),
+                              const SizedBox(height: 24),
+
+                              // ── Password Field ──
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 4, right: 4, bottom: 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Password',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => navigatorKey.currentState!
+                                          .pushNamed('/ForgotPage'),
+                                      child: Text(
+                                        'Forgot Password?',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          fontFamily: 'DM Sans',
+                                          color: const Color(0xFF53443A),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextFormField(
+                                controller: passwordTextEditor,
+                                obscureText: state.showPassword,
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.done,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurface,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                                  hintStyle: TextStyle(
+                                    color: MitablColors.onSurfaceVariant
+                                        .withValues(alpha: 0.5),
+                                    fontFamily: 'DM Sans',
+                                  ),
+                                  filled: true,
+                                  fillColor: MitablColors.surfaceContainerLow,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  errorText: state.password.invalid
+                                      ? 'Please enter a valid password'
+                                      : null,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 16),
+                                ),
+                                onChanged: (text) {
+                                  context
+                                      .read<LoginCubit>()
+                                      .onPasswordChanged(value: text);
+                                },
+                              ),
+                              const SizedBox(height: 28),
+
+                              // ── Login Button ──
+                              Container(
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  gradient: state.status.isValidated
+                                      ? const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            MitablColors.primary,
+                                            MitablColors.primaryContainer,
+                                          ],
+                                        )
+                                      : null,
+                                  color: state.status.isValidated
+                                      ? null
+                                      : MitablColors.tertiaryFixedDim,
+                                  borderRadius: BorderRadius.circular(100),
+                                  boxShadow: state.status.isValidated
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFF9C3E20)
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: state.status.isValidated
+                                        ? () {
+                                            context
+                                                .read<LoginCubit>()
+                                                .doLogin();
+                                          }
+                                        : null,
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: Center(
+                                      child: state
+                                              .apiStatus.isSubmissionInProgress
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text(
+                                              'Login',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                fontFamily: 'DM Sans',
+                                                color: Colors.white,
+                                              ),
+                                            ),
                                     ),
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: config.AppConfig(context).appHeight(3),
+                              const SizedBox(height: 40),
+
+                              // ── "Or continue with" divider ──
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: MitablColors.outlineVariant
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    child: Text(
+                                      'Or continue with',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.onSurfaceVariant
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: MitablColors.outlineVariant
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              _LoginButton(loginForm: this),
-                              SizedBox(
-                                height: config.AppConfig(
-                                  context,
-                                ).appHeight(4.5),
+                              const SizedBox(height: 24),
+
+                              // ── Social Login Buttons (3-col grid) ──
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.g_mobiledata_rounded,
+                                      label: 'Google',
+                                      iconSize: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.apple,
+                                      label: 'Apple',
+                                      iconSize: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _SocialLoginTile(
+                                      icon: Icons.facebook_rounded,
+                                      label: 'Facebook',
+                                      iconSize: 24,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 48),
+
+                              // ── Sign up link ──
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Don't have an account? ",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: 'DM Sans',
+                                      color: MitablColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => navigatorKey.currentState!
+                                        .pushNamed('/SignUpPage'),
+                                    child: const Text(
+                                      'Join now',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'DM Sans',
+                                        color: MitablColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-            state.apiStatus.isSubmissionInProgress
-                ? const CommonProgressWidget()
-                : const SizedBox(),
+
+            // Loading overlay
+            if (state.apiStatus.isSubmissionInProgress)
+              const CommonProgressWidget(),
           ],
         );
       },
@@ -198,231 +470,45 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
   }
 }
 
-class _MobilePhone extends StatefulWidget {
-  final _LoginForm? loginForm;
+/// A rounded-[20px] social login tile matching the HTML design.
+class _SocialLoginTile extends StatelessWidget {
+  const _SocialLoginTile({
+    required this.icon,
+    required this.label,
+    this.iconSize = 24,
+  });
 
-  const _MobilePhone({this.loginForm});
-
-  @override
-  State<_MobilePhone> createState() => _MobilePhoneState();
-}
-
-class _MobilePhoneState extends State<_MobilePhone> {
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraint) {
-        return BlocBuilder<LoginCubit, LoginState>(
-          builder: (context, state) {
-            return Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.zero,
-              child: TextFormField(
-                controller: widget.loginForm!.mobileNoTextEditor,
-                style: const TextStyle(color: Colors.black, fontSize: 16),
-                textInputAction: TextInputAction.next,
-                keyboardType: TextInputType.name,
-                maxLength: 55,
-                onChanged: (text) {
-                  context.read<LoginCubit>().onEmailChanged(value: text);
-                },
-                decoration: InputDecoration(
-                  counterText: '',
-                  errorText: state.email.invalid
-                      ? 'Please enter a valid email id'
-                      : null,
-                  suffixIcon: state.email.valid
-                      ? Icon(
-                          Icons.check_circle_outline,
-                          color: Theme.of(context).primaryColor,
-                        )
-                      : const SizedBox(),
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).hintColor,
-                    fontSize: 16,
-                    fontWeight: config.FontFamily().book,
-                  ),
-                  // labelText: 'Mobile Number',
-                  hintText: 'Username',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: config.AppConfig(context).appWidth(5),
-                    vertical: config.AppConfig(context).appWidth(3),
-                  ),
-                  fillColor: config.AppColors().textFieldBackgroundColor(1),
-                  filled: true,
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  border: InputBorder.none,
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFFFFBF7),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _Password extends StatefulWidget {
-  final _LoginForm? loginForm;
-
-  const _Password({this.loginForm});
-
-  @override
-  State<_Password> createState() => _PasswordState();
-}
-
-class _PasswordState extends State<_Password> {
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraint) {
-        return BlocBuilder<LoginCubit, LoginState>(
-          builder: (context, state) {
-            return TextFormField(
-              controller: widget.loginForm!.passwordTextEditor,
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              obscureText: state.showPassword,
-              textInputAction: TextInputAction.next,
-              keyboardType: TextInputType.visiblePassword,
-              onChanged: (text) {
-                context.read<LoginCubit>().onPasswordChanged(value: text);
-              },
-              maxLength: 50,
-              decoration: InputDecoration(
-                errorText: state.password.invalid
-                    ? 'Please enter a valid password'
-                    : null,
-                counterText: '',
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    context.read<LoginCubit>().showPassword();
-                  },
-                  color: const Color(0xFFFFFBF7),
-                  icon: Icon(
-                    !state.showPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: Theme.of(context).primaryColorLight,
-                  ),
-                ),
-                hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
-                  fontWeight: config.FontFamily().book,
-                ),
-                hintText: 'Password',
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: config.AppConfig(context).appWidth(5),
-                  vertical: config.AppConfig(context).appWidth(3),
-                ),
-                fillColor: config.AppColors().textFieldBackgroundColor(1),
-                filled: true,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-                ),
-                border: InputBorder.none,
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: const BorderSide(color: Color(0xFFFFFBF7)),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _LoginButton extends StatelessWidget {
-  final _LoginForm? loginForm;
-
-  const _LoginButton({this.loginForm});
+  final IconData icon;
+  final String label;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<LoginCubit, LoginState>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.topRight,
-              colors: state.status.isValidated
-                  ? [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor,
-                    ]
-                  : [
-                      Theme.of(context).primaryColorLight,
-                      Theme.of(context).primaryColorLight,
-                    ],
-            ),
-          ),
-          child: MaterialButton(
-            height: config.AppConfig(context).appHeight(6),
-            minWidth: config.AppConfig(context).appWidth(100),
-            onPressed: () {
-              if (state.status.isValidated) {
-                context.read<LoginCubit>().doLogin();
-              }
-            },
-            child: Text(
-              'LOGIN',
-              style: TextStyle(
-                color: const Color(0xFFFFFBF7),
-                fontSize: 18,
-                fontWeight: config.FontFamily().book,
-              ),
-            ),
+    return InkWell(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$label sign-in coming soon'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
           ),
         );
       },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: MitablColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            size: iconSize,
+            color: MitablColors.onSurfaceVariant,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -58,3 +58,8 @@ bootstrap/cache/
 *.pid
 
 !backend/.env.text
+
+#ignore Agents for the development
+_bmad/
+.claude/
+.gemini/

@@ -120,12 +120,12 @@ class RecommendedResturant {
     description = json['description'];
     status = json['status'];
     available = json['available'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = json['latitude'] is num ? (json['latitude'] as num).toDouble() : double.tryParse(json['latitude']?.toString() ?? '');
+    longitude = json['longitude'] is num ? (json['longitude'] as num).toDouble() : double.tryParse(json['longitude']?.toString() ?? '');
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    ratingCount = json['rating_count'];
-    ordersCount = json['orders_count'];
+    ratingCount = json['rating_count'] is num ? (json['rating_count'] as num).toDouble() : double.tryParse(json['rating_count']?.toString() ?? '');
+    ordersCount = json['orders_count'] is num ? (json['orders_count'] as num).toInt() : int.tryParse(json['orders_count']?.toString() ?? '');
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {

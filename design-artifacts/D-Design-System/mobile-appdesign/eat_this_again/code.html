@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "secondary": "#4d6548",
+              "outline": "#89726b",
+              "on-tertiary-container": "#fffbff",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#ffb59f",
+              "tertiary-container": "#837166",
+              "secondary-container": "#cce7c3",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#31302d",
+              "primary-fixed": "#ffdbd0",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-low": "#f6f3ee",
+              "surface": "#fcf9f4",
+              "surface-tint": "#9f4122",
+              "on-tertiary-fixed": "#251911",
+              "on-tertiary-fixed-variant": "#53443a",
+              "primary-container": "#bc5636",
+              "surface-container": "#f0ede9",
+              "secondary-fixed": "#cfeac6",
+              "primary": "#9c3e20",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed": "#f6ded1",
+              "surface-container-lowest": "#ffffff",
+              "on-background": "#1c1c19",
+              "surface-variant": "#e5e2dd",
+              "on-secondary-fixed": "#0b200a",
+              "error": "#ba1a1a",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#56423c",
+              "outline-variant": "#ddc0b8",
+              "on-surface": "#1c1c19",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "surface-dim": "#dcdad5",
+              "surface-bright": "#fcf9f4",
+              "surface-container-high": "#ebe8e3",
+              "on-primary-fixed": "#3a0a00",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary": "#ffffff",
+              "on-primary-container": "#fffbff",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary": "#6a594e",
+              "secondary-fixed-dim": "#b3ceab"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .custom-glass {
+        background: rgba(252, 249, 244, 0.8);
+        backdrop-filter: blur(20px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-6 h-16 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md z-50">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-[#f6f3ee] transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#9c3e20]">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold text-[#1c1c19] text-xl tracking-tight">The Culinary Atelier</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="User profile photo avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAonLj9zfQBCtipIg354Jx2xdhuBVxRYiUUHNlmf-DBU2moGe1cztlPFAFi8IGkA3VsIE-5C-1i5KScykctNEZz-a0IEX1JGtD_AfX3LsbjsTbqaWI5K89JYH-_K1mXYZSitXxaO42s6VHRrMd5EHf5NlNidgLqXoYFi6DLZIHjtDUtM94iXsQdUE6pRS3OnMUVSnEt4aGOhmuj4BWbyvmENUWoeSVkLGR9G3PTo1DsuK6Ov63B8QzkjIOIYAs32MZKeuyS59cChaJk"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- Hero Section: Eat This Again -->
+<section class="mb-12">
+<div class="flex items-end justify-between mb-8">
+<div>
+<span class="text-primary font-bold tracking-widest uppercase text-xs">Personalized for you</span>
+<h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface mt-2">Eat This Again</h2>
+</div>
+<div class="hidden md:block">
+<button class="flex items-center gap-2 text-on-surface-variant font-medium hover:text-primary transition-colors">
+                        View History <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Main Re-order Card -->
+<div class="md:col-span-8 bg-surface-container-low rounded-lg p-1 overflow-hidden">
+<div class="bg-surface-container-lowest rounded-[1.25rem] p-6 h-full flex flex-col">
+<div class="flex items-start justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden ring-4 ring-secondary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of Chef Marco smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2j_U4KqPFjhKUy68YT_mLQFcqzTsUm6sbLXTeWirWXLmd5tGb_XSb1URURVhBWLmmZW2pX3klIVwMDBM1V6tRmEYKB8H-qRMYHXgHN-LCjR-Fa-zFnonFwVFTu4sH-V8AldSECsR84YKhKoNTDsx63Jhgtu5A2776uktKK46Y-VyCvBwbaoIBv4SyaHXQoj0iRaUXmbvZC4ZufCEV2L2-_8zxNMdthjdmIlmVLBb5FfiFohAtpl8pkNnDAW2tD7Mv1bbOyXsmqQGt"/>
+</div>
+<div>
+<h3 class="text-2xl font-headline font-bold text-on-surface">Last time at Marco's</h3>
+<p class="text-on-surface-variant text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">calendar_today</span> Ordered 3 days ago
+                                    </p>
+</div>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-xs font-bold">
+                                SIGNATURES
+                            </div>
+</div>
+<!-- Signature Dishes Row -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="relative group">
+<div class="aspect-[4/3] rounded-lg overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Smoked Salmon Sourdough with dill" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqxOimoonVivwg6UUnFsfwLrUSNE1cIFa-Y8XbQ0OMvDPD6hNuQZmE2OpE2-wR4M9N-6l3IE8wJ7-4mgYvauYHB5-SADwlwBcLGbhhWqT1SEKDlyhM5EMoBEeHMiIFXzmLBU0XE_B2-D7dfeJULTcAzmwTn5cs79ezf53A2O8KxC97yG-Y0s-qI4t3hTIbMj9GKaC4EXwll1hqUVFOJ2uI8BMAJMJn5yxuehmRcv7VFKkYBry0NLeVTxKtgMbD1ut5iSf0xW1XP1sL"/>
+</div>
+<div class="mt-2">
+<p class="font-bold text-on-surface">Smoked Salmon Sourdough</p>
+<p class="text-primary text-sm">$18.50</p>
+</div>
+</div>
+<div class="relative group">
+<div class="aspect-[4/3] rounded-lg overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Seasonal Greens Salad with citrus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLu5ovuPtq14yk4Ewi6eXsKx-WpvCX_18sB6O8mNyofEynKts8fBrMdJMgjwXE6sEnCDxFu-lKnX8C4Zdhb70sUaaEUw2E6Q4P26mfyko_KS4x_vrE8aOxKPGg98p62C4AbbsYmf0SvzBeMHdQ5DATinZCnFmS3AwOeO49hz7nnEP6kWuPIA1mRUDAvyelQUaGO0UD5bBVwn22L7oMC_7kinHcHm4DrjVqeEoYZgy6eeG3LloHreguYKtltWk5mvox8Yj-uNh2kkoX"/>
+</div>
+<div class="mt-2">
+<p class="font-bold text-on-surface">Seasonal Greens</p>
+<p class="text-primary text-sm">$12.00</p>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="mt-auto pt-6 flex flex-wrap items-center justify-between gap-4 border-t border-outline-variant/10">
+<div class="flex -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-on-primary-fixed">JD</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-secondary-fixed flex items-center justify-center text-[10px] font-bold text-on-secondary-fixed">AM</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-tertiary-fixed flex items-center justify-center text-[10px] font-bold text-on-tertiary-fixed">+4</div>
+</div>
+<p class="text-xs text-on-surface-variant italic">Enjoyed by you and 6 friends recently</p>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-full font-bold shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">reorder</span> Re-order
+                            </button>
+</div>
+</div>
+</div>
+<!-- Side Info Cards -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Quick Stats -->
+<div class="bg-secondary-container rounded-lg p-6 text-on-secondary-container">
+<span class="material-symbols-outlined text-3xl mb-4">restaurant</span>
+<h4 class="text-xl font-headline font-bold mb-1">Your Atelier Streak</h4>
+<p class="text-sm opacity-80 mb-4">You've ordered from 4 local chefs this month. Keep supporting the craft!</p>
+<div class="w-full bg-on-secondary-container/10 h-2 rounded-full overflow-hidden">
+<div class="bg-on-secondary-container h-full w-3/4"></div>
+</div>
+</div>
+<!-- Upcoming Story -->
+<div class="bg-surface-container-low rounded-lg p-6 border border-outline-variant/10 group cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-bold">Next Harvest</h4>
+<span class="material-symbols-outlined text-primary">arrow_outward</span>
+</div>
+<div class="aspect-video rounded-lg overflow-hidden mb-4">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Lush vegetable garden at sunrise" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtJ6giRKlrzH7BvQO0bXf8MjaO06fp0I7TPgoauCbupIHur9EYO6wxnRmmjvJb2zQuGbZnsQoAJdjEuvs7OtzP13ntlTBOwpFxYW5VgCJGKN07wiqDgvMx7lo0r6imtww4NyWeBT4rKAAt3rQ9gMQm--8Dr31VpQosmj8GkCSCAvVLgTzktlIKvUhD4Kd0NrK5FQ956alwpB9wWSB061tut-HPbaaUvwLCUs-PhH91UYJqZ6mAoM7E8V5hG9tSLB_og5VUmpTrQM-0"/>
+</div>
+<p class="text-sm text-on-surface-variant">Chef Marco's garden just yielded the first spring heirloom tomatoes.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Other Recommendations -->
+<section>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-6">Trending in your Atelier</h3>
+<div class="flex gap-6 overflow-x-auto pb-8 snap-x no-scrollbar">
+<!-- Card 1 -->
+<div class="min-w-[280px] snap-start bg-surface-container-low rounded-lg p-4">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img class="w-full h-full object-cover" data-alt="Artisanal fluffy pancakes with berries" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDruVMOVtoHTPgxvEpP3qOjAew5d6O3GTMpCwMscsUAOxxKAuMbxmdZI8Uf6ZDFNDQvVKGxfU8EVJnMb3VXCqUwyTrbCO5W5ZyCWZSnBJ5QqUuFTddiUFy7DV9udi4yEdEBLOnVxS-1pQ-YvqIo4-i0w9Xj8vn_tic3GyE0rlVZMblp_EGVHG2zw-syU7US8N4c3pabNBhxQkPWf-AYo1b6olAOZSmw9FQ7NZZ3uA6KDd1iW-56_kF6FjsFOvtrdvgvMLekb88Fe43z"/>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-bold">Cloud Pancakes</p>
+<p class="text-xs text-on-surface-variant">by Chef Elena</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm active:scale-90 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[280px] snap-start bg-surface-container-low rounded-lg p-4">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img class="w-full h-full object-cover" data-alt="Roasted chicken with rosemary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBATntDOpjtw4P5AYciNsdGYwpNAgIUHds1X4bXlegDkhRMCP0P1LIfzNRJ9ph9JWOpZNwryhq48NXt06HQSWhuj0euVFP3E2h01VbaMlMWjnJiSZ3KK-J45te0BYgG-B4HxRYquT1Tyjb5ojHi-CKXRB4s3X_Qf6kGErN4M-aKrlkFWQbDuZYKELXxaQ_sa_3zWe-dPSsm1bbpr1UcTS03JvvFjoijCwIqRKEuTiD4s10O_jEDafXtmlpeNgjJeswgQIWmBEEfZdeC"/>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-bold">Rustic Herb Chicken</p>
+<p class="text-xs text-on-surface-variant">by Chef Thomas</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm active:scale-90 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[280px] snap-start bg-surface-container-low rounded-lg p-4">
+<div class="aspect-square rounded-lg overflow-hidden mb-4">
+<img class="w-full h-full object-cover" data-alt="Pesto pasta with pine nuts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZCkCPARZwrBrqnfs388tIRj5UaEUTWviOFLRnk00Ici1DNBDA2szlG1fJgz1LZpA-ESsYYJqggqLHlKmUb8Sni8WeSVXwr8CQKO7tPTWrDIRRjdJG3aDCtKrp_T4LrRW-BlSHai76t8l9kuPDOml8hqflfSyrnEcNMfeZGgq5E3Tch4mBWySCLtfgS1t18mZsP25EjhWiNjiuBG2XEku45UgfxPedJUJKaKJh8Q65_T5ct28fDsf-9MqdOy25S6ygCC0bOqEhte7O"/>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-bold">Hand-pulled Pesto</p>
+<p class="text-xs text-on-surface-variant">by Chef Sofia</p>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm active:scale-90 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fcf9f4]/80 dark:bg-[#1c1c19]/80 backdrop-blur-md rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<button class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Explore</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Stories</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-4 py-1 active:scale-90 duration-200">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Table</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">outdoor_grill</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Cook</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#56423c] dark:text-[#ddc0b8] opacity-70 hover:opacity-100 transition-opacity active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">Profile</span>
+</button>
+</nav>
+<!-- Floating Action Button (Supressed on details, kept here for primary context) -->
+<div class="fixed right-6 bottom-24 z-40">
+<button class="w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-xl shadow-primary/30 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+</div>
+</body></html>

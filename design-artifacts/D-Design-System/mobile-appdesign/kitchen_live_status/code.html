@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcf9f4",
+              "on-tertiary-container": "#fffbff",
+              "inverse-surface": "#31302d",
+              "surface-container": "#f0ede9",
+              "secondary": "#4d6548",
+              "on-surface-variant": "#56423c",
+              "tertiary": "#6a594e",
+              "on-tertiary-fixed-variant": "#53443a",
+              "background": "#fcf9f4",
+              "surface-container-highest": "#e5e2dd",
+              "surface-container-high": "#ebe8e3",
+              "on-secondary-container": "#51694c",
+              "tertiary-fixed": "#f6ded1",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#b3ceab",
+              "surface-tint": "#9f4122",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "primary-fixed": "#ffdbd0",
+              "primary": "#9c3e20",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-error-container": "#93000a",
+              "surface": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "on-background": "#1c1c19",
+              "surface-container-low": "#f6f3ee",
+              "on-secondary-fixed": "#0b200a",
+              "inverse-primary": "#ffb59f",
+              "on-secondary": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "surface-variant": "#e5e2dd",
+              "error-container": "#ffdad6",
+              "outline-variant": "#ddc0b8",
+              "on-secondary-fixed-variant": "#364c32",
+              "secondary-container": "#cce7c3",
+              "on-tertiary-fixed": "#251911",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#ffb59f",
+              "on-primary-container": "#fffbff",
+              "inverse-on-surface": "#f3f0eb",
+              "tertiary-container": "#837166",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#cfeac6",
+              "primary-container": "#bc5636"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-header {
+        background: rgba(252, 249, 244, 0.8);
+        backdrop-filter: blur(20px);
+      }
+      .asymmetric-shape {
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen pb-24">
+<!-- Top Navigation -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 glass-header">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Chef profile" class="w-full h-full object-cover" data-alt="Professional chef wearing white apron in kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXFxGhSUTsOhVrLBcwgEIwSsVTCSFBitQvvvcQ-A-cy614OgOmZZSKTOse2CV1Q6SO_QfmJO1dRYprM58bkI2FnkGJH6MNQIdeZG6_6Dc6vJhLMGGib6VQNYbjPVTxEqn7m-fdnrY4eJR0tQtRtN7QLBnl_nXcCBVYoclx3LuTbE16dihJCffU4A1sNWTk-v2aqHK8asEGYZ6TNVDw1DK8y58YqxVzK7qFlsboj3dLxHSh96iTuAZTUe1eJLf9KDrtxdCv1RlzF2fb"/>
+</div>
+<h1 class="font-headline font-extrabold text-2xl text-primary tracking-tight">Culinary Atelier</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Title Section -->
+<header class="mb-8">
+<h2 class="font-headline font-extrabold text-4xl text-on-surface mb-2 tracking-tight">Kitchen Status</h2>
+<p class="text-on-surface-variant text-lg">Manage your availability for diners in real-time.</p>
+</header>
+<!-- Current Status Hero -->
+<div class="relative overflow-hidden bg-primary rounded-lg p-8 mb-8 text-on-primary">
+<div class="absolute -right-8 -top-8 w-40 h-40 bg-primary-container/20 asymmetric-shape"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_8px_rgba(207,234,198,0.8)]"></span>
+<span class="text-sm font-bold tracking-widest uppercase opacity-90">Live Now</span>
+</div>
+<h3 class="font-headline font-extrabold text-5xl mb-1">Open Now</h3>
+<p class="opacity-80 max-w-xs">Your kitchen is currently visible and accepting all instant orders.</p>
+</div>
+</div>
+<!-- Status Toggle Options -->
+<div class="grid gap-4 mb-10">
+<!-- Open Option -->
+<button class="group w-full text-left bg-surface-container-lowest p-5 rounded-lg flex items-center gap-5 transition-all active:scale-[0.98]">
+<div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-xl text-on-surface">Open Now</h4>
+<p class="text-on-surface-variant text-sm">Visible to everyone for instant ordering.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-primary flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+</div>
+</button>
+<!-- Pre-order Option -->
+<button class="group w-full text-left bg-surface-container-low p-5 rounded-lg flex items-center gap-5 transition-all hover:bg-surface-container-highest active:scale-[0.98]">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-3xl">calendar_today</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-xl text-on-surface">Pre-orders Only</h4>
+<p class="text-on-surface-variant text-sm">Take bookings for later dates or times.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant"></div>
+</button>
+<!-- Paused Option -->
+<button class="group w-full text-left bg-surface-container-low p-5 rounded-lg flex items-center gap-5 transition-all hover:bg-surface-container-highest active:scale-[0.98]">
+<div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-3xl">pause_circle</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-xl text-on-surface">Paused</h4>
+<p class="text-on-surface-variant text-sm">Temporarily hidden from search results.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant"></div>
+</button>
+<!-- Closed Option -->
+<button class="group w-full text-left bg-surface-container-low p-5 rounded-lg flex items-center gap-5 transition-all hover:bg-surface-container-highest active:scale-[0.98]">
+<div class="w-14 h-14 rounded-full bg-surface-dim flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl">cancel</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-xl text-on-surface">Closed</h4>
+<p class="text-on-surface-variant text-sm">Kitchen is not taking any new requests.</p>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-outline-variant"></div>
+</button>
+</div>
+<!-- Overwhelmed Explanation Card -->
+<div class="bg-secondary-container/30 border border-secondary/10 p-6 rounded-lg mb-12 relative overflow-hidden">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary text-3xl">info</span>
+<div>
+<h5 class="font-bold text-on-secondary-fixed-variant mb-1">Feeling overwhelmed?</h5>
+<p class="text-on-secondary-fixed-variant/80 text-sm leading-relaxed">
+                        Pausing orders is a temporary way to handle being overwhelmed in the kitchen. It hides your kitchen from new diners while you catch up on existing tickets. You can toggle back to 'Open' the moment you're ready for more.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Real-time Stats Bento -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-5 rounded-lg">
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Active Tickets</span>
+<p class="text-3xl font-headline font-extrabold text-on-surface mt-1">12</p>
+</div>
+<div class="bg-surface-container-low p-5 rounded-lg">
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Avg Prep Time</span>
+<p class="text-3xl font-headline font-extrabold text-on-surface mt-1">24m</p>
+</div>
+</div>
+</main>
+<!-- Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2 bg-[#fcf9f4]/80 backdrop-blur-md shadow-[0_-4px_24px_rgba(28,28,25,0.06)] rounded-t-lg z-50">
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined mb-1">explore</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined mb-1">auto_stories</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase">Stories</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined mb-1">restaurant</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase">Table</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#9c3e20] text-white rounded-full p-3 mb-1 scale-90" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">skillet</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase mt-1">Cook</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#56423c] p-3 hover:text-[#9c3e20] transition-all" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['DM_Sans'] text-[10px] font-bold tracking-wide uppercase">Profile</span>
+</a>
+</nav>
+</body></html>

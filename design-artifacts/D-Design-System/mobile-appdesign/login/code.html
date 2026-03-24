@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mitabl - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Plus+Jakarta+Sans:wght@800&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#f6ded1",
+              "tertiary": "#6a594e",
+              "surface-tint": "#9f4122",
+              "outline-variant": "#ddc0b8",
+              "surface-dim": "#dcdad5",
+              "secondary-container": "#cce7c3",
+              "on-secondary-fixed-variant": "#364c32",
+              "surface": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-primary-container": "#fffbff",
+              "inverse-primary": "#ffb59f",
+              "error-container": "#ffdad6",
+              "secondary-fixed": "#cfeac6",
+              "surface-bright": "#fcf9f4",
+              "inverse-on-surface": "#f3f0eb",
+              "primary-container": "#bc5636",
+              "surface-container-low": "#f6f3ee",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "on-tertiary-container": "#fffbff",
+              "on-primary": "#ffffff",
+              "on-surface": "#1c1c19",
+              "tertiary-container": "#837166",
+              "on-secondary": "#ffffff",
+              "outline": "#89726b",
+              "on-error": "#ffffff",
+              "surface-container": "#f0ede9",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#0b200a",
+              "primary-fixed": "#ffdbd0",
+              "on-primary-fixed": "#3a0a00",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#b3ceab",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed": "#251911",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-container": "#51694c",
+              "inverse-surface": "#31302d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed-dim": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "on-tertiary-fixed-variant": "#53443a",
+              "background": "#fcf9f4",
+              "surface-variant": "#e5e2dd",
+              "secondary": "#4d6548"
+            },
+            fontFamily: {
+              "headline": ["Nunito", "Plus Jakarta Sans"],
+              "body": ["DM Sans", "Manrope"],
+              "label": ["DM Sans", "Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+        }
+        body {
+            background-color: #fcf9f4; /* Warm Oat Base */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopAppBar (Transactional State: Logo Only, Minimal) -->
+<header class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 backdrop-blur-md flex items-center justify-center px-6 py-8">
+<h1 class="text-2xl font-extrabold text-primary tracking-tight font-headline">Mitabl</h1>
+</header>
+<main class="flex-grow flex items-center justify-center px-6 pt-24 pb-12">
+<div class="w-full max-w-md">
+<!-- Content Header -->
+<div class="text-center mb-10">
+<h2 class="text-3xl font-extrabold text-on-surface font-headline mb-2">Welcome Back</h2>
+<p class="text-on-surface-variant">Sign in to your culinary atelier</p>
+</div>
+<!-- Login Form -->
+<form class="space-y-6">
+<!-- Phone/Email Field -->
+<div class="space-y-2">
+<label class="block text-sm font-bold text-on-surface-variant ml-1" for="identifier">Email or Phone</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-[20px] px-5 py-4 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all duration-200" id="identifier" placeholder="chef@mitabl.com" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<div class="flex justify-between items-center ml-1">
+<label class="block text-sm font-bold text-on-surface-variant" for="password">Password</label>
+<a class="text-sm font-medium text-on-tertiary-fixed-variant hover:text-primary transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-[20px] px-5 py-4 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all duration-200" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Login Button -->
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold py-4 rounded-full shadow-[0_4px_16px_rgba(156,62,32,0.2)] hover:shadow-[0_6px_20px_rgba(156,62,32,0.3)] active:scale-[0.98] transition-all duration-200 mt-4" type="submit">
+                    Login
+                </button>
+</form>
+<!-- Divider -->
+<div class="relative my-10">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/20"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-surface text-on-surface-variant/60 font-medium">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="grid grid-cols-3 gap-4">
+<button class="flex justify-center items-center py-3 bg-surface-container-low rounded-[20px] hover:bg-surface-container-high active:scale-95 transition-all">
+<img alt="Google" class="w-6 h-6 grayscale opacity-80" data-alt="Google logo icon greyed out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYetDkvD7TJG7rT1xshRtPnHHPFL7VUj6i9cBTjZbHflyu3yPaE4rUVjPWzMkffOFVplvZDhWrKmkWq6C8KWeXOpVVqYpQq8JCwHEJ0I8GN1m-WPADl-pV1QVZwLjdKDFiZqPFKkIGnhzAw9FKJQ6jctunmOQk9mUYI3byFGf-zIn4oJ8IKGnwVMfY1hAGOr4zk8miLJmoEv3ZZevKo8-iumFdxfziJEMtbCz6rqt-AAx7Wck8WfTbU_86jkVcAY4wK-5VKkT31nGl"/>
+</button>
+<button class="flex justify-center items-center py-3 bg-surface-container-low rounded-[20px] hover:bg-surface-container-high active:scale-95 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl" data-icon="apple" style="font-variation-settings: 'FILL' 1;">ios</span>
+</button>
+<button class="flex justify-center items-center py-3 bg-surface-container-low rounded-[20px] hover:bg-surface-container-high active:scale-95 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl" data-icon="facebook" style="font-variation-settings: 'FILL' 1;">social_leaderboard</span>
+</button>
+</div>
+<!-- Footer Link -->
+<p class="text-center mt-12 text-on-surface-variant">
+                Don't have an account? 
+                <a class="text-primary font-bold hover:underline underline-offset-4" href="#">Join now</a>
+</p>
+</div>
+</main>
+<!-- Background Decorative Elements (Asymmetric) -->
+<div class="fixed top-[-10%] right-[-5%] w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl -z-10"></div>
+<div class="fixed bottom-[5%] left-[-10%] w-80 h-80 bg-tertiary-fixed/30 rounded-full blur-3xl -z-10"></div>
+</body></html>

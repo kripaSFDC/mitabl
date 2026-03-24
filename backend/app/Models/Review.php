@@ -25,4 +25,9 @@ class Review extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function images()
+    {
+        return $this->hasMany(\App\Models\Image::class, 'ref_id')->where('model_name', 'review');
+    }
+
 }

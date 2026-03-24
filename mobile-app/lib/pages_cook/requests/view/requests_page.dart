@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-// import 'package:google_fonts/google_fonts.dart';
-import 'package:mitabl_user/helper/app_config.dart' as config;
-import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages_cook/requests/cubit/requests_cubit.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
+import 'package:mitabl_user/widgets/design_tokens.dart';
 
 import '../../../helper/common_progress.dart';
 import '../../../helper/no_data_widget.dart';
-import '../../../repos/authentication_repository.dart';
 import '../../../helper/offline_error_widget.dart';
-import '../elements/accept_reject_dialog.dart';
-import '../elements/order_details_view.dart';
+import '../elements/order_rejection_sheet.dart';
 
 class RequestsPage extends StatefulWidget {
   const RequestsPage({super.key});
@@ -31,26 +26,7 @@ class _RequestsPageState extends State<RequestsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leadingWidth: config.AppConfig(context).appWidth(32),
-        leading: Padding(
-          padding: EdgeInsets.only(
-            left: config.AppConfig(context).appWidth(5.2),
-            top: config.AppConfig(context).appHeight(2),
-          ),
-          child: Center(
-            child: Text(
-              'Requests',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontSize: config.AppConfig(context).appWidth(5.0),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        shadowColor: Colors.transparent,
-        backgroundColor: Colors.transparent,
-      ),
+      backgroundColor: MitablColors.surface,
       body: BlocConsumer<RequestsCubit, RequestsState>(
         listener: (context, state) {},
         builder: (context, state) {
@@ -59,517 +35,155 @@ class _RequestsPageState extends State<RequestsPage> {
               state.requestBookingStatus!.isSubmissionInProgress
                   ? const Center()
                   : state.requestBookingStatus!.isSubmissionFailure &&
-                        (state.requestBookingModel?.data?.bookings?.isEmpty ??
-                            true)
-                  ? OfflineErrorWidget(
-                      onRetry: context.read<RequestsCubit>().getRequests,
-                    )
-                  : state.requestBookingModel == null ||
-                        state.requestBookingModel!.data!.bookings!.isEmpty
-                  ? const NoDataWidget()
-                  : ListView.separated(
-                      // shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.all(
-                            config.AppConfig(context).appWidth(4),
-                          ),
-                          child: Container(
-                            height: config.AppConfig(context).appHeight(22),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFBF7),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(
-                                  config.AppConfig(context).appWidth(1.6),
-                                ),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0x1C000000,
-                                  ).withValues(alpha: 0.11),
-                                  blurRadius: 1.3,
-                                  offset: const Offset(-0.01, -0.01),
-                                ),
-                                BoxShadow(
-                                  color: const Color(
-                                    0x1C000000,
-                                  ).withValues(alpha: 0.11),
-                                  blurRadius: 0.5,
-                                  offset: const Offset(0, 0.0),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(
-                                      config.AppConfig(context).appWidth(3),
+                          (state.requestBookingModel?.data?.bookings
+                                  ?.isEmpty ??
+                              true)
+                      ? OfflineErrorWidget(
+                          onRetry: context.read<RequestsCubit>().getRequests,
+                        )
+                      : state.requestBookingModel == null ||
+                              state.requestBookingModel!.data!.bookings!
+                                  .isEmpty
+                          ? const NoDataWidget()
+                          : CustomScrollView(
+                              slivers: [
+                                // ── Top App Bar ──
+                                SliverToBoxAdapter(
+                                  child: Container(
+                                    padding: EdgeInsets.only(
+                                      top: MediaQuery.of(context).padding.top +
+                                          16,
+                                      left: 24,
+                                      right: 24,
+                                      bottom: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: MitablColors.surface
+                                          .withValues(alpha: 0.8),
                                     ),
                                     child: Row(
-                                      mainAxisSize: MainAxisSize.max,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
                                       children: [
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                        Row(
                                           children: [
-                                            InkWell(
-                                              onTap: () {
-                                                navigatorKey.currentState!
-                                                    .pushNamed(
-                                                      '/UserDetails',
-                                                      arguments: RouteArguments(
-                                                        customer: state
-                                                            .requestBookingModel!
-                                                            .data!
-                                                            .bookings![index]
-                                                            .customer!,
-                                                      ),
-                                                    );
-                                              },
-                                              child: Text(
-                                                state
-                                                    .requestBookingModel!
-                                                    .data!
-                                                    .bookings![index]
-                                                    .customer!
-                                                    .name
-                                                    .toString(),
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge
-                                                    ?.copyWith(fontSize: 16),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  Navigator.of(context).pop(),
+                                              child: const Icon(
+                                                Icons.arrow_back,
+                                                color: MitablColors.primary,
                                               ),
                                             ),
-                                            SizedBox(
-                                              height: config.AppConfig(
-                                                context,
-                                              ).appHeight(0.5),
-                                            ),
-                                            RichText(
-                                              text: TextSpan(
-                                                text: 'Date: ',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          config.FontFamily()
-                                                              .demi,
-                                                    ),
-                                                children: <TextSpan>[
-                                                  TextSpan(
-                                                    text: state
-                                                        .requestBookingModel!
-                                                        .data!
-                                                        .bookings![index]
-                                                        .date,
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.titleSmall,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: config.AppConfig(
-                                                context,
-                                              ).appHeight(0.5),
-                                            ),
-                                            RichText(
-                                              text: TextSpan(
-                                                text: 'Time: ',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          config.FontFamily()
-                                                              .demi,
-                                                    ),
-                                                children: <TextSpan>[
-                                                  TextSpan(
-                                                    text:
-                                                        '${state.requestBookingModel!.data!.bookings![index].timeFrom} to ${state.requestBookingModel!.data!.bookings![index].timeTo}',
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.titleSmall,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: config.AppConfig(
-                                                context,
-                                              ).appHeight(0.5),
-                                            ),
-                                            RichText(
-                                              text: TextSpan(
-                                                text: 'Persons: ',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall
-                                                    ?.copyWith(
-                                                      fontWeight:
-                                                          config.FontFamily()
-                                                              .demi,
-                                                    ),
-                                                children: <TextSpan>[
-                                                  TextSpan(
-                                                    text: state
-                                                        .requestBookingModel!
-                                                        .data!
-                                                        .bookings![index]
-                                                        .persons
-                                                        .toString(),
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.titleSmall,
-                                                  ),
-                                                ],
+                                            const SizedBox(width: 16),
+                                            const Text(
+                                              'Mitabl',
+                                              style: TextStyle(
+                                                fontFamily: 'Nunito',
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 20,
+                                                color: MitablColors.primary,
                                               ),
                                             ),
                                           ],
                                         ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    vertical: config.AppConfig(
-                                                      context,
-                                                    ).appHeight(0.2),
-                                                    horizontal:
-                                                        config.AppConfig(
-                                                          context,
-                                                        ).appWidth(2.5),
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                          Radius.circular(
-                                                            config.AppConfig(
-                                                              context,
-                                                            ).appWidth(2.5),
-                                                          ),
-                                                        ),
-                                                    border: Border.all(
-                                                      color: const Color(
-                                                        0xff707070,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    state
-                                                                .requestBookingModel!
-                                                                .data!
-                                                                .bookings![index]
-                                                                .dineIn ==
-                                                            1
-                                                        ? 'Dine-in'
-                                                        : 'Take-away',
-                                                    style: Theme.of(
-                                                      context,
-                                                    ).textTheme.titleSmall,
-                                                  ),
-                                                ),
-                                                // SizedBox(
-                                                //   width: config.AppConfig(context)
-                                                //       .appWidth(2.5),
-                                                // ),
-                                                // Container(
-                                                //   margin: EdgeInsets.zero,
-                                                //   padding: EdgeInsets.symmetric(
-                                                //       vertical:
-                                                //       config.AppConfig(context)
-                                                //           .appHeight(0.3),
-                                                //       horizontal:
-                                                //       config.AppConfig(context)
-                                                //           .appWidth(2.5)),
-                                                //   decoration: BoxDecoration(
-                                                //       borderRadius: BorderRadius.all(
-                                                //           Radius.circular(
-                                                //               config.AppConfig(
-                                                //                   context)
-                                                //                   .appWidth(2.5))),
-                                                //       color: state
-                                                //           .upcomingBookingModel!
-                                                //           .data![index]
-                                                //           .status ==
-                                                //           0
-                                                //           ? Colors.red
-                                                //           : state
-                                                //           .upcomingBookingModel!
-                                                //           .data![index]
-                                                //           .status ==
-                                                //           1
-                                                //           ? Color(0xff3DAE06)
-                                                //           : state
-                                                //           .upcomingBookingModel!
-                                                //           .data![
-                                                //       index]
-                                                //           .status ==
-                                                //           2
-                                                //           ? Colors.yellow
-                                                //           : Colors.blue),
-                                                //   child: Text(
-                                                //     state.upcomingBookingModel!.data![index]
-                                                //         .status ==
-                                                //         0
-                                                //         ? 'Canceled'
-                                                //         : state
-                                                //         .upcomingBookingModel!
-                                                //         .data![index]
-                                                //         .status ==
-                                                //         1
-                                                //         ? 'Completed'
-                                                //         : state
-                                                //         .upcomingBookingModel!
-                                                //         .data![index]
-                                                //         .status ==
-                                                //         2
-                                                //         ? 'Pending'
-                                                //         : 'Acceptted',
-                                                //     style: GoogleFonts.gothicA1(
-                                                //         color: const Color(0xFFFFFBF7),
-                                                //         fontSize:
-                                                //         config.AppConfig(context)
-                                                //             .appWidth(3.5),
-                                                //         fontWeight: FontWeight.w500),
-                                                //   ),
-                                                // )
-                                              ],
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: MitablColors
+                                                .surfaceContainerLow,
+                                            border: Border.all(
+                                              color: MitablColors
+                                                  .primaryContainer
+                                                  .withValues(alpha: 0.2),
+                                              width: 2,
                                             ),
-                                            const Spacer(),
-                                            InkWell(
-                                              onTap: () {
-                                                navigatorKey.currentState!.push(
-                                                  MaterialPageRoute<void>(
-                                                    builder: (_) => BlocProvider.value(
-                                                      value: context
-                                                          .read<
-                                                            RequestsCubit
-                                                          >(),
-                                                      child: OrderDetails(
-                                                        routeArguments: RouteArguments(
-                                                          bookings: state
-                                                              .requestBookingModel!
-                                                              .data!
-                                                              .bookings![index],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                                // navigatorKey.currentState!.pushNamed(
-                                                //     '/OrderDetails',
-                                                //     arguments: RouteArguments(
-                                                //         bookings: state
-                                                //             .requestBookingModel!
-                                                //             .data!
-                                                //             .bookings![index]));
-                                              },
-                                              child: Text(
-                                                'View Details',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleSmall
-                                                    ?.copyWith(
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).primaryColor,
-                                                    ),
-                                              ),
-                                            ),
-                                          ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 20,
+                                            color:
+                                                MitablColors.onSurfaceVariant,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 ),
-                                Divider(
-                                  color: const Color(0xffEEEEEE),
-                                  height: config.AppConfig(
-                                    context,
-                                  ).appHeight(0.5),
-                                  thickness: config.AppConfig(
-                                    context,
-                                  ).appHeight(0.25),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: config.AppConfig(
-                                      context,
-                                    ).appWidth(4),
-                                    vertical: config.AppConfig(
-                                      context,
-                                    ).appHeight(1.5),
+
+                                // ── Header Section ──
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        24, 24, 24, 0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'Order Requests',
+                                          style: TextStyle(
+                                            fontFamily: 'Nunito',
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 32,
+                                            color: MitablColors.onSurface,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Review and manage your incoming culinary bookings.',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            color:
+                                                MitablColors.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Container(
-                                          height: config.AppConfig(
-                                            context,
-                                          ).appHeight(4.5),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              20.0,
-                                            ),
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.topRight,
-                                              colors: [
-                                                Theme.of(context).primaryColor,
-                                                Theme.of(context).primaryColor,
-                                              ],
-                                            ),
+                                ),
+                                const SliverToBoxAdapter(
+                                    child: SizedBox(height: 32)),
+
+                                // ── Request Cards List ──
+                                SliverPadding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(24, 0, 24, 120),
+                                  sliver: SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final booking = state
+                                            .requestBookingModel!
+                                            .data!
+                                            .bookings![index];
+                                        final customer = booking.customer!;
+                                        final items = booking.items ?? [];
+                                        final isDineIn =
+                                            booking.orderTypeId == '1' ||
+                                                booking.orderTypeId == null;
+
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(bottom: 24),
+                                          child: _buildRequestCard(
+                                            context: context,
+                                            booking: booking,
+                                            customer: customer,
+                                            items: items,
+                                            isDineIn: isDineIn,
+                                            index: index,
                                           ),
-                                          child: MaterialButton(
-                                            height: config.AppConfig(
-                                              context,
-                                            ).appHeight(6),
-                                            minWidth: config.AppConfig(
-                                              context,
-                                            ).appWidth(100),
-                                            onPressed: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (c) {
-                                                  return BlocProvider.value(
-                                                    value: context
-                                                        .read<RequestsCubit>(),
-                                                    child: AcceptRejectDialog(
-                                                      isAccept: true,
-                                                      id: state
-                                                          .requestBookingModel!
-                                                          .data!
-                                                          .bookings![index]
-                                                          .orderId,
-                                                    ),
-                                                  )
-                                                  /*showAcceptDeclineDialog(
-                                                              isAccept: true,
-                                                              id: state
-                                                                  .requestBookingModel!
-                                                                  .data!
-                                                                  .bookings![
-                                                                      index]
-                                                                  .orderId)*/
-                                                  ;
-                                                },
-                                              );
-                                            },
-                                            child: Text(
-                                              'Accept',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                                color: const Color(0xFFFFFBF7),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(3),
-                                      ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Container(
-                                          height: config.AppConfig(
-                                            context,
-                                          ).appHeight(4.5),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              20.0,
-                                            ),
-                                            color: const Color(0xffE9E9E9),
-                                          ),
-                                          child: MaterialButton(
-                                            height: config.AppConfig(
-                                              context,
-                                            ).appHeight(6),
-                                            minWidth: config.AppConfig(
-                                              context,
-                                            ).appWidth(100),
-                                            onPressed: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (c) {
-                                                  return BlocProvider.value(
-                                                    value: context
-                                                        .read<RequestsCubit>(),
-                                                    child: AcceptRejectDialog(
-                                                      isAccept: false,
-                                                      id: state
-                                                          .requestBookingModel!
-                                                          .data!
-                                                          .bookings![index]
-                                                          .orderId,
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                            child: Text(
-                                              'Decline',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: config.AppColors()
-                                                    .colorPrimaryDark(1),
-                                                fontFamily: config.FontFamily()
-                                                    .itcAvantGardeGothicStdFontFamily,
-                                                fontWeight:
-                                                    config.FontFamily().book,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                        );
+                                      },
+                                      childCount: state.requestBookingModel!
+                                          .data!.bookings!.length,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        return SizedBox(
-                          height: config.AppConfig(context).appHeight(1),
-                        );
-                      },
-                      itemCount:
-                          state.requestBookingModel!.data!.bookings!.length,
-                    ),
               state.requestBookingStatus!.isSubmissionInProgress
                   ? const CommonProgressWidget()
                   : const SizedBox(),
@@ -580,153 +194,255 @@ class _RequestsPageState extends State<RequestsPage> {
     );
   }
 
-  showAcceptDeclineDialog({bool? isAccept, String? id}) {
-    return SizedBox(
-      height: config.AppConfig(context).appHeight(30),
-      width: config.AppConfig(context).appWidth(50),
-      child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: config.AppConfig(context).appHeight(1),
-                    right: config.AppConfig(context).appWidth(2),
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      navigatorKey.currentState!.pop();
-                    },
-                    child: Container(
-                      height: config.AppConfig(context).appHeight(2.5),
-                      width: config.AppConfig(context).appHeight(2.5),
-                      padding: EdgeInsets.all(
-                        config.AppConfig(context).appWidth(0),
-                      ),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(
-                            config.AppConfig(context).appWidth(10),
-                          ),
-                        ),
-                        border: Border.all(
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.clear,
-                        color: Theme.of(context).primaryColorDark,
-                        size: config.AppConfig(context).appWidth(4.0),
+  Widget _buildRequestCard({
+    required BuildContext context,
+    required dynamic booking,
+    required dynamic customer,
+    required List<dynamic> items,
+    required bool isDineIn,
+    required int index,
+  }) {
+    final orderId = '#${booking.orderId ?? ''}';
+    final customerName = customer.name ?? '';
+    final timeLabel = '${booking.timeFrom ?? ''} - ${booking.timeTo ?? ''}';
+    final totalAmount = 'AUD ${booking.itemTotalPrice ?? 0}';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: MitablColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: MitablColors.onSurface.withValues(alpha: 0.06),
+            blurRadius: 40,
+            offset: const Offset(0, 24),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: Icon + Customer + Time ──
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Type icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDineIn
+                      ? MitablColors.secondaryContainer
+                      : const Color(0xFFF6DED1),
+                ),
+                child: Icon(
+                  isDineIn ? Icons.restaurant : Icons.local_mall,
+                  color: isDineIn
+                      ? MitablColors.onSecondaryContainer
+                      : const Color(0xFF251911),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      orderId,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: MitablColors.primary,
+                        letterSpacing: 2,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    Text(
+                      customerName,
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                        color: MitablColors.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(height: config.AppConfig(context).appHeight(4)),
-            Text(
-              'Order Request',
-              style: TextStyle(
-                fontFamily:
-                    config.FontFamily().itcAvantGardeGothicStdFontFamily,
-                fontWeight: config.FontFamily().demi,
-                color: Theme.of(context).primaryColorDark,
-                fontSize: config.AppConfig(context).appWidth(5.5),
               ),
-            ),
-            SizedBox(height: config.AppConfig(context).appHeight(2)),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(10),
-              ),
-              child: Text(
-                'Are you sure you want to ${isAccept! ? 'accept' : 'decline'} the order?',
-                style: TextStyle(
-                  fontFamily:
-                      config.FontFamily().itcAvantGardeGothicStdFontFamily,
-                  fontWeight: config.FontFamily().book,
-                  color: Theme.of(context).primaryColorDark,
-                  fontSize: config.AppConfig(context).appWidth(4.0),
+              // Time badge
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: MitablColors.surfaceContainerLow,
+                  borderRadius: MitablRadius.pillBorder,
                 ),
-                textAlign: TextAlign.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.schedule, size: 14,
+                        color: MitablColors.onSurfaceVariant),
+                    const SizedBox(width: 6),
+                    Text(
+                      timeLabel,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: MitablColors.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: config.AppConfig(context).appHeight(3)),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: config.AppConfig(context).appWidth(5),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── Items List ──
+          ...items.take(3).map((item) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLow.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: config.AppConfig(context).appHeight(4.5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      child: MaterialButton(
-                        height: config.AppConfig(context).appHeight(6),
-                        minWidth: config.AppConfig(context).appWidth(100),
-                        onPressed: () {
-                          context.read<RequestsCubit>().onOrderAcceptDecline(
-                            isAccept: isAccept,
-                            orderId: id,
-                          );
-                        },
-                        child: Text(
-                          'YES',
-                          style: TextStyle(
-                            fontSize: config.AppConfig(context).appWidth(3.5),
-                            color: const Color(0xFFFFFBF7),
-                            fontFamily: config.FontFamily()
-                                .itcAvantGardeGothicStdFontFamily,
-                            fontWeight: config.FontFamily().book,
-                          ),
-                        ),
+                    child: Text(
+                      '${item.food ?? ''} x${item.quantity ?? 1}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: MitablColors.onSurface,
                       ),
                     ),
                   ),
-                  SizedBox(width: config.AppConfig(context).appWidth(3)),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: config.AppConfig(context).appHeight(4.5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                        color: const Color(0xffE9E9E9),
-                      ),
-                      child: MaterialButton(
-                        height: config.AppConfig(context).appHeight(6),
-                        minWidth: config.AppConfig(context).appWidth(100),
-                        onPressed: () {
-                          navigatorKey.currentState!.pop();
-                        },
-                        child: Text(
-                          'NO',
-                          style: TextStyle(
-                            fontSize: config.AppConfig(context).appWidth(3.5),
-                            color: config.AppColors().colorPrimaryDark(1),
-                            fontFamily: config.FontFamily()
-                                .itcAvantGardeGothicStdFontFamily,
-                            fontWeight: config.FontFamily().book,
-                          ),
-                        ),
-                      ),
+                  Text(
+                    '\$${item.price ?? 0}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: MitablColors.onSurface,
                     ),
                   ),
                 ],
               ),
+            );
+          }),
+          const SizedBox(height: 8),
+
+          // ── Total Amount ──
+          Container(
+            padding: const EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: MitablColors.outlineVariant.withValues(alpha: 0.1),
+                ),
+              ),
             ),
-            SizedBox(height: config.AppConfig(context).appHeight(4)),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'TOTAL AMOUNT',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: MitablColors.onSurfaceVariant,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                Text(
+                  totalAmount,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    color: MitablColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Reject / Accept Buttons ──
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    final cubit = context.read<RequestsCubit>();
+                    final reason = await showModalBottomSheet<String>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => OrderRejectionSheet(
+                        orderId: booking.orderId?.toString() ?? '',
+                      ),
+                    );
+                    if (reason != null) {
+                      cubit.onOrderAcceptDecline(
+                        isAccept: false,
+                        orderId: booking.orderId,
+                        isFromOrderView: false,
+                        cancelComment: reason,
+                      );
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(
+                      color: Color(0xFF89726B),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: MitablRadius.pillBorder,
+                    ),
+                  ),
+                  child: const Text(
+                    'Reject',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: MitablColors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.read<RequestsCubit>().onOrderAcceptDecline(
+                          isAccept: true,
+                          orderId: booking.orderId,
+                          isFromOrderView: false,
+                        );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: MitablColors.primary,
+                    foregroundColor: MitablColors.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 4,
+                    shadowColor: MitablColors.primary.withValues(alpha: 0.2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: MitablRadius.pillBorder,
+                    ),
+                  ),
+                  child: const Text(
+                    'Accept',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

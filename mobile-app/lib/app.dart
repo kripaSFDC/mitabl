@@ -230,12 +230,12 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       onGenerateRoute: RouteGenerator.generateRoute,
       theme: ThemeData(
-        fontFamily: config.FontFamily().itcAvantGardeGothicStdFontFamily,
+        fontFamily: 'itc_avant_garde_gothic_std',
         primaryColor: config.AppColors().colorPrimary(1),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
             elevation: 0, foregroundColor: Colors.white),
         brightness: Brightness.light,
-        dividerColor: config.AppColors().accentColor(0.1),
+        dividerColor: config.AppColors().colorDivider(1),
         focusColor: config.AppColors().secondColor(1),
         hintColor: config.AppColors().hintTextBackgroundColor(1),
         scaffoldBackgroundColor:
@@ -246,16 +246,23 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
           backgroundColor: config.AppColors().scaffoldColor(1),
           foregroundColor: config.AppColors().colorPrimaryDark(1),
           elevation: 0,
+          surfaceTintColor: Colors.transparent,
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
           selectedItemColor: config.AppColors().colorPrimary(1),
-          unselectedItemColor: config.AppColors().colorPrimaryDark(0.7),
+          unselectedItemColor: config.AppColors().hintTextBackgroundColor(0.6),
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: config.AppColors().colorPrimary(1),
             foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
+            ),
+            elevation: 0,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
@@ -263,32 +270,103 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
             foregroundColor: config.AppColors().colorPrimary(1),
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: config.AppColors().textFieldBackgroundColor(1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: config.AppColors().colorPrimary(0.2),
+              width: 2,
+            ),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          hintStyle: TextStyle(
+            color: config.AppColors().hintTextBackgroundColor(0.6),
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          color: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: const Color(0xFFD9C2B6),
+          selectedColor: config.AppColors().colorPrimary(1),
+          labelStyle: const TextStyle(fontSize: 13),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100),
+          ),
+          side: BorderSide.none,
+        ),
         textTheme: TextTheme(
-            headlineSmall: TextStyle(
+            displayLarge: TextStyle(
+                color: config.AppColors().colorPrimaryDark(1),
+                fontSize: 32,
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800),
+            displayMedium: TextStyle(
+                color: config.AppColors().colorPrimaryDark(1),
+                fontSize: 28,
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800),
+            headlineLarge: TextStyle(
                 color: config.AppColors().colorPrimaryDark(1),
                 fontSize: 24,
-                fontWeight: config.FontFamily().medium),
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800),
+            headlineSmall: TextStyle(
+                color: config.AppColors().colorPrimaryDark(1),
+                fontSize: 20,
+                fontFamily: 'Nunito',
+                fontWeight: FontWeight.w800),
             titleLarge: TextStyle(
-                color: Theme.of(context).hintColor,
+                color: config.AppColors().hintTextBackgroundColor(1),
                 fontSize: 16,
-                fontWeight: config.FontFamily().book),
+                fontWeight: FontWeight.w300),
             bodyLarge: TextStyle(
-                color: config.AppColors().colorPrimary(1),
-                fontSize: 18,
-                fontWeight: config.FontFamily().medium),
+                color: config.AppColors().colorPrimaryDark(1),
+                fontSize: 16,
+                fontWeight: FontWeight.w400),
+            bodyMedium: TextStyle(
+                color: config.AppColors().hintTextBackgroundColor(1),
+                fontSize: 14,
+                fontWeight: FontWeight.w400),
             titleMedium: TextStyle(
                 color: config.AppColors().colorPrimaryDark(1),
                 fontSize: 14,
-                fontWeight: config.FontFamily().demi),
+                fontWeight: FontWeight.w600),
             titleSmall: TextStyle(
                 color: config.AppColors().colorPrimaryDark(1),
                 fontSize: 12,
-                fontWeight: config.FontFamily().book)),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: config.AppColors().colorPrimary(1),
+                fontWeight: FontWeight.w300),
+            labelLarge: TextStyle(
+                color: config.AppColors().colorPrimary(1),
+                fontSize: 14,
+                fontWeight: FontWeight.w600)),
+        colorScheme: ColorScheme(
+          brightness: Brightness.light,
+          primary: config.AppColors().colorPrimary(1),
+          onPrimary: Colors.white,
           secondary: config.AppColors().accentColor(1),
+          onSecondary: Colors.white,
           surface: config.AppColors().textFieldBackgroundColor(1),
+          onSurface: config.AppColors().colorPrimaryDark(1),
           error: Colors.red,
+          onError: Colors.white,
         ),
       ),
     );

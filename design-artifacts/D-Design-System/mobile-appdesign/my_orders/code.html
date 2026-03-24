@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>miFoodi - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Manrope:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#fffbff",
+              "surface-tint": "#9f4122",
+              "inverse-primary": "#ffb59f",
+              "surface-container-highest": "#e5e2dd",
+              "tertiary-fixed": "#f6ded1",
+              "surface-variant": "#e5e2dd",
+              "on-tertiary": "#ffffff",
+              "background": "#fcf9f4",
+              "on-primary-fixed-variant": "#802a0d",
+              "on-surface-variant": "#56423c",
+              "primary-fixed": "#ffdbd0",
+              "on-tertiary-fixed": "#251911",
+              "on-secondary": "#ffffff",
+              "surface-container-low": "#f6f3ee",
+              "secondary": "#4d6548",
+              "on-secondary-fixed-variant": "#364c32",
+              "on-secondary-container": "#51694c",
+              "on-primary": "#ffffff",
+              "surface": "#fcf9f4",
+              "tertiary": "#6a594e",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#d9c2b6",
+              "primary": "#9c3e20",
+              "on-tertiary-fixed-variant": "#53443a",
+              "surface-container": "#f0ede9",
+              "inverse-surface": "#31302d",
+              "surface-bright": "#fcf9f4",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#b3ceab",
+              "on-tertiary-container": "#fffbff",
+              "outline-variant": "#ddc0b8",
+              "tertiary-container": "#837166",
+              "primary-fixed-dim": "#ffb59f",
+              "outline": "#89726b",
+              "on-primary-fixed": "#3a0a00",
+              "on-secondary-fixed": "#0b200a",
+              "secondary-fixed": "#cfeac6",
+              "on-error": "#ffffff",
+              "surface-dim": "#dcdad5",
+              "on-background": "#1c1c19",
+              "surface-container-high": "#ebe8e3",
+              "surface-container-lowest": "#ffffff",
+              "primary-container": "#bc5636",
+              "inverse-on-surface": "#f3f0eb",
+              "on-error-container": "#93000a",
+              "secondary-container": "#cce7c3",
+              "error-container": "#ffdad6"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .text-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#9c3e20]">menu</span>
+<span class="text-2xl font-black text-[#9c3e20] tracking-tight font-['Plus_Jakarta_Sans']">miFoodi</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary-fixed shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Close up of a smiling man profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLSJRoUe26OLdwAprNLKvbceihupZe_8Lylao4YRhgmh0Dg-flzHgX3Y95LmH_yBq5kzXoPicN3NlSteoVVkBTkesDMchgtyVP19INKyQkkz-XGse4bAKwNw1OL4i0ovdOlGW4AU2LDyeTSoTaJZ2lYvVnZ0FaM2HoAQAAGyxTfYhfH6iRnHneoMkFvNiwVVH4v157R6TlVIjdVcr5e4vPMjOv5M6VQt3KED_LiI5cyVzVd_YIbWqxGvfwYBfCgm6z2DISIboU8n8x"/>
+</div>
+</nav>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Section Header -->
+<header class="mb-8">
+<h1 class="text-3xl font-extrabold text-on-surface text-headline tracking-tight mb-2">My Orders</h1>
+<p class="text-on-surface-variant font-medium">Track and manage your culinary journeys</p>
+</header>
+<!-- Search & Filter Area (Tonal Shift) -->
+<div class="bg-surface-container-low rounded-[20px] p-2 mb-8 flex gap-2">
+<button class="flex-1 py-3 px-4 bg-surface-container-lowest rounded-[16px] text-primary font-bold text-sm shadow-sm">
+                Ongoing
+            </button>
+<button class="flex-1 py-3 px-4 text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-colors rounded-[16px]">
+                Past Orders
+            </button>
+</div>
+<!-- Orders List -->
+<div class="space-y-6">
+<!-- Active Order Card -->
+<div class="bg-surface-container-lowest rounded-[20px] p-5 relative overflow-hidden group">
+<!-- Status Tag (Sage/Secondary) -->
+<div class="absolute top-0 right-0 px-4 py-2 bg-secondary-container text-on-secondary-container rounded-bl-[20px] text-[11px] font-bold uppercase tracking-widest">
+                    In Progress
+                </div>
+<div class="flex gap-4 mb-4">
+<div class="w-20 h-20 rounded-[16px] bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Gourmet salad bowl with fresh ingredients" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDANALtwaqGP50_oQSWKwxM5H7iOxILS8QuX_4x0NqnWXnTbw8UB200-VinaOTBUqJ8jXn7dTRwA6BUjWCEwPHBr4qE01ySQnYFJhjJVJ2Eqe55oZP5svQBF2U55_IRMRRFCdtDln0dfFyn1n4eWRPToEnFtl8Ks0ZhM3G2oYERiphWOYtUQVj1BYJ9eFA30XPYOpO9L5DO5KILtEglopZGZRnZnNBiALfHfJyKJxHklsJjavpAiMh-qqvNPAdtLdRIWgabpFbdjAjh"/>
+</div>
+<div class="flex-1">
+<h3 class="text-xl font-extrabold text-on-surface font-headline mb-1">The Green Atelier</h3>
+<p class="text-on-surface-variant text-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                            Today, 12:45 PM
+                        </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/10">
+<div>
+<p class="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold mb-1">Total Amount</p>
+<p class="text-2xl font-black text-primary font-headline">$34.50</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-3 rounded-full font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                        Track Order
+                    </button>
+</div>
+</div>
+<!-- Completed Order 1 -->
+<div class="bg-surface-container-low rounded-[20px] p-5 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-[16px] bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Classic beef burger with melting cheese" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_fkxrbkn1b4kFim0TeER2L9SX6MbsP_bBRd-R942XvMs97s6rJZPHPtkBnv8w70UjXuWt1LRY5Ov5O9wMJX9I-6f23SEA1DtCSxXYOKZxBcscrbCxwTF0w76X1KVPFCHK3zi5TXgvwaw31hMJTxA_sqC2Bfe2P2aUoAIn93Wn8bAj5lxZ7Y6FQTGGFNQZdanYKm4Kjdm5xdfaZgysPHhFkI1dC4QeDv9oxlKQHJgMLZ_A3WXpgl_v4VCZsyU2kigktgiABZSu5neM"/>
+</div>
+<div>
+<h3 class="text-lg font-extrabold text-on-surface font-headline">Artisan Burger Lab</h3>
+<p class="text-on-surface-variant text-sm font-medium">Oct 24, 2023</p>
+<div class="flex items-center gap-1 mt-1 text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Completed
+                            </div>
+</div>
+</div>
+<p class="text-lg font-black text-on-surface font-headline">$28.90</p>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-full transition-colors hover:bg-white">
+                        Order Details
+                    </button>
+<button class="flex-1 py-3 bg-secondary-container text-on-secondary-container font-bold text-sm rounded-full transition-transform active:scale-95">
+                        Reorder
+                    </button>
+</div>
+</div>
+<!-- Cancelled Order -->
+<div class="bg-surface-container-low rounded-[20px] p-5 opacity-80">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-[16px] bg-surface-container-highest overflow-hidden grayscale">
+<img class="w-full h-full object-cover" data-alt="Italian style pizza with pepperoni" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD2fMRjCxf31NTQc9494jlDvD0Q1YFqIQMrp1ncyVp5AWb4JgalTLEJ4T7QItBE-ooceHg4Bk81JbdQCbaAVzpI6IuoiBZWIWm_C7cqsTyAd5rMGBkWpdtWKh7I7XQnplZnzceoULd6pKQgh0F7MWP5tUbRt3nQjqghTp7wxqUFGLz3XoncY5UxmmDVyRMnBmGm7TANPJpkJnCkrqiQpQoZdI6Vxfm34LK2q0mjt_Ou2SNa9C7qVSgFqJZF7Hzjh-CtqdwreYCwG_V"/>
+</div>
+<div>
+<h3 class="text-lg font-extrabold text-on-surface font-headline">Rustic Crust Pizza</h3>
+<p class="text-on-surface-variant text-sm font-medium">Oct 18, 2023</p>
+<div class="flex items-center gap-1 mt-1 text-error font-bold text-xs">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+                                Cancelled
+                            </div>
+</div>
+</div>
+<p class="text-lg font-black text-on-surface-variant font-headline">$42.00</p>
+</div>
+<button class="w-full py-3 border border-outline-variant/30 text-on-surface-variant font-bold text-sm rounded-full">
+                    View Receipt
+                </button>
+</div>
+<!-- Completed Order 2 -->
+<div class="bg-surface-container-low rounded-[20px] p-5 group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-4">
+<div class="w-16 h-16 rounded-[16px] bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Japanese ramen with egg and pork" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4OU-WJXXvEy4gpjFG_KFZ-pEdLKv670raTiwVJEafK0YI5N3o-tJUg1pr9OPzoXKCQc56TBMPkiXpz3WNRXyOV7ZA3Vxa5lSkLsjADDUWPzSDvZXcu4PQ7ochLCLv8S0T8cxtzBlwqEl-3lPeLTN7X0hydeV6iCnE7Vle9fAcCMg4rPrcujOiVAShPvdFQnerwHxgDo7_NYnZisDOh6J-53jw2SLE5VOtNSqnc-s-wSSkeOGwafAMxNhe2sevyrqwAVb2dPU0H3go"/>
+</div>
+<div>
+<h3 class="text-lg font-extrabold text-on-surface font-headline">Zen Noodle House</h3>
+<p class="text-on-surface-variant text-sm font-medium">Oct 12, 2023</p>
+<div class="flex items-center gap-1 mt-1 text-secondary font-bold text-xs">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Completed
+                            </div>
+</div>
+</div>
+<p class="text-lg font-black text-on-surface font-headline">$19.25</p>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 py-3 bg-surface-container-lowest text-on-surface font-bold text-sm rounded-full">
+                        Order Details
+                    </button>
+<button class="flex-1 py-3 bg-secondary-container text-on-secondary-container font-bold text-sm rounded-full">
+                        Reorder
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pb-6 pt-3 px-4 bg-[#fcf9f4]/80 dark:bg-stone-900/80 backdrop-blur-md z-50 rounded-t-[20px] shadow-[0_-4px_24px_rgba(28,28,25,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">search</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Search</span>
+</div>
+<!-- Active State: Orders -->
+<div class="flex flex-col items-center justify-center bg-[#cce7c3] dark:bg-[#51694c]/30 text-[#51694c] dark:text-[#cce7c3] rounded-full px-5 py-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Orders</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#56423c] dark:text-stone-400 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">credit_card</span>
+<span class="font-['DM_Sans'] text-[11px] font-bold uppercase tracking-wider mt-1">Wallet</span>
+</div>
+</nav>
+</body></html>
