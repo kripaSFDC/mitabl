@@ -37,8 +37,10 @@ class _SignupPage extends State<SignupPage> {
     // Address is only required for kitchen activation, not basic signup.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final cubit = context.read<SignUpCubit>();
-      cubit.onLastNameChanged(value: '.');
-      cubit.onAddressChanged(value: '.');
+      // Use single space — passes Formz "not empty" check but backend trims to empty.
+      // These fields are only meaningfully collected during kitchen activation.
+      cubit.onLastNameChanged(value: ' ');
+      cubit.onAddressChanged(value: ' ');
     });
   }
 
@@ -57,7 +59,7 @@ class _SignupPage extends State<SignupPage> {
       cubit.onLastNameChanged(value: parts.sublist(1).join(' '));
     } else {
       cubit.onFirstNameChanged(value: fullName);
-      cubit.onLastNameChanged(value: fullName.isNotEmpty ? '.' : '');
+      cubit.onLastNameChanged(value: fullName.isNotEmpty ? ' ' : '');
     }
   }
 

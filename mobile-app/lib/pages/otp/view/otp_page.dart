@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -383,8 +384,8 @@ class _OTPPageState extends State<OTPPage> {
                                 ),
                                 const SizedBox(height: 32),
 
-                                // ── Demo bypass ──
-                                TextButton(
+                                // ── Demo bypass (debug builds only) ──
+                                if (kDebugMode) TextButton(
                                   onPressed: () async {
                                     final cubit = context.read<OtpCubit>();
                                     final userId =
