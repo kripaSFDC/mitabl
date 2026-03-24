@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\SpecialDiet;
+use Illuminate\Support\Facades\Schema;
 
 class SpecialDietsSeeder extends Seeder
 {
@@ -14,9 +15,12 @@ class SpecialDietsSeeder extends Seeder
      */
     public function run()
     {
-        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        SpecialDiet::truncate();
-        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::disableForeignKeyConstraints();
+        try {
+            SpecialDiet::truncate();
+        } finally {
+            Schema::enableForeignKeyConstraints();
+        }
 
         $specialDiet =  [
             [

@@ -210,7 +210,7 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 
 	// Single order detail
 	Route::get('orders/{id}', function ($id) {
-		$order = \App\Models\Order::with(['mikitchn', 'customer', 'orderData.food'])
+		$order = \App\Models\Order::with(['mikitchn', 'user', 'orderData.food'])
 			->where(function ($q) {
 				$q->where('user_id', auth()->id())
 				  ->orWhereHas('mikitchn', fn($q2) => $q2->where('user_id', auth()->id()));
