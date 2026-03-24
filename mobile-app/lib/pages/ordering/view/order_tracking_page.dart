@@ -87,7 +87,12 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        final order = jsonDecode(response.body) as Map<String, dynamic>;
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        // Laravel JsonResource wraps payload under 'data'
+        final order = (body['data'] is Map<String, dynamic>
+                ? body['data']
+                : body)
+            as Map<String, dynamic>;
         _applyOrderData(order);
         return;
       }
