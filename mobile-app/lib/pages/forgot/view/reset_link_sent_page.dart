@@ -31,7 +31,7 @@ class ResetLinkSentPage extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.4,
               height: MediaQuery.of(context).size.width * 0.4,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFDBD0).withValues(alpha: 0.08),
+                color: const Color(0xFFFFEDD5).withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -95,7 +95,7 @@ class ResetLinkSentPage extends StatelessWidget {
                           width: 140,
                           height: 140,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFDBD0)
+                            color: const Color(0xFFFFEDD5)
                                 .withValues(alpha: 0.30),
                             shape: BoxShape.circle,
                           ),

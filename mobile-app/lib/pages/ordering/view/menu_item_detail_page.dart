@@ -164,7 +164,7 @@ class MenuItemDetailPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1C1C19)
+                            color: const Color(0xFF0F172A)
                                 .withValues(alpha: 0.04),
                             blurRadius: 24,
                             offset: const Offset(0, 4),
@@ -182,7 +182,7 @@ class MenuItemDetailPage extends StatelessWidget {
                               if (item.dineInAvailable)
                                 _TagBadge(
                                   label: 'Dine-in Available',
-                                  bgColor: const Color(0xFFEBE8E3), // surface-container-high
+                                  bgColor: const Color(0xFFF8FAFC), // surface-container-high
                                   textColor: MitablColors.onSurfaceVariant,
                                 ),
                               if (item.takeAwayAvailable)
@@ -344,7 +344,7 @@ class MenuItemDetailPage extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(32),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFCFEAC6)
+                              color: const Color(0xFFD5E9BF)
                                   .withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -381,7 +381,7 @@ class MenuItemDetailPage extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(32),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFDBD0)
+                              color: const Color(0xFFFFEDD5)
                                   .withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -400,7 +400,7 @@ class MenuItemDetailPage extends StatelessWidget {
                                     fontFamily: 'PlusJakartaSans',
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF802A0D),
+                                    color: Color(0xFF9A3412),
                                   ),
                                 ),
                                 Text(
@@ -408,7 +408,7 @@ class MenuItemDetailPage extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: const Color(0xFF802A0D)
+                                    color: const Color(0xFF9A3412)
                                         .withValues(alpha: 0.7),
                                   ),
                                 ),
@@ -621,7 +621,7 @@ class _IngredientChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9C2B6).withValues(alpha: 0.2),
+        color: const Color(0xFFB9CDA4).withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -629,7 +629,7 @@ class _IngredientChip extends StatelessWidget {
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF251911), // on-tertiary-fixed
+          color: Color(0xFF431407), // on-tertiary-fixed
         ),
       ),
     );

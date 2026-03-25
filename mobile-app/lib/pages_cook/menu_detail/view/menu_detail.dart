@@ -52,7 +52,7 @@ class _MenuDetailsState extends State<MenuDetails> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFFFFFBF7),
+          backgroundColor: const Color(0xFFFFFFFF),
           elevation: 0,
           leadingWidth: config.AppConfig(context).appWidth(80),
           leading: Padding(
@@ -390,7 +390,7 @@ class _MenuDetailsState extends State<MenuDetails> {
                                     fontSize: config.AppConfig(
                                       context,
                                     ).appWidth(3.5),
-                                    color: const Color(0xFFFFFBF7),
+                                    color: const Color(0xFFFFFFFF),
                                   ),
                                 ),
                               ),

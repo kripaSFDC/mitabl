@@ -296,7 +296,7 @@ class _BookingsState extends State<Bookings> {
                       switch (statusCode) {
                         case 0:
                           statusLabel = 'Cancelled';
-                          statusBgColor = const Color(0xFFDCDAD5);
+                          statusBgColor = const Color(0xFFF1F5F9);
                           statusTextColor = MitablColors.onSurfaceVariant;
                           break;
                         case 1:
@@ -306,7 +306,7 @@ class _BookingsState extends State<Bookings> {
                           break;
                         case 2:
                           statusLabel = 'Pending';
-                          statusBgColor = const Color(0xFFEBE8E3);
+                          statusBgColor = const Color(0xFFF8FAFC);
                           statusTextColor = MitablColors.onSurfaceVariant;
                           break;
                         default:
@@ -459,7 +459,7 @@ class _BookingsState extends State<Bookings> {
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 2,
-                          color: Color(0xFF89726B),
+                          color: Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -628,7 +628,7 @@ class _BookingsState extends State<Bookings> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF4D6548),
+                      color: const Color(0xFF506140),
                     ),
                   ),
                 ),

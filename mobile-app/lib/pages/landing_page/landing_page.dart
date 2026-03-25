@@ -255,7 +255,7 @@ class _LandingPageState extends State<LandingPage> {
                       Container(
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF6F3EE),
+                          color: const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -266,7 +266,7 @@ class _LandingPageState extends State<LandingPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFDBD0),
+                                color: const Color(0xFFFFEDD5),
                                 borderRadius: BorderRadius.circular(100),
                               ),
                               child: const Text(
@@ -275,7 +275,7 @@ class _LandingPageState extends State<LandingPage> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 1.5,
-                                  color: Color(0xFF3A0A00),
+                                  color: Color(0xFF431407),
                                 ),
                               ),
                             ),
@@ -324,7 +324,7 @@ class _LandingPageState extends State<LandingPage> {
                                 children: [
                                   const Icon(Icons.eco,
                                       size: 48,
-                                      color: Color(0xFF4D6548)),
+                                      color: Color(0xFF506140)),
                                   const SizedBox(height: 16),
                                   const Text(
                                     'Zero-Waste Prep',
@@ -357,7 +357,7 @@ class _LandingPageState extends State<LandingPage> {
                             child: Container(
                               padding: const EdgeInsets.all(32),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF6DED1),
+                                color: const Color(0xFFFFEDD5),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
@@ -369,7 +369,7 @@ class _LandingPageState extends State<LandingPage> {
                                       fontSize: 20,
                                       fontWeight: FontWeight.w800,
                                       fontFamily: 'Nunito',
-                                      color: Color(0xFF251911),
+                                      color: Color(0xFF431407),
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -445,7 +445,7 @@ class _LandingPageState extends State<LandingPage> {
                   margin: const EdgeInsets.only(top: 48),
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 48),
-                  color: const Color(0xFFF6F3EE),
+                  color: const Color(0xFFF1F5F9),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -620,7 +620,7 @@ class _LandingPageState extends State<LandingPage> {
                 const BorderRadius.vertical(top: Radius.circular(20)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1C1C19).withValues(alpha: 0.06),
+                color: const Color(0xFF0F172A).withValues(alpha: 0.06),
                 blurRadius: 24,
                 offset: const Offset(0, -4),
               ),
@@ -835,7 +835,7 @@ class _LandingPageState extends State<LandingPage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6DED1),
+                    color: const Color(0xFFFFEDD5),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: MitablColors.surface,
@@ -848,7 +848,7 @@ class _LandingPageState extends State<LandingPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF251911),
+                        color: Color(0xFF431407),
                       ),
                     ),
                   ),
@@ -873,7 +873,7 @@ class _LandingPageState extends State<LandingPage> {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF251911),
+          color: Color(0xFF431407),
         ),
       ),
     );

@@ -314,7 +314,7 @@ class OrderDetailsBookings extends StatelessWidget {
                                                 .titleSmall
                                                 ?.copyWith(
                                                   color: const Color(
-                                                    0xFFFFFBF7,
+                                                    0xFFFFFFFF,
                                                   ),
                                                 ),
                                           ),
@@ -554,7 +554,7 @@ class OrderDetailsBookings extends StatelessWidget {
                                         width: config.AppConfig(
                                           context,
                                         ).appHeight(6),
-                                        // color: const Color(0xFFFFFBF7),
+                                        // color: const Color(0xFFFFFFFF),
                                       ),
                                     ],
                                   ),
@@ -819,7 +819,7 @@ class OrderDetailsBookings extends StatelessWidget {
                                                 .itcAvantGardeGothicStdFontFamily,
                                             fontWeight:
                                                 config.FontFamily().book,
-                                            color: const Color(0xFFFFFBF7),
+                                            color: const Color(0xFFFFFFFF),
                                           ),
                                         ),
                                       ),

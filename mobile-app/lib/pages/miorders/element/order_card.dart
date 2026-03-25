@@ -443,7 +443,7 @@ class _CompactStatusBadge extends StatelessWidget {
         ),
       '1' => (
           'Completed',
-          const Color(0xFF4D6548), // secondary
+          const Color(0xFF506140), // secondary
           Icons.check_circle,
         ),
       _ => (

@@ -292,8 +292,8 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: isDineIn
-                      ? const Color(0xFFCFEAC6)
-                      : const Color(0xFFF6DED1),
+                      ? const Color(0xFFD5E9BF)
+                      : const Color(0xFFFFEDD5),
                   borderRadius: MitablRadius.pillBorder,
                 ),
                 child: Text(
@@ -304,7 +304,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                     letterSpacing: 2,
                     color: isDineIn
                         ? const Color(0xFF0B200A)
-                        : const Color(0xFF251911),
+                        : const Color(0xFF431407),
                   ),
                 ),
               ),
@@ -404,7 +404,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF89726B),
+                          color: const Color(0xFF64748B),
                           letterSpacing: 1,
                         ),
                       ),

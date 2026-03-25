@@ -162,7 +162,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             height: 40,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFFF0EDE9),
+                              color: const Color(0xFFF1F5F9),
                               border: Border.all(
                                 color: MitablColors.primary
                                     .withValues(alpha: 0.10),
@@ -257,7 +257,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF4D6548),
+                                          color: const Color(0xFF506140),
                                         ),
                                       ),
                                     ],
@@ -265,7 +265,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                 ),
                                 Switch(
                                   value: true,
-                                  activeThumbColor: const Color(0xFF4D6548),
+                                  activeThumbColor: const Color(0xFF506140),
                                   activeTrackColor:
                                       MitablColors.secondaryContainer,
                                   onChanged: (_) {},
@@ -378,7 +378,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                       Icon(
                                         Icons.info_outline,
                                         size: 20,
-                                        color: const Color(0xFF4D6548),
+                                        color: const Color(0xFF506140),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -527,7 +527,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                       FontWeight.w700,
                                                   fontSize: 12,
                                                   color: const Color(
-                                                      0xFF89726B),
+                                                      0xFF64748B),
                                                 ),
                                               ),
                                             ),
@@ -544,7 +544,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 Icons.edit,
                                                 size: 16,
                                                 color:
-                                                    const Color(0xFF89726B),
+                                                    const Color(0xFF64748B),
                                               ),
                                             ),
                                           ] else ...[
@@ -567,7 +567,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 Icons.add_circle_outline,
                                                 size: 16,
                                                 color:
-                                                    const Color(0xFF89726B),
+                                                    const Color(0xFF64748B),
                                               ),
                                             ),
                                           ],
@@ -713,7 +713,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                         )
                                       : Container(
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFEBE8E3),
+                                            color: const Color(0xFFF8FAFC),
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             border: Border.all(
@@ -728,7 +728,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                           child: const Center(
                                             child: Icon(
                                               Icons.add,
-                                              color: Color(0xFF89726B),
+                                              color: Color(0xFF64748B),
                                               size: 32,
                                             ),
                                           ),

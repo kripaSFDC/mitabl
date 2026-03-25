@@ -61,7 +61,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                 width: 320,
                 height: 320,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF6DED1).withValues(alpha: 0.3),
+                  color: const Color(0xFFFFEDD5).withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -218,7 +218,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           fontFamily: 'DM Sans',
-                                          color: const Color(0xFF53443A),
+                                          color: const Color(0xFF475569),
                                         ),
                                       ),
                                     ),
@@ -295,7 +295,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                   boxShadow: state.status.isValidated
                                       ? [
                                           BoxShadow(
-                                            color: const Color(0xFF9C3E20)
+                                            color: const Color(0xFFEA580C)
                                                 .withValues(alpha: 0.2),
                                             blurRadius: 16,
                                             offset: const Offset(0, 4),

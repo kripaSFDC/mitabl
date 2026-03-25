@@ -22,7 +22,7 @@ class DiscoveryCategoryPills extends StatelessWidget {
 
     return Container(
       height: 50,
-      color: const Color(0xFFF7F4EF), // background-light
+      color: const Color(0xFFFFFFFF), // background-light
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -52,19 +52,19 @@ class DiscoveryCategoryPills extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFD96C4A) // primary
-                      : const Color(0xFFFCFAF8), // surface
+                      ? const Color(0xFFEA580C) // primary
+                      : const Color(0xFFFFFFFF), // surface
                   borderRadius: BorderRadius.circular(100),
                   border: isSelected
                       ? null
                       : Border.all(
-                          color: const Color(0xFF8D7A6F)
+                          color: const Color(0xFF64748B)
                               .withValues(alpha: 0.2),
                         ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF3E3129)
+                            color: const Color(0xFF0F172A)
                                 .withValues(alpha: 0.06),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
@@ -80,7 +80,7 @@ class DiscoveryCategoryPills extends StatelessWidget {
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? Colors.white
-                        : const Color(0xFF8D7A6F), // text-muted
+                        : const Color(0xFF64748B), // text-muted
                   ),
                 ),
               ),

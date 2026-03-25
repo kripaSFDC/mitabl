@@ -81,7 +81,7 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
       animation: _session,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F6F6), // background-light
+          backgroundColor: const Color(0xFFFFFFFF), // background-light
           body: _buildBody(context),
         );
       },
@@ -256,7 +256,7 @@ class _MenuContent extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.06),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
@@ -334,7 +334,7 @@ class _MenuContent extends StatelessWidget {
                                   const Icon(
                                     Icons.star,
                                     size: 18,
-                                    color: Color(0xFFEF6034), // primary filled
+                                    color: Color(0xFFEA580C), // primary filled
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -455,7 +455,7 @@ class _SegmentedTabBarState extends State<_SegmentedTabBar> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F6F6), // background-light
+        color: const Color(0xFFFFFFFF), // background-light
         borderRadius: BorderRadius.circular(100),
       ),
       child: Row(

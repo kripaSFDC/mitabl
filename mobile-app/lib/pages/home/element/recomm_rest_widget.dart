@@ -47,7 +47,7 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
         margin: const EdgeInsets.symmetric(vertical: 5.0),
         width: config.AppConfig(context).appWidth(100.0),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFBF7),
+          color: const Color(0xFFFFFFFF),
           boxShadow: [
             BoxShadow(
               offset: const Offset(2, 2),
@@ -91,7 +91,7 @@ class _RecommendedRestWidgetState extends State<RecommendedRestWidget> {
                           ),
                           child: Icon(
                             Icons.person,
-                            color: const Color(0xFFFFFBF7),
+                            color: const Color(0xFFFFFFFF),
                             size: config.AppConfig(context).appWidth(8),
                           ),
                         ),

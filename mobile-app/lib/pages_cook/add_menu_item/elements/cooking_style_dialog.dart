@@ -101,7 +101,7 @@ class CookingStyleDialog extends StatelessWidget {
                                 .itcAvantGardeGothicStdFontFamily,
                             fontWeight: config.FontFamily().book,
                             fontSize: config.AppConfig(context).appWidth(3.5),
-                            color: const Color(0xFFFFFBF7)),
+                            color: const Color(0xFFFFFFFF)),
                       ),
                       minWidth: config.AppConfig(context).appWidth(30),
                       height: 50.0,

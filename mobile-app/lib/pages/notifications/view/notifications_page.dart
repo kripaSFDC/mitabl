@@ -299,7 +299,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 width: 80,
                                 height: 80,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF4D6548)
+                                  color: const Color(0xFF506140)
                                       .withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
@@ -311,7 +311,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 const Icon(
                                   Icons.star,
                                   size: 36,
-                                  color: Color(0xFF51694C),
+                                  color: Color(0xFF3B4C2C),
                                 ),
                                 const SizedBox(height: 8),
                                 const Text(
@@ -319,7 +319,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF51694C),
+                                    color: Color(0xFF3B4C2C),
                                     fontFamily: 'Nunito',
                                   ),
                                 ),
@@ -328,7 +328,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   'You ordered 3 meals this week. See your performance analytics.',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Color(0xFF51694C),
+                                    color: Color(0xFF3B4C2C),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -338,7 +338,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     onPressed: () {},
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
-                                          const Color(0xFF51694C),
+                                          const Color(0xFF3B4C2C),
                                       foregroundColor:
                                           MitablColors.secondaryContainer,
                                       shape: const RoundedRectangleBorder(

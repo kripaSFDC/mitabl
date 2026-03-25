@@ -307,7 +307,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
     final steps = _buildTimelineSteps(_orderStatus);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F6F6), // background-light
+      backgroundColor: const Color(0xFFFFFFFF), // background-light
       body: Column(
         children: [
           // Sticky header
@@ -319,7 +319,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
               right: 16,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F6F6).withValues(alpha: 0.9),
+              color: const Color(0xFFFFFFFF).withValues(alpha: 0.9),
             ),
             child: Row(
               children: [
@@ -394,7 +394,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF8F6F6),
+                                color: const Color(0xFFFFFFFF),
                                 borderRadius: BorderRadius.circular(100),
                                 boxShadow: [
                                   BoxShadow(
@@ -411,7 +411,7 @@ class _OrderTrackingPageState extends State<OrderTrackingPage> {
                                   const Icon(
                                     Icons.schedule,
                                     size: 14,
-                                    color: Color(0xFFEF6034),
+                                    color: Color(0xFFEA580C),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(

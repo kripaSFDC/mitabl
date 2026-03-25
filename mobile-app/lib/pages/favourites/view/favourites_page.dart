@@ -247,7 +247,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF6DED1), // tertiary-fixed
+                            color: const Color(0xFFFFEDD5), // tertiary-fixed
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Column(
@@ -267,7 +267,7 @@ class _FavouritesPageState extends State<FavouritesPage> {
                                 'Discover new kitchens in your neighborhood that match your taste preferences.',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF53443A),
+                                  color: Color(0xFF475569),
                                 ),
                               ),
                               const SizedBox(height: 16),

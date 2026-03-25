@@ -189,7 +189,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                       hintText:
                           "Briefly explain why you can't fulfill this order...",
                       hintStyle: TextStyle(
-                        color: const Color(0xFF89726B),
+                        color: const Color(0xFF64748B),
                         fontSize: 14,
                       ),
                       filled: true,
@@ -220,7 +220,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                       style: TextStyle(
                         fontSize: 10,
                         fontStyle: FontStyle.italic,
-                        color: Color(0xFF89726B),
+                        color: Color(0xFF64748B),
                       ),
                     ),
                   ),
@@ -266,7 +266,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF6DED1),
+                      color: const Color(0xFFFFEDD5),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -275,7 +275,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                         Icon(
                           Icons.info_outline,
                           size: 20,
-                          color: Color(0xFF53443A),
+                          color: Color(0xFF475569),
                         ),
                         SizedBox(width: 12),
                         Expanded(
@@ -283,7 +283,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                             'Declining orders frequently may affect your visibility in the search results. Try setting your kitchen to "Busy" if you\'re over capacity.',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF53443A),
+                              color: Color(0xFF475569),
                               height: 1.5,
                             ),
                           ),

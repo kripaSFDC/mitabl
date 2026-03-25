@@ -241,7 +241,7 @@ class BookingFilterDialog extends StatelessWidget {
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     fontSize: 13,
-                                    color: const Color(0xFFFFFBF7),
+                                    color: const Color(0xFFFFFFFF),
                                   ),
                             ),
                           ),

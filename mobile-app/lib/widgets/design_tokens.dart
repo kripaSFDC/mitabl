@@ -2,35 +2,70 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-/// Design tokens from the "Warm Tactile Mitabl" design system.
-/// Reference: design-artifacts/D-Design-System/mobile-appdesign/warm_tactile_mitabl/DESIGN.md
+/// Design tokens from "The Culinary Atelier — Vibrant Orange" design system.
+/// Reference: design-artifacts/D-Design-System/mobile-appdesign/New/culinary_atelier/DESIGN.md
 abstract final class MitablColors {
   // ── Primary Brand ──
-  static const Color primary = Color(0xFF9C3E20); // Roasted Earth
-  static const Color primaryContainer = Color(0xFFBC5636); // Warm accent
+  static const Color primary = Color(0xFFEA580C); // Vibrant Orange
+  static const Color primaryContainer = Color(0xFFEA580C);
   static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color onPrimaryContainer = Color(0xFFFFFFFF);
+  static const Color primaryFixed = Color(0xFFFFEDD5);
+  static const Color primaryFixedDim = Color(0xFFFFB599);
+  static const Color onPrimaryFixed = Color(0xFF431407);
+  static const Color onPrimaryFixedVariant = Color(0xFF9A3412);
+  static const Color inversePrimary = Color(0xFFFFB599);
 
-  // ── Secondary ──
-  static const Color secondaryContainer = Color(0xFFCCE7C3); // Herb green
-  static const Color onSecondaryContainer = Color(0xFF51694C);
+  // ── Secondary (Slate) ──
+  static const Color secondary = Color(0xFF64748B);
+  static const Color secondaryContainer = Color(0xFFF1F5F9);
+  static const Color onSecondary = Color(0xFFFFFFFF);
+  static const Color onSecondaryContainer = Color(0xFF64748B);
+  static const Color secondaryFixed = Color(0xFFE2E8F0);
+  static const Color secondaryFixedDim = Color(0xFFCBD5E1);
+  static const Color onSecondaryFixed = Color(0xFF0F172A);
+  static const Color onSecondaryFixedVariant = Color(0xFF475569);
 
-  // ── Tertiary ──
-  static const Color tertiaryFixedDim = Color(0xFFD9C2B6); // Unselected chips
+  // ── Tertiary (Sage Green) ──
+  static const Color tertiary = Color(0xFF506140);
+  static const Color tertiaryContainer = Color(0xFF687A57);
+  static const Color onTertiary = Color(0xFFFFFFFF);
+  static const Color onTertiaryContainer = Color(0xFFF9FFEC);
+  static const Color tertiaryFixed = Color(0xFFD5E9BF);
+  static const Color tertiaryFixedDim = Color(0xFFB9CDA4);
+  static const Color onTertiaryFixed = Color(0xFF111F05);
+  static const Color onTertiaryFixedVariant = Color(0xFF3B4C2C);
 
   // ── Surfaces ──
-  static const Color surface = Color(0xFFFEFCF9); // Light warm white – primary canvas
-  static const Color surfaceContainerLow = Color(0xFFF8F6F2); // Subtle grouping
-  static const Color surfaceContainerLowest = Color(0xFFFFFFFF); // Lifted cards
-  static const Color surfaceBright = Color(0xFFFCF9F4); // Modals
+  static const Color surface = Color(0xFFFFFFFF); // Pure white
+  static const Color surfaceBright = Color(0xFFFFFFFF);
+  static const Color surfaceContainer = Color(0xFFF8FAFC);
+  static const Color surfaceContainerLow = Color(0xFFF1F5F9);
+  static const Color surfaceContainerHigh = Color(0xFFDFE9FA);
+  static const Color surfaceContainerHighest = Color(0xFFE2E8F0);
+  static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const Color surfaceDim = Color(0xFFF1F5F9);
+  static const Color surfaceVariant = Color(0xFFF1F5F9);
+  static const Color surfaceTint = Color(0xFFEA580C);
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color onBackground = Color(0xFF0F172A);
 
   // ── Text / Semantic ──
-  static const Color onSurface = Color(0xFF1C1C19); // Roasted Espresso
-  static const Color onSurfaceVariant = Color(0xFF56423C); // Secondary text
-  static const Color outlineVariant = Color(0xFFDDC0B8); // Ghost borders
+  static const Color onSurface = Color(0xFF0F172A); // Slate 900
+  static const Color onSurfaceVariant = Color(0xFF475569);
+  static const Color inverseOnSurface = Color(0xFFF8FAFC);
+  static const Color inverseSurface = Color(0xFF1E293B);
+
+  // ── Outline ──
+  static const Color outline = Color(0xFF94A3B8);
+  static const Color outlineVariant = Color(0xFFCBD5E1);
 
   // ── Status ──
-  static const Color accent = Color(0xFF10B981); // Emerald green
-  static const Color error = Color(0xFFDC2626);
+  static const Color accent = Color(0xFF506140); // Sage green (tertiary)
+  static const Color error = Color(0xFFEF4444);
+  static const Color errorContainer = Color(0xFFFEE2E2);
+  static const Color onError = Color(0xFFFFFFFF);
+  static const Color onErrorContainer = Color(0xFF991B1B);
 
   // ── Gradient ──
   static const LinearGradient primaryGradient = LinearGradient(

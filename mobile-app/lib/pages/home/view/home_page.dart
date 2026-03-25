@@ -156,7 +156,7 @@ class _HomePage extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4EF), // background-light
+      backgroundColor: const Color(0xFFFFFFFF), // background-light
       body: BlocConsumer<HomeCubit, HomeState>(
         listener: (context, state) async {},
         builder: (context, state) {
@@ -185,10 +185,10 @@ class _HomePage extends State<HomePage> {
                     bottom: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF7F4EF).withValues(alpha: 0.95),
+                    color: const Color(0xFFFFFFFF).withValues(alpha: 0.95),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF3E3129)
+                        color: const Color(0xFF0F172A)
                             .withValues(alpha: 0.06),
                         blurRadius: 24,
                         offset: const Offset(0, 8),
@@ -209,7 +209,7 @@ class _HomePage extends State<HomePage> {
                                   style: GoogleFonts.nunito(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 24,
-                                    color: const Color(0xFF3E3129),
+                                    color: const Color(0xFF0F172A),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -222,7 +222,7 @@ class _HomePage extends State<HomePage> {
                                       const Icon(
                                         Icons.location_on,
                                         size: 16,
-                                        color: Color(0xFF8D7A6F),
+                                        color: Color(0xFF64748B),
                                       ),
                                       const SizedBox(width: 4),
                                       Expanded(
@@ -235,14 +235,14 @@ class _HomePage extends State<HomePage> {
                                           style: GoogleFonts.dmSans(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
-                                            color: const Color(0xFF8D7A6F),
+                                            color: const Color(0xFF64748B),
                                           ),
                                         ),
                                       ),
                                       const Icon(
                                         Icons.expand_more,
                                         size: 16,
-                                        color: Color(0xFF8D7A6F),
+                                        color: Color(0xFF64748B),
                                       ),
                                     ],
                                   ),
@@ -260,11 +260,11 @@ class _HomePage extends State<HomePage> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFCFAF8), // surface
+                                  color: const Color(0xFFFFFFFF), // surface
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF3E3129)
+                                      color: const Color(0xFF0F172A)
                                           .withValues(alpha: 0.06),
                                       blurRadius: 24,
                                       offset: const Offset(0, 8),
@@ -274,7 +274,7 @@ class _HomePage extends State<HomePage> {
                                 child: const Center(
                                   child: Icon(
                                     Icons.notifications_outlined,
-                                    color: Color(0xFF3E3129),
+                                    color: Color(0xFF0F172A),
                                   ),
                                 ),
                               ),
@@ -286,10 +286,10 @@ class _HomePage extends State<HomePage> {
                                   width: 10,
                                   height: 10,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFD96C4A), // primary
+                                    color: const Color(0xFFEA580C), // primary
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFFFCFAF8),
+                                      color: const Color(0xFFFFFFFF),
                                       width: 2,
                                     ),
                                   ),
@@ -323,11 +323,11 @@ class _HomePage extends State<HomePage> {
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFCFAF8),
+                            color: const Color(0xFFFFFFFF),
                             borderRadius: BorderRadius.circular(100),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF3E3129)
+                                color: const Color(0xFF0F172A)
                                     .withValues(alpha: 0.06),
                                 blurRadius: 24,
                                 offset: const Offset(0, 8),
@@ -339,14 +339,14 @@ class _HomePage extends State<HomePage> {
                               const SizedBox(width: 16),
                               const Icon(
                                 Icons.search,
-                                color: Color(0xFF8D7A6F),
+                                color: Color(0xFF64748B),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 'What are you craving?',
                                 style: GoogleFonts.dmSans(
                                   fontSize: 16,
-                                  color: const Color(0xFF8D7A6F),
+                                  color: const Color(0xFF64748B),
                                 ),
                               ),
                             ],
@@ -398,7 +398,7 @@ class _HomePage extends State<HomePage> {
                     style: GoogleFonts.nunito(
                       fontWeight: FontWeight.w800,
                       fontSize: 20,
-                      color: const Color(0xFF3E3129),
+                      color: const Color(0xFF0F172A),
                     ),
                   ),
                 ),
@@ -559,7 +559,7 @@ class _CategoryPillsDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: const Color(0xFFF7F4EF), // background-light
+      color: const Color(0xFFFFFFFF), // background-light
       child: DiscoveryCategoryPills(
         categories: categories,
         selectedId: selectedId,

@@ -482,7 +482,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF6DED1),
+                            color: const Color(0xFFFFEDD5),
                             borderRadius: MitablRadius.pillBorder,
                           ),
                           child: const Text(
@@ -491,7 +491,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.5,
-                              color: Color(0xFF53443A),
+                              color: Color(0xFF475569),
                             ),
                           ),
                         ),
@@ -603,7 +603,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                           child: Row(
                             children: [
                               const Icon(Icons.notifications_active,
-                                  color: Color(0xFF4D6548), size: 22),
+                                  color: Color(0xFF506140), size: 22),
                               const SizedBox(width: 16),
                               const Expanded(
                                 child: Text(
@@ -637,7 +637,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                           child: Row(
                             children: [
                               const Icon(Icons.mail_outline,
-                                  color: Color(0xFF4D6548), size: 22),
+                                  color: Color(0xFF506140), size: 22),
                               const SizedBox(width: 16),
                               const Expanded(
                                 child: Text(
@@ -765,8 +765,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFDAD6),
-                        foregroundColor: const Color(0xFF93000A),
+                        backgroundColor: const Color(0xFFFEE2E2),
+                        foregroundColor: const Color(0xFF991B1B),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -853,7 +853,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   ),
                 ),
                 const Icon(Icons.chevron_right,
-                    color: Color(0xFF89726B), size: 22),
+                    color: Color(0xFF64748B), size: 22),
               ],
             ),
           ),
@@ -878,7 +878,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF89726B), size: 22),
+                Icon(icon, color: const Color(0xFF64748B), size: 22),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(

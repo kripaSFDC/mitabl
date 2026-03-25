@@ -53,7 +53,7 @@ class OrderStatusTimeline extends StatelessWidget {
                           child: Container(
                             width: 2,
                             color: step.status == TimelineStepStatus.completed
-                                ? const Color(0xFFEF6034) // primary
+                                ? const Color(0xFFEA580C) // primary
                                 : const Color(0xFFE2E8F0), // slate-200
                           ),
                         ),
@@ -79,7 +79,7 @@ class OrderStatusTimeline extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                               fontSize: 18,
                               color: step.status == TimelineStepStatus.active
-                                  ? const Color(0xFFEF6034) // primary for active
+                                  ? const Color(0xFFEA580C) // primary for active
                                   : const Color(0xFF0F172A), // slate-900
                             ),
                           ),
@@ -145,7 +145,7 @@ class _StepDotState extends State<_StepDot>
 
   @override
   Widget build(BuildContext context) {
-    const bgColor = Color(0xFFF8F6F6); // background-light
+    const bgColor = Color(0xFFFFFFFF); // background-light
 
     switch (widget.status) {
       case TimelineStepStatus.completed:
@@ -153,7 +153,7 @@ class _StepDotState extends State<_StepDot>
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: const Color(0xFFEF6034), // primary
+            color: const Color(0xFFEA580C), // primary
             shape: BoxShape.circle,
             border: Border.all(color: bgColor, width: 4),
           ),
@@ -174,7 +174,7 @@ class _StepDotState extends State<_StepDot>
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF6034)
+                      color: const Color(0xFFEA580C)
                           .withValues(alpha: 0.3 * controller.value),
                       shape: BoxShape.circle,
                     ),
@@ -185,12 +185,12 @@ class _StepDotState extends State<_StepDot>
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF6034),
+                    color: const Color(0xFFEA580C),
                     shape: BoxShape.circle,
                     border: Border.all(color: bgColor, width: 4),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFEF6034).withValues(alpha: 0.5),
+                        color: const Color(0xFFEA580C).withValues(alpha: 0.5),
                         blurRadius: 10,
                       ),
                     ],

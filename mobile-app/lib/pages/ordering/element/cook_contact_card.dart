@@ -42,7 +42,7 @@ class CookContactCard extends StatelessWidget {
                   color: MitablColors.surfaceContainerLow,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFEF6034).withValues(alpha: 0.2),
+                    color: const Color(0xFFEA580C).withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),

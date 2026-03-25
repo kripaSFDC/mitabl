@@ -101,7 +101,7 @@ class _OTPPageState extends State<OTPPage> {
                   width: 192,
                   height: 192,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFDBD0).withValues(alpha: 0.2),
+                    color: const Color(0xFFFFEDD5).withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -364,7 +364,7 @@ class _OTPPageState extends State<OTPPage> {
                                   width: 48,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEBE8E3),
+                                    color: const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                 ),

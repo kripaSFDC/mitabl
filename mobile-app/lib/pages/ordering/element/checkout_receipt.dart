@@ -27,7 +27,7 @@ class CheckoutReceipt extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -43,7 +43,7 @@ class CheckoutReceipt extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
-              color: Color(0xFF8D7A6F), // text-muted
+              color: Color(0xFF64748B), // text-muted
             ),
           ),
           const SizedBox(height: 12),
@@ -52,7 +52,7 @@ class CheckoutReceipt extends StatelessWidget {
           _ReceiptRow(
             label: 'Subtotal',
             value: itemTotal,
-            color: const Color(0xFF3E3129),
+            color: const Color(0xFF0F172A),
           ),
           const SizedBox(height: 8),
 
@@ -60,7 +60,7 @@ class CheckoutReceipt extends StatelessWidget {
           _ReceiptRow(
             label: 'Taxes',
             value: taxTotal,
-            color: const Color(0xFF8D7A6F),
+            color: const Color(0xFF64748B),
           ),
           const SizedBox(height: 8),
 
@@ -68,7 +68,7 @@ class CheckoutReceipt extends StatelessWidget {
           const _ReceiptRow(
             label: 'Community Fee',
             value: _communityFee,
-            color: Color(0xFF8D7A6F),
+            color: Color(0xFF64748B),
           ),
 
           // Divider
@@ -76,7 +76,7 @@ class CheckoutReceipt extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Container(
               height: 1,
-              color: const Color(0xFFEBE4DB).withValues(alpha: 0.5),
+              color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
             ),
           ),
 
@@ -89,7 +89,7 @@ class CheckoutReceipt extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF3E3129),
+                  color: Color(0xFF0F172A),
                 ),
               ),
               Text(
@@ -97,7 +97,7 @@ class CheckoutReceipt extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF3E3129),
+                  color: Color(0xFF0F172A),
                 ),
               ),
             ],

@@ -46,47 +46,47 @@ class AppColors {
     return color.withValues(alpha: _normalizedOpacity(opacity));
   }
 
-  // ── Warm Tactile Design System Colors ──
+  // ── The Culinary Atelier — Vibrant Orange Design System Colors ──
 
   Color mainColor(double opacity) {
-    return _withOpacity(const Color(0xFF9C3E20), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color secondColor(double opacity) {
-    return _withOpacity(const Color(0xFF9C3E20), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color accentColor(double opacity) {
-    return _withOpacity(const Color(0xFF10B981), opacity);
+    return _withOpacity(const Color(0xFF506140), opacity);
   }
 
   Color colorPrimary(double opacity) {
-    return _withOpacity(const Color(0xFF9C3E20), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color colorPrimaryLight(double opacity) {
-    return _withOpacity(const Color(0xFFBC5636), opacity);
+    return _withOpacity(const Color(0xFFEA580C), opacity);
   }
 
   Color colorPrimaryDark(double opacity) {
-    return _withOpacity(const Color(0xFF1C1C19), opacity);
+    return _withOpacity(const Color(0xFF0F172A), opacity);
   }
 
   Color colorDivider(double opacity) {
-    return _withOpacity(const Color(0xFFF6F3EE), opacity);
+    return _withOpacity(const Color(0xFFF1F5F9), opacity);
   }
 
   Color textFieldBackgroundColor(double opacity) {
-    return _withOpacity(const Color(0xFFF6F3EE), opacity);
+    return _withOpacity(const Color(0xFFF1F5F9), opacity);
   }
 
   Color hintTextBackgroundColor(double opacity) {
-    return _withOpacity(const Color(0xFF56423C), opacity);
+    return _withOpacity(const Color(0xFF475569), opacity);
   }
 
   Color scaffoldColor(double opacity, {Brightness brightness = Brightness.light}) {
     final baseColor =
-        brightness == Brightness.dark ? const Color(0xFF121212) : const Color(0xFFFCF9F4);
+        brightness == Brightness.dark ? const Color(0xFF121212) : const Color(0xFFFFFFFF);
     return _withOpacity(baseColor, opacity);
   }
 
