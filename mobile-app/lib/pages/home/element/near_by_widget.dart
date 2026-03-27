@@ -44,7 +44,7 @@ class NearByRestWidget extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(10)),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFBF7),
+          color: const Color(0xFFFFFFFF),
           boxShadow: [
             BoxShadow(
               offset: const Offset(2, 2),
@@ -87,7 +87,7 @@ class NearByRestWidget extends StatelessWidget {
                         ),
                         child: Icon(
                           Icons.person,
-                          color: const Color(0xFFFFFBF7),
+                          color: const Color(0xFFFFFFFF),
                           size: config.AppConfig(context).appWidth(8),
                         ),
                       ),

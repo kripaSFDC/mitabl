@@ -231,7 +231,7 @@ class _ForgotPageState extends State<ForgotPage> {
                                           hintText:
                                               'chef@culinaryatelier.com',
                                           hintStyle: TextStyle(
-                                            color: const Color(0xFF89726B),
+                                            color: const Color(0xFF64748B),
                                             fontFamily: 'DM Sans',
                                           ),
                                           filled: true,

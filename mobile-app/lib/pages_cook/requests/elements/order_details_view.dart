@@ -26,7 +26,7 @@ class OrderDetails extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFFFFFBF7),
+          backgroundColor: const Color(0xFFFFFFFF),
           automaticallyImplyLeading: false,
           elevation: 0,
           title: Padding(
@@ -592,7 +592,7 @@ class OrderDetails extends StatelessWidget {
                                   fontFamily: config.FontFamily()
                                       .itcAvantGardeGothicStdFontFamily,
                                   fontWeight: config.FontFamily().book,
-                                  color: const Color(0xFFFFFBF7),
+                                  color: const Color(0xFFFFFFFF),
                                 ),
                               ),
                             ),

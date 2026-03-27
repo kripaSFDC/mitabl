@@ -67,7 +67,7 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF9F4),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Stack(
         children: [
           // ── Subtle organic background blurs ──
@@ -78,7 +78,7 @@ class _SplashPageState extends State<SplashPage>
               width: MediaQuery.of(context).size.width * 0.6,
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFDBD0).withValues(alpha: 0.4),
+                color: const Color(0xFFFFEDD5).withValues(alpha: 0.4),
                 shape: BoxShape.circle,
               ),
             ),
@@ -90,7 +90,7 @@ class _SplashPageState extends State<SplashPage>
               width: MediaQuery.of(context).size.width * 0.6,
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
-                color: const Color(0xFFCCE7C3).withValues(alpha: 0.4),
+                color: const Color(0xFFF1F5F9).withValues(alpha: 0.4),
                 shape: BoxShape.circle,
               ),
             ),
@@ -105,7 +105,7 @@ class _SplashPageState extends State<SplashPage>
               child: Icon(
                 Icons.spa,
                 size: 60,
-                color: const Color(0xFF4D6548).withValues(alpha: 0.2),
+                color: const Color(0xFF506140).withValues(alpha: 0.2),
               ),
             ),
           ),
@@ -117,7 +117,7 @@ class _SplashPageState extends State<SplashPage>
               child: Icon(
                 Icons.local_dining,
                 size: 80,
-                color: const Color(0xFF9C3E20).withValues(alpha: 0.1),
+                color: const Color(0xFFEA580C).withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -127,7 +127,7 @@ class _SplashPageState extends State<SplashPage>
             child: Icon(
               Icons.grain,
               size: 70,
-              color: const Color(0xFF6A594E).withValues(alpha: 0.15),
+              color: const Color(0xFF64748B).withValues(alpha: 0.15),
             ),
           ),
 
@@ -163,7 +163,7 @@ class _SplashPageState extends State<SplashPage>
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF9C3E20)
+                                  color: const Color(0xFFEA580C)
                                       .withValues(alpha: 0.05),
                                   width: 2,
                                 ),
@@ -175,14 +175,14 @@ class _SplashPageState extends State<SplashPage>
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF9C3E20)
+                              color: const Color(0xFFEA580C)
                                   .withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.restaurant_menu,
                               size: 48,
-                              color: Color(0xFF9C3E20),
+                              color: Color(0xFFEA580C),
                             ),
                           ),
                         ],
@@ -197,7 +197,7 @@ class _SplashPageState extends State<SplashPage>
                         fontSize: 48,
                         fontWeight: FontWeight.w800,
                         fontFamily: 'Nunito',
-                        color: Color(0xFF9C3E20),
+                        color: Color(0xFFEA580C),
                         letterSpacing: -1.5,
                       ),
                     ),
@@ -212,7 +212,7 @@ class _SplashPageState extends State<SplashPage>
                         style: TextStyle(
                           fontSize: 18,
                           fontFamily: 'DM Sans',
-                          color: Color(0xFF56423C),
+                          color: Color(0xFF475569),
                           height: 1.6,
                         ),
                       ),
@@ -229,7 +229,7 @@ class _SplashPageState extends State<SplashPage>
                       width: 48,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDDC0B8).withValues(alpha: 0.2),
+                        color: const Color(0xFFCBD5E1).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(100),
                       ),
                     ),
@@ -242,7 +242,7 @@ class _SplashPageState extends State<SplashPage>
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 3.2,
-                        color: const Color(0xFF56423C).withValues(alpha: 0.5),
+                        color: const Color(0xFF475569).withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -281,7 +281,7 @@ class _PulsingDots extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF9C3E20),
+                    color: Color(0xFFEA580C),
                     shape: BoxShape.circle,
                   ),
                 ),

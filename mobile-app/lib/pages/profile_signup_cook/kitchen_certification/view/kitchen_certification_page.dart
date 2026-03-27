@@ -147,7 +147,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFDBD0),
+                            color: const Color(0xFFFFEDD5),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -226,7 +226,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0EDE9),
+                      color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(32),
                     ),
                     child: Column(
@@ -418,7 +418,7 @@ class _ChecklistRow extends StatelessWidget {
           decoration: BoxDecoration(
             color: isComplete
                 ? MitablColors.secondaryContainer
-                : const Color(0xFFEBE8E3),
+                : const Color(0xFFF8FAFC),
             shape: BoxShape.circle,
           ),
           child: Icon(

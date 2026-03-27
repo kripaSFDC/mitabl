@@ -69,7 +69,7 @@ class MenuItemTile extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD1FAE5), // emerald-100
+                              color: const Color(0xFFD5E9BF), // emerald-100
                               borderRadius: BorderRadius.circular(100),
                             ),
                             child: const Text(
@@ -117,7 +117,7 @@ class MenuItemTile extends StatelessWidget {
                             height: 32,
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8F6F6), // background-light
+                              color: const Color(0xFFFFFFFF), // background-light
                               borderRadius: BorderRadius.circular(100),
                               boxShadow: [
                                 BoxShadow(
@@ -139,7 +139,7 @@ class MenuItemTile extends StatelessWidget {
                                       child: Icon(
                                         Icons.remove,
                                         size: 16,
-                                        color: Color(0xFFEF6034), // primary
+                                        color: Color(0xFFEA580C), // primary
                                       ),
                                     ),
                                   ),
@@ -167,7 +167,7 @@ class MenuItemTile extends StatelessWidget {
                                       child: Icon(
                                         Icons.add,
                                         size: 16,
-                                        color: Color(0xFFEF6034),
+                                        color: Color(0xFFEA580C),
                                       ),
                                     ),
                                   ),
@@ -250,7 +250,7 @@ class MenuItemTile extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF3E3129)
+                              color: const Color(0xFF0F172A)
                                   .withValues(alpha: 0.06),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
@@ -261,7 +261,7 @@ class MenuItemTile extends StatelessWidget {
                           child: Icon(
                             Icons.add,
                             size: 20,
-                            color: Color(0xFFEF6034),
+                            color: Color(0xFFEA580C),
                           ),
                         ),
                       ),

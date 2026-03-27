@@ -116,7 +116,7 @@ class OrderConfirmationPage extends StatelessWidget {
                           child: Icon(
                             Icons.favorite,
                             size: 36,
-                            color: const Color(0xFF4D6548), // secondary
+                            color: const Color(0xFF506140), // secondary
                           ),
                         ),
                       ],
@@ -371,14 +371,14 @@ class OrderConfirmationPage extends StatelessWidget {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF4D6548)
+                                color: const Color(0xFF506140)
                                     .withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: const Center(
                                 child: Icon(
                                   Icons.location_on,
-                                  color: Color(0xFF4D6548),
+                                  color: Color(0xFF506140),
                                 ),
                               ),
                             ),

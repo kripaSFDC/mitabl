@@ -361,7 +361,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF56423C),
+                      color: Color(0xFF475569),
                       fontFamily: 'Nunito',
                     ),
                   ),
@@ -458,7 +458,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                               'Email cannot be changed.',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Color(0xFF89726B),
+                                color: Color(0xFF64748B),
                               ),
                             ),
                           ),
@@ -491,7 +491,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF56423C),
+                          color: Color(0xFF475569),
                           fontFamily: 'Nunito',
                         ),
                       ),
@@ -559,7 +559,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF51694C),
+                                  color: Color(0xFF3B4C2C),
                                   fontFamily: 'Nunito',
                                 ),
                               ),
@@ -577,7 +577,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF6DED1),
+                        color: const Color(0xFFFFEDD5),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -586,7 +586,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                         children: [
                           Icon(
                             Icons.schedule,
-                            color: const Color(0xFF53443A),
+                            color: const Color(0xFF475569),
                             size: 24,
                           ),
                           Column(
@@ -598,7 +598,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 2.0,
-                                  color: const Color(0xFF53443A),
+                                  color: const Color(0xFF475569),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -607,7 +607,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF53443A),
+                                  color: Color(0xFF475569),
                                   fontFamily: 'Nunito',
                                 ),
                               ),

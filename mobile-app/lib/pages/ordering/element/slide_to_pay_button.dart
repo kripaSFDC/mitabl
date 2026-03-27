@@ -71,11 +71,11 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
             color: Colors.white, // surface
             borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: const Color(0xFFEF6034).withValues(alpha: 0.2),
+              color: const Color(0xFFEA580C).withValues(alpha: 0.2),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFEF6034).withValues(alpha: 0.15),
+                color: const Color(0xFFEA580C).withValues(alpha: 0.15),
                 blurRadius: 32,
                 offset: const Offset(0, 8),
               ),
@@ -94,7 +94,7 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                       letterSpacing: 0.5,
-                      color: const Color(0xFFEF6034).withValues(alpha: 0.8),
+                      color: const Color(0xFFEA580C).withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -106,7 +106,7 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                         child: Icon(
                           Icons.keyboard_double_arrow_right,
                           size: 20,
-                          color: const Color(0xFFEF6034).withValues(alpha: 0.4),
+                          color: const Color(0xFFEA580C).withValues(alpha: 0.4),
                         ),
                       );
                     },
@@ -151,7 +151,7 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                     width: _thumbSize,
                     height: _thumbSize,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFEF6034), // primary
+                      color: Color(0xFFEA580C), // primary
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(

@@ -401,7 +401,7 @@ class TimingDialog extends StatelessWidget {
                                 fontSize: config.AppConfig(
                                   context,
                                 ).appWidth(3.5),
-                                color: const Color(0xFFFFFBF7),
+                                color: const Color(0xFFFFFFFF),
                               ),
                             ),
                           ),

@@ -41,11 +41,11 @@ class FloatingCartBar extends StatelessWidget {
                   child: Container(
                     height: 56,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEF6034), // primary
+                      color: const Color(0xFFEA580C), // primary
                       borderRadius: BorderRadius.circular(100),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFEF6034)
+                          color: const Color(0xFFEA580C)
                               .withValues(alpha: 0.15),
                           blurRadius: 32,
                           offset: const Offset(0, 16),

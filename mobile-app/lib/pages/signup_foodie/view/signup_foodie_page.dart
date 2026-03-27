@@ -239,7 +239,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                               ? Icons.visibility_off_outlined
                                               : Icons.visibility_outlined,
                                           color:
-                                              const Color(0xFF89726B),
+                                              const Color(0xFF64748B),
                                           size: 22,
                                         ),
                                       ),
@@ -276,7 +276,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                               bottom: 48),
                                           child: Icon(
                                             Icons.location_on_outlined,
-                                            color: const Color(0xFF89726B),
+                                            color: const Color(0xFF64748B),
                                             size: 22,
                                           ),
                                         ),
@@ -389,7 +389,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                         fontWeight: FontWeight.w700,
                                         fontFamily: 'DM Sans',
                                         letterSpacing: 2.0,
-                                        color: const Color(0xFF89726B),
+                                        color: const Color(0xFF64748B),
                                       ),
                                     ),
                                   ),
@@ -523,7 +523,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                 padding: const EdgeInsets.only(left: 16, right: 8),
                 child: Icon(
                   prefixIcon,
-                  color: const Color(0xFF89726B),
+                  color: const Color(0xFF64748B),
                   size: 22,
                 ),
               )

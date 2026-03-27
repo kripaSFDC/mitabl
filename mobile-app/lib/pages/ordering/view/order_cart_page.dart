@@ -36,14 +36,14 @@ class OrderCartPage extends StatelessWidget {
       animation: session,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F6F6), // background-light
+          backgroundColor: const Color(0xFFFFFFFF), // background-light
           body: session.cartItems.isEmpty
               ? const Center(
                   child: Text(
                     'Your cart is empty.',
                     style: TextStyle(
                       fontSize: 15,
-                      color: Color(0xFF8D7A6F),
+                      color: Color(0xFF64748B),
                     ),
                   ),
                 )
@@ -74,7 +74,7 @@ class _CartBody extends StatelessWidget {
             right: 16,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F6F6).withValues(alpha: 0.9),
+            color: const Color(0xFFFFFFFF).withValues(alpha: 0.9),
           ),
           child: Row(
             children: [
@@ -96,7 +96,7 @@ class _CartBody extends StatelessWidget {
                     ],
                   ),
                   child: const Center(
-                    child: Icon(Icons.arrow_back, size: 24, color: Color(0xFF3E3129)),
+                    child: Icon(Icons.arrow_back, size: 24, color: Color(0xFF0F172A)),
                   ),
                 ),
               ),
@@ -109,7 +109,7 @@ class _CartBody extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF3E3129),
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                   if (kitchen != null)
@@ -118,7 +118,7 @@ class _CartBody extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF8D7A6F),
+                        color: Color(0xFF64748B),
                       ),
                     ),
                 ],
@@ -147,7 +147,7 @@ class _CartBody extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.5,
-                  color: Color(0xFF8D7A6F),
+                  color: Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 8),
@@ -167,7 +167,7 @@ class _CartBody extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                    color: const Color(0xFFEA580C).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Row(
@@ -176,7 +176,7 @@ class _CartBody extends StatelessWidget {
                       Icon(
                         Icons.add_circle,
                         size: 18,
-                        color: Color(0xFFEF6034),
+                        color: Color(0xFFEA580C),
                       ),
                       SizedBox(width: 8),
                       Text(
@@ -184,7 +184,7 @@ class _CartBody extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFEF6034),
+                          color: Color(0xFFEA580C),
                         ),
                       ),
                     ],
@@ -290,7 +290,7 @@ class _FulfillmentToggle extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBE4DB).withValues(alpha: 0.3),
+        color: const Color(0xFFE2E8F0).withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Stack(
@@ -334,8 +334,8 @@ class _FulfillmentToggle extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: isPickup ? FontWeight.w700 : FontWeight.w500,
                           color: isPickup
-                              ? const Color(0xFF3E3129)
-                              : const Color(0xFF8D7A6F),
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -356,8 +356,8 @@ class _FulfillmentToggle extends StatelessWidget {
                           fontWeight:
                               !isPickup ? FontWeight.w700 : FontWeight.w500,
                           color: !isPickup
-                              ? const Color(0xFF3E3129)
-                              : const Color(0xFF8D7A6F),
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -390,7 +390,7 @@ class _PickupInfoSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -405,11 +405,11 @@ class _PickupInfoSection extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                  color: const Color(0xFFEA580C).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
-                  child: Icon(Icons.schedule, size: 18, color: Color(0xFFEF6034)),
+                  child: Icon(Icons.schedule, size: 18, color: Color(0xFFEA580C)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -421,14 +421,14 @@ class _PickupInfoSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF3E3129),
+                      color: Color(0xFF0F172A),
                     ),
                   ),
                   Text(
                     '$dateLabel, $timeLabel',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8D7A6F),
+                      color: Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -441,7 +441,7 @@ class _PickupInfoSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Container(
               height: 1,
-              color: const Color(0xFFEBE4DB).withValues(alpha: 0.5),
+              color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
             ),
           ),
 
@@ -453,11 +453,11 @@ class _PickupInfoSection extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF6034).withValues(alpha: 0.1),
+                    color: const Color(0xFFEA580C).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
-                    child: Icon(Icons.location_on, size: 18, color: Color(0xFFEF6034)),
+                    child: Icon(Icons.location_on, size: 18, color: Color(0xFFEA580C)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -470,7 +470,7 @@ class _PickupInfoSection extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF3E3129),
+                          color: Color(0xFF0F172A),
                         ),
                       ),
                       Text(
@@ -481,7 +481,7 @@ class _PickupInfoSection extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF8D7A6F),
+                          color: Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -492,7 +492,7 @@ class _PickupInfoSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFFEF6034),
+                    color: Color(0xFFEA580C),
                   ),
                 ),
               ],

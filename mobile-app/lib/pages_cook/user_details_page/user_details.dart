@@ -57,7 +57,7 @@ class UserDetails extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFF0EDE9),
+                      color: const Color(0xFFF1F5F9),
                     ),
                     child: const Icon(Icons.person,
                         color: MitablColors.onSurfaceVariant, size: 20),
@@ -186,7 +186,7 @@ class UserDetails extends StatelessWidget {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF4D6548),
+                                          color: const Color(0xFF506140),
                                           borderRadius:
                                               MitablRadius.pillBorder,
                                           boxShadow: [
@@ -671,8 +671,8 @@ class _OrderTimelineItem extends StatelessWidget {
                   height: 16,
                   decoration: BoxDecoration(
                     color: isActive
-                        ? const Color(0xFF4D6548)
-                        : const Color(0xFFE5E2DD),
+                        ? const Color(0xFF506140)
+                        : const Color(0xFFE2E8F0),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: MitablColors.surfaceContainerLowest,

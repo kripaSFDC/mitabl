@@ -207,7 +207,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             children: [
                               Icon(
                                 Icons.cell_tower,
-                                color: const Color(0xFF738C6D),
+                                color: const Color(0xFF687A57),
                                 size: 28,
                               ),
                               const SizedBox(width: 12),
@@ -246,7 +246,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                   child: Switch(
                                     value: _kitchenLive,
                                     activeColor: Colors.white,
-                                    activeTrackColor: const Color(0xFF738C6D),
+                                    activeTrackColor: const Color(0xFF687A57),
                                     inactiveThumbColor: Colors.white,
                                     inactiveTrackColor:
                                         MitablColors.onSurfaceVariant,

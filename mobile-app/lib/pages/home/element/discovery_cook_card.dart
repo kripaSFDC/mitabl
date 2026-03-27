@@ -74,11 +74,11 @@ class DiscoveryCookCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFCFAF8), // surface
+          color: const Color(0xFFFFFFFF), // surface
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -129,7 +129,7 @@ class DiscoveryCookCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFCFAF8)
+                              color: const Color(0xFFFFFFFF)
                                   .withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(100),
                               boxShadow: [
@@ -146,7 +146,7 @@ class DiscoveryCookCard extends StatelessWidget {
                                 const Icon(
                                   Icons.star,
                                   size: 14,
-                                  color: Color(0xFFD96C4A), // primary
+                                  color: Color(0xFFEA580C), // primary
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -154,7 +154,7 @@ class DiscoveryCookCard extends StatelessWidget {
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF3E3129),
+                                    color: Color(0xFF0F172A),
                                   ),
                                 ),
                               ],
@@ -169,7 +169,7 @@ class DiscoveryCookCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD96C4A),
+                              color: const Color(0xFFEA580C),
                               borderRadius: BorderRadius.circular(100),
                               boxShadow: [
                                 BoxShadow(
@@ -203,7 +203,7 @@ class DiscoveryCookCard extends StatelessWidget {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFCFAF8)
+                          color: const Color(0xFFFFFFFF)
                               .withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
@@ -222,7 +222,7 @@ class DiscoveryCookCard extends StatelessWidget {
                             size: 18,
                             color: isFavourited
                                 ? MitablColors.error
-                                : const Color(0xFF3E3129),
+                                : const Color(0xFF0F172A),
                           ),
                         ),
                       ),
@@ -249,7 +249,7 @@ class DiscoveryCookCard extends StatelessWidget {
                         style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w800,
                           fontSize: 22,
-                          color: const Color(0xFF3E3129),
+                          color: const Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -262,7 +262,7 @@ class DiscoveryCookCard extends StatelessWidget {
                           style: GoogleFonts.dmSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF8D7A6F),
+                            color: const Color(0xFF64748B),
                           ),
                         ),
                       const SizedBox(height: 12),
@@ -272,7 +272,7 @@ class DiscoveryCookCard extends StatelessWidget {
                         decoration: const BoxDecoration(
                           border: Border(
                             top: BorderSide(
-                              color: Color(0xFFF7F4EF), // background-light
+                              color: Color(0xFFFFFFFF), // background-light
                             ),
                           ),
                         ),
@@ -283,7 +283,7 @@ class DiscoveryCookCard extends StatelessWidget {
                               const Icon(
                                 Icons.directions_walk,
                                 size: 16,
-                                color: Color(0xFF8D7A6F),
+                                color: Color(0xFF64748B),
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -291,14 +291,14 @@ class DiscoveryCookCard extends StatelessWidget {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF8D7A6F),
+                                  color: const Color(0xFF64748B),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               const Text(
                                 '\u2022',
                                 style: TextStyle(
-                                  color: Color(0xFF8D7A6F),
+                                  color: Color(0xFF64748B),
                                   fontSize: 14,
                                 ),
                               ),
@@ -308,7 +308,7 @@ class DiscoveryCookCard extends StatelessWidget {
                             const Icon(
                               Icons.schedule,
                               size: 16,
-                              color: Color(0xFF8D7A6F),
+                              color: Color(0xFF64748B),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -319,7 +319,7 @@ class DiscoveryCookCard extends StatelessWidget {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF8D7A6F),
+                                  color: const Color(0xFF64748B),
                                 ),
                               ),
                             ),
@@ -329,7 +329,7 @@ class DiscoveryCookCard extends StatelessWidget {
                               style: GoogleFonts.dmSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF3E3129),
+                                color: const Color(0xFF0F172A),
                               ),
                             ),
                           ],
@@ -350,7 +350,7 @@ class DiscoveryCookCard extends StatelessWidget {
                       color: MitablColors.surfaceContainerLow,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFFCFAF8),
+                        color: const Color(0xFFFFFFFF),
                         width: 4,
                       ),
                       boxShadow: [

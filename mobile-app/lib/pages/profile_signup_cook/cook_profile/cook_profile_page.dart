@@ -245,7 +245,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                 child: Container(
                                   padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF0EDE9),
+                                    color: const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Column(
@@ -290,7 +290,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                 child: Container(
                                   padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF0EDE9),
+                                    color: const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Column(
@@ -450,7 +450,7 @@ class _CookProfilePage extends State<CookProfilePage>
                           value: 0.35,
                           minHeight: 6,
                           color: MitablColors.primary,
-                          backgroundColor: const Color(0xFFEBE8E3),
+                          backgroundColor: const Color(0xFFF8FAFC),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -486,7 +486,7 @@ class _CookProfilePage extends State<CookProfilePage>
     return Container(
       height: 240,
       decoration: BoxDecoration(
-        color: const Color(0xFFEBE8E3),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -551,7 +551,7 @@ class _CookProfilePage extends State<CookProfilePage>
           else
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFEBE8E3).withValues(alpha: 0.8),
+                color: const Color(0xFFF8FAFC).withValues(alpha: 0.8),
               ),
               child: Center(
                 child: Icon(
@@ -575,7 +575,7 @@ class _CookProfilePage extends State<CookProfilePage>
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    const Color(0xFFEBE8E3).withValues(alpha: 0.8),
+                    const Color(0xFFF8FAFC).withValues(alpha: 0.8),
                     Colors.transparent,
                   ],
                 ),
@@ -694,7 +694,7 @@ class _ServiceTypeSection extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0EDE9),
+            color: const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(

@@ -134,7 +134,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                         Icon(
                           Icons.lock,
                           size: 14,
-                          color: const Color(0xFF4D6548),
+                          color: const Color(0xFF506140),
                         ),
                         const SizedBox(width: 6),
                         const Text(
@@ -143,7 +143,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 2.0,
-                            color: Color(0xFF51694C),
+                            color: Color(0xFF3B4C2C),
                           ),
                         ),
                       ],
@@ -166,7 +166,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                           angle: 0.035,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFB3CEAB).withValues(alpha: 0.3),
+                              color: const Color(0xFFB9CDA4).withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
@@ -202,7 +202,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                     suffixIcon: const Padding(
                       padding: EdgeInsets.only(right: 12),
                       child: Icon(Icons.credit_card,
-                          color: Color(0xFF89726B)),
+                          color: Color(0xFF64748B)),
                     ),
                   ),
 
@@ -239,7 +239,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                           suffixIcon: const Padding(
                             padding: EdgeInsets.only(right: 12),
                             child: Icon(Icons.help_outline,
-                                color: Color(0xFF89726B), size: 20),
+                                color: Color(0xFF64748B), size: 20),
                           ),
                         ),
                       ),
@@ -271,7 +271,7 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                           height: 24,
                           decoration: BoxDecoration(
                             color: _setAsDefault
-                                ? const Color(0xFF4D6548)
+                                ? const Color(0xFF506140)
                                 : MitablColors.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(6),
                             border: _setAsDefault

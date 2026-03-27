@@ -120,7 +120,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                         hint: 'Search dishes, cuisines, or restaurants',
                         prefixIcon: const Icon(
                           Icons.search,
-                          color: Color(0xFF89726B),
+                          color: Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -528,7 +528,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                         child: SizedBox(
                           height: 52,
                           child: Material(
-                            color: const Color(0xFFF0EDE9),
+                            color: const Color(0xFFF1F5F9),
                             borderRadius: MitablRadius.pillBorder,
                             child: InkWell(
                               borderRadius: MitablRadius.pillBorder,

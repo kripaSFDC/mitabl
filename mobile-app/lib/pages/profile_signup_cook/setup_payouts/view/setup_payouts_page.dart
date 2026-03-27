@@ -129,7 +129,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFF0EDE9),
+                      color: const Color(0xFFF1F5F9),
                     ),
                     child: const Icon(Icons.person,
                         color: MitablColors.onSurfaceVariant, size: 20),
@@ -404,7 +404,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                           text: TextSpan(
                             style: TextStyle(
                               fontSize: 12,
-                              color: const Color(0xFF89726B),
+                              color: const Color(0xFF64748B),
                             ),
                             children: const [
                               TextSpan(
@@ -477,7 +477,7 @@ class _ProgressStepper extends StatelessWidget {
             right: 0,
             child: Container(
               height: 4,
-              color: const Color(0xFFF0EDE9),
+              color: const Color(0xFFF1F5F9),
             ),
           ),
           // Active progress line
@@ -506,7 +506,7 @@ class _ProgressStepper extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isActive
                           ? MitablColors.primary
-                          : const Color(0xFFEBE8E3),
+                          : const Color(0xFFF8FAFC),
                       shape: BoxShape.circle,
                     ),
                     child: Center(

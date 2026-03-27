@@ -32,7 +32,7 @@ class CheckoutItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3E3129).withValues(alpha: 0.06),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.06),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -53,7 +53,7 @@ class CheckoutItemCard extends StatelessWidget {
                     child: const Icon(
                       Icons.fastfood_outlined,
                       size: 24,
-                      color: Color(0xFF8D7A6F),
+                      color: Color(0xFF64748B),
                     ),
                   )
                 : CachedNetworkImage(
@@ -89,7 +89,7 @@ class CheckoutItemCard extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
-                    color: Color(0xFF3E3129), // text-main
+                    color: Color(0xFF0F172A), // text-main
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -97,7 +97,7 @@ class CheckoutItemCard extends StatelessWidget {
                   '\$${line.item.price.toStringAsFixed(2)} each',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF8D7A6F), // text-muted
+                    color: Color(0xFF64748B), // text-muted
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -106,7 +106,7 @@ class CheckoutItemCard extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
-                    color: Color(0xFFEF6034), // primary
+                    color: Color(0xFFEA580C), // primary
                   ),
                 ),
               ],
@@ -118,7 +118,7 @@ class CheckoutItemCard extends StatelessWidget {
             height: 96,
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFFEBE4DB).withValues(alpha: 0.3),
+              color: const Color(0xFFE2E8F0).withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Column(
@@ -142,7 +142,7 @@ class CheckoutItemCard extends StatelessWidget {
                       ],
                     ),
                     child: const Center(
-                      child: Icon(Icons.add, size: 14, color: Color(0xFF3E3129)),
+                      child: Icon(Icons.add, size: 14, color: Color(0xFF0F172A)),
                     ),
                   ),
                 ),
@@ -152,7 +152,7 @@ class CheckoutItemCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF3E3129),
+                    color: Color(0xFF0F172A),
                   ),
                 ),
                 // Remove button on bottom
@@ -176,7 +176,7 @@ class CheckoutItemCard extends StatelessWidget {
                       child: Icon(
                         Icons.remove,
                         size: 14,
-                        color: Color(0xFF3E3129),
+                        color: Color(0xFF0F172A),
                       ),
                     ),
                   ),

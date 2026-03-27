@@ -128,7 +128,7 @@ class AcceptRejectDialog extends StatelessWidget {
                           'YES',
                           style: TextStyle(
                             fontSize: config.AppConfig(context).appWidth(3.5),
-                            color: const Color(0xFFFFFBF7),
+                            color: const Color(0xFFFFFFFF),
                             fontFamily: config.FontFamily()
                                 .itcAvantGardeGothicStdFontFamily,
                             fontWeight: config.FontFamily().book,

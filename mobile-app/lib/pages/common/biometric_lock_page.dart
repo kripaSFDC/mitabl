@@ -80,7 +80,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
               width: 320,
               height: 320,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFDBD0).withValues(alpha: 0.20),
+                color: const Color(0xFFFFEDD5).withValues(alpha: 0.20),
                 shape: BoxShape.circle,
               ),
             ),
@@ -190,7 +190,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                                   : const Icon(
                                       Icons.fingerprint_rounded,
                                       size: 60,
-                                      color: Color(0xFFD96C4A),
+                                      color: Color(0xFFEA580C),
                                     ),
                             ),
                           ],
@@ -285,7 +285,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.3,
-                            color: const Color(0xFF89726B),
+                            color: const Color(0xFF64748B),
                           ),
                           textAlign: TextAlign.center,
                         ),

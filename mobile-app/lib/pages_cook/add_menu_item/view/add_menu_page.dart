@@ -161,7 +161,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                               height: 40,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFFF0EDE9),
+                                color: const Color(0xFFF1F5F9),
                               ),
                               child: const Icon(Icons.person,
                                   color: MitablColors.onSurfaceVariant,
@@ -726,7 +726,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
-                                          const Color(0xFFF0EDE9),
+                                          const Color(0xFFF1F5F9),
                                       foregroundColor: MitablColors
                                           .onSurfaceVariant,
                                       shape: RoundedRectangleBorder(
@@ -793,7 +793,7 @@ class _PhotoPlaceholderGrid extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_a_photo_outlined,
-                    size: 28, color: const Color(0xFF89726B)),
+                    size: 28, color: const Color(0xFF64748B)),
                 const SizedBox(height: 8),
                 Text(
                   'Main Photo',
@@ -855,7 +855,7 @@ class _SmallPlaceholder extends StatelessWidget {
         ),
       ),
       child: const Center(
-        child: Icon(Icons.add, color: Color(0xFF89726B), size: 20),
+        child: Icon(Icons.add, color: Color(0xFF64748B), size: 20),
       ),
     );
   }
@@ -920,7 +920,7 @@ class _FormInput extends StatelessWidget {
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: const Color(0xFF89726B)),
+              hintStyle: TextStyle(color: const Color(0xFF64748B)),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: prefix != null ? 40 : 20,
@@ -991,7 +991,7 @@ class _StyleChip extends StatelessWidget {
             fontWeight: FontWeight.w700,
             color: isSelected
                 ? MitablColors.onPrimary
-                : const Color(0xFF251911),
+                : const Color(0xFF431407),
           ),
         ),
       ),
@@ -1046,7 +1046,7 @@ class _AvailabilityToggle extends StatelessWidget {
           ),
           Switch(
             value: value,
-            activeThumbColor: const Color(0xFF4D6548),
+            activeThumbColor: const Color(0xFF506140),
             activeTrackColor: MitablColors.secondaryContainer,
             onChanged: onChanged,
           ),

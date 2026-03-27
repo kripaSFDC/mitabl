@@ -304,7 +304,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
           surfaceTintColor: Colors.transparent,
         ),
         chipTheme: ChipThemeData(
-          backgroundColor: const Color(0xFFD9C2B6),
+          backgroundColor: const Color(0xFFFF9971),
           selectedColor: config.AppColors().colorPrimary(1),
           labelStyle: const TextStyle(fontSize: 13),
           shape: RoundedRectangleBorder(
@@ -365,7 +365,7 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
           onSecondary: Colors.white,
           surface: config.AppColors().textFieldBackgroundColor(1),
           onSurface: config.AppColors().colorPrimaryDark(1),
-          error: Colors.red,
+          error: const Color(0xFFEF4444),
           onError: Colors.white,
         ),
       ),

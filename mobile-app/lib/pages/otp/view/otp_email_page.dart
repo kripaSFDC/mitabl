@@ -305,7 +305,7 @@ class OtpEmailPage extends StatelessWidget {
                                 child: Container(
                                   width: double.infinity,
                                   height: 200,
-                                  color: const Color(0xFFEBE8E3),
+                                  color: const Color(0xFFF8FAFC),
                                   child: Stack(
                                     fit: StackFit.expand,
                                     children: [
@@ -334,13 +334,13 @@ class OtpEmailPage extends StatelessWidget {
                                               width: 32,
                                               height: 32,
                                               decoration: const BoxDecoration(
-                                                color: Color(0xFFF6DED1),
+                                                color: Color(0xFFFFEDD5),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: const Icon(
                                                 Icons.restaurant,
                                                 size: 14,
-                                                color: Color(0xFF251911),
+                                                color: Color(0xFF431407),
                                               ),
                                             ),
                                             const SizedBox(width: 12),

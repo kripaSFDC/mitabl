@@ -84,7 +84,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFEBE8E3),
+                      color: const Color(0xFFF8FAFC),
                       border: Border.all(
                         color: MitablColors.primary.withValues(alpha: 0.10),
                         width: 2,
@@ -223,11 +223,11 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                               value: fraction,
                                               minHeight: 6,
                                               backgroundColor:
-                                                  const Color(0xFFF0EDE9),
+                                                  const Color(0xFFF1F5F9),
                                               valueColor:
                                                   const AlwaysStoppedAnimation<
                                                           Color>(
-                                                      Color(0xFF4D6548)),
+                                                      Color(0xFF506140)),
                                             ),
                                           ),
                                         ),
@@ -310,7 +310,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
                                               color: const Color(
-                                                  0xFFF6DED1),
+                                                  0xFFFFEDD5),
                                               image: DecorationImage(
                                                 image: imageProvider,
                                                 fit: BoxFit.cover,
@@ -324,7 +324,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             height: 48,
                                             decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: Color(0xFFF6DED1),
+                                              color: Color(0xFFFFEDD5),
                                             ),
                                             child: const Icon(
                                               Icons.person,
@@ -339,7 +339,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             height: 48,
                                             decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: Color(0xFFF6DED1),
+                                              color: Color(0xFFFFEDD5),
                                             ),
                                           ),
                                         ),

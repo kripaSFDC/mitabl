@@ -235,13 +235,13 @@ class _RequestsPageState extends State<RequestsPage> {
                   shape: BoxShape.circle,
                   color: isDineIn
                       ? MitablColors.secondaryContainer
-                      : const Color(0xFFF6DED1),
+                      : const Color(0xFFFFEDD5),
                 ),
                 child: Icon(
                   isDineIn ? Icons.restaurant : Icons.local_mall,
                   color: isDineIn
                       ? MitablColors.onSecondaryContainer
-                      : const Color(0xFF251911),
+                      : const Color(0xFF431407),
                   size: 22,
                 ),
               ),
@@ -399,7 +399,7 @@ class _RequestsPageState extends State<RequestsPage> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(
-                      color: Color(0xFF89726B),
+                      color: Color(0xFF64748B),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: MitablRadius.pillBorder,

@@ -206,10 +206,10 @@ class _MiOrdersPageState extends State<MiOrdersPage>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEBE8E3),
+                    color: const Color(0xFFF8FAFC),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFFFDBD0),
+                      color: const Color(0xFFFFEDD5),
                       width: 2,
                     ),
                   ),

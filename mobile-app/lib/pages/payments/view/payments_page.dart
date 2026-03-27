@@ -405,7 +405,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF51694C),
+                                      color: Color(0xFF3B4C2C),
                                       fontFamily: 'Nunito',
                                     ),
                                   ),
@@ -441,7 +441,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                                 child: const Icon(
                                   Icons.savings,
                                   size: 36,
-                                  color: Color(0xFF51694C),
+                                  color: Color(0xFF3B4C2C),
                                 ),
                               ),
                             ),
@@ -455,7 +455,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF6DED1),
+                          color: const Color(0xFFFFEDD5),
                           borderRadius: BorderRadius.circular(32),
                         ),
                         child: Column(
@@ -467,7 +467,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                               children: [
                                 const Icon(
                                   Icons.security,
-                                  color: Color(0xFF6A594E),
+                                  color: Color(0xFF64748B),
                                   size: 36,
                                 ),
                                 Container(
@@ -482,7 +482,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF6A594E),
+                                      color: Color(0xFF64748B),
                                       letterSpacing: 2.0,
                                     ),
                                   ),
@@ -495,7 +495,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF251911),
+                                color: Color(0xFF431407),
                                 fontFamily: 'Nunito',
                               ),
                             ),
@@ -504,7 +504,7 @@ class _PaymentsPageState extends State<PaymentsPage> {
                               'Every transaction is encrypted and protected by miFoodi SafeCheck.',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF53443A),
+                                color: Color(0xFF475569),
                               ),
                             ),
                           ],

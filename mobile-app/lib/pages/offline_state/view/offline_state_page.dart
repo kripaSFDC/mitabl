@@ -24,7 +24,7 @@ class OfflineStatePage extends StatelessWidget {
               width: 128,
               height: 128,
               decoration: BoxDecoration(
-                color: const Color(0xFFD9C2B6).withValues(alpha: 0.20),
+                color: const Color(0xFFB9CDA4).withValues(alpha: 0.20),
                 shape: BoxShape.circle,
               ),
             ),
@@ -36,7 +36,7 @@ class OfflineStatePage extends StatelessWidget {
               width: 192,
               height: 192,
               decoration: BoxDecoration(
-                color: const Color(0xFFB3CEAB).withValues(alpha: 0.20),
+                color: const Color(0xFFB9CDA4).withValues(alpha: 0.20),
                 shape: BoxShape.circle,
               ),
             ),
@@ -120,7 +120,7 @@ class OfflineStatePage extends StatelessWidget {
                               angle: -0.05,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFFB59F)
+                                  color: const Color(0xFFFFB599)
                                       .withValues(alpha: 0.30),
                                   borderRadius: BorderRadius.circular(16),
                                 ),

@@ -295,7 +295,7 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                   Container(
                     width: double.infinity,
                     height: 1,
-                    color: const Color(0xFFE5E2DD),
+                    color: const Color(0xFFE2E8F0),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -372,7 +372,7 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
               child: SizedBox(
                 height: 52,
                 child: Material(
-                  color: const Color(0xFFE5E2DD),
+                  color: const Color(0xFFE2E8F0),
                   borderRadius: MitablRadius.pillBorder,
                   child: InkWell(
                     borderRadius: MitablRadius.pillBorder,
@@ -565,8 +565,8 @@ class _HorizontalTimeline extends StatelessWidget {
                 height: 14,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? const Color(0xFF4D6548)
-                      : const Color(0xFFE5E2DD),
+                      ? const Color(0xFF506140)
+                      : const Color(0xFFE2E8F0),
                   shape: BoxShape.circle,
                 ),
               );
@@ -578,8 +578,8 @@ class _HorizontalTimeline extends StatelessWidget {
                 child: Container(
                   height: 2,
                   color: isActive
-                      ? const Color(0xFF4D6548)
-                      : const Color(0xFFE5E2DD),
+                      ? const Color(0xFF506140)
+                      : const Color(0xFFE2E8F0),
                 ),
               );
             }
@@ -598,7 +598,7 @@ class _HorizontalTimeline extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
                 color: isActive
-                    ? const Color(0xFF4D6548)
+                    ? const Color(0xFF506140)
                     : MitablColors.onSurfaceVariant,
               ),
             );

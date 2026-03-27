@@ -133,7 +133,7 @@ class EditTimingDialog extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: isOn
                                             ? MitablColors.primary
-                                            : const Color(0xFFE5E2DD),
+                                            : const Color(0xFFE2E8F0),
                                         borderRadius:
                                             BorderRadius.circular(16),
                                       ),
@@ -200,7 +200,7 @@ class EditTimingDialog extends StatelessWidget {
                                       ),
                                       style: TextButton.styleFrom(
                                         backgroundColor:
-                                            const Color(0xFFFFDBD0),
+                                            const Color(0xFFFFEDD5),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               MitablRadius.pillBorder,
@@ -274,11 +274,11 @@ class EditTimingDialog extends StatelessWidget {
                     height: 56,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4D6548),
+                        color: const Color(0xFF506140),
                         borderRadius: MitablRadius.pillBorder,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4D6548)
+                            color: const Color(0xFF506140)
                                 .withValues(alpha: 0.20),
                             blurRadius: 16,
                             offset: const Offset(0, 4),

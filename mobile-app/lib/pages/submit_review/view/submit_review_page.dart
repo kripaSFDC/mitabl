@@ -265,7 +265,7 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
                           Icon(
                             Icons.add_a_photo_outlined,
                             size: 24,
-                            color: const Color(0xFF89726B),
+                            color: const Color(0xFF64748B),
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -273,7 +273,7 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF89726B),
+                              color: const Color(0xFF64748B),
                             ),
                           ),
                         ],
@@ -417,7 +417,7 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
     return Container(
       width: 64,
       height: 64,
-      color: const Color(0xFFE5E2DD),
+      color: const Color(0xFFE2E8F0),
       child: const Center(
         child: Icon(
           Icons.restaurant,
