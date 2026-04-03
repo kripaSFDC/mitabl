@@ -224,19 +224,21 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get install -y sshpass
 
-      - name: Copy files to server
+      - name: Copy files into the backend container
         env:
           SSH_PASS: ${{ secrets.DEPLOY_SSH_PASSWORD }}
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H 161.97.123.36 >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Sync built files to the server.
-          # --delete removes any files on the server that are no longer in the build output.
-          sshpass -p "$SSH_PASS" rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            website-public/ \
-            root@161.97.123.36:/app/public/
+          # Create a tar of the built files and pipe it directly into the container.
+          # This copies into /app/public/ inside mitabl-prod-contabo-backend-1
+          # without needing a volume mount on the host.
+          tar -cz -C website-public . | \
+            sshpass -p "$SSH_PASS" ssh \
+              -o StrictHostKeyChecking=no \
+              root@161.97.123.36 \
+              "docker exec -i mitabl-prod-contabo-backend-1 tar -xz -C /app/public/"
 
       - name: Reload Nginx inside the backend container
         env:
@@ -245,7 +247,7 @@ jobs:
           sshpass -p "$SSH_PASS" ssh \
             -o StrictHostKeyChecking=no \
             root@161.97.123.36 \
-            "docker exec \$(docker ps -qf 'name=backend') nginx -s reload"
+            "docker exec mitabl-prod-contabo-backend-1 nginx -s reload"
 
       - name: Verify deployment
         run: |
