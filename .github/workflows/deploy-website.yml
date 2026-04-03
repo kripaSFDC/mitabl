@@ -226,36 +226,28 @@ jobs:
 
       - name: Copy files to server
         env:
-          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
-          SSH_USER: root
           SSH_PASS: ${{ secrets.DEPLOY_SSH_PASSWORD }}
-          REMOTE_PATH: /app/public
         run: |
-          # Disable host-key checking for non-interactive CI use.
-          # Accept the host key on first connect and add it to known_hosts.
           mkdir -p ~/.ssh
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H 161.97.123.36 >> ~/.ssh/known_hosts 2>/dev/null
 
           # Sync built files to the server.
           # --delete removes any files on the server that are no longer in the build output.
           sshpass -p "$SSH_PASS" rsync -avz --delete \
             -e "ssh -o StrictHostKeyChecking=no" \
             website-public/ \
-            ${SSH_USER}@${SSH_HOST}:${REMOTE_PATH}/
+            root@161.97.123.36:/app/public/
 
       - name: Reload Nginx inside the backend container
         env:
-          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
           SSH_PASS: ${{ secrets.DEPLOY_SSH_PASSWORD }}
         run: |
           sshpass -p "$SSH_PASS" ssh \
             -o StrictHostKeyChecking=no \
-            root@"$SSH_HOST" \
+            root@161.97.123.36 \
             "docker exec \$(docker ps -qf 'name=backend') nginx -s reload"
 
       - name: Verify deployment
-        env:
-          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           echo "Waiting for site to respond..."
           sleep 5
