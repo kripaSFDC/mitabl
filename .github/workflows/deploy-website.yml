@@ -1,0 +1,262 @@
+name: Deploy Website
+
+on:
+  push:
+    paths:
+      # Run on any branch when website source or pipeline changes
+      - 'website/**'
+      - 'deploy/Dockerfile.backend.unified'
+      - '.github/workflows/deploy-website.yml'
+
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'deploy/Dockerfile.backend.unified'
+      - '.github/workflows/deploy-website.yml'
+
+  # Allow manual trigger from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 1. Build the static site
+  # ──────────────────────────────────────────────
+  build:
+    name: Build static site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Build static pages
+        working-directory: website
+        run: npm run build
+
+      - name: Upload built site as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-public
+          path: website/public/
+          retention-days: 1
+
+  # ──────────────────────────────────────────────
+  # 2. Test — serve the built site in Docker and
+  #    validate every page returns HTTP 200 and
+  #    contains expected content
+  # ──────────────────────────────────────────────
+  test:
+    name: Test built site
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: website-public
+          path: website/public/
+
+      - name: Build website Docker image
+        run: docker build -t mitabl-website ./website
+
+      - name: Start website container
+        run: |
+          docker run -d --name website-test -p 8080:8080 mitabl-website
+          # Wait until Nginx is ready to accept connections
+          echo "Waiting for container to be ready..."
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8080/health > /dev/null 2>&1; then
+              echo "Container is ready."
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Check every page returns HTTP 200
+        run: |
+          PAGES=(
+            "/"
+            "/about.html"
+            "/faq.html"
+            "/contact.html"
+            "/privacy-policy.html"
+            "/terms.html"
+          )
+          FAILED=0
+          for PAGE in "${PAGES[@]}"; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" "http://localhost:8080${PAGE}")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅  $PAGE → $STATUS"
+            else
+              echo "❌  $PAGE → $STATUS (expected 200)"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          exit $FAILED
+
+      - name: Check page content is not empty
+        run: |
+          PAGES=(
+            "/:mitabl"
+            "/about.html:About"
+            "/faq.html:FAQ"
+            "/contact.html:Contact"
+            "/privacy-policy.html:Privacy"
+            "/terms.html:Terms"
+          )
+          FAILED=0
+          for ENTRY in "${PAGES[@]}"; do
+            PAGE="${ENTRY%%:*}"
+            KEYWORD="${ENTRY##*:}"
+            BODY=$(curl -sf "http://localhost:8080${PAGE}" || true)
+            if echo "$BODY" | grep -qi "$KEYWORD"; then
+              echo "✅  $PAGE contains '$KEYWORD'"
+            else
+              echo "❌  $PAGE missing expected content '$KEYWORD'"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          exit $FAILED
+
+      - name: Check health endpoint
+        run: |
+          RESPONSE=$(curl -sf http://localhost:8080/health)
+          if [ "$RESPONSE" = "ok" ]; then
+            echo "✅  /health → ok"
+          else
+            echo "❌  /health returned unexpected: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Smoke-test live site at mitabl.com
+        run: |
+          PAGES=(
+            "/:mitabl"
+            "/about.html:About"
+            "/faq.html:FAQ"
+            "/contact.html:Contact"
+            "/privacy-policy.html:Privacy"
+            "/terms.html:Terms"
+          )
+          LIVE_FAILED=0
+          for ENTRY in "${PAGES[@]}"; do
+            PAGE="${ENTRY%%:*}"
+            KEYWORD="${ENTRY##*:}"
+
+            HTTP_STATUS=$(curl -o /tmp/live_body.html -s -w "%{http_code}" \
+              --max-time 10 \
+              --location \
+              "https://www.mitabl.com${PAGE}" || echo "000")
+
+            if [ "$HTTP_STATUS" = "000" ]; then
+              echo "⚠️   https://www.mitabl.com${PAGE} — unreachable (site may not be deployed yet, skipping)"
+              continue
+            fi
+
+            if [ "$HTTP_STATUS" != "200" ]; then
+              echo "❌  https://www.mitabl.com${PAGE} → HTTP $HTTP_STATUS (expected 200)"
+              LIVE_FAILED=$((LIVE_FAILED + 1))
+              continue
+            fi
+
+            if grep -qi "$KEYWORD" /tmp/live_body.html; then
+              echo "✅  https://www.mitabl.com${PAGE} → $HTTP_STATUS, contains '$KEYWORD'"
+            else
+              echo "❌  https://www.mitabl.com${PAGE} → $HTTP_STATUS but missing '$KEYWORD' in body"
+              LIVE_FAILED=$((LIVE_FAILED + 1))
+            fi
+          done
+
+          # Also check the health endpoint
+          HEALTH=$(curl -sf --max-time 10 "https://www.mitabl.com/health" || echo "unreachable")
+          if [ "$HEALTH" = "ok" ]; then
+            echo "✅  https://www.mitabl.com/health → ok"
+          elif [ "$HEALTH" = "unreachable" ]; then
+            echo "⚠️   https://www.mitabl.com/health — unreachable (skipping)"
+          else
+            echo "❌  https://www.mitabl.com/health → unexpected response: $HEALTH"
+            LIVE_FAILED=$((LIVE_FAILED + 1))
+          fi
+
+          exit $LIVE_FAILED
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker logs website-test
+
+      - name: Stop and remove test container
+        if: always()
+        run: docker rm -f website-test
+
+  # ──────────────────────────────────────────────
+  # 3. Deploy to production server via SSH
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy to production server
+    runs-on: ubuntu-latest
+    needs: test
+    environment: production
+    # Only deploy when merging/pushing directly to main
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+
+    steps:
+      - name: Download built site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: website-public
+          path: website-public/
+
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Copy files into the backend container
+        env:
+          SSH_PASS: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 161.97.123.36 >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Create a tar of the built files and pipe it directly into the container.
+          # This copies into /app/public/ inside mitabl-prod-contabo-backend-1
+          # without needing a volume mount on the host.
+          tar -cz -C website-public . | \
+            sshpass -p "$SSH_PASS" ssh \
+              -o StrictHostKeyChecking=no \
+              root@161.97.123.36 \
+              "docker exec -i mitabl-prod-contabo-backend-1 tar -xz -C /app/public/"
+
+      - name: Reload Nginx inside the backend container
+        env:
+          SSH_PASS: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASS" ssh \
+            -o StrictHostKeyChecking=no \
+            root@161.97.123.36 \
+            "docker exec mitabl-prod-contabo-backend-1 nginx -s reload"
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for site to respond..."
+          sleep 5
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 15 "https://www.mitabl.com/health" || echo "000")
+          echo "Health check status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::Deployment verification failed — /health returned $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Site is live and healthy."
