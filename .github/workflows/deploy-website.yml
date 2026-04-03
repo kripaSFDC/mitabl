@@ -143,6 +143,58 @@ jobs:
             exit 1
           fi
 
+      - name: Smoke-test live site at mitabl.com
+        run: |
+          PAGES=(
+            "/:mitabl"
+            "/about.html:About"
+            "/faq.html:FAQ"
+            "/contact.html:Contact"
+            "/privacy-policy.html:Privacy"
+            "/terms.html:Terms"
+          )
+          LIVE_FAILED=0
+          for ENTRY in "${PAGES[@]}"; do
+            PAGE="${ENTRY%%:*}"
+            KEYWORD="${ENTRY##*:}"
+
+            HTTP_STATUS=$(curl -o /tmp/live_body.html -s -w "%{http_code}" \
+              --max-time 10 \
+              --location \
+              "https://www.mitabl.com${PAGE}" || echo "000")
+
+            if [ "$HTTP_STATUS" = "000" ]; then
+              echo "⚠️   https://www.mitabl.com${PAGE} — unreachable (site may not be deployed yet, skipping)"
+              continue
+            fi
+
+            if [ "$HTTP_STATUS" != "200" ]; then
+              echo "❌  https://www.mitabl.com${PAGE} → HTTP $HTTP_STATUS (expected 200)"
+              LIVE_FAILED=$((LIVE_FAILED + 1))
+              continue
+            fi
+
+            if grep -qi "$KEYWORD" /tmp/live_body.html; then
+              echo "✅  https://www.mitabl.com${PAGE} → $HTTP_STATUS, contains '$KEYWORD'"
+            else
+              echo "❌  https://www.mitabl.com${PAGE} → $HTTP_STATUS but missing '$KEYWORD' in body"
+              LIVE_FAILED=$((LIVE_FAILED + 1))
+            fi
+          done
+
+          # Also check the health endpoint
+          HEALTH=$(curl -sf --max-time 10 "https://www.mitabl.com/health" || echo "unreachable")
+          if [ "$HEALTH" = "ok" ]; then
+            echo "✅  https://www.mitabl.com/health → ok"
+          elif [ "$HEALTH" = "unreachable" ]; then
+            echo "⚠️   https://www.mitabl.com/health — unreachable (skipping)"
+          else
+            echo "❌  https://www.mitabl.com/health → unexpected response: $HEALTH"
+            LIVE_FAILED=$((LIVE_FAILED + 1))
+          fi
+
+          exit $LIVE_FAILED
+
       - name: Dump container logs on failure
         if: failure()
         run: docker logs website-test
