@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
@@ -27,6 +29,12 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _authenticate());
   }
 
+  @override
+  void dispose() {
+    unawaited(BiometricService.instance.stopAuthentication());
+    super.dispose();
+  }
+
   Future<void> _authenticate() async {
     if (_authenticating) return;
     setState(() {
@@ -50,7 +58,9 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
     }
   }
 
-  void _bypassForSession() {
+  Future<void> _bypassForSession() async {
+    unawaited(BiometricService.instance.stopAuthentication());
+    if (!mounted) return;
     Navigator.of(context).pop(false);
   }
 
@@ -108,193 +118,207 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
 
           // Main content
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                children: [
-                  const SizedBox(height: 96), // below app bar
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 96), // below app bar
 
-                  // Identity section
-                  Column(
-                    children: [
-                      const Text(
-                        'mitabl',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w900,
-                          fontFamily: 'Nunito',
-                          color: MitablColors.primary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 4,
-                        width: 32,
-                        decoration: BoxDecoration(
-                          color: MitablColors.primary,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const Spacer(flex: 2),
-
-                  // Biometric Interaction Zone
-                  Column(
-                    children: [
-                      // Fingerprint scanner UI with tonal ring layers
-                      GestureDetector(
-                        onTap: _authenticating ? null : _authenticate,
-                        child: Stack(
-                          alignment: Alignment.center,
+                        // Identity section
+                        Column(
                           children: [
-                            // Outer glow ring
-                            Container(
-                              width: 192,
-                              height: 192,
-                              decoration: BoxDecoration(
-                                color: MitablColors.primary
-                                    .withValues(alpha: 0.10),
-                                shape: BoxShape.circle,
+                            const Text(
+                              'mitabl',
+                              style: TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                                fontFamily: 'Nunito',
+                                color: MitablColors.primary,
+                                letterSpacing: -0.5,
                               ),
                             ),
-                            // Main fingerprint circle
+                            const SizedBox(height: 8),
                             Container(
-                              width: 128,
-                              height: 128,
+                              height: 4,
+                              width: 32,
                               decoration: BoxDecoration(
-                                color: MitablColors.surfaceContainerLowest,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: MitablColors.onSurface
-                                        .withValues(alpha: 0.08),
-                                    blurRadius: 32,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
+                                color: MitablColors.primary,
+                                borderRadius: BorderRadius.circular(2),
                               ),
-                              child: _authenticating
-                                  ? const Center(
-                                      child: SizedBox(
-                                        width: 48,
-                                        height: 48,
-                                        child: CircularProgressIndicator(
-                                          color: MitablColors.primary,
-                                          strokeWidth: 3,
-                                        ),
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.fingerprint_rounded,
-                                      size: 60,
-                                      color: Color(0xFFEA580C),
-                                    ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 48),
 
-                      // Security messaging
-                      const Text(
-                        'Locked for your security',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          fontFamily: 'Nunito',
-                          color: MitablColors.onSurface,
-                          height: 1.2,
+                        SizedBox(
+                          height: constraints.maxHeight >= 700 ? 72 : 40,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      const SizedBox(
-                        width: 240,
-                        child: Text(
-                          'Use Face ID or Fingerprint to unlock',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: MitablColors.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
+
+                        // Biometric Interaction Zone
+                        Column(
+                          children: [
+                            // Fingerprint scanner UI with tonal ring layers
+                            GestureDetector(
+                              onTap: _authenticating ? null : _authenticate,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Outer glow ring
+                                  Container(
+                                    width: 192,
+                                    height: 192,
+                                    decoration: BoxDecoration(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.10),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  // Main fingerprint circle
+                                  Container(
+                                    width: 128,
+                                    height: 128,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          MitablColors.surfaceContainerLowest,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: MitablColors.onSurface
+                                              .withValues(alpha: 0.08),
+                                          blurRadius: 32,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: _authenticating
+                                        ? const Center(
+                                            child: SizedBox(
+                                              width: 48,
+                                              height: 48,
+                                              child: CircularProgressIndicator(
+                                                color: MitablColors.primary,
+                                                strokeWidth: 3,
+                                              ),
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.fingerprint_rounded,
+                                            size: 60,
+                                            color: Color(0xFFEA580C),
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 48),
+
+                            // Security messaging
+                            const Text(
+                              'Locked for your security',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                fontFamily: 'Nunito',
+                                color: MitablColors.onSurface,
+                                height: 1.2,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            const SizedBox(
+                              width: 240,
+                              child: Text(
+                                'Use Face ID or Fingerprint to unlock',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+
+                            if (_error != null) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                _error!,
+                                style: const TextStyle(
+                                  color: MitablColors.error,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
                         ),
-                      ),
 
-                      if (_error != null) ...[
-                        const SizedBox(height: 16),
-                        Text(
-                          _error!,
-                          style: const TextStyle(
-                            color: MitablColors.error,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
+                        SizedBox(
+                          height: constraints.maxHeight >= 700 ? 72 : 40,
                         ),
-                      ],
-                    ],
-                  ),
 
-                  const Spacer(flex: 3),
-
-                  // Fallback action section
-                  SizedBox(
-                    width: double.infinity,
-                    child: Column(
-                      children: [
-                        // Use Password button
+                        // Fallback action section
                         SizedBox(
                           width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: _bypassForSession,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: MitablColors.secondaryContainer,
-                              foregroundColor:
-                                  MitablColors.onSecondaryContainer,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: MitablRadius.pillBorder,
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.password_rounded, size: 18),
-                                SizedBox(width: 8),
-                                Text(
-                                  'USE PASSWORD',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 2.0,
+                          child: Column(
+                            children: [
+                              // Use Password button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton(
+                                  onPressed: _bypassForSession,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        MitablColors.secondaryContainer,
+                                    foregroundColor:
+                                        MitablColors.onSecondaryContainer,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: MitablRadius.pillBorder,
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.password_rounded, size: 18),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'USE PASSWORD',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 2.0,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Encryption footer
+                              const Text(
+                                'YOUR DATA IS PROTECTED BY MITABL ENCRYPTION',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.3,
+                                  color: Color(0xFF64748B),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Encryption footer
-                        const Text(
-                          'YOUR DATA IS PROTECTED BY MITABL ENCRYPTION',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                            color: Color(0xFF64748B),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],

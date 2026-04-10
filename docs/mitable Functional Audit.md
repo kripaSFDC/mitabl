@@ -136,7 +136,7 @@ stateDiagram-v2
 **Alternative / edge paths**
 
 - **Case: role disabled.** Switching or activation returns a disabled-role error and UI shows a support-oriented blocked message.
-- **Case: onboarding incomplete.** The role exists but remains in onboarding; the app keeps showing “Continue micook setup” rather than enabling full switching.
+- **Case: onboarding incomplete.** The role exists but remains in onboarding; the app keeps showing “Register mikitchen” rather than enabling full switching.
 - **Case: Stripe vendor provisioning fails.** Vendor account completion endpoint returns `provision_error`, so the account can remain partially onboarded.
 - **Case: unsupported role or admin identity.** Mobile authentication excludes admin-only roles and rejects unsupported role combinations.
 

@@ -87,6 +87,21 @@ class _PersonalTabViewState extends State<PersonalTabView> {
     }
 
     try {
+      if (enabled) {
+        final verified = await BiometricService.instance.authenticate(
+          reason: 'Confirm biometric lock setup',
+        );
+        if (!verified) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Biometric verification failed. Lock not enabled.'),
+            ),
+          );
+          return;
+        }
+      }
+
       await BiometricService.instance.setEnabled(enabled);
       if (!mounted) return;
       setState(() => _biometricEnabled = enabled);
@@ -105,8 +120,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
   // ─────────────────────────────────────────────────────────────────────────
 
   AvailableRoleMembership? _targetMifoodiRole(ProfileCookState state) {
-    final availableRoles =
-        state.cookProfile?.data?.availableRoles ?? const [];
+    final availableRoles = state.cookProfile?.data?.availableRoles ?? const [];
     for (final role in availableRoles) {
       final normalizedRole = role.role?.trim().toLowerCase();
       if (role.roleId == AppConstants.FOODI ||
@@ -347,9 +361,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
               if (email.isNotEmpty || phone.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  [email, phone]
-                      .where((s) => s.isNotEmpty)
-                      .join('  |  '),
+                  [email, phone].where((s) => s.isNotEmpty).join('  |  '),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
@@ -475,9 +487,8 @@ class _PersonalTabViewState extends State<PersonalTabView> {
                         Switch(
                           value: _biometricEnabled,
                           activeTrackColor: MitablColors.primary,
-                          onChanged: _biometricAvailable
-                              ? _onBiometricChanged
-                              : null,
+                          onChanged:
+                              _biometricAvailable ? _onBiometricChanged : null,
                         ),
                       ],
                     ),
@@ -664,8 +675,7 @@ class _PersonalTabViewState extends State<PersonalTabView> {
         child: Icon(
           icon,
           size: 20,
-          color:
-              filled ? MitablColors.primary : MitablColors.onSurfaceVariant,
+          color: filled ? MitablColors.primary : MitablColors.onSurfaceVariant,
         ),
       ),
     );

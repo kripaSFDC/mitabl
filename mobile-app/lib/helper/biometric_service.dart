@@ -23,8 +23,8 @@ class BiometricService {
     try {
       final isSupported = await _auth.isDeviceSupported();
       if (!isSupported) return false;
-      final canCheck = await _auth.canCheckBiometrics;
-      return canCheck;
+      final availableBiometrics = await _auth.getAvailableBiometrics();
+      return availableBiometrics.isNotEmpty;
     } catch (e) {
       AppLogger.warn('BiometricService.isAvailable error: $e');
       return false;
@@ -50,18 +50,26 @@ class BiometricService {
   }) async {
     try {
       final available = await isAvailable();
-      if (!available) return true; // Fail open if not available.
+      if (!available) return false;
 
       return await _auth.authenticate(
         localizedReason: reason,
         options: const AuthenticationOptions(
-          biometricOnly: false, // allow device PIN as fallback
-          stickyAuth: true,
+          biometricOnly: true,
+          stickyAuth: false,
         ),
       );
     } catch (e) {
       AppLogger.error('BiometricService.authenticate error', e);
       return false;
+    }
+  }
+
+  Future<void> stopAuthentication() async {
+    try {
+      await _auth.stopAuthentication();
+    } catch (e) {
+      AppLogger.warn('BiometricService.stopAuthentication error: $e');
     }
   }
 }

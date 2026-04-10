@@ -105,6 +105,8 @@ class AppView extends StatefulWidget {
 
 class _AppViewState extends State<AppView> with WidgetsBindingObserver {
   NavigatorState? get _navigator => navigatorKey.currentState;
+  static const Duration _minBackgroundDurationForBiometricLock =
+      Duration(seconds: 2);
 
   @override
   void initState() {
@@ -133,37 +135,65 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
   }
 
   bool _isBiometricLockShowing = false;
+  bool _isBiometricLockFlowRunning = false;
   bool _biometricBypassedForSession = false;
+  DateTime? _lastPausedAt;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
+      _lastPausedAt = DateTime.now();
       _biometricBypassedForSession = false;
       return;
     }
 
     if (state == AppLifecycleState.resumed) {
+      final lastPausedAt = _lastPausedAt;
+      if (lastPausedAt == null) return;
+
+      final backgroundDuration = DateTime.now().difference(lastPausedAt);
+      if (backgroundDuration < _minBackgroundDurationForBiometricLock) {
+        return;
+      }
+
       _showBiometricLockIfNeeded();
     }
   }
 
   Future<void> _showBiometricLockIfNeeded() async {
-    if (_isBiometricLockShowing || _biometricBypassedForSession) return;
+    if (!mounted ||
+        _isBiometricLockShowing ||
+        _isBiometricLockFlowRunning ||
+        _biometricBypassedForSession) {
+      return;
+    }
 
-    final enabled = await BiometricService.instance.isEnabled();
-    if (!enabled) return;
+    final authState = context.read<AuthenticationBloc>().state;
+    if (authState.status != AuthenticationStatus.authenticated) {
+      return;
+    }
 
-    final navigator = _navigator;
-    if (navigator == null || !mounted) return;
+    _isBiometricLockFlowRunning = true;
+    try {
+      final enabled = await BiometricService.instance.isEnabled();
+      if (!enabled) return;
 
-    _isBiometricLockShowing = true;
-    final unlocked = await navigator.push<bool>(BiometricLockPage.route());
-    _isBiometricLockShowing = false;
-    if (unlocked == false) {
-      _biometricBypassedForSession = true;
+      final available = await BiometricService.instance.isAvailable();
+      if (!available) return;
+
+      final navigator = _navigator;
+      if (navigator == null || !mounted) return;
+
+      _isBiometricLockShowing = true;
+      final unlocked = await navigator.push<bool>(BiometricLockPage.route());
+      if (unlocked == false) {
+        _biometricBypassedForSession = true;
+      }
+    } finally {
+      _isBiometricLockShowing = false;
+      _isBiometricLockFlowRunning = false;
     }
   }
-
 
   void _handleAuthenticationState(AuthenticationState state) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -179,10 +209,10 @@ class _AppViewState extends State<AppView> with WidgetsBindingObserver {
         case AuthenticationStatus.authenticated:
           NotificationService.instance.syncTokenWithBackendIfPossible();
           final role = state.user?.data?.user?.role;
-          final routeName = AppConstants.isCookRole(role)
-              ? '/DashboardCook'
-              : '/HomePage';
+          final routeName =
+              AppConstants.isCookRole(role) ? '/DashboardCook' : '/HomePage';
           navigator.pushNamedAndRemoveUntil(routeName, (route) => false);
+          _showBiometricLockIfNeeded();
           break;
 
         case AuthenticationStatus.unauthenticated:

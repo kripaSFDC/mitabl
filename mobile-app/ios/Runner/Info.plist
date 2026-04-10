@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires to access camera to capture photos to upload</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Use Face ID to quickly and securely unlock your account in Mitabl.</string>
 	<key>LSApplicationQueriesSchemes</key>
     <array>
       <string>sms</string>

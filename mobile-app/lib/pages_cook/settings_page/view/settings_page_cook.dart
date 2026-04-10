@@ -50,7 +50,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     // Build role-specific preference key based on route arguments
     final roleId = widget.routeArguments?.id ?? 'cook';
     _notificationsPreferenceKey = 'settings_notifications_enabled_$roleId';
-    
+
     _emailController = TextEditingController();
     _subjectController = TextEditingController();
     _descriptionController = TextEditingController();
@@ -176,20 +176,24 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
       // Check if response was successful
       final status = result['status'];
-      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
-      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
-      
+      final statusCode =
+          (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true ||
+          (statusCode >= 200 && statusCode < 300);
+
       if (!isSuccess) {
-        final errorMsg = result['message'] ?? result['isError'] ?? result['error'] ?? 'Failed to create ticket';
+        final errorMsg = result['message'] ??
+            result['isError'] ??
+            result['error'] ??
+            'Failed to create ticket';
         _showSnackBar('Error: $errorMsg');
         return;
       }
 
-        final data = result['data'];
-        final dataMap = data is Map<String, dynamic> ? data : null;
-        final ticketId = dataMap?['id'] ?? result['id'];
-        final ticketNumber =
-          dataMap?['ticket_number'] ?? result['ticket_number'];
+      final data = result['data'];
+      final dataMap = data is Map<String, dynamic> ? data : null;
+      final ticketId = dataMap?['id'] ?? result['id'];
+      final ticketNumber = dataMap?['ticket_number'] ?? result['ticket_number'];
 
       // Clear the form
       _emailController.clear();
@@ -215,7 +219,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
   Future<void> _loadUserTickets({int page = 1, bool append = false}) async {
     final repository = context.read<SupportTicketRepository>();
-    
+
     if (!append) {
       setState(() {
         _loadingTickets = true;
@@ -231,9 +235,11 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
       // Check for API errors
       final status = result['status'];
-      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
-      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
-      
+      final statusCode =
+          (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true ||
+          (statusCode >= 200 && statusCode < 300);
+
       if (!isSuccess) {
         // Silent fail - just update empty list if first page, don't show error snackbar
         if (!append) {
@@ -245,10 +251,10 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
       // Extract pagination info
       final paginationData = result['pagination'] as Map<String, dynamic>?;
       final totalPages = (paginationData?['last_page'] as num?)?.toInt() ?? 1;
-      
+
       final data = result['data'];
       final tickets = <Map<String, dynamic>>[];
-      
+
       if (data is List) {
         for (final item in data) {
           if (item is Map<String, dynamic>) {
@@ -271,7 +277,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
           }
         }
       }
-      
+
       setState(() {
         if (append) {
           _userTickets.addAll(tickets);
@@ -295,7 +301,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     if (_currentTicketPage >= _totalTicketPages || _loadingMoreTickets) {
       return; // Already loaded all pages or already loading
     }
-    
+
     setState(() => _loadingMoreTickets = true);
     try {
       await _loadUserTickets(page: _currentTicketPage + 1, append: true);
@@ -307,8 +313,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _replyToSupportTicket() async {
     final selectedTicket = _selectedTicketId;
     final ticketId = selectedTicket is num
-      ? selectedTicket.toInt()
-      : int.tryParse(selectedTicket?.toString() ?? '');
+        ? selectedTicket.toInt()
+        : int.tryParse(selectedTicket?.toString() ?? '');
     if (ticketId == null) {
       _showSnackBar('No ticket selected.');
       return;
@@ -336,11 +342,16 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
       // Check if reply was successful
       final status = result['status'];
-      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
-      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
-      
+      final statusCode =
+          (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true ||
+          (statusCode >= 200 && statusCode < 300);
+
       if (!isSuccess) {
-        final errorMsg = result['message'] ?? result['isError'] ?? result['error'] ?? 'Failed to send reply';
+        final errorMsg = result['message'] ??
+            result['isError'] ??
+            result['error'] ??
+            'Failed to send reply';
         _showSnackBar('Error: $errorMsg');
         return;
       }
@@ -385,7 +396,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   // Header
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
                           color: MitablColors.outlineVariant,
@@ -412,8 +423,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   // Content
                   Expanded(
                     child: _selectedTicketId == null
-                        ? _buildNewTicketForm(setModalState)
-                        : _buildTicketDetailsView(setModalState),
+                        ? _buildNewTicketForm(setModalState, context)
+                        : _buildTicketDetailsView(setModalState, context),
                   ),
                 ],
               ),
@@ -424,7 +435,10 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     );
   }
 
-  Widget _buildNewTicketForm(StateSetter setModalState) {
+  Widget _buildNewTicketForm(
+    StateSetter setModalState,
+    BuildContext modalContext,
+  ) {
     return SingleChildScrollView(
       padding: EdgeInsets.only(
         left: 16,
@@ -489,6 +503,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   ? null
                   : () async {
                       await _submitSupportTicket();
+                      if (!modalContext.mounted) return;
                       setModalState(() {});
                     },
               style: ElevatedButton.styleFrom(
@@ -501,8 +516,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
                   : const Text(
@@ -534,14 +548,14 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 20),
               alignment: Alignment.center,
-              child: Column(
+              child: const Column(
                 children: [
                   Icon(
                     Icons.chat_bubble_outline,
                     size: 48,
                     color: MitablColors.outlineVariant,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text(
                     'No support tickets yet',
                     style: TextStyle(
@@ -561,15 +575,18 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
               itemBuilder: (context, index) {
                 final ticket = _userTickets[index];
                 final ticketId = ticket['id'];
-                
+
                 // Skip rendering if ticket ID is missing
                 if (ticketId == null) {
                   return const SizedBox.shrink();
                 }
-                
-                final ticketNumber = ticket['ticket_number']?.toString() ?? 'N/A';
-                final subject = (ticket['subject']?.toString() ?? 'No Subject').trim();
-                final status = (ticket['status']?.toString() ?? 'unknown').toLowerCase();
+
+                final ticketNumber =
+                    ticket['ticket_number']?.toString() ?? 'N/A';
+                final subject =
+                    (ticket['subject']?.toString() ?? 'No Subject').trim();
+                final status =
+                    (ticket['status']?.toString() ?? 'unknown').toLowerCase();
                 final statusColor = _getStatusColor(status);
 
                 return Card(
@@ -599,7 +616,13 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: _loadingMoreTickets ? null : _loadMoreTickets,
+                  onPressed: _loadingMoreTickets
+                      ? null
+                      : () async {
+                          await _loadMoreTickets();
+                          if (!modalContext.mounted) return;
+                          setModalState(() {});
+                        },
                   child: _loadingMoreTickets
                       ? const SizedBox(
                           height: 20,
@@ -618,7 +641,10 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     );
   }
 
-  Widget _buildTicketDetailsView(StateSetter setModalState) {
+  Widget _buildTicketDetailsView(
+    StateSetter setModalState,
+    BuildContext modalContext,
+  ) {
     final ticket = _findTicketById(_selectedTicketId);
 
     if (ticket == null) {
@@ -634,7 +660,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     final subject = ticket['subject']?.toString() ?? 'No Subject';
     final description = ticket['description']?.toString() ?? '';
     final status = ticket['status']?.toString() ?? 'unknown';
-    
+
     // Safely extract messages list with type checking
     final messagesList = ticket['messages'];
     final messages = <Map<String, dynamic>>[];
@@ -735,8 +761,11 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final message = messages[index];
-                final senderType = (message['sender_type'] as String?)?.toLowerCase() ?? 'user';
-                final messageText = (message['message'] as String?)?.trim() ?? '';
+                final senderType =
+                    (message['sender_type'] as String?)?.toLowerCase() ??
+                        'user';
+                final messageText =
+                    (message['message'] as String?)?.trim() ?? '';
                 final createdAtRaw = message['created_at'] as String?;
                 final isSupport = senderType != 'user';
 
@@ -748,7 +777,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     if (createdAt != null) {
                       final now = DateTime.now();
                       final difference = now.difference(createdAt);
-                      
+
                       if (difference.inMinutes < 1) {
                         createdAtFormatted = 'Just now';
                       } else if (difference.inMinutes < 60) {
@@ -794,7 +823,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                       const SizedBox(height: 4),
                       Text(
                         createdAtFormatted,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           color: MitablColors.onSurfaceVariant,
                         ),
@@ -808,7 +837,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
           ],
 
           // Reply section - only show for open tickets
-          if (status.toLowerCase() != 'closed' && status.toLowerCase() != 'resolved') ...[
+          if (status.toLowerCase() != 'closed' &&
+              status.toLowerCase() != 'resolved') ...[
             const Divider(),
             const SizedBox(height: 12),
             TextField(
@@ -830,6 +860,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     ? null
                     : () async {
                         await _replyToSupportTicket();
+                        if (!modalContext.mounted) return;
                         setModalState(() {});
                       },
                 style: ElevatedButton.styleFrom(
@@ -1024,10 +1055,10 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     // Avatar with edit button
                     Stack(
                       children: [
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 48,
                           backgroundColor: MitablColors.surfaceContainerLow,
-                          child: const Icon(Icons.person,
+                          child: Icon(Icons.person,
                               size: 48, color: MitablColors.onSurfaceVariant),
                         ),
                         Positioned(
@@ -1047,7 +1078,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      widget.routeArguments?.id == 'foodie' ? 'Foodie Profile' : 'Chef Profile',
+                      widget.routeArguments?.id == 'foodie'
+                          ? 'Foodie Profile'
+                          : 'Chef Profile',
                       style: const TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w800,
@@ -1302,7 +1335,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         elevation: 4,
                         shadowColor:
                             MitablColors.primary.withValues(alpha: 0.2),
-                        shape: RoundedRectangleBorder(
+                        shape: const RoundedRectangleBorder(
                           borderRadius: MitablRadius.pillBorder,
                         ),
                       ),
@@ -1336,7 +1369,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         foregroundColor: const Color(0xFF991B1B),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         elevation: 0,
-                        shape: RoundedRectangleBorder(
+                        shape: const RoundedRectangleBorder(
                           borderRadius: MitablRadius.pillBorder,
                         ),
                       ),
@@ -1389,7 +1422,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: MitablColors.surfaceContainerLowest,
                   ),

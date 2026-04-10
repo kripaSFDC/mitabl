@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
 import '../element/checklist_item_tile.dart';
@@ -30,6 +35,62 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
   };
 
   final List<PlatformFile> _uploadedFiles = [];
+  bool _openingSavedKitchen = false;
+
+  Future<void> _openSavedKitchen() async {
+    if (_openingSavedKitchen) return;
+
+    setState(() => _openingSavedKitchen = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final response = await userRepository.getCookProfile();
+      if (!mounted) return;
+
+      if (response.statusCode != 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to load saved mikitchn right now.'),
+          ),
+        );
+        return;
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Saved mikitchn data is unavailable right now.'),
+          ),
+        );
+        return;
+      }
+
+      final profile = GetCookProfileModel.fromJson(decoded);
+      final kitchen = profile.data?.kitchen;
+      if (kitchen == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No saved mikitchn found yet.')),
+        );
+        return;
+      }
+
+      await Navigator.of(context).pushNamed(
+        '/EditKitchenProfile',
+        arguments: RouteArguments(kitchen: kitchen),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open saved mikitchn right now.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _openingSavedKitchen = false);
+      }
+    }
+  }
 
   Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
@@ -74,7 +135,8 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                       if (Navigator.of(context).canPop()) {
                         Navigator.of(context).pop();
                       } else {
-                        Navigator.of(context).pushNamedAndRemoveUntil('/HomePage', (r) => false);
+                        Navigator.of(context)
+                            .pushNamedAndRemoveUntil('/HomePage', (r) => false);
                       }
                     },
                     icon: const Icon(Icons.arrow_back,
@@ -180,25 +242,31 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                         const SizedBox(height: 32),
                         SizedBox(
                           height: 52,
-                          child: ElevatedButton(
-                            onPressed: _pickFiles,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: MitablColors.primary,
-                              foregroundColor: MitablColors.onPrimary,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: MitablRadius.pillBorder,
+                          child: Semantics(
+                            button: true,
+                            label: 'Browse files',
+                            hint:
+                                'Choose certification files from your device.',
+                            child: ElevatedButton(
+                              onPressed: _pickFiles,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: MitablColors.primary,
+                                foregroundColor: MitablColors.onPrimary,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: MitablRadius.pillBorder,
+                                ),
+                                elevation: 4,
+                                shadowColor: MitablColors.primary
+                                    .withValues(alpha: 0.20),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 32),
                               ),
-                              elevation: 4,
-                              shadowColor:
-                                  MitablColors.primary.withValues(alpha: 0.20),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 32),
-                            ),
-                            child: const Text(
-                              'Browse Files',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
+                              child: const Text(
+                                'Browse Files',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                           ),
@@ -257,8 +325,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                         SizedBox(height: 16),
                         _ChecklistRow(
                           title: 'Public Liability Insurance',
-                          subtitle:
-                              'Minimum coverage of \$10M recommended.',
+                          subtitle: 'Minimum coverage of \$10M recommended.',
                           isComplete: false,
                         ),
                       ],
@@ -347,40 +414,67 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                   SizedBox(
                     width: double.infinity,
                     height: 56,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: MitablColors.primaryGradient,
-                        borderRadius: MitablRadius.pillBorder,
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                MitablColors.primary.withValues(alpha: 0.20),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
+                    child: Semantics(
+                      button: true,
+                      label: 'Complete setup',
+                      hint:
+                          'Finish certification and continue to cook dashboard.',
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: MitablColors.primaryGradient,
                           borderRadius: MitablRadius.pillBorder,
-                          onTap: () {
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              '/DashboardCook',
-                              (route) => false,
-                            );
-                          },
-                          child: const Center(
-                            child: Text(
-                              'Complete Setup',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: MitablColors.onPrimary,
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  MitablColors.primary.withValues(alpha: 0.20),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: MitablRadius.pillBorder,
+                            onTap: () {
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/DashboardCook',
+                                (route) => false,
+                              );
+                            },
+                            child: const Center(
+                              child: Text(
+                                'Complete Setup',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: MitablColors.onPrimary,
+                                ),
                               ),
                             ),
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Semantics(
+                      button: true,
+                      label: 'Open saved mikitchn',
+                      hint: 'Open your previously saved kitchen profile.',
+                      child: TextButton.icon(
+                        onPressed:
+                            _openingSavedKitchen ? null : _openSavedKitchen,
+                        icon: _openingSavedKitchen
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.storefront_outlined),
+                        label: const Text('Open Saved mikitchn'),
                       ),
                     ),
                   ),

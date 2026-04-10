@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
@@ -25,7 +26,63 @@ class SetupPayoutsPage extends StatefulWidget {
 class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
   bool _isLoading = false;
   bool _stripeCompleted = false;
+  bool _openingSavedKitchen = false;
   String? _errorMessage;
+
+  Future<void> _openSavedKitchen() async {
+    if (_openingSavedKitchen) return;
+
+    setState(() => _openingSavedKitchen = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final response = await userRepository.getCookProfile();
+      if (!mounted) return;
+
+      if (response.statusCode != 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to load saved mikitchn right now.'),
+          ),
+        );
+        return;
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Saved mikitchn data is unavailable right now.'),
+          ),
+        );
+        return;
+      }
+
+      final profile = GetCookProfileModel.fromJson(decoded);
+      final kitchen = profile.data?.kitchen;
+      if (kitchen == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No saved mikitchn found yet.')),
+        );
+        return;
+      }
+
+      await Navigator.of(context).pushNamed(
+        '/EditKitchenProfile',
+        arguments: RouteArguments(kitchen: kitchen),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open saved mikitchn right now.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _openingSavedKitchen = false);
+      }
+    }
+  }
 
   Future<void> _connectWithStripe() async {
     setState(() {
@@ -43,9 +100,8 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final url = body['data']?['url'] as String? ??
-            body['url'] as String? ??
-            '';
+        final url =
+            body['data']?['url'] as String? ?? body['url'] as String? ?? '';
 
         if (url.isNotEmpty) {
           final launched = await launchUrl(
@@ -107,7 +163,8 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                       if (Navigator.of(context).canPop()) {
                         Navigator.of(context).pop();
                       } else {
-                        Navigator.of(context).pushNamedAndRemoveUntil('/HomePage', (r) => false);
+                        Navigator.of(context)
+                            .pushNamedAndRemoveUntil('/HomePage', (r) => false);
                       }
                     },
                     icon: const Icon(Icons.arrow_back,
@@ -266,8 +323,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: MitablColors.onSurface
-                              .withValues(alpha: 0.04),
+                          color: MitablColors.onSurface.withValues(alpha: 0.04),
                           blurRadius: 48,
                           offset: const Offset(0, 12),
                         ),
@@ -304,62 +360,66 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
 
                         if (!_stripeCompleted) ...[
                           // Connect with Stripe button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: MitablColors.primaryGradient,
-                                borderRadius: MitablRadius.pillBorder,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: MitablColors.primary
-                                        .withValues(alpha: 0.20),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
+                          Semantics(
+                            button: true,
+                            enabled: !_isLoading,
+                            label: 'Connect with Stripe',
+                            hint:
+                                'Opens secure Stripe onboarding in your browser.',
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: MitablColors.primaryGradient,
                                   borderRadius: MitablRadius.pillBorder,
-                                  onTap:
-                                      _isLoading ? null : _connectWithStripe,
-                                  child: Center(
-                                    child: _isLoading
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child:
-                                                CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : const Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Connect with Stripe',
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight:
-                                                      FontWeight.w700,
-                                                  color: MitablColors
-                                                      .onPrimary,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: MitablColors.primary
+                                          .withValues(alpha: 0.20),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: MitablRadius.pillBorder,
+                                    onTap:
+                                        _isLoading ? null : _connectWithStripe,
+                                    child: Center(
+                                      child: _isLoading
+                                          ? const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Connect with Stripe',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w700,
+                                                    color:
+                                                        MitablColors.onPrimary,
+                                                  ),
                                                 ),
-                                              ),
-                                              SizedBox(width: 12),
-                                              Icon(
-                                                Icons.arrow_forward,
-                                                color:
-                                                    MitablColors.onPrimary,
-                                                size: 20,
-                                              ),
-                                            ],
-                                          ),
+                                                SizedBox(width: 12),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  color: MitablColors.onPrimary,
+                                                  size: 20,
+                                                ),
+                                              ],
+                                            ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -367,29 +427,34 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                           ),
                         ] else ...[
                           // Next step
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: MitablColors.primaryGradient,
-                                borderRadius: MitablRadius.pillBorder,
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
+                          Semantics(
+                            button: true,
+                            label: 'Next. Certification',
+                            hint: 'Continues to kitchen certification setup.',
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  gradient: MitablColors.primaryGradient,
                                   borderRadius: MitablRadius.pillBorder,
-                                  onTap: () {
-                                    Navigator.of(context)
-                                        .pushNamed('/KitchenCertification');
-                                  },
-                                  child: const Center(
-                                    child: Text(
-                                      'Next: Certification',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: MitablColors.onPrimary,
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: MitablRadius.pillBorder,
+                                    onTap: () {
+                                      Navigator.of(context)
+                                          .pushNamed('/KitchenCertification');
+                                    },
+                                    child: const Center(
+                                      child: Text(
+                                        'Next: Certification',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: MitablColors.onPrimary,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -447,6 +512,27 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Semantics(
+                      button: true,
+                      label: 'Open saved mikitchn',
+                      hint: 'Opens your previously saved kitchen profile.',
+                      child: TextButton.icon(
+                        onPressed:
+                            _openingSavedKitchen ? null : _openSavedKitchen,
+                        icon: _openingSavedKitchen
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.storefront_outlined),
+                        label: const Text('Open Saved mikitchn'),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -526,8 +612,7 @@ class _ProgressStepper extends StatelessWidget {
                     steps[i],
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight:
-                          isActive ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                       color: isActive
                           ? MitablColors.primary
                           : MitablColors.onSurfaceVariant,

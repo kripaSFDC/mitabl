@@ -235,7 +235,14 @@ class EditKitchenProfileCubit extends Cubit<EditKitchenProfileState> {
         //       (route) => false,
         // );
       } else {
-        Helper.showToast(ApiErrorParser.parseMessage(response.body));
+        Helper.showToast(
+          ApiErrorParser.parseMessage(
+            response.body,
+            statusCode: response.statusCode,
+            fallbackMessage:
+                'Unable to save mikitchn right now. Please try again.',
+          ),
+        );
         emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
       }
     } on Exception {

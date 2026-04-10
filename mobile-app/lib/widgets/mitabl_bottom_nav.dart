@@ -48,31 +48,41 @@ class MitablBottomNav extends StatelessWidget {
               final isActive = index == currentIndex;
 
               return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(index),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isActive ? item.activeIcon : item.icon,
-                        size: 24,
-                        color: isActive
-                            ? MitablColors.primary
-                            : MitablColors.onSurfaceVariant,
+                child: Semantics(
+                  button: true,
+                  selected: isActive,
+                  label: '${item.label} tab',
+                  hint: isActive
+                      ? 'Current tab'
+                      : 'Double tap to switch to ${item.label}',
+                  child: InkWell(
+                    onTap: () => onTap(index),
+                    child: ExcludeSemantics(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isActive ? item.activeIcon : item.icon,
+                            size: 24,
+                            color: isActive
+                                ? MitablColors.primary
+                                : MitablColors.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight:
+                                  isActive ? FontWeight.w700 : FontWeight.w400,
+                              color: isActive
+                                  ? MitablColors.primary
+                                  : MitablColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight:
-                              isActive ? FontWeight.w700 : FontWeight.w400,
-                          color: isActive
-                              ? MitablColors.primary
-                              : MitablColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               );

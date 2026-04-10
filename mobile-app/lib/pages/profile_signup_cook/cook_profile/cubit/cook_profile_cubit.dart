@@ -152,7 +152,12 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         emit(
           state.copyWith(
             statusApi: FormzStatus.submissionFailure,
-            serverMessage: ApiErrorParser.parseMessage(response.body),
+            serverMessage: ApiErrorParser.parseMessage(
+              response.body,
+              statusCode: response.statusCode,
+              fallbackMessage:
+                  'Unable to save mikitchn right now. Please try again.',
+            ),
           ),
         );
       }

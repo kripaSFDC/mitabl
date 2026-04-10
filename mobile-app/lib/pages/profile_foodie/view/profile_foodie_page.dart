@@ -90,6 +90,21 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     }
 
     try {
+      if (enabled) {
+        final verified = await BiometricService.instance.authenticate(
+          reason: 'Confirm biometric lock setup',
+        );
+        if (!verified) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Biometric verification failed. Lock not enabled.'),
+            ),
+          );
+          return;
+        }
+      }
+
       await BiometricService.instance.setEnabled(enabled);
       if (!mounted) return;
       setState(() => _biometricEnabled = enabled);
@@ -200,14 +215,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   String _onboardingStepDescription(String? step) {
     switch (step) {
       case 'kitchen_profile':
-        return 'Complete your mikitchn profile to continue micook setup.';
+        return 'Complete your mikitchn profile to register mikitchen.';
       case 'certificate':
-        return 'Upload your kitchen certification to continue micook setup.';
+        return 'Upload your kitchen certification to register mikitchen.';
       case 'payout_setup':
       case 'vendor_account':
-        return 'Finish payout account setup to continue micook setup.';
+        return 'Finish payout account setup to register mikitchen.';
       default:
-        return 'Continue micook setup from your profile to unlock switching.';
+        return 'Register mikitchen from your profile to unlock switching.';
     }
   }
 
@@ -219,7 +234,7 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
     final ctaState = _micookCtaState(state);
     if (ctaState.disabled) return 'micook disabled';
     if (!ctaState.exists) return 'Register as micook';
-    if (ctaState.onboarding) return 'Continue micook setup';
+    if (ctaState.onboarding) return 'Register mikitchen';
     if (ctaState.active) return 'Switch to micook';
     return 'Register as micook';
   }

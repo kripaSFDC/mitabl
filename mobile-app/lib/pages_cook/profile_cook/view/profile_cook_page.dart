@@ -22,8 +22,8 @@ class _ProfileCookPageState extends State<ProfileCookPage>
     _tabController = TabController(vsync: this, length: 2);
     _tabController.addListener(() {
       context.read<ProfileCookCubit>().onTabChanged(
-        index: _tabController.index,
-      );
+            index: _tabController.index,
+          );
     });
   }
 
@@ -42,19 +42,23 @@ class _ProfileCookPageState extends State<ProfileCookPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Heading ──
-            const Padding(
-              padding: EdgeInsets.only(
-                left: MitablSpacing.pagePadding,
-                top: 24,
-                bottom: 16,
-              ),
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 24,
-                  color: MitablColors.onSurface,
+            Semantics(
+              header: true,
+              label: 'Profile',
+              child: const Padding(
+                padding: EdgeInsets.only(
+                  left: MitablSpacing.pagePadding,
+                  top: 24,
+                  bottom: 16,
+                ),
+                child: Text(
+                  'Profile',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 24,
+                    color: MitablColors.onSurface,
+                  ),
                 ),
               ),
             ),
@@ -73,33 +77,53 @@ class _ProfileCookPageState extends State<ProfileCookPage>
                       borderRadius: BorderRadius.circular(MitablRadius.pill),
                     ),
                     padding: const EdgeInsets.all(4),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicator: BoxDecoration(
-                        color: MitablColors.primary,
-                        borderRadius:
+                    child: Semantics(
+                      container: true,
+                      label: 'Profile sections',
+                      hint:
+                          'Swipe left or right to switch between Personal View and mikitchn tabs.',
+                      child: TabBar(
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          color: MitablColors.primary,
+                          borderRadius:
+                              BorderRadius.circular(MitablRadius.pill),
+                        ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        labelColor: MitablColors.onPrimary,
+                        unselectedLabelColor: MitablColors.onSurface,
+                        labelStyle: const TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontFamily: 'DM Sans',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                        splashBorderRadius:
                             BorderRadius.circular(MitablRadius.pill),
+                        tabs: [
+                          Tab(
+                            child: Semantics(
+                              label: 'Personal View tab',
+                              child: const ExcludeSemantics(
+                                child: Text('Personal View'),
+                              ),
+                            ),
+                          ),
+                          Tab(
+                            child: Semantics(
+                              label: 'mikitchn tab',
+                              child: const ExcludeSemantics(
+                                child: Text('mikitchn'),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      labelColor: MitablColors.onPrimary,
-                      unselectedLabelColor: MitablColors.onSurface,
-                      labelStyle: const TextStyle(
-                        fontFamily: 'DM Sans',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontFamily: 'DM Sans',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                      splashBorderRadius:
-                          BorderRadius.circular(MitablRadius.pill),
-                      tabs: const [
-                        Tab(text: 'Personal View'),
-                        Tab(text: 'mikitchn'),
-                      ],
                     ),
                   );
                 },

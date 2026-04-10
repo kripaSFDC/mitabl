@@ -18,6 +18,7 @@ class RepositoryHttpException implements Exception {
       statusCode: statusCode,
       message: ApiErrorParser.parseMessage(
         body,
+        statusCode: statusCode,
         keys: const ['isError', 'message', 'error'],
         fallbackMessage: fallbackMessage,
       ),

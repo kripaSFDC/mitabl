@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/model/timing_model.dart';
 import 'package:mitabl_user/pages/profile_signup_cook/cook_profile/element/timing_dialog.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
+import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/mitabl_button.dart';
 import 'package:mitabl_user/widgets/mitabl_text_field.dart';
@@ -42,6 +44,73 @@ class CookProfilePage extends StatefulWidget {
 class _CookProfilePage extends State<CookProfilePage>
     with TickerProviderStateMixin {
   _CookProfilePage();
+
+  bool _openingSavedKitchen = false;
+
+  Future<void> _openSavedKitchen() async {
+    if (_openingSavedKitchen) return;
+
+    setState(() => _openingSavedKitchen = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final response = await userRepository.getCookProfile();
+
+      if (!mounted) return;
+
+      if (response.statusCode != 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to load saved mikitchn right now.'),
+          ),
+        );
+        return;
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Saved mikitchn data is unavailable right now.'),
+          ),
+        );
+        return;
+      }
+
+      final profile = GetCookProfileModel.fromJson(decoded);
+      final kitchen = profile.data?.kitchen;
+      if (kitchen == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No saved mikitchn found yet.'),
+          ),
+        );
+        return;
+      }
+
+      final result = await navigatorKey.currentState?.pushNamed(
+        '/EditKitchenProfile',
+        arguments: RouteArguments(kitchen: kitchen),
+      );
+
+      if (!mounted) return;
+      if (result == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('mikitchn updated successfully.')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open saved mikitchn right now.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _openingSavedKitchen = false);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -73,8 +142,7 @@ class _CookProfilePage extends State<CookProfilePage>
           if (state.statusApi!.isSubmissionFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content:
-                    Text(state.serverMessage ?? 'Something went wrong'),
+                content: Text(state.serverMessage ?? 'Something went wrong'),
               ),
             );
           }
@@ -100,23 +168,22 @@ class _CookProfilePage extends State<CookProfilePage>
                       children: [
                         Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
+                            IconButton(
+                              tooltip: 'Back',
+                              onPressed: () {
                                 if (Navigator.of(context).canPop()) {
                                   Navigator.of(context).pop();
                                 } else {
                                   Navigator.of(context).pushNamedAndRemoveUntil(
-                                    '/HomePage', (route) => false,
+                                    '/HomePage',
+                                    (route) => false,
                                   );
                                 }
                               },
-                              child: const Padding(
-                                padding: EdgeInsets.all(4),
-                                child: Icon(
-                                  Icons.arrow_back,
-                                  color: MitablColors.primary,
-                                  size: 24,
-                                ),
+                              icon: const Icon(
+                                Icons.arrow_back,
+                                color: MitablColors.primary,
+                                size: 24,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -187,6 +254,30 @@ class _CookProfilePage extends State<CookProfilePage>
                               height: 1.5,
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Semantics(
+                              button: true,
+                              label: 'Open saved mikitchn',
+                              hint:
+                                  'Opens your existing kitchen profile for editing if one exists.',
+                              child: OutlinedButton.icon(
+                                onPressed: _openingSavedKitchen
+                                    ? null
+                                    : _openSavedKitchen,
+                                icon: _openingSavedKitchen
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.storefront_outlined),
+                                label: const Text('Open Saved mikitchn'),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 32),
 
                           // ── Kitchen Name field ──
@@ -242,91 +333,99 @@ class _CookProfilePage extends State<CookProfilePage>
                           Row(
                             children: [
                               Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(Icons.restaurant_menu,
-                                              color: MitablColors.primary,
-                                              size: 22),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'Cuisine Style',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color:
-                                                    MitablColors.onSurface,
+                                child: Semantics(
+                                  container: true,
+                                  label:
+                                      'Cuisine Style information. Artisan, Traditional, Fusion, or Home Comfort.',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.restaurant_menu,
+                                                color: MitablColors.primary,
+                                                size: 22),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Cuisine Style',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: MitablColors.onSurface,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 12),
-                                      Text(
-                                        'Artisan, Traditional, Fusion, or Home Comfort.',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: MitablColors
-                                              .onSurfaceVariant,
-                                          height: 1.4,
+                                          ],
                                         ),
-                                      ),
-                                    ],
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Artisan, Traditional, Fusion, or Home Comfort.',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color:
+                                                MitablColors.onSurfaceVariant,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(Icons.verified_user,
-                                              color: MitablColors.primary,
-                                              size: 22),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'Kitchen Specs',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color:
-                                                    MitablColors.onSurface,
+                                child: Semantics(
+                                  container: true,
+                                  label:
+                                      'Kitchen Specs information. Health certifications and safety standards.',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.verified_user,
+                                                color: MitablColors.primary,
+                                                size: 22),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Kitchen Specs',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: MitablColors.onSurface,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 12),
-                                      Text(
-                                        'Health certifications and safety standards.',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: MitablColors
-                                              .onSurfaceVariant,
-                                          height: 1.4,
+                                          ],
                                         ),
-                                      ),
-                                    ],
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'Health certifications and safety standards.',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color:
+                                                MitablColors.onSurfaceVariant,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -418,8 +517,7 @@ class _CookProfilePage extends State<CookProfilePage>
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
                         child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'ONBOARDING PROFILE',
@@ -504,9 +602,7 @@ class _CookProfilePage extends State<CookProfilePage>
             PageView.builder(
               controller: controller,
               onPageChanged: (page) {
-                context
-                    .read<CookProfileCubit>()
-                    .onImageScroll(index: page);
+                context.read<CookProfileCubit>().onImageScroll(index: page);
               },
               itemCount: state.pathFiles.length,
               itemBuilder: (context, index) {
@@ -527,9 +623,7 @@ class _CookProfilePage extends State<CookProfilePage>
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
                           onTap: () {
-                            context
-                                .read<CookProfileCubit>()
-                                .onDeleteImage(
+                            context.read<CookProfileCubit>().onDeleteImage(
                                   path: state.pathFiles[index],
                                 );
                           },
@@ -557,8 +651,7 @@ class _CookProfilePage extends State<CookProfilePage>
                 child: Icon(
                   Icons.photo_camera_outlined,
                   size: 48,
-                  color:
-                      MitablColors.onSurfaceVariant.withValues(alpha: 0.4),
+                  color: MitablColors.onSurfaceVariant.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -664,8 +757,8 @@ class _TimingState extends State<_Timing> {
                     'Set Timings',
                     style: TextStyle(
                       fontSize: 15,
-                      color: MitablColors.onSurfaceVariant
-                          .withValues(alpha: 0.5),
+                      color:
+                          MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
                       fontWeight: FontWeight.w300,
                     ),
                   ),
@@ -940,8 +1033,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime:
-                                    _parseTime(startTime) ??
+                                initialTime: _parseTime(startTime) ??
                                     const TimeOfDay(hour: 12, minute: 0),
                               );
                               if (picked != null) {
@@ -959,8 +1051,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                             onPressed: () async {
                               final picked = await showTimePicker(
                                 context: dialogContext,
-                                initialTime:
-                                    _parseTime(endTime) ??
+                                initialTime: _parseTime(endTime) ??
                                     const TimeOfDay(hour: 13, minute: 0),
                               );
                               if (picked != null) {
@@ -1030,16 +1121,16 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                       (day) => day.dayOfWeek == selectedDay,
                     );
                     context.read<CookProfileCubit>().addOrUpdateDineInSlot(
-                      DineInSlotTemplate(
-                        dayOfWeek: selectedDay,
-                        dayName: selectedOption.label,
-                        startTime: startTime,
-                        endTime: endTime,
-                        seatCapacity: seats,
-                        status: 1,
-                      ),
-                      index: index,
-                    );
+                          DineInSlotTemplate(
+                            dayOfWeek: selectedDay,
+                            dayName: selectedOption.label,
+                            startTime: startTime,
+                            endTime: endTime,
+                            seatCapacity: seats,
+                            status: 1,
+                          ),
+                          index: index,
+                        );
                     Navigator.of(dialogContext).pop();
                   },
                   child: const Text('Save'),
@@ -1074,14 +1165,22 @@ class _CreateKitchenSlotSection extends StatelessWidget {
 
   static String _labelForDay(int? dayOfWeek) {
     switch (dayOfWeek) {
-      case 0: return 'Sunday';
-      case 1: return 'Monday';
-      case 2: return 'Tuesday';
-      case 3: return 'Wednesday';
-      case 4: return 'Thursday';
-      case 5: return 'Friday';
-      case 6: return 'Saturday';
-      default: return 'Day';
+      case 0:
+        return 'Sunday';
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      default:
+        return 'Day';
     }
   }
 
@@ -1159,11 +1258,9 @@ class _CreateKitchenSlotSection extends StatelessWidget {
   static int _compareTime(String left, String right) {
     final leftParts = left.split(':');
     final rightParts = right.split(':');
-    final leftMinutes =
-        ((int.tryParse(leftParts[0]) ?? 0) * 60) +
+    final leftMinutes = ((int.tryParse(leftParts[0]) ?? 0) * 60) +
         (int.tryParse(leftParts[1]) ?? 0);
-    final rightMinutes =
-        ((int.tryParse(rightParts[0]) ?? 0) * 60) +
+    final rightMinutes = ((int.tryParse(rightParts[0]) ?? 0) * 60) +
         (int.tryParse(rightParts[1]) ?? 0);
     return leftMinutes.compareTo(rightMinutes);
   }
@@ -1202,9 +1299,8 @@ class _KitchenNameState extends State<_KitchenName> {
       builder: (context, state) {
         return MitablTextField(
           hint: "e.g. Grandma's Secret Hearth",
-          errorText: state.nameKitchn!.invalid
-              ? 'Please enter a valid name'
-              : null,
+          errorText:
+              state.nameKitchn!.invalid ? 'Please enter a valid name' : null,
           onChanged: (text) {
             context.read<CookProfileCubit>().onKitchnNameChanged(value: text);
           },
@@ -1299,9 +1395,9 @@ class _PhoneNoState extends State<_PhoneNo> {
                 ),
                 onChanged: (value) {
                   context.read<CookProfileCubit>().onCountryCodeChanged(
-                    value: value,
-                    localNumber: _phoneController.text,
-                  );
+                        value: value,
+                        localNumber: _phoneController.text,
+                      );
                 },
                 decoration: InputDecoration(
                   counterText: '',
@@ -1328,8 +1424,7 @@ class _PhoneNoState extends State<_PhoneNo> {
                     vertical: 14,
                   ),
                   hintStyle: TextStyle(
-                    color: MitablColors.onSurfaceVariant
-                        .withValues(alpha: 0.5),
+                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w300,
                   ),
                 ),
@@ -1349,11 +1444,11 @@ class _PhoneNoState extends State<_PhoneNo> {
                 ),
                 onChanged: (text) {
                   context.read<CookProfileCubit>().onPhoneChanged(
-                    value: InternationalPhone.compose(
-                      countryCode: _countryCodeController.text,
-                      number: text,
-                    ),
-                  );
+                        value: InternationalPhone.compose(
+                          countryCode: _countryCodeController.text,
+                          number: text,
+                        ),
+                      );
                 },
                 decoration: InputDecoration(
                   counterText: '',
@@ -1380,21 +1475,18 @@ class _PhoneNoState extends State<_PhoneNo> {
                   ),
                   errorBorder: const OutlineInputBorder(
                     borderRadius: MitablRadius.inputBorder,
-                    borderSide:
-                        BorderSide(color: MitablColors.error, width: 1),
+                    borderSide: BorderSide(color: MitablColors.error, width: 1),
                   ),
                   focusedErrorBorder: const OutlineInputBorder(
                     borderRadius: MitablRadius.inputBorder,
-                    borderSide:
-                        BorderSide(color: MitablColors.error, width: 2),
+                    borderSide: BorderSide(color: MitablColors.error, width: 2),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
                   hintStyle: TextStyle(
-                    color: MitablColors.onSurfaceVariant
-                        .withValues(alpha: 0.5),
+                    color: MitablColors.onSurfaceVariant.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w300,
                   ),
                 ),
@@ -1476,32 +1568,38 @@ class _UploadbuttonState extends State<_UploadButton> {
               Helper.showToast('Photos limit reached.');
             }
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: MitablColors.surfaceContainerLowest,
-              borderRadius: MitablRadius.pillBorder,
-              boxShadow: [
-                BoxShadow(
-                  color: MitablColors.onSurface.withValues(alpha: 0.06),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.add_a_photo, size: 18, color: MitablColors.primary),
-                SizedBox(width: 8),
-                Text(
-                  'Add Kitchen Photo',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: MitablColors.primary,
+          child: Semantics(
+            button: true,
+            label: 'Add kitchen photo',
+            hint: 'Choose from gallery or capture from camera.',
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: MitablColors.surfaceContainerLowest,
+                borderRadius: MitablRadius.pillBorder,
+                boxShadow: [
+                  BoxShadow(
+                    color: MitablColors.onSurface.withValues(alpha: 0.06),
+                    blurRadius: 4,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_a_photo,
+                      size: 18, color: MitablColors.primary),
+                  SizedBox(width: 8),
+                  Text(
+                    'Add Kitchen Photo',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: MitablColors.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -1565,59 +1663,68 @@ class _LoginButton extends StatelessWidget {
         final isEnabled = state.status!.isValidated;
         return SizedBox(
           width: double.infinity,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: isEnabled
-                  ? const LinearGradient(
-                      colors: [MitablColors.primary, MitablColors.primaryContainer],
-                    )
-                  : null,
-              color: isEnabled ? null : MitablColors.tertiaryFixedDim,
-              borderRadius: MitablRadius.pillBorder,
-              boxShadow: isEnabled
-                  ? [
-                      BoxShadow(
-                        color: MitablColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 32,
-                        offset: const Offset(0, 8),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: isEnabled
-                    ? () {
-                        context.read<CookProfileCubit>().onKitchnUpload();
-                      }
+          child: Semantics(
+            button: true,
+            enabled: isEnabled,
+            label: 'Next. Setup payout.',
+            hint: 'Saves kitchen profile and continues to payout setup.',
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: isEnabled
+                    ? const LinearGradient(
+                        colors: [
+                          MitablColors.primary,
+                          MitablColors.primaryContainer
+                        ],
+                      )
                     : null,
+                color: isEnabled ? null : MitablColors.tertiaryFixedDim,
                 borderRadius: MitablRadius.pillBorder,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Next: Setup Payout',
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
+                boxShadow: isEnabled
+                    ? [
+                        BoxShadow(
+                          color: MitablColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 32,
+                          offset: const Offset(0, 8),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isEnabled
+                      ? () {
+                          context.read<CookProfileCubit>().onKitchnUpload();
+                        }
+                      : null,
+                  borderRadius: MitablRadius.pillBorder,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Next: Setup Payout',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
+                            color: isEnabled
+                                ? MitablColors.onPrimary
+                                : MitablColors.onPrimary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.arrow_forward,
                           color: isEnabled
                               ? MitablColors.onPrimary
                               : MitablColors.onPrimary.withValues(alpha: 0.5),
+                          size: 20,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.arrow_forward,
-                        color: isEnabled
-                            ? MitablColors.onPrimary
-                            : MitablColors.onPrimary.withValues(alpha: 0.5),
-                        size: 20,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
