@@ -135,7 +135,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                               const Padding(
                                 padding: EdgeInsets.only(left: 4, bottom: 8),
                                 child: Text(
-                                  'Email or Phone',
+                                  'Email',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -236,7 +236,8 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                   color: MitablColors.onSurface,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                                  hintText:
+                                      '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                                   hintStyle: TextStyle(
                                     color: MitablColors.onSurfaceVariant
                                         .withValues(alpha: 0.5),
@@ -320,8 +321,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                           ? const SizedBox(
                                               width: 20,
                                               height: 20,
-                                              child:
-                                                  CircularProgressIndicator(
+                                              child: CircularProgressIndicator(
                                                 strokeWidth: 2,
                                                 color: Colors.white,
                                               ),
@@ -401,6 +401,16 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Social sign-in will be available in a future release.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
                               ),
                               const SizedBox(height: 48),
 
@@ -484,17 +494,8 @@ class _SocialLoginTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$label sign-in coming soon'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
+    return Opacity(
+      opacity: 0.55,
       child: Container(
         height: 52,
         decoration: BoxDecoration(

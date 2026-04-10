@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
+import 'package:mitabl_user/model/international_phone.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/pages/signup/cubit/sign_up_cubit.dart';
@@ -25,6 +26,9 @@ class SignupFoodiePage extends StatefulWidget {
 }
 
 class _SignupFoodiePageState extends State<SignupFoodiePage> {
+  final _countryCodeController = TextEditingController(text: '+61');
+  final _phoneController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +36,13 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SignUpCubit>().onRoleChanged(role: AppConstants.FOODI);
     });
+  }
+
+  @override
+  void dispose() {
+    _countryCodeController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   void _splitAndSetName(String fullName) {
@@ -83,8 +94,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                   angle: 0.21,
                   child: const Opacity(
                     opacity: 0.1,
-                    child: Icon(Icons.eco,
-                        size: 128, color: MitablColors.primary),
+                    child:
+                        Icon(Icons.eco, size: 128, color: MitablColors.primary),
                   ),
                 ),
               ),
@@ -174,8 +185,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black
-                                          .withValues(alpha: 0.03),
+                                      color:
+                                          Colors.black.withValues(alpha: 0.03),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -193,21 +204,19 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                       textInputAction: TextInputAction.next,
                                       onChanged: _splitAndSetName,
                                       errorText:
-                                          (state.nameFirst?.isNotValid ??
-                                                  false)
+                                          (state.nameFirst?.isNotValid ?? false)
                                               ? 'Please enter your name'
                                               : null,
                                     ),
                                     const SizedBox(height: 24),
 
-                                    // Email or Phone
-                                    _buildFieldLabel('EMAIL OR PHONE'),
+                                    // Email
+                                    _buildFieldLabel('EMAIL'),
                                     const SizedBox(height: 8),
                                     _buildInputField(
                                       prefixIcon: Icons.contact_mail_outlined,
                                       hint: 'hello@mifoodi.com',
-                                      keyboardType:
-                                          TextInputType.emailAddress,
+                                      keyboardType: TextInputType.emailAddress,
                                       textInputAction: TextInputAction.next,
                                       onChanged: (v) => context
                                           .read<SignUpCubit>()
@@ -216,6 +225,85 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                           (state.email?.isNotValid ?? false)
                                               ? 'Please enter a valid email'
                                               : null,
+                                    ),
+                                    const SizedBox(height: 24),
+
+                                    // Phone number (required for OTP)
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(
+                                          width: 88,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              _buildFieldLabel('CODE'),
+                                              const SizedBox(height: 8),
+                                              _buildInputField(
+                                                controller:
+                                                    _countryCodeController,
+                                                hint: '+61',
+                                                keyboardType:
+                                                    TextInputType.phone,
+                                                textInputAction:
+                                                    TextInputAction.next,
+                                                onChanged: (value) {
+                                                  context
+                                                      .read<SignUpCubit>()
+                                                      .onCountryCodeChanged(
+                                                        value: value,
+                                                        localNumber:
+                                                            _phoneController
+                                                                .text,
+                                                      );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              _buildFieldLabel('PHONE NUMBER'),
+                                              const SizedBox(height: 8),
+                                              _buildInputField(
+                                                controller: _phoneController,
+                                                prefixIcon:
+                                                    Icons.phone_outlined,
+                                                hint: '400 000 000',
+                                                keyboardType:
+                                                    TextInputType.phone,
+                                                textInputAction:
+                                                    TextInputAction.next,
+                                                onChanged: (value) {
+                                                  context
+                                                      .read<SignUpCubit>()
+                                                      .onPhoneChanged(
+                                                        value:
+                                                            InternationalPhone
+                                                                .compose(
+                                                          countryCode:
+                                                              _countryCodeController
+                                                                  .text,
+                                                          number: value,
+                                                        ),
+                                                      );
+                                                },
+                                                errorText: (!state
+                                                            .phone.isPure &&
+                                                        state.phone.isNotValid)
+                                                    ? 'Enter a valid phone number'
+                                                    : null,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 24),
 
@@ -229,7 +317,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                       obscureText: state.showPassword,
                                       keyboardType:
                                           TextInputType.visiblePassword,
-                                      textInputAction: TextInputAction.next,
+                                      textInputAction: TextInputAction.done,
                                       suffixIcon: IconButton(
                                         onPressed: () => context
                                             .read<SignUpCubit>()
@@ -238,15 +326,18 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                           state.showPassword
                                               ? Icons.visibility_off_outlined
                                               : Icons.visibility_outlined,
-                                          color:
-                                              const Color(0xFF64748B),
+                                          color: const Color(0xFF64748B),
                                           size: 22,
                                         ),
                                       ),
-                                      onChanged: (v) => context
-                                          .read<SignUpCubit>()
-                                          .onPasswordChanged(value: v),
-                                      errorText: state.password.isNotValid
+                                      onChanged: (v) {
+                                        final cubit =
+                                            context.read<SignUpCubit>();
+                                        cubit.onPasswordChanged(value: v);
+                                        cubit.onConfirmPasswordChanged(v);
+                                      },
+                                      errorText: (!state.password.isPure &&
+                                              state.password.isNotValid)
                                           ? 'Min 6 characters required'
                                           : null,
                                     ),
@@ -271,9 +362,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                         ),
                                         prefixIcon: const Padding(
                                           padding: EdgeInsets.only(
-                                              left: 16,
-                                              right: 8,
-                                              bottom: 48),
+                                              left: 16, right: 8, bottom: 48),
                                           child: Icon(
                                             Icons.location_on_outlined,
                                             color: Color(0xFF64748B),
@@ -284,8 +373,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                             const BoxConstraints(
                                                 minWidth: 48, minHeight: 48),
                                         filled: true,
-                                        fillColor: MitablColors
-                                            .surfaceContainerLowest,
+                                        fillColor:
+                                            MitablColors.surfaceContainerLowest,
                                         border: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(16),
@@ -307,8 +396,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                         ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                                horizontal: 20,
-                                                vertical: 16),
+                                                horizontal: 20, vertical: 16),
                                       ),
                                       onChanged: (v) => context
                                           .read<SignUpCubit>()
@@ -380,8 +468,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                     ),
                                   ),
                                   const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 16),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
                                     child: Text(
                                       'OR JOIN WITH',
                                       style: TextStyle(
@@ -422,6 +510,16 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                     ),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Social sign-in will be available in a future release.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
                               ),
                               const SizedBox(height: 32),
 
@@ -492,6 +590,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
   }
 
   Widget _buildInputField({
+    TextEditingController? controller,
     IconData? prefixIcon,
     String? hint,
     bool obscureText = false,
@@ -502,6 +601,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
     String? errorText,
   }) {
     return TextFormField(
+      controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
@@ -632,17 +732,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
     required String label,
     Color? iconColor,
   }) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$label sign-in coming soon'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(100),
+    return Opacity(
+      opacity: 0.55,
       child: Container(
         height: 56,
         decoration: BoxDecoration(

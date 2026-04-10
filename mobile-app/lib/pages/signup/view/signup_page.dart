@@ -110,8 +110,7 @@ class _SignupPage extends State<SignupPage> {
                   width: 320,
                   height: 320,
                   decoration: BoxDecoration(
-                    color:
-                        MitablColors.primaryContainer.withValues(alpha: 0.1),
+                    color: MitablColors.primaryContainer.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -242,14 +241,13 @@ class _SignupPage extends State<SignupPage> {
                                     ),
                                     const SizedBox(height: 24),
 
-                                    // Email or Phone
-                                    _buildFieldLabel('EMAIL OR PHONE'),
+                                    // Email
+                                    _buildFieldLabel('EMAIL'),
                                     const SizedBox(height: 8),
                                     _buildInputField(
                                       prefixIcon: Icons.contact_mail_outlined,
                                       hint: 'chef@mitabl.com',
-                                      keyboardType:
-                                          TextInputType.emailAddress,
+                                      keyboardType: TextInputType.emailAddress,
                                       textInputAction: TextInputAction.next,
                                       onChanged: (value) {
                                         context
@@ -362,7 +360,8 @@ class _SignupPage extends State<SignupPage> {
                                     const SizedBox(height: 8),
                                     _buildInputField(
                                       prefixIcon: Icons.lock_outlined,
-                                      hint: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
+                                      hint:
+                                          '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022',
                                       obscureText: state.showPassword,
                                       keyboardType:
                                           TextInputType.visiblePassword,
@@ -421,8 +420,8 @@ class _SignupPage extends State<SignupPage> {
                                     ),
                                   ),
                                   const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 16),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
                                     child: Text(
                                       'Or join with',
                                       style: TextStyle(
@@ -463,6 +462,16 @@ class _SignupPage extends State<SignupPage> {
                                     ),
                                   ),
                                 ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Social sign-in will be available in a future release.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: 'DM Sans',
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
                               ),
                               const SizedBox(height: 40),
 
@@ -703,17 +712,8 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$label sign-in coming soon'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(100),
+    return Opacity(
+      opacity: 0.55,
       child: Container(
         height: 52,
         decoration: BoxDecoration(
