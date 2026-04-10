@@ -11,7 +11,6 @@ import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/pages/common/view/faq_webview_page.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
-import 'package:mitabl_user/repos/mobile_contact_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:mitabl_user/widgets/role_switch_card.dart';
@@ -382,27 +381,14 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
   // Contact Us handler
   // ─────────────────────────────────────────────────────────────────────────
 
-  Future<void> _handleContactUs() async {
-    final userRepository = context.read<UserRepository>();
-    try {
-      final user = await userRepository.getUser();
-      final payload = await MobileContactRepository(
-        httpClient: userRepository.httpClient,
-      ).fetch(user);
-      final message =
-          payload['message']?.toString() ?? 'Contact information loaded.';
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to load contact info: $error'),
-        ),
-      );
-    }
+  void _handleContactUs() {
+    navigatorKey.currentState!.pushNamed(
+      '/SettingsCook',
+      arguments: RouteArguments(
+        id: 'foodie',
+        data: const {'openSupport': true},
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────

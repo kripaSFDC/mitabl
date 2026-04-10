@@ -82,4 +82,12 @@ class SupportTicketAdminCrudRegressionTest extends TestCase
         $this->assertStringContainsString("support_tickets.view", $page);
         $this->assertStringNotContainsString("support_ticket.view", $page);
     }
+
+    public function test_crm_workspace_reply_requires_support_ticket_respond_permission(): void
+    {
+        $page = (string) file_get_contents(app_path('Filament/Pages/CrmAgentWorkspacePage.php'));
+
+        $this->assertStringContainsString("support_tickets.respond", $page);
+        $this->assertStringContainsString('You do not have permission to reply to tickets.', $page);
+    }
 }

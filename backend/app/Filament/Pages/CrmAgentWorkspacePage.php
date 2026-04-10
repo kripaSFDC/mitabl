@@ -106,6 +106,11 @@ class CrmAgentWorkspacePage extends Page
 
     public function sendReply(): void
     {
+        if (! $this->canReply()) {
+            Notification::make()->title('You do not have permission to reply to tickets.')->danger()->send();
+            return;
+        }
+
         if (! $this->selectedTicketId) {
             return;
         }
@@ -236,5 +241,10 @@ class CrmAgentWorkspacePage extends Page
     public static function canAccess(): bool
     {
         return (bool) Filament::auth()->user()?->can('support_tickets.view');
+    }
+
+    public function canReply(): bool
+    {
+        return (bool) Filament::auth()->user()?->can('support_tickets.respond');
     }
 }

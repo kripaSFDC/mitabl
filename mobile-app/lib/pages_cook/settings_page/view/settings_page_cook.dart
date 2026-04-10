@@ -28,6 +28,7 @@ class SettingsCookPage extends StatefulWidget {
 
 class _SettingsCookPageState extends State<SettingsCookPage> {
   late final String _notificationsPreferenceKey;
+  late final String _emailMarketingPreferenceKey;
 
   late final TextEditingController _emailController;
   late final TextEditingController _subjectController;
@@ -45,6 +46,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   int _currentTicketPage = 1;
   int _totalTicketPages = 1;
   bool _loadingMoreTickets = false;
+  bool _autoOpenedSupportSheet = false;
 
   @override
   void initState() {
@@ -52,12 +54,15 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     // Build role-specific preference key based on route arguments
     final roleId = widget.routeArguments?.id ?? 'cook';
     _notificationsPreferenceKey = 'settings_notifications_enabled_$roleId';
+    _emailMarketingPreferenceKey = 'settings_email_marketing_enabled_$roleId';
 
     _emailController = TextEditingController();
     _subjectController = TextEditingController();
     _descriptionController = TextEditingController();
     _replyController = TextEditingController();
     _loadNotificationPreference();
+    _loadEmailMarketingPreference();
+    _maybeAutoOpenSupportSheet();
   }
 
   @override
@@ -79,6 +84,56 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _persistNotificationPreference(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsPreferenceKey, enabled);
+  }
+
+  Future<void> _loadEmailMarketingPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPreference = prefs.getBool(_emailMarketingPreferenceKey);
+    if (!mounted || savedPreference == null) return;
+    setState(() => _emailNotificationsEnabled = savedPreference);
+  }
+
+  Future<void> _persistEmailMarketingPreference(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_emailMarketingPreferenceKey, enabled);
+  }
+
+  bool _shouldAutoOpenSupportSheet() {
+    final data = widget.routeArguments?.data;
+    if (data is! Map<String, dynamic>) {
+      return false;
+    }
+
+    final openSupport = data['openSupport'];
+    if (openSupport is bool) {
+      return openSupport;
+    }
+
+    if (openSupport is num) {
+      return openSupport != 0;
+    }
+
+    if (openSupport is String) {
+      final normalized = openSupport.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+
+    return false;
+  }
+
+  void _maybeAutoOpenSupportSheet() {
+    if (!_shouldAutoOpenSupportSheet()) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _autoOpenedSupportSheet) {
+        return;
+      }
+
+      _autoOpenedSupportSheet = true;
+      _openSupportSheet();
+    });
   }
 
   Future<void> _launchExternalPage(String path) async {
@@ -494,6 +549,16 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
         );
       },
     );
+  }
+
+  Future<void> _savePreferences() async {
+    try {
+      await _persistEmailMarketingPreference(_emailNotificationsEnabled);
+      if (!mounted) return;
+      _showSnackBar('Preferences saved.');
+    } catch (error) {
+      _showSnackBar('Unable to save preferences: $error');
+    }
   }
 
   Widget _buildNewTicketForm(
@@ -1388,7 +1453,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => _showSnackBar('Settings saved.'),
+                      onPressed: _savePreferences,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: MitablColors.primary,
                         foregroundColor: MitablColors.onPrimary,

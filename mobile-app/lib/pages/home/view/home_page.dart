@@ -371,10 +371,12 @@ class _HomePage extends State<HomePage> {
                           .read<HomeCubit>()
                           .onCookingStyleChanged(data: null);
                     } else {
-                      final matching =
-                          state.cookingStyleList?.firstWhere(
-                        (c) => c.id == id,
-                      );
+                      final matching = state.cookingStyleList
+                          ?.cast<dynamic>()
+                          .firstWhere(
+                            (c) => c.id == id,
+                            orElse: () => null,
+                          );
                       context
                           .read<HomeCubit>()
                           .onCookingStyleChanged(data: matching);

@@ -67,7 +67,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                     (trend) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.receipt_long_outlined),
-                      title: Text(trend.label),
+                      title: Text(trend.date),
                       subtitle: Text('${trend.orders} order(s)'),
                       trailing: Text(
                         '\$${trend.revenue.toStringAsFixed(2)}',

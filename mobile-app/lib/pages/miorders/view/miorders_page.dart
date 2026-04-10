@@ -7,6 +7,7 @@ import 'package:mitabl_user/helper/offline_error_widget.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/miorders/element/order_card.dart';
+import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
 import 'package:mitabl_user/repos/session_repository.dart';
@@ -42,14 +43,12 @@ class _MiOrdersPageState extends State<MiOrdersPage>
   // Segmented control index: 0 = Ongoing, 1 = Past
   int _selectedSegment = 0;
 
-  List<Map<String, dynamic>> get _ongoingOrders =>
-      _orders.where((o) {
+  List<Map<String, dynamic>> get _ongoingOrders => _orders.where((o) {
         final s = '${o['status']}';
         return s == '2' || s == '3' || s == '5';
       }).toList();
 
-  List<Map<String, dynamic>> get _pastOrders =>
-      _orders.where((o) {
+  List<Map<String, dynamic>> get _pastOrders => _orders.where((o) {
         final s = '${o['status']}';
         return s == '0' || s == '1' || s == '4';
       }).toList();
@@ -182,7 +181,8 @@ class _MiOrdersPageState extends State<MiOrdersPage>
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.of(context).pushNamed('/ProfileFoodie'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/ProfileFoodie'),
                       child: const Icon(
                         Icons.menu,
                         color: MitablColors.primary,
@@ -232,13 +232,13 @@ class _MiOrdersPageState extends State<MiOrdersPage>
               _ViewStatus.loading => const CommonProgressWidget(),
               _ViewStatus.error => OfflineErrorWidget(onRetry: _load),
               _ViewStatus.forbidden => _SwitchToMifoodiCta(
-                onPressed: _switchToMifoodi,
-                isLoading: _switchingRole,
-              ),
+                  onPressed: _switchToMifoodi,
+                  isLoading: _switchingRole,
+                ),
               _ViewStatus.serverError => _ServerErrorWidget(
-                message: _errorMessage,
-                onRetry: _load,
-              ),
+                  message: _errorMessage,
+                  onRetry: _load,
+                ),
               _ViewStatus.loaded => _buildLoadedContent(),
             },
           ),
@@ -375,6 +375,7 @@ class _MiOrdersPageState extends State<MiOrdersPage>
                   arguments: RouteArguments(data: order),
                 );
               },
+              onReorder: () => _reorderOrder(order),
               onCancel: () => _cancelOrder(order),
             ),
           );
@@ -458,6 +459,33 @@ class _MiOrdersPageState extends State<MiOrdersPage>
 
     controller.dispose();
     return result;
+  }
+
+  void _reorderOrder(Map<String, dynamic> order) {
+    final kitchen = order['mikitchn'];
+    final dynamic rawKitchenId = kitchen is Map<String, dynamic>
+        ? (kitchen['id'] ?? order['restaurant_id'] ?? order['mikitchn_id'])
+        : (order['restaurant_id'] ?? order['mikitchn_id']);
+
+    final kitchenId = rawKitchenId is int
+        ? rawKitchenId
+        : int.tryParse(rawKitchenId?.toString() ?? '');
+
+    if (kitchenId == null || kitchenId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to reopen this kitchen menu right now.'),
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushNamed(
+      '/OrderMenu',
+      arguments: RouteArguments(
+        data: OrderRouteData(kitchenId: kitchenId),
+      ),
+    );
   }
 }
 

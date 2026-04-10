@@ -14,6 +14,7 @@ class OrderCard extends StatelessWidget {
     required this.order,
     required this.index,
     this.onTap,
+    this.onReorder,
     this.onCancel,
     this.isCancelling = false,
   });
@@ -21,6 +22,7 @@ class OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;
   final int index;
   final VoidCallback? onTap;
+  final VoidCallback? onReorder;
   final VoidCallback? onCancel;
   final bool isCancelling;
 
@@ -282,14 +284,7 @@ class OrderCard extends StatelessWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              // Reorder action
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Reorder coming soon'),
-                                ),
-                              );
-                            },
+                            onTap: onReorder,
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(

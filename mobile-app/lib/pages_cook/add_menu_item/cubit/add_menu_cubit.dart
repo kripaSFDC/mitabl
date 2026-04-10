@@ -47,9 +47,12 @@ class AddMenuCubit extends Cubit<AddMenuState> {
       ),
     );
 
-    CookingStyleData cookingStyleData = state.cookingStyleList.firstWhere(
+    final cookingStyleIndex = state.cookingStyleList.indexWhere(
       (element) => element.id == foodData.cookingstyle,
     );
+    final cookingStyleData = cookingStyleIndex >= 0
+        ? state.cookingStyleList[cookingStyleIndex]
+        : state.selectedCookingStyle;
     List<CookingStyleData> cookingStyleListTemp = [];
     if (state.cookingStyleList.isNotEmpty) {
       for (var element in state.cookingStyleList) {
@@ -62,7 +65,7 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     }
     emit(
       state.copyWith(
-        selectedCookingStyle: cookingStyleData.copyWith(isSelected: true),
+        selectedCookingStyle: cookingStyleData?.copyWith(isSelected: true),
         cookingStyleList: cookingStyleListTemp,
       ),
     );
@@ -304,6 +307,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     tempList.addAll(state.specialDietDataList!);
 
     int index = tempList.indexWhere((element) => element.id == id);
+    if (index < 0) {
+      return;
+    }
     SpecialDietData specialDietData = tempList[index].copyWith(
       isSelected: false,
     );
@@ -318,6 +324,9 @@ class AddMenuCubit extends Cubit<AddMenuState> {
     List<SpecialDietData> tempList = [];
     tempList.addAll(state.specialDietDataList!);
     var index = tempList.indexWhere((element) => element.id == id);
+    if (index < 0) {
+      return;
+    }
     SpecialDietData specialDietData = tempList[index].copyWith(
       isSelected: value,
     );

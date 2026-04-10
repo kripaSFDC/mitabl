@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
 /// Cook info card: photo with online dot, name, rating, and "Message" button.
@@ -112,8 +113,12 @@ class CookContactCard extends StatelessWidget {
           // Message button
           GestureDetector(
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon')),
+              Navigator.of(context).pushNamed(
+                '/SettingsCook',
+                arguments: RouteArguments(
+                  id: 'foodie',
+                  data: const {'openSupport': true},
+                ),
               );
             },
             child: Container(

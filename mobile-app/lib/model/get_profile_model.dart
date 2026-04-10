@@ -269,6 +269,7 @@ class AvailableRoleMembership {
 class Kitchen {
   int? id;
   int? userId;
+  int? open;
   String? name;
   String? address;
   String? phone;
@@ -294,6 +295,7 @@ class Kitchen {
   Kitchen(
       {this.id,
       this.userId,
+      this.open,
       this.name,
       this.address,
       this.phone,
@@ -319,6 +321,7 @@ class Kitchen {
   Kitchen.fromJson(Map<String, dynamic> json) {
     id = _asInt(json['id']);
     userId = _asInt(json['user_id']);
+    open = _asInt(json['open']);
     name = json['name'];
     address = json['address'];
     phone = json['phone'];
@@ -361,6 +364,7 @@ class Kitchen {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['user_id'] = userId;
+    data['open'] = open;
     data['name'] = name;
     data['address'] = address;
     data['phone'] = phone;

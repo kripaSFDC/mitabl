@@ -113,6 +113,12 @@ class _OrderMenuFlowState extends State<_OrderMenuFlow> {
           child: _MenuContent(
             kitchen: kitchen,
             session: _session,
+            isFavoriteKitchen: _isFavoriteKitchen,
+            onToggleFavorite: () {
+              setState(() {
+                _isFavoriteKitchen = !_isFavoriteKitchen;
+              });
+            },
           ),
         ),
         FloatingCartBar(session: _session),
@@ -125,10 +131,14 @@ class _MenuContent extends StatelessWidget {
   const _MenuContent({
     required this.kitchen,
     required this.session,
+    required this.isFavoriteKitchen,
+    required this.onToggleFavorite,
   });
 
   final OrderKitchenSummary kitchen;
   final OrderSessionController session;
+  final bool isFavoriteKitchen;
+  final VoidCallback onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -221,13 +231,11 @@ class _MenuContent extends StatelessWidget {
                     // Heart (favorite) button
                     GestureDetector(
                       onTap: () {
-                        setState(() {
-                          _isFavoriteKitchen = !_isFavoriteKitchen;
-                        });
+                        onToggleFavorite();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              _isFavoriteKitchen
+                              isFavoriteKitchen
                                   ? 'Kitchen saved to favourites.'
                                   : 'Kitchen removed from favourites.',
                             ),
@@ -243,7 +251,7 @@ class _MenuContent extends StatelessWidget {
                         ),
                         child: Center(
                           child: Icon(
-                            _isFavoriteKitchen
+                            isFavoriteKitchen
                                 ? Icons.favorite
                                 : Icons.favorite_border,
                             size: 20,

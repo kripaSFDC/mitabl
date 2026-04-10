@@ -163,6 +163,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
             Route::post('orders', [OrderController::class, 'store']);
             });
 			Route::put('profile', [V2AccountController::class, 'update']);
+            Route::delete('delete', [UserController::class, 'delete']);
+            Route::post('delete', [UserController::class, 'delete']);
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
             Route::post('roles/cook/activate', [V2AccountController::class, 'startCookOnboarding']);
             Route::post('onboarding/cook/start', [V2AccountController::class, 'startCookOnboarding']);
@@ -267,7 +269,8 @@ Route::get('v1/food/status/{id}', function () {
     return response()->json([
         'status' => 405,
         'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v1/food/status/{id}.',
+        'isError' => true,
+        'message' => 'Method not allowed. Use POST /api/v1/food/status/{id}.',
         'data' => [],
     ], 405);
 });
@@ -276,7 +279,8 @@ Route::get('v2/payments/checkout-session', function () {
     return response()->json([
         'status' => 405,
         'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v2/payments/checkout-session.',
+        'isError' => true,
+        'message' => 'Method not allowed. Use POST /api/v2/payments/checkout-session.',
         'data' => [],
     ], 405);
 });
@@ -285,7 +289,8 @@ Route::get('v2/food/status/{id}', function () {
     return response()->json([
         'status' => 405,
         'isSuccess' => false,
-        'isError' => 'Method not allowed. Use POST /api/v2/food/status/{id}.',
+        'isError' => true,
+        'message' => 'Method not allowed. Use POST /api/v2/food/status/{id}.',
         'data' => [],
     ], 405);
 });

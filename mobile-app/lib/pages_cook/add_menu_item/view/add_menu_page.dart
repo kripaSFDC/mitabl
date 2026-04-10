@@ -67,19 +67,20 @@ class _AddMenuPageState extends State<AddMenuPage> {
     });
 
     cookingStyleController.addListener(() {});
-    cookingStyleController.text = context
-        .read<AddMenuCubit>()
-        .state
-        .selectedCookingStyle!
-        .name
-        .toString();
+    final addMenuState = context.read<AddMenuCubit>().state;
+    cookingStyleController.text =
+        addMenuState.selectedCookingStyle?.name?.toString() ?? '';
     if (widget.routeArguments!.foodData != null) {
-      CookingStyleData cookingStyleData =
-          context.read<AddMenuCubit>().state.cookingStyleList.firstWhere(
-                (element) =>
-                    element.id == widget.routeArguments!.foodData!.cookingstyle,
-              );
-      cookingStyleController.text = cookingStyleData.name!;
+      final cookingStyleData = addMenuState.cookingStyleList
+          .cast<CookingStyleData?>()
+          .firstWhere(
+            (element) =>
+                element?.id == widget.routeArguments!.foodData!.cookingstyle,
+            orElse: () => null,
+          );
+      if (cookingStyleData != null) {
+        cookingStyleController.text = cookingStyleData.name ?? '';
+      }
 
       itemNameController.text = widget.routeArguments!.foodData!.foodName!;
       descriptionController.text =
@@ -581,7 +582,11 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     subtitle:
                                         'Allow guests to eat at your atelier',
                                     value: true,
-                                    onChanged: (_) {},
+                                    onChanged: (_) {
+                                      Helper.showToast(
+                                        'Update service availability from Kitchen Profile.',
+                                      );
+                                    },
                                   ),
                                   Container(
                                     height: 1,
@@ -595,7 +600,11 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                     subtitle:
                                         'Guests pick up their meal to-go',
                                     value: false,
-                                    onChanged: (_) {},
+                                    onChanged: (_) {
+                                      Helper.showToast(
+                                        'Update service availability from Kitchen Profile.',
+                                      );
+                                    },
                                   ),
                                 ],
                               ),

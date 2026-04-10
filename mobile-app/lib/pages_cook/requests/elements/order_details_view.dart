@@ -64,6 +64,29 @@ class OrderDetails extends StatelessWidget {
         ),
         body: BlocBuilder<RequestsCubit, RequestsState>(
           builder: (context, state) {
+            final booking = routeArguments?.bookings;
+            final customer = booking?.customer;
+            final imageBaseUrl =
+                GlobalConfiguration().getValue<String>('image_base_url');
+            final avatarPath = customer?.avatar;
+            final avatarUrl = (avatarPath != null && avatarPath.isNotEmpty)
+                ? '$imageBaseUrl$avatarPath'
+                : null;
+            Widget avatarPlaceholder() {
+              return Container(
+                height: config.AppConfig(context).appHeight(15),
+                width: config.AppConfig(context).appHeight(15),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  shape: BoxShape.circle,
+                ),
+              );
+            }
+
+            final customerName = customer?.name?.toString() ?? 'Guest';
+            final customerRating =
+                double.tryParse(customer?.rating?.toString() ?? '') ?? 0;
+
             return Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: config.AppConfig(context).appWidth(4),
@@ -92,58 +115,34 @@ class OrderDetails extends StatelessWidget {
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      '${GlobalConfiguration().getValue<String>('image_base_url')}${routeArguments!.bookings!.customer!.avatar!}',
-                                  imageBuilder: (context, imageProvider) =>
-                                      Container(
-                                        height: config.AppConfig(
-                                          context,
-                                        ).appWidth(25),
-                                        width: config.AppConfig(
-                                          context,
-                                        ).appWidth(25),
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            100,
-                                          ),
-                                        ),
-                                      ),
-                                  errorWidget: (context, data, e) {
-                                    return Container(
-                                      height: config.AppConfig(
-                                        context,
-                                      ).appHeight(15),
-                                      width: config.AppConfig(
-                                        context,
-                                      ).appHeight(15),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.surface,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    );
-                                  },
-                                  placeholder: (context, s) => Container(
-                                    height: config.AppConfig(
-                                      context,
-                                    ).appHeight(15),
-                                    width: config.AppConfig(
-                                      context,
-                                    ).appHeight(15),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.surface,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
+                                child: avatarUrl != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: avatarUrl,
+                                        imageBuilder: (context, imageProvider) =>
+                                            Container(
+                                              height: config.AppConfig(
+                                                context,
+                                              ).appWidth(25),
+                                              width: config.AppConfig(
+                                                context,
+                                              ).appWidth(25),
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: imageProvider,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                  100,
+                                                ),
+                                              ),
+                                            ),
+                                        errorWidget: (context, data, e) =>
+                                            avatarPlaceholder(),
+                                        placeholder: (context, s) =>
+                                            avatarPlaceholder(),
+                                      )
+                                    : avatarPlaceholder(),
                               ),
                             ),
                             SizedBox(
@@ -155,18 +154,19 @@ class OrderDetails extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 GestureDetector(
-                                  onTap: () => {
-                                    navigatorKey.currentState!.pushNamed(
-                                      '/UserDetails',
-                                      arguments: RouteArguments(
-                                        customer:
-                                            routeArguments!.bookings!.customer,
-                                      ),
-                                    ),
-                                  },
+                                  onTap: customer == null
+                                      ? null
+                                      : () => {
+                                            navigatorKey.currentState!
+                                                .pushNamed(
+                                              '/UserDetails',
+                                              arguments: RouteArguments(
+                                                customer: customer,
+                                              ),
+                                            ),
+                                          },
                                   child: Text(
-                                    routeArguments!.bookings!.customer!.name
-                                        .toString(),
+                                    customerName,
                                     style: TextStyle(
                                       fontSize: config.AppConfig(
                                         context,
@@ -185,10 +185,7 @@ class OrderDetails extends StatelessWidget {
                                   ).appHeight(1),
                                 ),
                                 StarRating(
-                                  rating: routeArguments!
-                                      .bookings!
-                                      .customer!
-                                      .rating!,
+                                  rating: customerRating,
                                   size: config.AppConfig(context).appWidth(3.5),
                                   color: const Color(0xffFFA200),
                                 ),

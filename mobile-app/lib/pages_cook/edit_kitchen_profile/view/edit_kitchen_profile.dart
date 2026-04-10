@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/model/timing_model.dart';
@@ -53,11 +56,14 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
   TextEditingController? mobileNoTextEditor = TextEditingController();
 
   PageController? controller = PageController(viewportFraction: 0.9);
+  bool _kitchenLive = false;
+  bool _kitchenToggling = false;
 
   @override
   void initState() {
     super.initState();
     final kitchen = widget.routeArguments?.kitchen;
+    _kitchenLive = (kitchen?.open ?? 0) == 1;
     nameTextEditor!.addListener(() {
       context.read<EditKitchenProfileCubit>().onKitchnNameChanged(
             value: nameTextEditor!.text,
@@ -103,6 +109,57 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
     abnNoTextEditor!.text = kitchen?.abn ?? '';
     certificateTextEditor!.text = kitchen?.certificateNo ?? '';
     bioTextEditor!.text = kitchen?.description ?? '';
+  }
+
+  Future<void> _toggleKitchenLive(bool desired) async {
+    final kitchen = widget.routeArguments?.kitchen;
+    if (kitchen?.id == null || _kitchenToggling) {
+      return;
+    }
+
+    final previous = _kitchenLive;
+    setState(() {
+      _kitchenLive = desired;
+      _kitchenToggling = true;
+    });
+
+    try {
+      final userRepository = context.read<UserRepository>();
+      final headers = await userRepository.authorizedHeaders(
+        includeJsonContentType: true,
+      );
+      final response = await http
+          .post(
+            ApiContract.uri('v2/mikitchn/toggle-open'),
+            headers: headers,
+          )
+          .timeout(ApiContract.requestTimeout);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverOpen = body['open'] as bool? ?? desired;
+        setState(() {
+          _kitchenLive = serverOpen;
+          _kitchenToggling = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _kitchenLive = previous;
+        _kitchenToggling = false;
+      });
+      Helper.showToast('Unable to update kitchen status.');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _kitchenLive = previous;
+        _kitchenToggling = false;
+      });
+      Helper.showToast('Something went wrong. Please try again.');
+    }
   }
 
   @override
@@ -238,12 +295,12 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             ),
                             child: Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         'Go Live Status',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w700,
@@ -251,24 +308,36 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                           color: MitablColors.onSurface,
                                         ),
                                       ),
-                                      SizedBox(height: 2),
+                                      const SizedBox(height: 2),
                                       Text(
-                                        'Kitchen is visible',
+                                        widget.routeArguments?.kitchen?.id ==
+                                                null
+                                            ? 'Create your kitchen first'
+                                            : (_kitchenLive
+                                                ? 'Kitchen is visible'
+                                                : 'Kitchen is hidden'),
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: Color(0xFF506140),
+                                          color: _kitchenLive
+                                              ? const Color(0xFF506140)
+                                              : MitablColors.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Switch(
-                                  value: true,
+                                  value: _kitchenLive,
                                   activeThumbColor: const Color(0xFF506140),
                                   activeTrackColor:
                                       MitablColors.secondaryContainer,
-                                  onChanged: (_) {},
+                                  onChanged:
+                                      widget.routeArguments?.kitchen?.id ==
+                                                  null ||
+                                              _kitchenToggling
+                                          ? null
+                                          : _toggleKitchenLive,
                                 ),
                               ],
                             ),
