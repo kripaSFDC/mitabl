@@ -141,7 +141,7 @@ class _SignupPage extends State<SignupPage> {
                               ),
                               const Expanded(
                                 child: Text(
-                                  'Mitabl',
+                                  'mitabl',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 24,
@@ -196,7 +196,7 @@ class _SignupPage extends State<SignupPage> {
                               const SizedBox(height: 16),
 
                               // ── Subtitle ──
-                              Text(
+                              const Text(
                                 'Join our community of home cooks and culinary enthusiasts. Your place at the table is waiting.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -420,8 +420,8 @@ class _SignupPage extends State<SignupPage> {
                                           .withValues(alpha: 0.2),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
                                         horizontal: 16),
                                     child: Text(
                                       'Or join with',
@@ -445,7 +445,7 @@ class _SignupPage extends State<SignupPage> {
                               const SizedBox(height: 24),
 
                               // ── Social login (2-column) ──
-                              Row(
+                              const Row(
                                 children: [
                                   Expanded(
                                     child: _SocialButton(
@@ -454,12 +454,12 @@ class _SignupPage extends State<SignupPage> {
                                       iconColor: MitablColors.primary,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
                                   Expanded(
                                     child: _SocialButton(
                                       icon: Icons.facebook_rounded,
                                       label: 'Facebook',
-                                      iconColor: const Color(0xFF1877F2),
+                                      iconColor: Color(0xFF1877F2),
                                     ),
                                   ),
                                 ],
@@ -470,7 +470,7 @@ class _SignupPage extends State<SignupPage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Already part of the kitchen? ',
                                     style: TextStyle(
                                       fontSize: 16,
@@ -537,7 +537,7 @@ class _SignupPage extends State<SignupPage> {
         padding: const EdgeInsets.only(left: 4),
         child: Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
             fontFamily: 'DM Sans',

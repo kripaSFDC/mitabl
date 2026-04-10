@@ -252,12 +252,12 @@ class _MiOrdersPageState extends State<MiOrdersPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'My Orders',
                 style: TextStyle(
                   fontSize: 30,
@@ -267,8 +267,8 @@ class _MiOrdersPageState extends State<MiOrdersPage>
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 4),
-              const Text(
+              SizedBox(height: 4),
+              Text(
                 'Track and manage your culinary journeys',
                 style: TextStyle(
                   fontSize: 15,
@@ -428,7 +428,7 @@ class _MiOrdersPageState extends State<MiOrdersPage>
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: MitablRadius.cardBorder,
         ),
         title: const Text('Cancel order'),

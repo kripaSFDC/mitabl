@@ -167,7 +167,7 @@ class _ForgotPageState extends State<ForgotPage> {
                                 const SizedBox(height: 16),
 
                                 // ── Subtitle ──
-                                Text(
+                                const Text(
                                   "Don't worry! Enter your email below and we'll send you a link to reset your password.",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -199,9 +199,9 @@ class _ForgotPageState extends State<ForgotPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       // Email label
-                                      Padding(
+                                      const Padding(
                                         padding:
-                                            const EdgeInsets.only(left: 4),
+                                            EdgeInsets.only(left: 4),
                                         child: Text(
                                           'Email Address',
                                           style: TextStyle(
@@ -230,8 +230,8 @@ class _ForgotPageState extends State<ForgotPage> {
                                         decoration: InputDecoration(
                                           hintText:
                                               'chef@culinaryatelier.com',
-                                          hintStyle: TextStyle(
-                                            color: const Color(0xFF64748B),
+                                          hintStyle: const TextStyle(
+                                            color: Color(0xFF64748B),
                                             fontFamily: 'DM Sans',
                                           ),
                                           filled: true,
@@ -335,10 +335,10 @@ class _ForgotPageState extends State<ForgotPage> {
                                                         color: Colors.white,
                                                       ),
                                                     )
-                                                  : Row(
+                                                  : const Row(
                                                       mainAxisSize:
                                                           MainAxisSize.min,
-                                                      children: const [
+                                                      children: [
                                                         Text(
                                                           'Send Reset Link',
                                                           style: TextStyle(
@@ -372,11 +372,11 @@ class _ForgotPageState extends State<ForgotPage> {
                                 GestureDetector(
                                   onTap: () =>
                                       navigatorKey.currentState!.pop(),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.arrow_back,
                                           size: 16,
                                           color: MitablColors.primary),

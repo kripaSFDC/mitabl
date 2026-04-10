@@ -159,9 +159,9 @@ class _AddMenuPageState extends State<AddMenuPage> {
                             Container(
                               width: 40,
                               height: 40,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFFF1F5F9),
+                                color: Color(0xFFF1F5F9),
                               ),
                               child: const Icon(Icons.person,
                                   color: MitablColors.onSurfaceVariant,
@@ -187,11 +187,11 @@ class _AddMenuPageState extends State<AddMenuPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Item Photography section
-                            Row(
+                            const Row(
                               mainAxisAlignment:
                                   MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Item Photography',
                                   style: TextStyle(
                                     fontFamily: 'Nunito',
@@ -343,7 +343,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                             const SizedBox(height: 32),
 
                             // Food Name
-                            _FormLabel(label: 'Food Name'),
+                            const _FormLabel(label: 'Food Name'),
                             const SizedBox(height: 8),
                             _FormInput(
                               controller: itemNameController,
@@ -356,7 +356,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                             const SizedBox(height: 24),
 
                             // Description
-                            _FormLabel(label: 'Description'),
+                            const _FormLabel(label: 'Description'),
                             const SizedBox(height: 8),
                             _FormInput(
                               controller: descriptionController,
@@ -370,7 +370,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                             const SizedBox(height: 24),
 
                             // Price
-                            _FormLabel(label: 'Price (\$)'),
+                            const _FormLabel(label: 'Price (\$)'),
                             const SizedBox(height: 8),
                             _FormInput(
                               controller: priceController,
@@ -493,7 +493,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                 label: const Text('Special Diet'),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: MitablColors.primary,
-                                  shape: RoundedRectangleBorder(
+                                  shape: const RoundedRectangleBorder(
                                     borderRadius:
                                         MitablRadius.pillBorder,
                                   ),
@@ -729,7 +729,7 @@ class _AddMenuPageState extends State<AddMenuPage> {
                                           const Color(0xFFF1F5F9),
                                       foregroundColor: MitablColors
                                           .onSurfaceVariant,
-                                      shape: RoundedRectangleBorder(
+                                      shape: const RoundedRectangleBorder(
                                         borderRadius:
                                             MitablRadius.pillBorder,
                                       ),
@@ -789,12 +789,12 @@ class _PhotoPlaceholderGrid extends StatelessWidget {
                 strokeAlign: BorderSide.strokeAlignInside,
               ),
             ),
-            child: Column(
+            child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.add_a_photo_outlined,
-                    size: 28, color: const Color(0xFF64748B)),
-                const SizedBox(height: 8),
+                    size: 28, color: Color(0xFF64748B)),
+                SizedBox(height: 8),
                 Text(
                   'Main Photo',
                   style: TextStyle(
@@ -873,7 +873,7 @@ class _FormLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
           color: MitablColors.onSurfaceVariant,
@@ -920,7 +920,7 @@ class _FormInput extends StatelessWidget {
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: const Color(0xFF64748B)),
+              hintStyle: const TextStyle(color: Color(0xFF64748B)),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: prefix != null ? 40 : 20,
@@ -1036,7 +1036,7 @@ class _AvailabilityToggle extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: MitablColors.onSurfaceVariant,
                   ),
@@ -1094,7 +1094,7 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Choose a specific date, recurring weekdays, and an optional serving window.',
                 style: TextStyle(
                   fontSize: 13,
@@ -1117,7 +1117,7 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: MitablColors.primary,
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: MitablRadius.pillBorder,
                     ),
                     side: BorderSide(
@@ -1170,7 +1170,7 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: MitablColors.primary,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                             borderRadius: MitablRadius.pillBorder,
                           ),
                           side: BorderSide(
@@ -1199,7 +1199,7 @@ class _AvailabilityScheduleSection extends StatelessWidget {
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: MitablColors.primary,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                             borderRadius: MitablRadius.pillBorder,
                           ),
                           side: BorderSide(
@@ -1382,7 +1382,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: MitablColors.primary,
                                 foregroundColor: MitablColors.onPrimary,
-                                shape: RoundedRectangleBorder(
+                                shape: const RoundedRectangleBorder(
                                   borderRadius: MitablRadius.pillBorder,
                                 ),
                                 elevation: 0,
@@ -1404,7 +1404,7 @@ class _UploadbuttonState extends State<_UploadButton> {
                               label: const Text('Camera'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: MitablColors.primary,
-                                shape: RoundedRectangleBorder(
+                                shape: const RoundedRectangleBorder(
                                   borderRadius: MitablRadius.pillBorder,
                                 ),
                                 side: BorderSide(
@@ -1438,7 +1438,7 @@ class _UploadbuttonState extends State<_UploadButton> {
             label: const Text('Upload Photos'),
             style: OutlinedButton.styleFrom(
               foregroundColor: MitablColors.primary,
-              shape: RoundedRectangleBorder(
+              shape: const RoundedRectangleBorder(
                 borderRadius: MitablRadius.pillBorder,
               ),
               side: BorderSide(

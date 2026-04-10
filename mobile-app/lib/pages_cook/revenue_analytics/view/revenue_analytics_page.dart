@@ -168,12 +168,12 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.menu,
+                            Icon(Icons.menu,
                                 color: MitablColors.onSurface),
-                            const SizedBox(width: 16),
-                            const Text(
+                            SizedBox(width: 16),
+                            Text(
                               'Vendor Hub',
                               style: TextStyle(
                                 fontSize: 22,
@@ -186,7 +186,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                         Container(
                           width: 40,
                           height: 40,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             color: MitablColors.secondaryContainer,
                           ),
@@ -237,7 +237,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                             // Weekly / Monthly toggle
                             Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: MitablColors.surfaceContainerLow,
                                 borderRadius: MitablRadius.pillBorder,
                               ),
@@ -351,9 +351,9 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
 
                           // Day labels
                           const SizedBox(height: 8),
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text('Mon', style: _dayLabelStyle),
                               Text('Tue', style: _dayLabelStyle),
                               Text('Wed', style: _dayLabelStyle),
@@ -418,7 +418,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'AVERAGE ORDER VALUE',
                                   style: TextStyle(
                                     fontSize: 11,
@@ -532,7 +532,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                         horizontal: 8,
                                         vertical: 4,
                                       ),
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         color:
                                             MitablColors.secondaryContainer,
                                         borderRadius: MitablRadius.pillBorder,
@@ -594,8 +594,8 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                           const SizedBox(height: 24),
 
                           // Table header
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Expanded(
                                 flex: 3,
                                 child: Text('ORDER ID',
@@ -640,7 +640,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                               return Container(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
                                       color: MitablColors.surfaceContainerLow,
@@ -680,7 +680,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                             horizontal: 12,
                                             vertical: 4,
                                           ),
-                                          decoration: BoxDecoration(
+                                          decoration: const BoxDecoration(
                                             color: MitablColors
                                                 .secondaryContainer,
                                             borderRadius:
@@ -726,7 +726,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                 backgroundColor:
                                     MitablColors.surfaceContainerLow,
                                 side: BorderSide.none,
-                                shape: RoundedRectangleBorder(
+                                shape: const RoundedRectangleBorder(
                                   borderRadius: MitablRadius.pillBorder,
                                 ),
                               ),
@@ -836,9 +836,9 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                 children: [
                   Container(
                     height: math.max(4.0, fraction * 100),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: MitablColors.primary,
-                      borderRadius: const BorderRadius.vertical(
+                      borderRadius: BorderRadius.vertical(
                         top: Radius.circular(4),
                       ),
                     ),
@@ -856,7 +856,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: MitablColors.surfaceContainerLow,
       ),

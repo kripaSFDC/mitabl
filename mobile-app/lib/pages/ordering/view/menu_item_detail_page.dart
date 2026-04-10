@@ -180,13 +180,13 @@ class MenuItemDetailPage extends StatelessWidget {
                             runSpacing: 8,
                             children: [
                               if (item.dineInAvailable)
-                                _TagBadge(
+                                const _TagBadge(
                                   label: 'Dine-in Available',
-                                  bgColor: const Color(0xFFF8FAFC), // surface-container-high
+                                  bgColor: Color(0xFFF8FAFC), // surface-container-high
                                   textColor: MitablColors.onSurfaceVariant,
                                 ),
                               if (item.takeAwayAvailable)
-                                _TagBadge(
+                                const _TagBadge(
                                   label: 'Takeaway',
                                   bgColor: MitablColors.secondaryContainer,
                                   textColor: MitablColors.onSecondaryContainer,
@@ -221,7 +221,7 @@ class MenuItemDetailPage extends StatelessWidget {
                           const SizedBox(height: 32),
 
                           // Bento info grid
-                          Row(
+                          const Row(
                             children: [
                               Expanded(
                                 child: _InfoBox(
@@ -229,7 +229,7 @@ class MenuItemDetailPage extends StatelessWidget {
                                   value: '15-20 min',
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: _InfoBox(
                                   label: 'CATEGORY',
@@ -239,7 +239,7 @@ class MenuItemDetailPage extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Row(
+                          const Row(
                             children: [
                               Expanded(
                                 child: _InfoBox(
@@ -247,7 +247,7 @@ class MenuItemDetailPage extends StatelessWidget {
                                   value: '124',
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: _InfoBoxWithIcon(
                                   label: 'RATING',
@@ -261,15 +261,15 @@ class MenuItemDetailPage extends StatelessWidget {
 
                           // Description section
                           if ((item.description ?? '').trim().isNotEmpty) ...[
-                            Row(
+                            const Row(
                               children: [
                                 Icon(
                                   Icons.description_outlined,
                                   color: MitablColors.primary,
                                   size: 22,
                                 ),
-                                const SizedBox(width: 8),
-                                const Text(
+                                SizedBox(width: 8),
+                                Text(
                                   'Description',
                                   style: TextStyle(
                                     fontFamily: 'PlusJakartaSans',
@@ -293,15 +293,15 @@ class MenuItemDetailPage extends StatelessWidget {
                           ],
 
                           // Key Ingredients section
-                          Row(
+                          const Row(
                             children: [
                               Icon(
                                 Icons.restaurant_outlined,
                                 color: MitablColors.primary,
                                 size: 22,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 'Key Ingredients',
                                 style: TextStyle(
                                   fontFamily: 'PlusJakartaSans',
@@ -313,10 +313,10 @@ class MenuItemDetailPage extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Wrap(
+                          const Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: const [
+                            children: [
                               _IngredientChip(label: 'Fresh Ingredients'),
                               _IngredientChip(label: 'Homemade'),
                               _IngredientChip(label: 'Herbs'),
@@ -388,7 +388,7 @@ class MenuItemDetailPage extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.trending_up,
                                   size: 30,
                                   color: MitablColors.primary,

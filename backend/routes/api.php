@@ -105,7 +105,7 @@ Route::get('/mobcontact', function () {
         ->header('Link', '</api/v2/mob-contact>; rel="successor-version"');
 });
 
-
+Route::get('support/tickets', [SupportTicketController::class, 'index'])->middleware(['auth:api', 'throttle:support-read']);
 Route::post('support/ticket', [SupportTicketController::class, 'store'])->middleware('throttle:support-intake');
 Route::get('support/ticket/{id}', [SupportTicketController::class, 'show'])->middleware('throttle:support-read');
 Route::post('support/ticket/{id}/reply', [SupportTicketController::class, 'reply'])->middleware('throttle:support-reply');

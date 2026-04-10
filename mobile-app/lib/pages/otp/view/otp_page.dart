@@ -126,7 +126,7 @@ class _OTPPageState extends State<OTPPage> {
                                 child: Container(
                                   width: 40,
                                   height: 40,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.transparent,
                                   ),
@@ -141,7 +141,7 @@ class _OTPPageState extends State<OTPPage> {
                               ),
                               const Expanded(
                                 child: Text(
-                                  'Mitabl',
+                                  'mitabl',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 24,
@@ -222,7 +222,7 @@ class _OTPPageState extends State<OTPPage> {
                                 const SizedBox(height: 12),
 
                                 // ── Subtitle ──
-                                SizedBox(
+                                const SizedBox(
                                   width: 280,
                                   child: Text(
                                     'We sent a code to your phone. Please enter it below to continue.',
@@ -328,7 +328,7 @@ class _OTPPageState extends State<OTPPage> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
+                                    const Text(
                                       "Didn't receive the code? ",
                                       style: TextStyle(
                                         fontSize: 14,
@@ -423,7 +423,7 @@ class _OTPPageState extends State<OTPPage> {
                                       );
                                     }
                                   },
-                                  child: Text(
+                                  child: const Text(
                                     'Auto-Verify (Demo)',
                                     style: TextStyle(
                                       fontSize: 13,

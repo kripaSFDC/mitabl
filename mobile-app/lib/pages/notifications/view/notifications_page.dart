@@ -174,7 +174,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MitablColors.surface,
-      appBar: const GlassAppBar(title: Text('Mitabl')),
+      appBar: const GlassAppBar(title: Text('mitabl')),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: MitablColors.primary),
@@ -210,10 +210,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   'Notifications',
                                   style: TextStyle(

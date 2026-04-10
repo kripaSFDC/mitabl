@@ -33,6 +33,18 @@ class SupportTicketRepository {
     return token;
   }
 
+  Future<Map<String, dynamic>> listSupportTickets({
+    int page = 1,
+  }) async {
+    final url = ApiContract.uri('/support/tickets?page=$page');
+    final response = await _httpClient.get(
+      url,
+      headers: await _jsonHeaders(),
+    ).timeout(ApiContract.requestTimeout);
+
+    return _parseResponse(response);
+  }
+
   Future<Map<String, String>> _jsonHeaders({String? ticketToken}) async {
     final token = await _accessTokenOrNull();
     final headers = <String, String>{
@@ -117,9 +129,22 @@ class SupportTicketRepository {
   }
 
   Map<String, dynamic> _parseResponse(http.Response response) {
-    final decoded = response.body.isNotEmpty
-        ? jsonDecode(response.body) as Map<String, dynamic>
-        : <String, dynamic>{};
+    Map<String, dynamic> decoded = {};
+
+    try {
+      if (response.body.isNotEmpty) {
+        final parsed = jsonDecode(response.body);
+        if (parsed is Map<String, dynamic>) {
+          decoded = parsed;
+        }
+      }
+    } catch (e) {
+      // Malformed JSON response
+      decoded = {
+        'error': 'Invalid response format',
+        'raw_body': response.body.substring(0, 500),
+      };
+    }
 
     if (!decoded.containsKey('status')) {
       decoded['status'] = response.statusCode;

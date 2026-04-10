@@ -87,7 +87,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
           ),
 
           // TopAppBar: centered lock icon
-          Positioned(
+          const Positioned(
             top: 0,
             left: 0,
             right: 0,
@@ -118,7 +118,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                   Column(
                     children: [
                       const Text(
-                        'Mitabl',
+                        'mitabl',
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
@@ -211,7 +211,7 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
-                      SizedBox(
+                      const SizedBox(
                         width: 240,
                         child: Text(
                           'Use Face ID or Fingerprint to unlock',
@@ -255,14 +255,14 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                               backgroundColor: MitablColors.secondaryContainer,
                               foregroundColor:
                                   MitablColors.onSecondaryContainer,
-                              shape: RoundedRectangleBorder(
+                              shape: const RoundedRectangleBorder(
                                 borderRadius: MitablRadius.pillBorder,
                               ),
                               elevation: 0,
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Icon(Icons.password_rounded, size: 18),
                                 SizedBox(width: 8),
                                 Text(
@@ -279,13 +279,13 @@ class _BiometricLockPageState extends State<BiometricLockPage> {
                         ),
                         const SizedBox(height: 24),
                         // Encryption footer
-                        Text(
+                        const Text(
                           'YOUR DATA IS PROTECTED BY MITABL ENCRYPTION',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.3,
-                            color: const Color(0xFF64748B),
+                            color: Color(0xFF64748B),
                           ),
                           textAlign: TextAlign.center,
                         ),

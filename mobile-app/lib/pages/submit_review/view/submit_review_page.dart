@@ -67,7 +67,7 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
     return Scaffold(
       backgroundColor: MitablColors.surface,
       appBar: GlassAppBar(
-        title: const Text('Mitabl'),
+        title: const Text('mitabl'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -201,9 +201,9 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
             const SizedBox(height: 32),
 
             // ── "Write your experience" section ──
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 8),
                 child: Text(
                   'Write your experience',
@@ -225,9 +225,9 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
             const SizedBox(height: 24),
 
             // ── "Add photos" section ──
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 8),
                 child: Text(
                   'Add photos',
@@ -259,21 +259,21 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
                           strokeAlign: BorderSide.strokeAlignInside,
                         ),
                       ),
-                      child: Column(
+                      child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.add_a_photo_outlined,
                             size: 24,
-                            color: const Color(0xFF64748B),
+                            color: Color(0xFF64748B),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: 6),
                           Text(
                             'Upload',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF64748B),
+                              color: Color(0xFF64748B),
                             ),
                           ),
                         ],

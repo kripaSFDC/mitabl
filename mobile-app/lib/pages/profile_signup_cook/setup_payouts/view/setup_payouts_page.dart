@@ -127,9 +127,9 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFF1F5F9),
+                      color: Color(0xFFF1F5F9),
                     ),
                     child: const Icon(Icons.person,
                         color: MitablColors.onSurfaceVariant, size: 20),
@@ -152,7 +152,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: MitablColors.secondaryContainer,
                       borderRadius: MitablRadius.pillBorder,
                     ),
@@ -186,7 +186,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     'We use Stripe to ensure your earnings are transferred safely and quickly. Set up your secure payout method in under 5 minutes.',
                     style: TextStyle(
                       fontSize: 16,
@@ -201,7 +201,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                   const SizedBox(height: 40),
 
                   // Step cards
-                  Row(
+                  const Row(
                     children: [
                       Expanded(
                           child: _StepCard(
@@ -213,7 +213,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  const Row(
                     children: [
                       Expanded(
                           child: _StepCard(
@@ -225,7 +225,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  const Row(
                     children: [
                       Expanded(
                           child: _StepCard(
@@ -272,7 +272,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                           offset: const Offset(0, 12),
                         ),
                       ],
-                      border: Border(
+                      border: const Border(
                         top: BorderSide(
                           color: MitablColors.primary,
                           width: 4,
@@ -292,7 +292,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text(
+                        const Text(
                           'Click below to be redirected to Stripe\'s secure portal to complete your onboarding.',
                           style: TextStyle(
                             fontSize: 14,
@@ -337,10 +337,10 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                                               strokeWidth: 2,
                                             ),
                                           )
-                                        : Row(
+                                        : const Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
-                                            children: const [
+                                            children: [
                                               Text(
                                                 'Connect with Stripe',
                                                 style: TextStyle(
@@ -371,7 +371,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                             width: double.infinity,
                             height: 56,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 gradient: MitablColors.primaryGradient,
                                 borderRadius: MitablRadius.pillBorder,
                               ),
@@ -401,12 +401,12 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
                         const SizedBox(height: 24),
                         RichText(
                           textAlign: TextAlign.center,
-                          text: TextSpan(
+                          text: const TextSpan(
                             style: TextStyle(
                               fontSize: 12,
-                              color: const Color(0xFF64748B),
+                              color: Color(0xFF64748B),
                             ),
-                            children: const [
+                            children: [
                               TextSpan(
                                   text:
                                       'By clicking connect, you agree to our '),
@@ -568,7 +568,7 @@ class _StepCard extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: MitablColors.surfaceContainerLowest,
               shape: BoxShape.circle,
             ),
@@ -587,7 +587,7 @@ class _StepCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: MitablColors.onSurfaceVariant,
               height: 1.4,

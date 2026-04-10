@@ -81,7 +81,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                             horizontal: 24, vertical: 32),
                         alignment: Alignment.center,
                         child: const Text(
-                          'Mitabl',
+                          'mitabl',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
@@ -120,7 +120,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
+                              const Text(
                                 'Sign in to your culinary atelier',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -132,8 +132,8 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                               const SizedBox(height: 40),
 
                               // ── Email / Phone Field ──
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4, bottom: 8),
                                 child: Text(
                                   'Email or Phone',
                                   style: TextStyle(
@@ -200,7 +200,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
+                                    const Text(
                                       'Password',
                                       style: TextStyle(
                                         fontSize: 14,
@@ -212,13 +212,13 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                     GestureDetector(
                                       onTap: () => navigatorKey.currentState!
                                           .pushNamed('/ForgotPage'),
-                                      child: Text(
+                                      child: const Text(
                                         'Forgot Password?',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           fontFamily: 'DM Sans',
-                                          color: const Color(0xFF475569),
+                                          color: Color(0xFF475569),
                                         ),
                                       ),
                                     ),
@@ -375,7 +375,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                               const SizedBox(height: 24),
 
                               // ── Social Login Buttons (3-col grid) ──
-                              Row(
+                              const Row(
                                 children: [
                                   Expanded(
                                     child: _SocialLoginTile(
@@ -384,7 +384,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                       iconSize: 28,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
                                   Expanded(
                                     child: _SocialLoginTile(
                                       icon: Icons.apple,
@@ -392,7 +392,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                                       iconSize: 24,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
                                   Expanded(
                                     child: _SocialLoginTile(
                                       icon: Icons.facebook_rounded,
@@ -408,7 +408,7 @@ class _LoginForm extends State<LoginForm> with TickerProviderStateMixin {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
+                                  const Text(
                                     "Don't have an account? ",
                                     style: TextStyle(
                                       fontSize: 16,

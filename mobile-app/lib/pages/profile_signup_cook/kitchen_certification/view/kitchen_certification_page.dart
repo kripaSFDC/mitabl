@@ -82,7 +82,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'Mitabl',
+                    'mitabl',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w800,
@@ -116,7 +116,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Upload your safety compliance documents to verify your kitchen atelier. Our team will review your submission within 48 hours.',
                     style: TextStyle(
                       fontSize: 16,
@@ -146,8 +146,8 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                         Container(
                           width: 80,
                           height: 80,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFEDD5),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFEDD5),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -166,7 +166,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        SizedBox(
+                        const SizedBox(
                           width: 280,
                           child: Text(
                             'Supports PDF, JPG, and PNG up to 10MB. Ensure text is legible for faster verification.',
@@ -185,7 +185,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: MitablColors.primary,
                               foregroundColor: MitablColors.onPrimary,
-                              shape: RoundedRectangleBorder(
+                              shape: const RoundedRectangleBorder(
                                 borderRadius: MitablRadius.pillBorder,
                               ),
                               elevation: 4,
@@ -229,10 +229,10 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(32),
                     ),
-                    child: Column(
+                    child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Required Checklist',
                           style: TextStyle(
                             fontSize: 20,
@@ -240,21 +240,21 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                             color: MitablColors.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24),
                         _ChecklistRow(
                           title: 'Business Registration (ABN/GST)',
                           subtitle:
                               'Proof of registered entity in your region.',
                           isComplete: true,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         _ChecklistRow(
                           title: 'Food Safety Certificate',
                           subtitle:
                               'Certification of completed Level 2 safety training.',
                           isComplete: true,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         _ChecklistRow(
                           title: 'Public Liability Insurance',
                           subtitle:
@@ -304,13 +304,13 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                             );
                           })
                         else ...[
-                          _UploadedFileRow(
+                          const _UploadedFileRow(
                             icon: Icons.picture_as_pdf,
                             name: 'health_cert_2024.pdf',
                             detail: '2.4 MB',
                           ),
                           const SizedBox(height: 12),
-                          _UploadedFileRow(
+                          const _UploadedFileRow(
                             icon: Icons.image_outlined,
                             name: 'gst_reg_document.jpg',
                             detail: '1.1 MB',
@@ -445,7 +445,7 @@ class _ChecklistRow extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   color: MitablColors.onSurfaceVariant,
                 ),
@@ -509,7 +509,7 @@ class _UploadedFileRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   detail,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: MitablColors.onSurfaceVariant,
                   ),

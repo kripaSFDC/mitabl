@@ -121,7 +121,7 @@ class _CookProfilePage extends State<CookProfilePage>
                             ),
                             const SizedBox(width: 16),
                             const Text(
-                              'Mitabl',
+                              'mitabl',
                               style: TextStyle(
                                 fontFamily: 'Nunito',
                                 fontWeight: FontWeight.w800,
@@ -215,7 +215,7 @@ class _CookProfilePage extends State<CookProfilePage>
                                   ),
                                   filled: true,
                                   fillColor: MitablColors.surfaceContainerLow,
-                                  border: OutlineInputBorder(
+                                  border: const OutlineInputBorder(
                                     borderRadius: MitablRadius.inputBorder,
                                     borderSide: BorderSide.none,
                                   ),
@@ -248,12 +248,12 @@ class _CookProfilePage extends State<CookProfilePage>
                                     color: const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  child: Column(
+                                  child: const Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        children: const [
+                                        children: [
                                           Icon(Icons.restaurant_menu,
                                               color: MitablColors.primary,
                                               size: 22),
@@ -271,8 +271,8 @@ class _CookProfilePage extends State<CookProfilePage>
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      const Text(
+                                      SizedBox(height: 12),
+                                      Text(
                                         'Artisan, Traditional, Fusion, or Home Comfort.',
                                         style: TextStyle(
                                           fontSize: 13,
@@ -293,12 +293,12 @@ class _CookProfilePage extends State<CookProfilePage>
                                     color: const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  child: Column(
+                                  child: const Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        children: const [
+                                        children: [
                                           Icon(Icons.verified_user,
                                               color: MitablColors.primary,
                                               size: 22),
@@ -316,8 +316,8 @@ class _CookProfilePage extends State<CookProfilePage>
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      const Text(
+                                      SizedBox(height: 12),
+                                      Text(
                                         'Health certifications and safety standards.',
                                         style: TextStyle(
                                           fontSize: 13,
@@ -415,12 +415,12 @@ class _CookProfilePage extends State<CookProfilePage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Progress info
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                         child: Row(
                           mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Text(
                               'ONBOARDING PROFILE',
                               style: TextStyle(
@@ -444,13 +444,13 @@ class _CookProfilePage extends State<CookProfilePage>
                       ),
                       const SizedBox(height: 8),
                       // Progress bar
-                      ClipRRect(
+                      const ClipRRect(
                         borderRadius: MitablRadius.pillBorder,
                         child: LinearProgressIndicator(
                           value: 0.35,
                           minHeight: 6,
                           color: MitablColors.primary,
-                          backgroundColor: const Color(0xFFF8FAFC),
+                          backgroundColor: Color(0xFFF8FAFC),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -653,7 +653,7 @@ class _TimingState extends State<_Timing> {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: MitablColors.surfaceContainerLow,
               borderRadius: MitablRadius.inputBorder,
             ),
@@ -701,7 +701,7 @@ class _ServiceTypeSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Dine-in',
                       style: TextStyle(
@@ -726,7 +726,7 @@ class _ServiceTypeSection extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Takeaway',
                       style: TextStyle(
@@ -825,7 +825,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                 final slot = state.dineInSlots[index];
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: MitablColors.surfaceContainerLow,
                     borderRadius: MitablRadius.cardBorder,
                   ),
@@ -908,7 +908,7 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<int>(
-                      value: selectedDay,
+                      initialValue: selectedDay,
                       items: availableDays
                           .map(
                             (day) => DropdownMenuItem<int>(
@@ -1488,9 +1488,9 @@ class _UploadbuttonState extends State<_UploadButton> {
                 ),
               ],
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Icon(Icons.add_a_photo, size: 18, color: MitablColors.primary),
                 SizedBox(width: 8),
                 Text(

@@ -35,7 +35,7 @@ class ChecklistItemTile extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              side: BorderSide(
+              side: const BorderSide(
                 color: MitablColors.outlineVariant,
                 width: 1.5,
               ),

@@ -62,7 +62,7 @@ class ResetLinkSentPage extends StatelessWidget {
                 child: const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Mitabl',
+                    'mitabl',
                     style: TextStyle(
                       fontFamily: 'Nunito',
                       fontWeight: FontWeight.w800,
@@ -243,7 +243,7 @@ class ResetLinkSentPage extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Resend link section
-                    Text(
+                    const Text(
                       "Didn't receive the email?",
                       style: TextStyle(
                         fontSize: 15,
@@ -268,7 +268,7 @@ class ResetLinkSentPage extends StatelessWidget {
                           backgroundColor: MitablColors.secondaryContainer,
                           foregroundColor:
                               MitablColors.onSecondaryContainer,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                             borderRadius: MitablRadius.pillBorder,
                           ),
                           elevation: 0,
@@ -305,11 +305,11 @@ class ResetLinkSentPage extends StatelessWidget {
                                   .withValues(alpha: 0.05),
                             ),
                           ),
-                          Column(
+                          const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                children: const [
+                                children: [
                                   Icon(
                                     Icons.tips_and_updates_outlined,
                                     size: 16,
@@ -326,7 +326,7 @@ class ResetLinkSentPage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 'Check your "Spam" or "Promotions" folder if you don\'t see the email in your primary inbox within 2 minutes.',
                                 style: TextStyle(

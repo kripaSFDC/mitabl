@@ -128,16 +128,16 @@ class _AddPaymentMethodPageState extends State<AddPaymentMethodPage> {
                       color: MitablColors.secondaryContainer.withValues(alpha: 0.3),
                       borderRadius: MitablRadius.pillBorder,
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.lock,
                           size: 14,
-                          color: const Color(0xFF506140),
+                          color: Color(0xFF506140),
                         ),
-                        const SizedBox(width: 6),
-                        const Text(
+                        SizedBox(width: 6),
+                        Text(
                           'BANK-LEVEL SECURITY',
                           style: TextStyle(
                             fontSize: 11,

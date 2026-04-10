@@ -336,7 +336,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 4),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: MitablColors.primary,
                                     borderRadius:
                                         MitablRadius.pillBorder,

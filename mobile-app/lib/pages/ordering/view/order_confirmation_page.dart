@@ -102,7 +102,7 @@ class OrderConfirmationPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Stack(
+                    child: const Stack(
                       alignment: Alignment.center,
                       children: [
                         Icon(
@@ -116,7 +116,7 @@ class OrderConfirmationPage extends StatelessWidget {
                           child: Icon(
                             Icons.favorite,
                             size: 36,
-                            color: const Color(0xFF506140), // secondary
+                            color: Color(0xFF506140), // secondary
                           ),
                         ),
                       ],
@@ -501,7 +501,7 @@ class OrderConfirmationPage extends StatelessWidget {
                   color: MitablColors.outlineVariant,
                 ),
                 const SizedBox(width: 16),
-                Icon(
+                const Icon(
                   Icons.restaurant,
                   color: MitablColors.primary,
                   size: 20,

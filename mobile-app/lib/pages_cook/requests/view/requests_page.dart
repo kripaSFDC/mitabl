@@ -77,7 +77,7 @@ class _RequestsPageState extends State<RequestsPage> {
                                             ),
                                             const SizedBox(width: 16),
                                             const Text(
-                                              'Mitabl',
+                                              'mitabl',
                                               style: TextStyle(
                                                 fontFamily: 'Nunito',
                                                 fontWeight: FontWeight.w800,
@@ -114,14 +114,14 @@ class _RequestsPageState extends State<RequestsPage> {
                                 ),
 
                                 // ── Header Section ──
-                                SliverToBoxAdapter(
+                                const SliverToBoxAdapter(
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
+                                    padding: EdgeInsets.fromLTRB(
                                         24, 24, 24, 0),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: const [
+                                      children: [
                                         Text(
                                           'Order Requests',
                                           style: TextStyle(
@@ -276,7 +276,7 @@ class _RequestsPageState extends State<RequestsPage> {
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: MitablColors.surfaceContainerLow,
                   borderRadius: MitablRadius.pillBorder,
                 ),
@@ -350,7 +350,7 @@ class _RequestsPageState extends State<RequestsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'TOTAL AMOUNT',
                   style: TextStyle(
                     fontSize: 12,
@@ -401,7 +401,7 @@ class _RequestsPageState extends State<RequestsPage> {
                     side: const BorderSide(
                       color: Color(0xFF64748B),
                     ),
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: MitablRadius.pillBorder,
                     ),
                   ),
@@ -430,7 +430,7 @@ class _RequestsPageState extends State<RequestsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 4,
                     shadowColor: MitablColors.primary.withValues(alpha: 0.2),
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: MitablRadius.pillBorder,
                     ),
                   ),

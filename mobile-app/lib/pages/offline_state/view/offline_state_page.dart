@@ -55,8 +55,8 @@ class OfflineStatePage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: const [
+                    const Row(
+                      children: [
                         Icon(
                           Icons.lock_outlined,
                           color: MitablColors.primary,
@@ -64,7 +64,7 @@ class OfflineStatePage extends StatelessWidget {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          'Mitabl',
+                          'mitabl',
                           style: TextStyle(
                             fontFamily: 'Nunito',
                             fontWeight: FontWeight.w900,
@@ -199,7 +199,7 @@ class OfflineStatePage extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Subtitle
-                    SizedBox(
+                    const SizedBox(
                       width: 280,
                       child: Text(
                         'Please check your internet connection and try again.',
@@ -234,9 +234,9 @@ class OfflineStatePage extends StatelessWidget {
                           child: InkWell(
                             borderRadius: MitablRadius.pillBorder,
                             onTap: () => Navigator.pop(context),
-                            child: Row(
+                            child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.sync,
                                   color: MitablColors.onPrimary,
@@ -272,7 +272,7 @@ class OfflineStatePage extends StatelessWidget {
                           backgroundColor: MitablColors.secondaryContainer,
                           foregroundColor:
                               MitablColors.onSecondaryContainer,
-                          shape: RoundedRectangleBorder(
+                          shape: const RoundedRectangleBorder(
                             borderRadius: MitablRadius.pillBorder,
                           ),
                           elevation: 0,

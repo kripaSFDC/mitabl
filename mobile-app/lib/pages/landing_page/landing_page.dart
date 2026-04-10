@@ -28,6 +28,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   late final TapGestureRecognizer _termsRecognizer;
   late final TapGestureRecognizer _privacyRecognizer;
+  late final GlobalKey<ScaffoldState> _scaffoldKey;
   List<Map<String, dynamic>> _featuredCooks = const [];
   bool _isLoadingCooks = true;
 
@@ -51,6 +52,7 @@ class _LandingPageState extends State<LandingPage> {
   @override
   void initState() {
     super.initState();
+    _scaffoldKey = GlobalKey<ScaffoldState>();
     _termsRecognizer = TapGestureRecognizer()
       ..onTap = () {
         _launchInBrowser(Uri.parse(ApiContract.webUrl('terms')));
@@ -113,7 +115,9 @@ class _LandingPageState extends State<LandingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: MitablColors.surface,
+      drawer: _buildDrawer(),
       body: Stack(
         children: [
           CustomScrollView(
@@ -158,7 +162,7 @@ class _LandingPageState extends State<LandingPage> {
                       const SizedBox(height: 24),
 
                       // Subtitle – text-lg = 18px
-                      Text(
+                      const Text(
                         'Experience authentic, home-cooked meals prepared by passionate local chefs. From family secrets to modern twists, discover the soul of community dining.',
                         style: TextStyle(
                           fontSize: 18,
@@ -291,7 +295,7 @@ class _LandingPageState extends State<LandingPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            const Text(
                               "Every chef on Mitabl is verified for quality and safety, bringing you the same love they put into their own family's dinner.",
                               style: TextStyle(
                                 fontSize: 18,
@@ -396,7 +400,7 @@ class _LandingPageState extends State<LandingPage> {
                         child: Container(
                           height: 300,
                           width: double.infinity,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: MitablColors.surfaceContainerLow,
                           ),
                           child: Stack(
@@ -415,11 +419,11 @@ class _LandingPageState extends State<LandingPage> {
                                   ),
                                 ),
                               ),
-                              Positioned(
+                              const Positioned(
                                 bottom: 24,
                                 left: 24,
                                 right: 24,
-                                child: const Text(
+                                child: Text(
                                   'Bringing the culinary atelier experience to your doorstep.',
                                   style: TextStyle(
                                     fontSize: 24,
@@ -453,10 +457,10 @@ class _LandingPageState extends State<LandingPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Column(
+                          const Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Happening now.',
                                 style: TextStyle(
                                   fontSize: 32,
@@ -465,7 +469,7 @@ class _LandingPageState extends State<LandingPage> {
                                   color: MitablColors.onSurface,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 'Explore meals being prepared in your area today.',
                                 style: TextStyle(
@@ -479,9 +483,9 @@ class _LandingPageState extends State<LandingPage> {
                           GestureDetector(
                             onTap: () => navigatorKey.currentState!
                                 .pushNamed('/SignUpPage'),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Text(
                                   'View All Menus',
                                   style: TextStyle(
@@ -569,6 +573,58 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(
+              color: MitablColors.primary,
+            ),
+            child: Text(
+              'mitabl',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ListTile(
+            title: const Text('Get Started'),
+            onTap: () {
+              Navigator.pop(context);
+              navigatorKey.currentState?.pushNamed('/SignUpPage');
+            },
+          ),
+          ListTile(
+            title: const Text('Login'),
+            onTap: () {
+              Navigator.pop(context);
+              navigatorKey.currentState?.pushNamed('/LoginPage');
+            },
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Terms of Service'),
+            onTap: () {
+              Navigator.pop(context);
+              _launchInBrowser(Uri.parse(ApiContract.webUrl('terms')));
+            },
+          ),
+          ListTile(
+            title: const Text('Privacy Policy'),
+            onTap: () {
+              Navigator.pop(context);
+              _launchInBrowser(Uri.parse(ApiContract.webUrl('privacy-policy')));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTopBar(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     return ClipRect(
@@ -585,7 +641,7 @@ class _LandingPageState extends State<LandingPage> {
           child: Row(
             children: [
               const Text(
-                'Mitabl',
+                'mitabl',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
@@ -596,7 +652,7 @@ class _LandingPageState extends State<LandingPage> {
               ),
               const Spacer(),
               IconButton(
-                onPressed: () {},
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 icon: const Icon(Icons.menu,
                     color: MitablColors.onSurfaceVariant, size: 24),
               ),
@@ -643,9 +699,9 @@ class _LandingPageState extends State<LandingPage> {
                   color: MitablColors.primary,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(Icons.bakery_dining, color: Colors.white, size: 24),
                     SizedBox(height: 2),
                     Text(
@@ -665,14 +721,14 @@ class _LandingPageState extends State<LandingPage> {
               GestureDetector(
                 onTap: () =>
                     navigatorKey.currentState!.pushNamed('/SignUpPage'),
-                child: Opacity(
+                child: const Opacity(
                   opacity: 0.7,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.person_add,
+                      Icon(Icons.person_add,
                           color: MitablColors.onSurfaceVariant, size: 24),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         'JOIN',
                         style: TextStyle(
@@ -688,14 +744,14 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               // Support (inactive)
-              Opacity(
+              const Opacity(
                 opacity: 0.7,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.help_outline,
+                    Icon(Icons.help_outline,
                         color: MitablColors.onSurfaceVariant, size: 24),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       'SUPPORT',
                       style: TextStyle(
@@ -1088,7 +1144,7 @@ class _LandingPageState extends State<LandingPage> {
                       const SizedBox(height: 8),
                       Text(
                         desc,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontFamily: 'DM Sans',
                           color: MitablColors.onSurfaceVariant,
@@ -1101,7 +1157,7 @@ class _LandingPageState extends State<LandingPage> {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            Icon(Icons.schedule,
+                            const Icon(Icons.schedule,
                                 size: 14,
                                 color: MitablColors.onSurfaceVariant),
                             const SizedBox(width: 8),
@@ -1109,7 +1165,7 @@ class _LandingPageState extends State<LandingPage> {
                               readyTime.contains('PM')
                                   ? 'Pre-order for $readyTime'
                                   : 'Ready in $readyTime',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 fontFamily: 'DM Sans',

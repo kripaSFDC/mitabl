@@ -147,7 +147,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                           ),
                           const SizedBox(width: 4),
                           const Text(
-                            'Mitabl',
+                            'mitabl',
                             style: TextStyle(
                               fontFamily: 'Nunito',
                               fontWeight: FontWeight.w800,
@@ -193,7 +193,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Header section
-                          Text(
+                          const Text(
                             'SETTINGS',
                             style: TextStyle(
                               fontSize: 12,
@@ -216,7 +216,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
+                          const Text(
                             'Manage how your miKitchn appears to guests.',
                             style: TextStyle(
                               fontSize: 16,
@@ -238,12 +238,12 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             ),
                             child: Row(
                               children: [
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Go Live Status',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w700,
@@ -251,13 +251,13 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                           color: MitablColors.onSurface,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      SizedBox(height: 2),
                                       Text(
                                         'Kitchen is visible',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF506140),
+                                          color: Color(0xFF506140),
                                         ),
                                       ),
                                     ],
@@ -339,7 +339,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Guest Space',
                                   style: TextStyle(
                                     fontFamily: 'Nunito',
@@ -375,10 +375,10 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.info_outline,
                                         size: 20,
-                                        color: const Color(0xFF506140),
+                                        color: Color(0xFF506140),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -386,7 +386,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
+                                            const Text(
                                               'Pro Tip',
                                               style: TextStyle(
                                                 fontSize: 13,
@@ -502,7 +502,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                             width: 48,
                                             child: Text(
                                               dayLabel,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: 14,
                                                 color: MitablColors
@@ -516,9 +516,9 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                 time: day.timing!
                                                         .startTime ??
                                                     '--:--'),
-                                            Padding(
+                                            const Padding(
                                               padding:
-                                                  const EdgeInsets.symmetric(
+                                                  EdgeInsets.symmetric(
                                                       horizontal: 8),
                                               child: Text(
                                                 '-',
@@ -526,7 +526,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                                   fontWeight:
                                                       FontWeight.w700,
                                                   fontSize: 12,
-                                                  color: const Color(
+                                                  color: Color(
                                                       0xFF64748B),
                                                 ),
                                               ),
@@ -540,15 +540,15 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                               onTap: () =>
                                                   _openTimingDialog(
                                                       context),
-                                              child: Icon(
+                                              child: const Icon(
                                                 Icons.edit,
                                                 size: 16,
                                                 color:
-                                                    const Color(0xFF64748B),
+                                                    Color(0xFF64748B),
                                               ),
                                             ),
                                           ] else ...[
-                                            Text(
+                                            const Text(
                                               'Closed',
                                               style: TextStyle(
                                                 fontStyle: FontStyle.italic,
@@ -563,11 +563,11 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                               onTap: () =>
                                                   _openTimingDialog(
                                                       context),
-                                              child: Icon(
+                                              child: const Icon(
                                                 Icons.add_circle_outline,
                                                 size: 16,
                                                 color:
-                                                    const Color(0xFF64748B),
+                                                    Color(0xFF64748B),
                                               ),
                                             ),
                                           ],
@@ -844,7 +844,7 @@ class _EditKitchenProfilePageState extends State<EditKitchenProfilePage> {
                                     style: TextButton.styleFrom(
                                       foregroundColor:
                                           MitablColors.onSurfaceVariant,
-                                      shape: RoundedRectangleBorder(
+                                      shape: const RoundedRectangleBorder(
                                         borderRadius:
                                             MitablRadius.pillBorder,
                                       ),

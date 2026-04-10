@@ -55,9 +55,9 @@ class UserDetails extends StatelessWidget {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFF1F5F9),
+                      color: Color(0xFFF1F5F9),
                     ),
                     child: const Icon(Icons.person,
                         color: MitablColors.onSurfaceVariant, size: 20),
@@ -77,12 +77,12 @@ class UserDetails extends StatelessWidget {
                   // Breadcrumb
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(Icons.arrow_back,
                             size: 18,
                             color: MitablColors.onSurfaceVariant),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           'Back to Orders',
                           style: TextStyle(
@@ -227,14 +227,14 @@ class UserDetails extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Row(
+                                      const Row(
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.location_on_outlined,
                                             size: 16,
                                             color: MitablColors.primary,
                                           ),
-                                          const SizedBox(width: 4),
+                                          SizedBox(width: 4),
                                           Flexible(
                                             child: Text(
                                               'Member since 2022',
@@ -276,7 +276,7 @@ class UserDetails extends StatelessWidget {
                                             MitablColors.primary,
                                         foregroundColor:
                                             MitablColors.onPrimary,
-                                        shape: RoundedRectangleBorder(
+                                        shape: const RoundedRectangleBorder(
                                           borderRadius:
                                               MitablRadius.pillBorder,
                                         ),
@@ -296,7 +296,7 @@ class UserDetails extends StatelessWidget {
                                             .surfaceContainerLow,
                                         foregroundColor: MitablColors
                                             .onSurfaceVariant,
-                                        shape: RoundedRectangleBorder(
+                                        shape: const RoundedRectangleBorder(
                                           borderRadius:
                                               MitablRadius.pillBorder,
                                         ),
@@ -336,7 +336,7 @@ class UserDetails extends StatelessWidget {
                             mainAxisAlignment:
                                 MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
+                              const Column(
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
@@ -350,8 +350,8 @@ class UserDetails extends StatelessWidget {
                                           .onSecondaryContainer,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  const Text(
+                                  SizedBox(height: 4),
+                                  Text(
                                     '24',
                                     style: TextStyle(
                                       fontFamily: 'Nunito',
@@ -397,7 +397,7 @@ class UserDetails extends StatelessWidget {
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'AVG. RATING',
                                     style: TextStyle(
                                       fontSize: 11,
@@ -453,10 +453,10 @@ class UserDetails extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Wrap(
+                        const Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: const [
+                          children: [
                             _PreferenceChip(label: 'Gluten-Free Only'),
                             _PreferenceChip(label: 'No Spicy Food'),
                             _PreferenceChip(label: 'Prefer Local Sourcing'),
@@ -471,7 +471,7 @@ class UserDetails extends StatelessWidget {
                               .withValues(alpha: 0.10),
                         ),
                         const SizedBox(height: 24),
-                        Text(
+                        const Text(
                           'PRIVATE VENDOR NOTES',
                           style: TextStyle(
                             fontSize: 11,
@@ -491,7 +491,7 @@ class UserDetails extends StatelessWidget {
                           child: Text(
                             customer.description?.toString() ??
                                 '"Loves extra arugula on everything. Usually orders for Sunday lunch."',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               fontStyle: FontStyle.italic,
                               color: MitablColors.onSurface,
@@ -522,10 +522,10 @@ class UserDetails extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Text(
                               'Order History',
                               style: TextStyle(
@@ -541,7 +541,7 @@ class UserDetails extends StatelessWidget {
                         ),
                         const SizedBox(height: 24),
                         // Timeline items
-                        _OrderTimelineItem(
+                        const _OrderTimelineItem(
                           isFirst: true,
                           isActive: true,
                           date: 'Yesterday, 18:30',
@@ -550,7 +550,7 @@ class UserDetails extends StatelessWidget {
                           price: '\$42.50',
                           priceHighlight: true,
                         ),
-                        _OrderTimelineItem(
+                        const _OrderTimelineItem(
                           isFirst: false,
                           isActive: false,
                           date: 'Oct 12, 2023',
@@ -559,7 +559,7 @@ class UserDetails extends StatelessWidget {
                           price: '\$28.00',
                           priceHighlight: false,
                         ),
-                        _OrderTimelineItem(
+                        const _OrderTimelineItem(
                           isFirst: false,
                           isActive: false,
                           isLast: true,
@@ -700,7 +700,7 @@ class _OrderTimelineItem extends StatelessWidget {
                 children: [
                   Text(
                     date,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1,
@@ -720,7 +720,7 @@ class _OrderTimelineItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: MitablColors.onSurfaceVariant,
                       ),

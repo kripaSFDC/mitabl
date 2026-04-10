@@ -67,7 +67,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
           return Stack(
             children: [
               // ── Decorative floating icons ──
-              Positioned(
+              const Positioned(
                 bottom: -48,
                 right: -48,
                 child: Opacity(
@@ -81,7 +81,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                 left: -32,
                 child: Transform.rotate(
                   angle: 0.21,
-                  child: Opacity(
+                  child: const Opacity(
                     opacity: 0.1,
                     child: Icon(Icons.eco,
                         size: 128, color: MitablColors.primary),
@@ -155,7 +155,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
+                              const Text(
                                 'Start your culinary journey with us today.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
@@ -265,18 +265,18 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                       decoration: InputDecoration(
                                         hintText:
                                             "Enter your kitchen's location",
-                                        hintStyle: TextStyle(
+                                        hintStyle: const TextStyle(
                                           color: MitablColors.outlineVariant,
                                           fontFamily: 'DM Sans',
                                         ),
-                                        prefixIcon: Padding(
-                                          padding: const EdgeInsets.only(
+                                        prefixIcon: const Padding(
+                                          padding: EdgeInsets.only(
                                               left: 16,
                                               right: 8,
                                               bottom: 48),
                                           child: Icon(
                                             Icons.location_on_outlined,
-                                            color: const Color(0xFF64748B),
+                                            color: Color(0xFF64748B),
                                             size: 22,
                                           ),
                                         ),
@@ -338,32 +338,32 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                               // ── Terms ──
                               RichText(
                                 textAlign: TextAlign.center,
-                                text: TextSpan(
+                                text: const TextSpan(
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontFamily: 'DM Sans',
                                     color: MitablColors.onSurfaceVariant,
                                   ),
                                   children: [
-                                    const TextSpan(
+                                    TextSpan(
                                         text:
                                             'By signing up, you agree to our '),
                                     TextSpan(
                                       text: 'Terms of Service',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         color: MitablColors.primary,
                                       ),
                                     ),
-                                    const TextSpan(text: ' and '),
+                                    TextSpan(text: ' and '),
                                     TextSpan(
                                       text: 'Privacy Policy',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         color: MitablColors.primary,
                                       ),
                                     ),
-                                    const TextSpan(text: '.'),
+                                    TextSpan(text: '.'),
                                   ],
                                 ),
                               ),
@@ -379,8 +379,8 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                           .withValues(alpha: 0.3),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
                                         horizontal: 16),
                                     child: Text(
                                       'OR JOIN WITH',
@@ -389,7 +389,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                         fontWeight: FontWeight.w700,
                                         fontFamily: 'DM Sans',
                                         letterSpacing: 2.0,
-                                        color: const Color(0xFF64748B),
+                                        color: Color(0xFF64748B),
                                       ),
                                     ),
                                   ),
@@ -429,7 +429,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Already a miFoodi? ',
                                     style: TextStyle(
                                       fontSize: 16,
@@ -479,7 +479,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
         padding: const EdgeInsets.only(left: 4),
         child: Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
             fontFamily: 'DM Sans',
@@ -514,7 +514,7 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
       decoration: InputDecoration(
         hintText: hint,
         errorText: errorText,
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: MitablColors.outlineVariant,
           fontFamily: 'DM Sans',
         ),

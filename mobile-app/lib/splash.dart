@@ -192,7 +192,7 @@ class _SplashPageState extends State<SplashPage>
 
                     // Brand name – text-5xl = 48px
                     const Text(
-                      'Mitabl',
+                      'mitabl',
                       style: TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.w800,

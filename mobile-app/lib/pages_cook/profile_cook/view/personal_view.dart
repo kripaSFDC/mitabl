@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:global_configuration/global_configuration.dart';
+import 'package:mitabl_user/helper/app_navigator.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
 import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
@@ -14,6 +15,7 @@ import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/mobile_contact_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/role_switch_card.dart';
 
 class PersonalTabView extends StatefulWidget {
   const PersonalTabView({super.key});
@@ -569,70 +571,23 @@ class _PersonalTabViewState extends State<PersonalTabView> {
 
   /// mifoodi CTA card.
   Widget _buildMifoodiCta(ProfileCookState state) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: MitablColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(MitablRadius.card),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(MitablRadius.card),
-          onTap: _switchingRole
-              ? null
-              : () {
-                  if (_mifoodiTransitionDisabled(state)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(_disabledMifoodiMessage()),
-                      ),
-                    );
-                    return;
-                  }
-                  _switchToMifoodi();
-                },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MitablSpacing.cardPadding + 4,
-              vertical: 16,
-            ),
-            child: Row(
-              children: [
-                _iconCircle(Icons.swap_horiz, filled: true),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _mifoodiCtaText(state),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'DM Sans',
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (_switchingRole)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: MitablColors.primary,
-                    ),
-                  )
-                else
-                  const Icon(
-                    Icons.swap_horiz,
-                    color: MitablColors.onSurfaceVariant,
-                    size: 22,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    final isDisabled = _mifoodiTransitionDisabled(state);
+
+    return RoleSwitchCard(
+      actionText: _mifoodiCtaText(state),
+      isDisabled: isDisabled,
+      isLoading: _switchingRole,
+      onTap: _switchingRole
+          ? null
+          : () {
+              if (_mifoodiTransitionDisabled(state)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(_disabledMifoodiMessage())),
+                );
+                return;
+              }
+              _switchToMifoodi();
+            },
     );
   }
 

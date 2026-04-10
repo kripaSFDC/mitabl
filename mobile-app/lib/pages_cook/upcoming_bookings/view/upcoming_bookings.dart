@@ -92,7 +92,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 borderRadius: MitablRadius.pillBorder,
                               ),
                               child: const Icon(
@@ -139,12 +139,12 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
               ),
 
               // ── Page Header ──
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'Upcoming Bookings',
                         style: TextStyle(
@@ -399,12 +399,12 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'TOTAL',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF64748B),
+                          color: Color(0xFF64748B),
                           letterSpacing: 1,
                         ),
                       ),
@@ -456,7 +456,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
                 backgroundColor: MitablColors.primary,
                 foregroundColor: MitablColors.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
+                shape: const RoundedRectangleBorder(
                   borderRadius: MitablRadius.pillBorder,
                 ),
               ),

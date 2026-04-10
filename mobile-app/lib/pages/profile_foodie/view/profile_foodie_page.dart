@@ -14,6 +14,7 @@ import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart
 import 'package:mitabl_user/repos/mobile_contact_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:mitabl_user/widgets/role_switch_card.dart';
 
 class ProfileFoodiePage extends StatefulWidget {
   const ProfileFoodiePage({super.key});
@@ -692,68 +693,23 @@ class _ProfileFoodiePageState extends State<ProfileFoodiePage> {
 
   /// miCook CTA card.
   Widget _buildMicookCta(ProfileFoodieState state) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: MitablColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(MitablRadius.card),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(MitablRadius.card),
-          onTap: _switchingRole
-              ? null
-              : () {
-                  if (_micookTransitionDisabled(state)) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_disabledMicookMessage())),
-                    );
-                    return;
-                  }
-                  _switchToMicook();
-                },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MitablSpacing.cardPadding + 4,
-              vertical: 16,
-            ),
-            child: Row(
-              children: [
-                _iconCircle(Icons.restaurant, filled: true),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _micookCtaText(state),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: MitablColors.onSurface,
-                      fontFamily: 'DM Sans',
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (_switchingRole)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: MitablColors.primary,
-                    ),
-                  )
-                else
-                  const Icon(
-                    Icons.swap_horiz,
-                    color: MitablColors.onSurfaceVariant,
-                    size: 22,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    final isDisabled = _micookTransitionDisabled(state);
+
+    return RoleSwitchCard(
+      actionText: _micookCtaText(state),
+      isDisabled: isDisabled,
+      isLoading: _switchingRole,
+      onTap: _switchingRole
+          ? null
+          : () {
+              if (_micookTransitionDisabled(state)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(_disabledMicookMessage())),
+                );
+                return;
+              }
+              _switchToMicook();
+            },
     );
   }
 

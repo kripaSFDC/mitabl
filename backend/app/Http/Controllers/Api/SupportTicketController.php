@@ -16,6 +16,41 @@ class SupportTicketController extends Controller
     {
     }
 
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'status' => 401,
+                'isSuccess' => false,
+                'isError' => 'Unauthorized',
+            ], 401);
+        }
+
+        $tickets = SupportTicket::query()
+            ->where('user_id', $user->id)
+            ->with([
+                'messages' => function ($query) {
+                    $query->where('is_internal_note', false)->latest();
+                }
+            ])
+            ->orderByDesc('updated_at')
+            ->paginate(20);
+
+        return response()->json([
+            'status' => 200,
+            'isSuccess' => true,
+            'message' => 'Support tickets retrieved.',
+            'data' => $tickets->items(),
+            'pagination' => [
+                'total' => $tickets->total(),
+                'per_page' => $tickets->perPage(),
+                'current_page' => $tickets->currentPage(),
+                'last_page' => $tickets->lastPage(),
+            ],
+        ]);
+    }
+
     public function store(Request $request)
     {
         $honeypotField = (string) config('support.honeypot_field', 'website');

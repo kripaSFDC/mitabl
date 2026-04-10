@@ -155,7 +155,7 @@ class OtpEmailPage extends StatelessWidget {
                               const SizedBox(height: 12),
 
                               // ── Subtitle ──
-                              SizedBox(
+                              const SizedBox(
                                 width: 280,
                                 child: Text(
                                   "We've sent a 4-digit verification code to your culinary profile email.",
@@ -238,10 +238,10 @@ class OtpEmailPage extends StatelessWidget {
                                                 color: Colors.white,
                                               ),
                                             )
-                                          : Row(
+                                          : const Row(
                                               mainAxisSize:
                                                   MainAxisSize.min,
-                                              children: const [
+                                              children: [
                                                 Text(
                                                   'Verify Code',
                                                   style: TextStyle(
@@ -275,11 +275,11 @@ class OtpEmailPage extends StatelessWidget {
                                     ),
                                   );
                                 },
-                                child: Row(
+                                child: const Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Text(
                                       'RESEND CODE',
                                       style: TextStyle(
@@ -344,7 +344,7 @@ class OtpEmailPage extends StatelessWidget {
                                               ),
                                             ),
                                             const SizedBox(width: 12),
-                                            Text(
+                                            const Text(
                                               'JOIN THE MITABL ATELIER',
                                               style: TextStyle(
                                                 fontSize: 10,
@@ -374,7 +374,7 @@ class OtpEmailPage extends StatelessWidget {
                       padding: const EdgeInsets.all(32),
                       child: RichText(
                         textAlign: TextAlign.center,
-                        text: TextSpan(
+                        text: const TextSpan(
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -382,11 +382,11 @@ class OtpEmailPage extends StatelessWidget {
                             color: MitablColors.onSurfaceVariant,
                           ),
                           children: [
-                            const TextSpan(
+                            TextSpan(
                                 text: "Didn't receive a code? "),
                             TextSpan(
                               text: 'Contact Support',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: MitablColors.primary,
                                 decoration: TextDecoration.underline,

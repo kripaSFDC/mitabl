@@ -151,7 +151,7 @@ class _HomePageCookState extends State<HomePageCook> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            const Text(
                               'Dashboard',
                               style: TextStyle(
                                 fontSize: 28,
@@ -205,9 +205,9 @@ class _HomePageCookState extends State<HomePageCook> {
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.cell_tower,
-                                color: const Color(0xFF687A57),
+                                color: Color(0xFF687A57),
                                 size: 28,
                               ),
                               const SizedBox(width: 12),
@@ -215,7 +215,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
+                                    const Text(
                                       'Kitchen Live',
                                       style: TextStyle(
                                         fontFamily: 'Nunito',
@@ -230,7 +230,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                       _kitchenLive
                                           ? 'Accepting orders'
                                           : 'Kitchen offline',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 14,
                                         color: MitablColors.onSurfaceVariant,
                                       ),
@@ -245,7 +245,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 child: FittedBox(
                                   child: Switch(
                                     value: _kitchenLive,
-                                    activeColor: Colors.white,
+                                    activeThumbColor: Colors.white,
                                     activeTrackColor: const Color(0xFF687A57),
                                     inactiveThumbColor: Colors.white,
                                     inactiveTrackColor:
@@ -287,7 +287,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Active Orders',
                                   style: TextStyle(
                                     fontSize: 14,
@@ -298,7 +298,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 const SizedBox(height: 4),
                                 Text(
                                   '${dashData?.nUpcomingBookings ?? 0}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Nunito',
                                     fontWeight: FontWeight.w800,
                                     fontSize: 28,
@@ -329,7 +329,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   "Today's Earnings",
                                   style: TextStyle(
                                     fontSize: 14,
@@ -340,7 +340,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 const SizedBox(height: 4),
                                 Text(
                                   '\$${dashData?.totalEarning ?? 0}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Nunito',
                                     fontWeight: FontWeight.w800,
                                     fontSize: 28,
@@ -358,8 +358,8 @@ class _HomePageCookState extends State<HomePageCook> {
                   const SizedBox(height: 32),
 
                   // ── Cooking Queue Section ──
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
                       'Cooking Queue',
                       style: TextStyle(
@@ -403,7 +403,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 MitablColors.outlineVariant.withValues(alpha: 0.5),
                           ),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Text(
                             'No active orders in the queue',
                             style: TextStyle(
@@ -553,7 +553,7 @@ class _HomePageCookState extends State<HomePageCook> {
                             children: [
                               Text(
                                 ticketId,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontFamily: 'Nunito',
                                   fontWeight: FontWeight.w800,
                                   fontSize: 20,
@@ -563,7 +563,7 @@ class _HomePageCookState extends State<HomePageCook> {
                               const SizedBox(width: 8),
                               Text(
                                 customerName,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                   color: MitablColors.onSurface,
@@ -574,7 +574,7 @@ class _HomePageCookState extends State<HomePageCook> {
                           const SizedBox(height: 4),
                           Text(
                             timeLabel.isNotEmpty ? timeLabel : 'Delivery',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: MitablColors.onSurfaceVariant,
                             ),
@@ -597,7 +597,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 MitablColors.primary.withValues(alpha: 0.2),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
@@ -605,7 +605,7 @@ class _HomePageCookState extends State<HomePageCook> {
                               size: 16,
                               color: MitablColors.primary,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Text(
                               'Delayed',
                               style: TextStyle(
@@ -631,7 +631,7 @@ class _HomePageCookState extends State<HomePageCook> {
                                 .withValues(alpha: 0.5),
                           ),
                         ),
-                        child: Text(
+                        child: const Text(
                           'In progress',
                           style: TextStyle(
                             fontSize: 12,
@@ -680,7 +680,7 @@ class _HomePageCookState extends State<HomePageCook> {
                           );
                         })
                       else
-                        Text(
+                        const Text(
                           'Take-away order',
                           style: TextStyle(
                             fontSize: 14,
@@ -718,11 +718,11 @@ class _HomePageCookState extends State<HomePageCook> {
                                     .withValues(alpha: 0.3),
                                 width: 2,
                               ),
-                              shape: RoundedRectangleBorder(
+                              shape: const RoundedRectangleBorder(
                                 borderRadius: MitablRadius.pillBorder,
                               ),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Delay',
                               style: TextStyle(
                                 fontFamily: 'Nunito',
@@ -745,15 +745,15 @@ class _HomePageCookState extends State<HomePageCook> {
                             elevation: 4,
                             shadowColor:
                                 MitablColors.primary.withValues(alpha: 0.15),
-                            shape: RoundedRectangleBorder(
+                            shape: const RoundedRectangleBorder(
                               borderRadius: MitablRadius.pillBorder,
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.check_circle, size: 20),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Text(
                                 'Mark Ready',
                                 style: TextStyle(

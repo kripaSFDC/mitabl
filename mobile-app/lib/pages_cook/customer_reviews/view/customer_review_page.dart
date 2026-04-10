@@ -128,7 +128,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                 crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'OVERALL RATING',
                                     style: TextStyle(
                                       fontSize: 11,
@@ -153,7 +153,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      Text(
+                                      const Text(
                                         '/ 5.0',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
@@ -174,7 +174,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                       const SizedBox(width: 8),
                                       Text(
                                         '(${reviews.length} reviews)',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
                                           color:
@@ -205,7 +205,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                           width: 16,
                                           child: Text(
                                             '$star',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                               color: MitablColors
@@ -363,7 +363,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             const SizedBox(height: 2),
                                             Text(
                                               review.reviewTag ?? '',
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight:
                                                     FontWeight.w500,
@@ -406,7 +406,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             const EdgeInsets.symmetric(
                                                 horizontal: 12,
                                                 vertical: 4),
-                                        decoration: BoxDecoration(
+                                        decoration: const BoxDecoration(
                                           color: MitablColors
                                               .secondaryContainer,
                                           borderRadius:
@@ -414,7 +414,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                         ),
                                         child: Text(
                                           review.reviewTag!,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
                                             letterSpacing: 1,
@@ -433,7 +433,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                       }),
                     ],
                   )
-                : Center(
+                : const Center(
                     child: Text(
                       'No reviews yet',
                       style: TextStyle(
@@ -468,7 +468,7 @@ class _ExpandableReviewTextState extends State<_ExpandableReviewText> {
       onTap: () => setState(() => _expanded = !_expanded),
       child: Text(
         widget.text,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
           color: MitablColors.onSurfaceVariant,
           height: 1.5,

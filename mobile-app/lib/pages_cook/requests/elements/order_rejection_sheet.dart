@@ -58,8 +58,8 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
             // ── Back button ──
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Icon(
                     Icons.arrow_back,
                     size: 20,
@@ -188,8 +188,8 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                     decoration: InputDecoration(
                       hintText:
                           "Briefly explain why you can't fulfill this order...",
-                      hintStyle: TextStyle(
-                        color: const Color(0xFF64748B),
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF64748B),
                         fontSize: 14,
                       ),
                       filled: true,
@@ -246,7 +246,7 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                         elevation: 4,
                         shadowColor:
                             MitablColors.primary.withValues(alpha: 0.25),
-                        shape: RoundedRectangleBorder(
+                        shape: const RoundedRectangleBorder(
                           borderRadius: MitablRadius.pillBorder,
                         ),
                       ),
@@ -269,9 +269,9 @@ class _OrderRejectionSheetState extends State<OrderRejectionSheet> {
                       color: const Color(0xFFFFEDD5),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Row(
+                    child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Icon(
                           Icons.info_outline,
                           size: 20,

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mitabl_user/helper/biometric_service.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
@@ -26,32 +25,37 @@ class SettingsCookPage extends StatefulWidget {
 }
 
 class _SettingsCookPageState extends State<SettingsCookPage> {
-  static const _notificationsPreferenceKey =
-      'settings_notifications_enabled_cook';
+  late final String _notificationsPreferenceKey;
 
   late final TextEditingController _emailController;
   late final TextEditingController _subjectController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _ticketIdController;
   late final TextEditingController _replyController;
 
   bool _supportActionInFlight = false;
   bool _notificationsEnabled = true;
   bool _notificationsUpdating = false;
   bool _emailNotificationsEnabled = true;
-  bool _biometricEnabled = false;
   bool _deleteInFlight = false;
+  List<Map<String, dynamic>> _userTickets = [];
+  bool _loadingTickets = false;
+  dynamic _selectedTicketId;
+  int _currentTicketPage = 1;
+  int _totalTicketPages = 1;
+  bool _loadingMoreTickets = false;
 
   @override
   void initState() {
     super.initState();
+    // Build role-specific preference key based on route arguments
+    final roleId = widget.routeArguments?.id ?? 'cook';
+    _notificationsPreferenceKey = 'settings_notifications_enabled_$roleId';
+    
     _emailController = TextEditingController();
     _subjectController = TextEditingController();
     _descriptionController = TextEditingController();
-    _ticketIdController = TextEditingController();
     _replyController = TextEditingController();
     _loadNotificationPreference();
-    _loadBiometricPreference();
   }
 
   @override
@@ -59,7 +63,6 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     _emailController.dispose();
     _subjectController.dispose();
     _descriptionController.dispose();
-    _ticketIdController.dispose();
     _replyController.dispose();
     super.dispose();
   }
@@ -74,27 +77,6 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _persistNotificationPreference(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsPreferenceKey, enabled);
-  }
-
-  Future<void> _loadBiometricPreference() async {
-    final enabled = await BiometricService.instance.isEnabled();
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
-  }
-
-  Future<void> _onBiometricChanged(bool enabled) async {
-    final available = await BiometricService.instance.isAvailable();
-    if (!mounted) return;
-    if (!available && enabled) {
-      _showSnackBar(
-          'Biometric authentication is not available on this device.');
-      return;
-    }
-    await BiometricService.instance.setEnabled(enabled);
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
-    _showSnackBar(
-        enabled ? 'Biometric lock enabled.' : 'Biometric lock disabled.');
   }
 
   void _showSnackBar(String message) {
@@ -148,17 +130,79 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Future<void> _submitSupportTicket() async {
+    final email = _emailController.text.trim();
+    final subject = _subjectController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (email.isEmpty) {
+      _showSnackBar('Please enter your email.');
+      return;
+    }
+    // Email validation using regex pattern
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    );
+    if (!emailRegex.hasMatch(email)) {
+      _showSnackBar('Please enter a valid email address.');
+      return;
+    }
+    if (subject.isEmpty) {
+      _showSnackBar('Please enter a subject.');
+      return;
+    }
+    if (subject.length < 3) {
+      _showSnackBar('Subject must be at least 3 characters.');
+      return;
+    }
+    if (description.isEmpty) {
+      _showSnackBar('Please enter a description.');
+      return;
+    }
+    if (description.length < 5) {
+      _showSnackBar('Description must be at least 5 characters.');
+      return;
+    }
+
     final repository = context.read<SupportTicketRepository>();
     setState(() => _supportActionInFlight = true);
     try {
       final result = await repository.createSupportTicket(
-        requesterEmail: _emailController.text.trim(),
-        subject: _subjectController.text.trim(),
-        description: _descriptionController.text.trim(),
+        requesterEmail: email,
+        subject: subject,
+        description: description,
       );
-      final message = result['message']?.toString() ??
-          'Support ticket created successfully.';
-      _showSnackBar(message);
+
+      if (!mounted) return;
+
+      // Check if response was successful
+      final status = result['status'];
+      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
+      
+      if (!isSuccess) {
+        final errorMsg = result['message'] ?? result['isError'] ?? result['error'] ?? 'Failed to create ticket';
+        _showSnackBar('Error: $errorMsg');
+        return;
+      }
+
+      final ticketId = result['data']?['id'] ?? result['id'];
+      final ticketNumber = result['data']?['ticket_number'] ?? result['ticket_number'];
+
+      // Clear the form
+      _emailController.clear();
+      _subjectController.clear();
+      _descriptionController.clear();
+
+      // Show success dialog with ticket number
+      if (ticketNumber != null) {
+        _showSnackBar(
+            'Support ticket #$ticketNumber created successfully. Ticket ID: $ticketId');
+      } else {
+        _showSnackBar('Support ticket created successfully.');
+      }
+
+      // Reload tickets list
+      await _loadUserTickets();
     } catch (error) {
       _showSnackBar('Unable to create ticket: $error');
     } finally {
@@ -166,40 +210,128 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
     }
   }
 
-  Future<void> _loadSupportTicket() async {
-    final ticketId = int.tryParse(_ticketIdController.text.trim());
-    if (ticketId == null) {
-      _showSnackBar('Enter a valid ticket id.');
-      return;
-    }
+  Future<void> _loadUserTickets({int page = 1, bool append = false}) async {
     final repository = context.read<SupportTicketRepository>();
-    setState(() => _supportActionInFlight = true);
+    
+    if (!append) {
+      setState(() {
+        _loadingTickets = true;
+        _currentTicketPage = 1;
+      });
+    } else {
+      setState(() => _loadingTickets = true);
+    }
+
     try {
-      final result = await repository.getSupportTicket(id: ticketId);
-      final status = result['data']?['status']?.toString() ?? 'unknown';
-      _showSnackBar('Ticket $ticketId status: $status');
+      final result = await repository.listSupportTickets(page: page);
+      if (!mounted) return;
+
+      // Check for API errors
+      final status = result['status'];
+      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
+      
+      if (!isSuccess) {
+        // Silent fail - just update empty list if first page, don't show error snackbar
+        if (!append) {
+          setState(() => _userTickets = []);
+        }
+        return;
+      }
+
+      // Extract pagination info
+      final paginationData = result['pagination'] as Map<String, dynamic>?;
+      final totalPages = (paginationData?['last_page'] as num?)?.toInt() ?? 1;
+      
+      final data = result['data'];
+      final tickets = <Map<String, dynamic>>[];
+      
+      if (data is List) {
+        tickets.addAll(data.cast<Map<String, dynamic>>());
+      } else if (data is Map<String, dynamic>) {
+        // In case data is paginated response
+        if (data['items'] is List) {
+          tickets.addAll(data['items'].cast<Map<String, dynamic>>());
+        } else if (data['data'] is List) {
+          tickets.addAll(data['data'].cast<Map<String, dynamic>>());
+        }
+      }
+      
+      setState(() {
+        if (append) {
+          _userTickets.addAll(tickets);
+        } else {
+          _userTickets = tickets;
+        }
+        _currentTicketPage = page;
+        _totalTicketPages = totalPages;
+      });
     } catch (error) {
-      _showSnackBar('Unable to load ticket: $error');
+      // Silent fail on network errors
+      if (mounted && !append) {
+        setState(() => _userTickets = []);
+      }
     } finally {
-      if (mounted) setState(() => _supportActionInFlight = false);
+      if (mounted) setState(() => _loadingTickets = false);
+    }
+  }
+
+  Future<void> _loadMoreTickets() async {
+    if (_currentTicketPage >= _totalTicketPages || _loadingMoreTickets) {
+      return; // Already loaded all pages or already loading
+    }
+    
+    setState(() => _loadingMoreTickets = true);
+    try {
+      await _loadUserTickets(page: _currentTicketPage + 1, append: true);
+    } finally {
+      if (mounted) setState(() => _loadingMoreTickets = false);
     }
   }
 
   Future<void> _replyToSupportTicket() async {
-    final ticketId = int.tryParse(_ticketIdController.text.trim());
+    final ticketId = _selectedTicketId;
     if (ticketId == null) {
-      _showSnackBar('Enter a valid ticket id first.');
+      _showSnackBar('No ticket selected.');
       return;
     }
+
+    final message = _replyController.text.trim();
+    if (message.isEmpty) {
+      _showSnackBar('Please enter a reply message.');
+      return;
+    }
+    if (message.length < 2) {
+      _showSnackBar('Reply must be at least 2 characters.');
+      return;
+    }
+
     final repository = context.read<SupportTicketRepository>();
     setState(() => _supportActionInFlight = true);
     try {
       final result = await repository.replyToSupportTicket(
         id: ticketId,
-        message: _replyController.text.trim(),
+        message: message,
       );
-      final message = result['message']?.toString() ?? 'Reply submitted.';
-      _showSnackBar(message);
+
+      if (!mounted) return;
+
+      // Check if reply was successful
+      final status = result['status'];
+      final statusCode = (status is int) ? status : int.tryParse(status.toString()) ?? 0;
+      final isSuccess = result['isSuccess'] == true || (statusCode >= 200 && statusCode < 300);
+      
+      if (!isSuccess) {
+        final errorMsg = result['message'] ?? result['isError'] ?? result['error'] ?? 'Failed to send reply';
+        _showSnackBar('Error: $errorMsg');
+        return;
+      }
+
+      _replyController.clear();
+      _showSnackBar('Reply sent successfully.');
+
+      // Reload tickets to show the new reply
+      await _loadUserTickets();
     } catch (error) {
       _showSnackBar('Unable to send reply: $error');
     } finally {
@@ -208,79 +340,536 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Future<void> _openSupportSheet() async {
+    // Reset form state and ticket selection
+    _emailController.clear();
+    _subjectController.clear();
+    _descriptionController.clear();
+    _replyController.clear();
+    setState(() => _selectedTicketId = null);
+
+    // Load tickets first
+    await _loadUserTickets();
+
+    if (!mounted) return;
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                TextField(
-                  controller: _subjectController,
-                  decoration: const InputDecoration(labelText: 'Subject'),
-                ),
-                TextField(
-                  controller: _descriptionController,
-                  decoration:
-                      const InputDecoration(labelText: 'Description'),
-                  maxLines: 3,
-                ),
-                TextField(
-                  controller: _ticketIdController,
-                  decoration:
-                      const InputDecoration(labelText: 'Ticket ID'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: _replyController,
-                  decoration:
-                      const InputDecoration(labelText: 'Reply message'),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _supportActionInFlight
-                          ? null
-                          : _submitSupportTicket,
-                      child: const Text('Create Ticket'),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: MitablColors.outlineVariant,
+                        ),
+                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: _supportActionInFlight
-                          ? null
-                          : _loadSupportTicket,
-                      child: const Text('Get Ticket'),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Support',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
                     ),
-                    ElevatedButton(
-                      onPressed: _supportActionInFlight
-                          ? null
-                          : _replyToSupportTicket,
-                      child: const Text('Reply'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+                  ),
+                  // Content
+                  Expanded(
+                    child: _selectedTicketId == null
+                        ? _buildNewTicketForm(setModalState)
+                        : _buildTicketDetailsView(setModalState),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  Widget _buildNewTicketForm(StateSetter setModalState) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Create New Ticket Section
+          const Text(
+            'Create New Support Ticket',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              labelText: 'Email',
+              hintText: 'your@email.com',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _subjectController,
+            decoration: InputDecoration(
+              labelText: 'Subject',
+              hintText: 'Brief description of your issue',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            maxLength: 255,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _descriptionController,
+            decoration: InputDecoration(
+              labelText: 'Description',
+              hintText: 'Provide more details about your issue',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            maxLines: 4,
+            maxLength: 2000,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _supportActionInFlight
+                  ? null
+                  : () async {
+                      await _submitSupportTicket();
+                      setModalState(() {});
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MitablColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: _supportActionInFlight
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Create Ticket',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Your Support Tickets Section
+          const Text(
+            'Your Support Tickets',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_loadingTickets)
+            const Center(
+              child: CircularProgressIndicator(),
+            )
+          else if (_userTickets.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 48,
+                    color: MitablColors.outlineVariant,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No support tickets yet',
+                    style: TextStyle(
+                      color: MitablColors.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _userTickets.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final ticket = _userTickets[index];
+                final ticketId = ticket['id'];
+                
+                // Skip rendering if ticket ID is missing
+                if (ticketId == null) {
+                  return const SizedBox.shrink();
+                }
+                
+                final ticketNumber = ticket['ticket_number']?.toString() ?? 'N/A';
+                final subject = (ticket['subject']?.toString() ?? 'No Subject').trim();
+                final status = (ticket['status']?.toString() ?? 'unknown').toLowerCase();
+                final statusColor = _getStatusColor(status);
+
+                return Card(
+                  child: ListTile(
+                    onTap: () {
+                      setModalState(() => _selectedTicketId = ticketId);
+                    },
+                    title: Text(
+                      '#$ticketNumber - $subject',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      'Status: $status',
+                      style: TextStyle(color: statusColor),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                  ),
+                );
+              },
+            ),
+          // Load More Button - show if more pages available
+          if (_userTickets.isNotEmpty && _currentTicketPage < _totalTicketPages)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _loadingMoreTickets ? null : _loadMoreTickets,
+                  child: _loadingMoreTickets
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Load More Tickets'),
+                ),
+              ),
+            ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketDetailsView(StateSetter setModalState) {
+    final ticket = _findTicketById(_selectedTicketId);
+
+    if (ticket == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text('Ticket not found. Please try again.'),
+        ),
+      );
+    }
+
+    final ticketNumber = ticket['ticket_number']?.toString() ?? 'N/A';
+    final subject = ticket['subject']?.toString() ?? 'No Subject';
+    final description = ticket['description']?.toString() ?? '';
+    final status = ticket['status']?.toString() ?? 'unknown';
+    
+    // Safely extract messages list with type checking
+    final messagesList = ticket['messages'];
+    final messages = <Map<String, dynamic>>[];
+    if (messagesList is List) {
+      for (final msg in messagesList) {
+        if (msg is Map<String, dynamic>) {
+          messages.add(msg);
+        }
+      }
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Back button
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  setModalState(() => _selectedTicketId = null);
+                },
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#$ticketNumber',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      subject,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: _getStatusColor(status).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _getStatusColor(status),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 12),
+
+          // Ticket details
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Messages
+          if (messages.isNotEmpty) ...[
+            const Text(
+              'Conversation',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: messages.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final senderType = (message['sender_type'] as String?)?.toLowerCase() ?? 'user';
+                final messageText = (message['message'] as String?)?.trim() ?? '';
+                final createdAtRaw = message['created_at'] as String?;
+                final isSupport = senderType != 'user';
+
+                // Format timestamp
+                String createdAtFormatted = 'Just now';
+                if (createdAtRaw != null && createdAtRaw.isNotEmpty) {
+                  try {
+                    final createdAt = DateTime.tryParse(createdAtRaw);
+                    if (createdAt != null) {
+                      final now = DateTime.now();
+                      final difference = now.difference(createdAt);
+                      
+                      if (difference.inMinutes < 1) {
+                        createdAtFormatted = 'Just now';
+                      } else if (difference.inMinutes < 60) {
+                        createdAtFormatted = '${difference.inMinutes}m ago';
+                      } else if (difference.inHours < 24) {
+                        createdAtFormatted = '${difference.inHours}h ago';
+                      } else {
+                        createdAtFormatted = createdAtRaw.substring(0, 10);
+                      }
+                    }
+                  } catch (_) {
+                    createdAtFormatted = createdAtRaw;
+                  }
+                }
+
+                if (messageText.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isSupport
+                        ? MitablColors.surfaceContainerLow
+                        : MitablColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isSupport ? 'Support Team' : 'You',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        messageText,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        createdAtFormatted,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: MitablColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Reply section - only show for open tickets
+          if (status.toLowerCase() != 'closed' && status.toLowerCase() != 'resolved') ...[
+            const Divider(),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _replyController,
+              decoration: InputDecoration(
+                labelText: 'Reply',
+                hintText: 'Type your response here',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _supportActionInFlight
+                    ? null
+                    : () async {
+                        await _replyToSupportTicket();
+                        setModalState(() {});
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MitablColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: _supportActionInFlight
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text(
+                        'Send Reply',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic>? _findTicketById(dynamic ticketId) {
+    for (final ticket in _userTickets) {
+      if (ticket['id'] == ticketId) {
+        return ticket;
+      }
+    }
+    return null;
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'open':
+        return const Color(0xFF2196F3);
+      case 'in_progress':
+        return const Color(0xFFFFA500);
+      case 'pending_user':
+        return const Color(0xFFFF9800);
+      case 'resolved':
+        return const Color(0xFF4CAF50);
+      case 'closed':
+        return const Color(0xFF999999);
+      default:
+        return MitablColors.onSurfaceVariant;
+    }
   }
 
   Future<void> _onDeleteAccountTapped() async {
@@ -371,7 +960,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'miCook Vendor',
+                        'Settings',
                         style: TextStyle(
                           fontFamily: 'Nunito',
                           fontWeight: FontWeight.w900,
@@ -438,9 +1027,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Chef Profile',
-                      style: TextStyle(
+                    Text(
+                      widget.routeArguments?.id == 'foodie' ? 'Foodie Profile' : 'Chef Profile',
+                      style: const TextStyle(
                         fontFamily: 'Nunito',
                         fontWeight: FontWeight.w800,
                         fontSize: 22,
@@ -455,47 +1044,6 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         fontWeight: FontWeight.w500,
                         color: MitablColors.onSurfaceVariant,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: MitablColors.secondaryContainer,
-                            borderRadius: MitablRadius.pillBorder,
-                          ),
-                          child: const Text(
-                            'ACTIVE',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                              color: MitablColors.onSecondaryContainer,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFEDD5),
-                            borderRadius: MitablRadius.pillBorder,
-                          ),
-                          child: const Text(
-                            'PRO TIER',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                              color: Color(0xFF475569),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

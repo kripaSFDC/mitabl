@@ -106,7 +106,7 @@ class _BookingsState extends State<Bookings> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 borderRadius: MitablRadius.pillBorder,
                               ),
                               child: const Icon(
@@ -153,12 +153,12 @@ class _BookingsState extends State<Bookings> {
               ),
 
               // ── Page Header ──
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                  padding: EdgeInsets.fromLTRB(24, 8, 24, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         'History',
                         style: TextStyle(
@@ -438,7 +438,7 @@ class _BookingsState extends State<Bookings> {
                 Container(
                   width: 48,
                   height: 48,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: MitablColors.secondaryContainer,
                   ),
@@ -623,12 +623,12 @@ class _BookingsState extends State<Bookings> {
                       ),
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     'View Details',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF506140),
+                      color: Color(0xFF506140),
                     ),
                   ),
                 ),

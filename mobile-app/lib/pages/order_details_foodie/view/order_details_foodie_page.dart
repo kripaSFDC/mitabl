@@ -107,11 +107,11 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
                             Icon(Icons.person, color: MitablColors.primary, size: 20),
-                            const SizedBox(width: 8),
-                            const Text(
+                            SizedBox(width: 8),
+                            Text(
                               'Customer Info',
                               style: TextStyle(
                                 fontSize: 15,
@@ -165,11 +165,11 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
                             Icon(Icons.local_shipping, color: MitablColors.primary, size: 20),
-                            const SizedBox(width: 8),
-                            const Flexible(
+                            SizedBox(width: 8),
+                            Flexible(
                               child: Text(
                                 'Delivery',
                                 style: TextStyle(
@@ -229,9 +229,9 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: const Text(
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: Text(
                       'Order Items',
                       style: TextStyle(
                         fontSize: 20,
@@ -500,8 +500,11 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
     if (!mounted || reason == null || reason.trim().isEmpty) return;
 
     // Capture references before async gap to avoid context issues
+    // ignore: use_build_context_synchronously
     final userRepository = context.read<UserRepository>();
+    // ignore: use_build_context_synchronously
     final scaffold = ScaffoldMessenger.of(context);
+    // ignore: use_build_context_synchronously
     final navigator = Navigator.of(context);
 
     setState(() => _isCancelling = true);
@@ -627,13 +630,13 @@ class _StatusBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: MitablColors.secondaryContainer,
         borderRadius: MitablRadius.pillBorder,
       ),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: MitablColors.onSecondaryContainer,

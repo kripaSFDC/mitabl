@@ -55,7 +55,7 @@ class EditTimingDialog extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Set your kitchen availability. Use breaks to manage peak prep times or staff shift changes.',
                     style: TextStyle(
                       fontSize: 15,
@@ -201,7 +201,7 @@ class EditTimingDialog extends StatelessWidget {
                                       style: TextButton.styleFrom(
                                         backgroundColor:
                                             const Color(0xFFFFEDD5),
-                                        shape: RoundedRectangleBorder(
+                                        shape: const RoundedRectangleBorder(
                                           borderRadius:
                                               MitablRadius.pillBorder,
                                         ),
@@ -533,7 +533,7 @@ class _TimePickerBox extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.5,

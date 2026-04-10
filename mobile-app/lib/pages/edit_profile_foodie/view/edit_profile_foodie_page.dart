@@ -274,6 +274,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
       },
       context: context,
     ).then((value) {
+      // ignore: use_build_context_synchronously
       if (!context.mounted) return;
       if (value != null) {
         if (value) {
@@ -332,7 +333,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
             const SizedBox(height: 12),
             GestureDetector(
               onTap: _showImagePickerDialog,
-              child: Text(
+              child: const Text(
                 'CHANGE PHOTO',
                 style: TextStyle(
                   fontSize: 11,
@@ -404,7 +405,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 14),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   color: MitablColors.surfaceContainerLowest,
                                   borderRadius: MitablRadius.inputBorder,
                                 ),
@@ -483,10 +484,10 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Delivery Address',
                         style: TextStyle(
                           fontSize: 18,
@@ -532,7 +533,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                         color: MitablColors.secondaryContainer,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -550,11 +551,11 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 2.0,
-                                  color: const Color(0xFF364C32),
+                                  color: Color(0xFF364C32),
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              const Text(
+                              SizedBox(height: 2),
+                              Text(
                                 'Mediterranean',
                                 style: TextStyle(
                                   fontSize: 18,
@@ -580,13 +581,13 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                         color: const Color(0xFFFFEDD5),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Icon(
                             Icons.schedule,
-                            color: const Color(0xFF475569),
+                            color: Color(0xFF475569),
                             size: 24,
                           ),
                           Column(
@@ -598,11 +599,11 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: 2.0,
-                                  color: const Color(0xFF475569),
+                                  color: Color(0xFF475569),
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              const Text(
+                              SizedBox(height: 2),
+                              Text(
                                 'Dinner (7PM)',
                                 style: TextStyle(
                                   fontSize: 18,
@@ -703,7 +704,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
                                   size: 20,
                                 ),
                               ),
-                            Text(
+                            const Text(
                               'SAVE CHANGES',
                               style: TextStyle(
                                 fontSize: 13,
