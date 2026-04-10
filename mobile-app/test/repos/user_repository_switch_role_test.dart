@@ -203,5 +203,33 @@ void main() {
       );
       expect(capturedRequest.headers['authorization'], 'Bearer test-token');
     });
+
+    test('fetchVendorAccountCompletionStatus hits the completion endpoint',
+        () async {
+      late http.Request capturedRequest;
+
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'status': 200,
+            'data': {'completed': true},
+          }),
+          200,
+        );
+      });
+
+      final repository = _SpyUserRepository(httpClient: client);
+
+      final response = await repository.fetchVendorAccountCompletionStatus();
+
+      expect(response.statusCode, 200);
+      expect(capturedRequest.method, 'GET');
+      expect(
+        capturedRequest.url.toString(),
+        'https://api.example.com/api/v2/payments/vendor/account/completed',
+      );
+      expect(capturedRequest.headers['authorization'], 'Bearer test-token');
+    });
   });
 }

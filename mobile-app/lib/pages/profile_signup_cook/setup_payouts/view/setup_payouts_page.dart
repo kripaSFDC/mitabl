@@ -21,11 +21,83 @@ class SetupPayoutsPage extends StatefulWidget {
   State<SetupPayoutsPage> createState() => _SetupPayoutsPageState();
 }
 
-class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
+class _SetupPayoutsPageState extends State<SetupPayoutsPage>
+    with WidgetsBindingObserver {
   bool _isLoading = false;
+  bool _isCheckingAccountStatus = false;
   bool _stripeCompleted = false;
+  bool _awaitingStripeReturn = false;
   bool _openingSavedKitchen = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refreshVendorAccountCompletionStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingStripeReturn) {
+      _refreshVendorAccountCompletionStatus();
+    }
+  }
+
+  bool _coerceBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized == 'true' || normalized == '1' || normalized == 'yes';
+    }
+    return false;
+  }
+
+  bool _extractCompletionStatus(Map<String, dynamic> body) {
+    final data = body['data'];
+    if (data is Map<String, dynamic> && data.containsKey('completed')) {
+      return _coerceBool(data['completed']);
+    }
+
+    return _coerceBool(body['completed']);
+  }
+
+  Future<void> _refreshVendorAccountCompletionStatus() async {
+    if (_isCheckingAccountStatus) return;
+
+    setState(() => _isCheckingAccountStatus = true);
+    try {
+      final userRepository = context.read<UserRepository>();
+      final response =
+          await userRepository.fetchVendorAccountCompletionStatus();
+      if (!mounted || response.statusCode != 200) return;
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) return;
+
+      final completed = _extractCompletionStatus(decoded);
+      setState(() {
+        _stripeCompleted = completed;
+        if (completed) {
+          _awaitingStripeReturn = false;
+          _errorMessage = null;
+        }
+      });
+    } catch (_) {
+      // Keep the current state if the status check fails.
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingAccountStatus = false);
+      }
+    }
+  }
 
   Future<void> _openSavedKitchen() async {
     if (_openingSavedKitchen) return;
@@ -107,8 +179,16 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
           if (!mounted) return;
           if (launched) {
             setState(() {
-              _stripeCompleted = true;
+              _awaitingStripeReturn = true;
+              _errorMessage = null;
             });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Complete Stripe onboarding, then return to Mitabl to continue.',
+                ),
+              ),
+            );
           } else {
             setState(() {
               _errorMessage = 'Could not open the Stripe onboarding page.';

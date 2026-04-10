@@ -277,12 +277,22 @@ class AccountProfileService
         }
 
         $user->load(['restaurant.certificate', 'vendor']);
+        $hasVendorAccount = (bool) ($user->vendor && $user->vendor->account_id);
+        $payoutSetupCompleted = false;
+
+        if ($hasVendorAccount) {
+            try {
+                $payoutSetupCompleted = (bool) $this->paymentService->isAccountCompleted($user);
+            } catch (Throwable $throwable) {
+                report($throwable);
+            }
+        }
 
         $inferredChecklist = [
-            'vendor_account' => (bool) ($user->vendor && $user->vendor->account_id),
+            'vendor_account' => $hasVendorAccount,
             'kitchen_profile' => (bool) $user->restaurant,
             'certificate' => (bool) ($user->restaurant && $user->restaurant->certificate),
-            'payout_setup' => (bool) ($user->vendor && $user->vendor->account_id),
+            'payout_setup' => $payoutSetupCompleted,
         ];
 
         $effectiveChecklist = $inferredChecklist;

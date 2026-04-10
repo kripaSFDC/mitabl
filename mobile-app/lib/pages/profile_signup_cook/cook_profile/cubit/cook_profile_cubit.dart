@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:mitabl_user/helper/api_error_parser.dart';
 import 'package:mitabl_user/helper/appconstants.dart';
+import 'package:mitabl_user/helper/helper.dart';
 
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/name.dart';
@@ -118,12 +119,19 @@ class CookProfileCubit extends Cubit<CookProfileState> {
 
   onKitchnUpload() async {
     try {
+      if (state.pathFiles.isEmpty) {
+        Helper.showToast('Please add at least one kitchen image.');
+        emit(state.copyWith(statusApi: FormzStatus.submissionFailure));
+        return;
+      }
+
       emit(state.copyWith(statusApi: FormzStatus.submissionInProgress));
       Map<String, dynamic> map = {};
       map['name'] = state.nameKitchn!.value;
       map['address'] = state.address!.value;
       map['no_of_seats'] = state.noOfSeats.value;
       map['phone'] = state.phone.value;
+      map['description'] = state.bio.value.trim();
       map['user_id'] = routeArguments!.data!.user!.id;
       map['timings'] = jsonEncode(TimingModel(days: state.daysTiming));
       map['dine_in'] = state.dineIn ? 1 : 0;
@@ -178,6 +186,7 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         nameKitchn: name,
         status: Formz.validate([
           name,
+          state.bio,
           state.phone,
           state.noOfSeats,
           state.address!,
@@ -193,9 +202,26 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         address: address,
         status: Formz.validate([
           address,
+          state.bio,
           state.nameKitchn!,
           state.phone,
           state.noOfSeats,
+        ]),
+      ),
+    );
+  }
+
+  void onBioChanged({String? value}) {
+    final bio = Name.dirty(value ?? '');
+    emit(
+      state.copyWith(
+        bio: bio,
+        status: Formz.validate([
+          state.nameKitchn!,
+          bio,
+          state.phone,
+          state.noOfSeats,
+          state.address!,
         ]),
       ),
     );
@@ -208,6 +234,7 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         phone: phone,
         status: Formz.validate([
           state.nameKitchn!,
+          state.bio,
           state.noOfSeats,
           phone,
           state.address!,
@@ -237,6 +264,7 @@ class CookProfileCubit extends Cubit<CookProfileState> {
         noOfSeats: seat,
         status: Formz.validate([
           state.nameKitchn!,
+          state.bio,
           state.phone,
           seat,
           state.address!,

@@ -6,6 +6,7 @@ class CookProfileState extends Equatable {
     this.countryCode = '+61',
     this.nameKitchn = const Name.pure(),
     this.address = const Name.pure(),
+    this.bio = const Name.pure(),
     this.status = FormzStatus.pure,
     this.statusApi = FormzStatus.pure,
     this.serverMessage = '',
@@ -22,6 +23,7 @@ class CookProfileState extends Equatable {
 
   final Name? nameKitchn;
   final Name? address;
+  final Name bio;
   final InternationalPhone phone;
   final String countryCode;
   final Phone noOfSeats;
@@ -51,6 +53,7 @@ class CookProfileState extends Equatable {
     FormzStatus? statusApi,
     Name? nameKitchn,
     Name? address,
+    Name? bio,
     Phone? noOfSeats,
     String? serverMessage,
     InternationalPhone? phone,
@@ -67,6 +70,7 @@ class CookProfileState extends Equatable {
       statusApi: statusApi ?? this.statusApi,
       status: status ?? this.status,
       address: address ?? this.address,
+      bio: bio ?? this.bio,
       nameKitchn: nameKitchn ?? this.nameKitchn,
       noOfSeats: noOfSeats ?? this.noOfSeats,
       serverMessage: serverMessage ?? this.serverMessage,
@@ -87,6 +91,7 @@ class CookProfileState extends Equatable {
     noOfSeats,
     statusApi,
     address,
+    bio,
     status,
     nameKitchn,
     phone,

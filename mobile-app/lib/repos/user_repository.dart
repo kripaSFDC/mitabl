@@ -300,6 +300,20 @@ class UserRepository {
     }
   }
 
+  Future<http.Response> fetchVendorAccountCompletionStatus() async {
+    try {
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/payments/vendor/account/completed'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to fetch vendor account completion status', e);
+      rethrow;
+    }
+  }
+
   Future<void> syncCurrentUserRoleState({
     String? roleName,
     dynamic roleId,

@@ -46,6 +46,12 @@ class _CookProfilePage extends State<CookProfilePage>
   _CookProfilePage();
 
   bool _openingSavedKitchen = false;
+  final GlobalKey _kitchenStoryKey = GlobalKey();
+  final GlobalKey _operatingHoursKey = GlobalKey();
+  final GlobalKey _serviceTypeKey = GlobalKey();
+  final FocusNode _kitchenStoryFocusNode = FocusNode();
+  final TextEditingController _kitchenStoryController =
+      TextEditingController();
 
   Future<void> _openSavedKitchen() async {
     if (_openingSavedKitchen) return;
@@ -126,7 +132,104 @@ class _CookProfilePage extends State<CookProfilePage>
     mobileNoTextEditor?.dispose();
     passwordTextEditor?.dispose();
     controller?.dispose();
+    _kitchenStoryFocusNode.dispose();
+    _kitchenStoryController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scrollToSection(GlobalKey key) async {
+    final targetContext = key.currentContext;
+    if (targetContext == null) return;
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      alignment: 0.12,
+    );
+  }
+
+  Future<void> _focusKitchenStory() async {
+    await _scrollToSection(_kitchenStoryKey);
+    if (!mounted) return;
+    _kitchenStoryFocusNode.requestFocus();
+  }
+
+  Future<void> _openKitchenSpecsActions() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: MitablColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Kitchen Specs',
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Health and safety documents are completed later in onboarding. You can jump to the current specs-related sections from here.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: MitablColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      Navigator.of(context).pushNamed('/KitchenCertification');
+                    },
+                    icon: const Icon(Icons.verified_user_outlined),
+                    label: const Text('Open Certification Step'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _scrollToSection(_operatingHoursKey);
+                    },
+                    icon: const Icon(Icons.access_time_rounded),
+                    label: const Text('Jump to Operating Hours'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _scrollToSection(_serviceTypeKey);
+                    },
+                    icon: const Icon(Icons.room_service_outlined),
+                    label: const Text('Jump to Service Type'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -287,45 +390,74 @@ class _CookProfilePage extends State<CookProfilePage>
                           const SizedBox(height: 24),
 
                           // ── Kitchen Story (description) ──
-                          _buildFieldLabel('KITCHEN STORY'),
-                          const SizedBox(height: 8),
-                          BlocBuilder<CookProfileCubit, CookProfileState>(
-                            builder: (context, state) {
-                              return TextField(
-                                maxLines: 4,
-                                onChanged: (text) {
-                                  // If cubit supports description
-                                },
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Describe the soul of your cooking, the ingredients you love, and the atmosphere you create...',
-                                  hintStyle: TextStyle(
-                                    color: MitablColors.onSurfaceVariant
-                                        .withValues(alpha: 0.4),
-                                    fontSize: 15,
-                                  ),
-                                  filled: true,
-                                  fillColor: MitablColors.surfaceContainerLow,
-                                  border: const OutlineInputBorder(
-                                    borderRadius: MitablRadius.inputBorder,
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: MitablRadius.inputBorder,
-                                    borderSide: BorderSide(
-                                      color: MitablColors.primary
-                                          .withValues(alpha: 0.2),
-                                      width: 2,
+                          Column(
+                            key: _kitchenStoryKey,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildFieldLabel('KITCHEN STORY'),
+                              const SizedBox(height: 8),
+                              BlocBuilder<CookProfileCubit, CookProfileState>(
+                                builder: (context, state) {
+                                  if (_kitchenStoryController.text !=
+                                      state.bio.value) {
+                                    _kitchenStoryController.value =
+                                        _kitchenStoryController.value.copyWith(
+                                      text: state.bio.value,
+                                      selection: TextSelection.collapsed(
+                                        offset: state.bio.value.length,
+                                      ),
+                                      composing: TextRange.empty,
+                                    );
+                                  }
+
+                                  return TextFormField(
+                                    controller: _kitchenStoryController,
+                                    focusNode: _kitchenStoryFocusNode,
+                                    maxLines: 4,
+                                    onChanged: (text) {
+                                      context
+                                          .read<CookProfileCubit>()
+                                          .onBioChanged(value: text);
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Describe the soul of your cooking, the ingredients you love, and the atmosphere you create...',
+                                      errorText: state.bio.invalid
+                                          ? 'Please enter a valid kitchen story'
+                                          : null,
+                                      hintStyle: TextStyle(
+                                        color: MitablColors.onSurfaceVariant
+                                            .withValues(alpha: 0.4),
+                                        fontSize: 15,
+                                      ),
+                                      filled: true,
+                                      fillColor:
+                                          MitablColors.surfaceContainerLow,
+                                      border: const OutlineInputBorder(
+                                        borderRadius:
+                                            MitablRadius.inputBorder,
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            MitablRadius.inputBorder,
+                                        borderSide: BorderSide(
+                                          color: MitablColors.primary
+                                              .withValues(alpha: 0.2),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.all(20),
                                     ),
-                                  ),
-                                  contentPadding: const EdgeInsets.all(20),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: MitablColors.onSurface,
-                                ),
-                              );
-                            },
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: MitablColors.onSurface,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 24),
 
@@ -333,100 +465,30 @@ class _CookProfilePage extends State<CookProfilePage>
                           Row(
                             children: [
                               Expanded(
-                                child: Semantics(
-                                  container: true,
-                                  label:
+                                child: _ActionInfoTile(
+                                  icon: Icons.restaurant_menu,
+                                  title: 'Cuisine Style',
+                                  description:
+                                      'Artisan, Traditional, Fusion, or Home Comfort.',
+                                  semanticsLabel:
                                       'Cuisine Style information. Artisan, Traditional, Fusion, or Home Comfort.',
-                                  child: Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Icons.restaurant_menu,
-                                                color: MitablColors.primary,
-                                                size: 22),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                'Cuisine Style',
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: MitablColors.onSurface,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'Artisan, Traditional, Fusion, or Home Comfort.',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color:
-                                                MitablColors.onSurfaceVariant,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  semanticsHint:
+                                      'Jumps to the kitchen story field.',
+                                  onTap: _focusKitchenStory,
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Semantics(
-                                  container: true,
-                                  label:
+                                child: _ActionInfoTile(
+                                  icon: Icons.verified_user,
+                                  title: 'Kitchen Specs',
+                                  description:
+                                      'Health certifications and safety standards.',
+                                  semanticsLabel:
                                       'Kitchen Specs information. Health certifications and safety standards.',
-                                  child: Container(
-                                    padding: const EdgeInsets.all(20),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Icons.verified_user,
-                                                color: MitablColors.primary,
-                                                size: 22),
-                                            SizedBox(width: 12),
-                                            Expanded(
-                                              child: Text(
-                                                'Kitchen Specs',
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: MitablColors.onSurface,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'Health certifications and safety standards.',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color:
-                                                MitablColors.onSurfaceVariant,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  semanticsHint:
+                                      'Opens actions for related setup sections.',
+                                  onTap: _openKitchenSpecsActions,
                                 ),
                               ),
                             ],
@@ -471,15 +533,27 @@ class _CookProfilePage extends State<CookProfilePage>
                           const SizedBox(height: 24),
 
                           // ── Operating Hours ──
-                          _buildFieldLabel('OPERATING HOURS'),
-                          const SizedBox(height: 8),
-                          _Timing(loginForm: this),
+                          Column(
+                            key: _operatingHoursKey,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildFieldLabel('OPERATING HOURS'),
+                              const SizedBox(height: 8),
+                              _Timing(loginForm: this),
+                            ],
+                          ),
                           const SizedBox(height: 24),
 
                           // ── Service Type ──
-                          _buildFieldLabel('SERVICE TYPE'),
-                          const SizedBox(height: 8),
-                          _ServiceTypeSection(),
+                          Column(
+                            key: _serviceTypeKey,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildFieldLabel('SERVICE TYPE'),
+                              const SizedBox(height: 8),
+                              _ServiceTypeSection(),
+                            ],
+                          ),
                           const SizedBox(height: 24),
 
                           // ── Dine-in Slots ──
@@ -776,6 +850,74 @@ class _TimingState extends State<_Timing> {
   }
 }
 
+class _ActionInfoTile extends StatelessWidget {
+  const _ActionInfoTile({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+    required this.semanticsLabel,
+    required this.semanticsHint,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Future<void> Function() onTap;
+  final String semanticsLabel;
+  final String semanticsHint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      hint: semanticsHint,
+      child: Material(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => onTap(),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: MitablColors.primary, size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: MitablColors.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: MitablColors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Service Type Section
 // ─────────────────────────────────────────────────────────────────────────────
@@ -792,56 +934,75 @@ class _ServiceTypeSection extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Dine-in',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: MitablColors.onSurface,
-                      ),
-                    ),
-                  ),
-                  Switch(
-                    value: state.dineIn,
-                    onChanged: (value) => context
-                        .read<CookProfileCubit>()
-                        .onDineInChange(value: value),
-                    activeTrackColor: MitablColors.primary,
-                  ),
-                ],
+              _ServiceTypeTile(
+                title: 'Dine-in',
+                value: state.dineIn,
+                onChanged: (value) => context
+                    .read<CookProfileCubit>()
+                    .onDineInChange(value: value),
               ),
               Divider(
                 height: 1,
                 color: MitablColors.outlineVariant.withValues(alpha: 0.3),
               ),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Takeaway',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: MitablColors.onSurface,
-                      ),
-                    ),
-                  ),
-                  Switch(
-                    value: state.takeAway,
-                    onChanged: (value) => context
-                        .read<CookProfileCubit>()
-                        .onTakeAwayChange(value: value),
-                    activeTrackColor: MitablColors.primary,
-                  ),
-                ],
+              _ServiceTypeTile(
+                title: 'Takeaway',
+                value: state.takeAway,
+                onChanged: (value) => context
+                    .read<CookProfileCubit>()
+                    .onTakeAwayChange(value: value),
               ),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _ServiceTypeTile extends StatelessWidget {
+  const _ServiceTypeTile({
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      toggled: value,
+      label: title,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => onChanged(!value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+              ),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeTrackColor: MitablColors.primary,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -923,6 +1084,13 @@ class _CreateKitchenSlotSection extends StatelessWidget {
                     borderRadius: MitablRadius.cardBorder,
                   ),
                   child: ListTile(
+                    onTap: () => _showSlotEditor(
+                      context,
+                      state: state,
+                      availableDays: availableDays,
+                      existing: slot,
+                      index: index,
+                    ),
                     title: Text(
                       '${slot.dayName ?? _labelForDay(slot.dayOfWeek)}  ${slot.startTime} - ${slot.endTime}',
                       style: const TextStyle(
