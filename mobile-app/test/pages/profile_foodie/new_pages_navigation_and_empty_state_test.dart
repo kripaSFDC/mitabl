@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
+import 'package:mitabl_user/helper/app_navigator.dart' as app_nav;
 import 'package:mitabl_user/model/user_model.dart';
 import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
 import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
@@ -68,9 +69,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('miorders'), findsOneWidget);
-    expect(find.text('favourites'), findsOneWidget);
-    expect(find.text('payments'), findsOneWidget);
+    expect(find.text('My Orders'), findsOneWidget);
+    expect(find.text('Favourites'), findsOneWidget);
+    expect(find.text('Payments'), findsOneWidget);
 
     navigatorKey.currentState!.pushNamed('/MiOrders');
     await tester.pump();
@@ -179,6 +180,7 @@ void main() {
             authenticationRepository: authenticationRepository,
           ),
           child: MaterialApp(
+            navigatorKey: app_nav.navigatorKey,
             routes: {
               '/CookProfile': (_) => const Scaffold(body: Text('cook profile')),
             },

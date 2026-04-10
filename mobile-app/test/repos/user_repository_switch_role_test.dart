@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:mitabl_user/model/get_profile_model.dart' as profile_model;
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _SpyUserRepository extends UserRepository {
   _SpyUserRepository({required http.Client httpClient, this.throwOnSync = false})
@@ -29,7 +32,11 @@ class _SpyUserRepository extends UserRepository {
   }
 
   @override
-  Future<void> syncCurrentUserRole({String? roleName, dynamic roleId}) async {
+  Future<void> syncCurrentUserRoleState({
+    String? roleName,
+    dynamic roleId,
+    List<profile_model.AvailableRoleMembership>? availableRoles,
+  }) async {
     syncCalls += 1;
     syncedRole = roleName;
     syncedRoleId = roleId;
@@ -43,6 +50,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
+    FlutterSecureStorage.setMockInitialValues(const <String, String>{});
+    SharedPreferences.setMockInitialValues({});
     GlobalConfiguration().loadFromMap({
       'api_base_url': 'https://api.example.com/api/',
     });
