@@ -37,11 +37,31 @@ class SupportTicketController extends Controller
             ->orderByDesc('updated_at')
             ->paginate(20);
 
+        $data = collect($tickets->items())->map(function (SupportTicket $ticket) {
+            return [
+                'id' => $ticket->id,
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'description' => $ticket->description,
+                'status' => $ticket->status,
+                'priority' => $ticket->priority,
+                'category' => $ticket->category,
+                'created_at' => $ticket->created_at,
+                'updated_at' => $ticket->updated_at,
+                'messages' => $ticket->messages->map(fn ($message) => [
+                    'id' => $message->id,
+                    'sender_type' => $message->sender_type,
+                    'message' => $message->message,
+                    'created_at' => $message->created_at,
+                ])->values(),
+            ];
+        })->values();
+
         return response()->json([
             'status' => 200,
             'isSuccess' => true,
             'message' => 'Support tickets retrieved.',
-            'data' => $tickets->items(),
+            'data' => $data,
             'pagination' => [
                 'total' => $tickets->total(),
                 'per_page' => $tickets->perPage(),

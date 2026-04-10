@@ -155,5 +155,68 @@ void main() {
           jsonDecode(capturedRequest.body) as Map<String, dynamic>;
       expect(body['message'], 'Any updates?');
     });
+
+    test('listSupportTickets uses GET with page query and auth header',
+        () async {
+      late http.Request capturedRequest;
+
+      final mockClient = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'status': 200,
+            'isSuccess': true,
+            'data': [
+              {'id': 1, 'subject': 'Support request'}
+            ],
+          }),
+          200,
+        );
+      });
+
+      final userRepository = _FakeUserRepository(
+        user: UserModel.fromJson({
+          'status': 200,
+          'isSuccess': true,
+          'data': {
+            'access_token': 'abc-token',
+            'token_type': 'Bearer',
+            'user': {'id': 1}
+          }
+        }),
+      );
+
+      final repository = SupportTicketRepository(
+        userRepository: userRepository,
+        httpClient: mockClient,
+      );
+
+      final response = await repository.listSupportTickets(page: 2);
+
+      expect(response['status'], 200);
+      expect(capturedRequest.method, 'GET');
+      expect(capturedRequest.url.toString(),
+          'https://api.example.com/api/support/tickets?page=2');
+      expect(capturedRequest.headers['authorization'], 'Bearer abc-token');
+      expect(capturedRequest.headers['x-authenticated-channel'], 'mobile_app');
+    });
+
+    test('parse malformed JSON response does not throw and returns fallback',
+        () async {
+      final mockClient = MockClient((_) async {
+        return http.Response('not-json', 502);
+      });
+
+      final repository = SupportTicketRepository(
+        userRepository: _FakeUserRepository(),
+        httpClient: mockClient,
+      );
+
+      final response = await repository.getSupportTicket(id: 42);
+
+      expect(response['status'], 502);
+      expect(response['error'], 'Invalid response format');
+      expect(response.containsKey('raw_body'), isTrue);
+    });
   });
 }

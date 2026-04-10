@@ -30,10 +30,6 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
   bool _isWeekly = true;
   bool _isLoading = true;
 
-  double _revenueToday = 0;
-  double _revenueThisWeek = 0;
-  double _revenueThisMonth = 0;
-
   int _totalEarning = 0;
   int _nBookings = 0;
 
@@ -75,13 +71,6 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
 
       if (response.statusCode == 200 && mounted) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-
-        final revToday = body['revenue_today'];
-        final revWeek = body['revenue_this_week'];
-        final revMonth = body['revenue_this_month'];
-        _revenueToday = _toDouble(revToday);
-        _revenueThisWeek = _toDouble(revWeek);
-        _revenueThisMonth = _toDouble(revMonth);
 
         final te = body['totalEarning'] ?? body['total_earning'];
         if (te != null) {

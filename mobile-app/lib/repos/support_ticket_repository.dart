@@ -36,7 +36,11 @@ class SupportTicketRepository {
   Future<Map<String, dynamic>> listSupportTickets({
     int page = 1,
   }) async {
-    final url = ApiContract.uri('/support/tickets?page=$page');
+    final safePage = page < 1 ? 1 : page;
+    final url = ApiContract.uri(
+      '/support/tickets',
+      queryParameters: {'page': safePage},
+    );
     final response = await _httpClient.get(
       url,
       headers: await _jsonHeaders(),
@@ -136,13 +140,20 @@ class SupportTicketRepository {
         final parsed = jsonDecode(response.body);
         if (parsed is Map<String, dynamic>) {
           decoded = parsed;
+        } else {
+          decoded = {
+            'data': parsed,
+          };
         }
       }
     } catch (e) {
       // Malformed JSON response
       decoded = {
         'error': 'Invalid response format',
-        'raw_body': response.body.substring(0, 500),
+        'raw_body': response.body.substring(
+          0,
+          response.body.length < 500 ? response.body.length : 500,
+        ),
       };
     }
 

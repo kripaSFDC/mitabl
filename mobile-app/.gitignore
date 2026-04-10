@@ -47,3 +47,9 @@ app.*.map.json
 
 # Local dev config overrides (never commit)
 assets/cfg/configuration.local.json
+
+# Local analysis/review scratch artifacts
+analyze_*.txt
+final_check.txt
+.tmp*.diff
+.review*.diff

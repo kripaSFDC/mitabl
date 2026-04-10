@@ -58,7 +58,6 @@ dependencies:
   webview_flutter: ^4.10.0
   geolocator: ^14.0.2
   geocoding: ^4.0.0
-  collection: ^1.19.0
 
   # Phase 1 — Offline handling
   connectivity_plus: ^6.0.3

@@ -185,8 +185,11 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
         return;
       }
 
-      final ticketId = result['data']?['id'] ?? result['id'];
-      final ticketNumber = result['data']?['ticket_number'] ?? result['ticket_number'];
+        final data = result['data'];
+        final dataMap = data is Map<String, dynamic> ? data : null;
+        final ticketId = dataMap?['id'] ?? result['id'];
+        final ticketNumber =
+          dataMap?['ticket_number'] ?? result['ticket_number'];
 
       // Clear the form
       _emailController.clear();
@@ -247,13 +250,25 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
       final tickets = <Map<String, dynamic>>[];
       
       if (data is List) {
-        tickets.addAll(data.cast<Map<String, dynamic>>());
+        for (final item in data) {
+          if (item is Map<String, dynamic>) {
+            tickets.add(item);
+          }
+        }
       } else if (data is Map<String, dynamic>) {
         // In case data is paginated response
         if (data['items'] is List) {
-          tickets.addAll(data['items'].cast<Map<String, dynamic>>());
+          for (final item in (data['items'] as List)) {
+            if (item is Map<String, dynamic>) {
+              tickets.add(item);
+            }
+          }
         } else if (data['data'] is List) {
-          tickets.addAll(data['data'].cast<Map<String, dynamic>>());
+          for (final item in (data['data'] as List)) {
+            if (item is Map<String, dynamic>) {
+              tickets.add(item);
+            }
+          }
         }
       }
       
@@ -290,7 +305,10 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Future<void> _replyToSupportTicket() async {
-    final ticketId = _selectedTicketId;
+    final selectedTicket = _selectedTicketId;
+    final ticketId = selectedTicket is num
+      ? selectedTicket.toInt()
+      : int.tryParse(selectedTicket?.toString() ?? '');
     if (ticketId == null) {
       _showSnackBar('No ticket selected.');
       return;
@@ -847,8 +865,9 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Map<String, dynamic>? _findTicketById(dynamic ticketId) {
+    final normalizedTarget = ticketId?.toString();
     for (final ticket in _userTickets) {
-      if (ticket['id'] == ticketId) {
+      if (ticket['id']?.toString() == normalizedTarget) {
         return ticket;
       }
     }
@@ -1167,7 +1186,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                                 ignoring: _notificationsUpdating,
                                 child: Switch(
                                   value: _notificationsEnabled,
-                                  activeColor: MitablColors.primary,
+                                  activeThumbColor: MitablColors.primary,
                                   onChanged: _onNotificationChanged,
                                 ),
                               ),
@@ -1199,7 +1218,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                               ),
                               Switch(
                                 value: _emailNotificationsEnabled,
-                                activeColor: MitablColors.primary,
+                                activeThumbColor: MitablColors.primary,
                                 onChanged: (v) => setState(
                                     () => _emailNotificationsEnabled = v),
                               ),

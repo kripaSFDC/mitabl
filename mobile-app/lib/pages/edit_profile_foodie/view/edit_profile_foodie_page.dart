@@ -202,12 +202,12 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     });
   }
 
-  void _openGallery(BuildContext context) async {
+  void _openGallery() async {
     final cubit = context.read<ProfileFoodieCubit>();
     final picture = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     try {
-      if (!context.mounted || picture == null) {
+      if (!mounted || picture == null) {
         Helper.showToast('No image selected.');
         return;
       }
@@ -218,7 +218,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     }
   }
 
-  Future<void> _openCamera(BuildContext context) async {
+  Future<void> _openCamera() async {
     final cubit = context.read<ProfileFoodieCubit>();
     final picture = await ImagePicker().pickImage(
       source: ImageSource.camera,
@@ -226,7 +226,7 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
     );
 
     try {
-      if (!context.mounted || picture == null) {
+      if (!mounted || picture == null) {
         Helper.showToast('No image captured.');
         return;
       }
@@ -274,13 +274,12 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
       },
       context: context,
     ).then((value) {
-      // ignore: use_build_context_synchronously
-      if (!context.mounted) return;
+      if (!mounted) return;
       if (value != null) {
         if (value) {
-          _openCamera(context);
+          _openCamera();
         } else {
-          _openGallery(context);
+          _openGallery();
         }
       }
     });
