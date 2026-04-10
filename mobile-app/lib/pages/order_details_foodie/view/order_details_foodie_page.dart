@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/order_details_foodie/element/order_item_row.dart';
+import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/repos/miorders_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
@@ -30,8 +31,21 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
   bool _isCancelling = false;
 
   Map<String, dynamic> get order => widget.order;
+  List get _items => order['items'] is List ? order['items'] as List : const [];
 
   String get _status => '${order['status']}';
+
+  String _buildItemSummary(List items) {
+    final parts = <String>[];
+    for (final item in items) {
+      if (item is! Map) continue;
+      final quantity = item['quantity']?.toString() ?? '1';
+      final name =
+          item['food']?.toString() ?? item['name']?.toString() ?? 'Item';
+      parts.add('$quantity x $name');
+    }
+    return parts.join(', ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +53,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
     final kitchenName = kitchen is Map<String, dynamic>
         ? (kitchen['name']?.toString() ?? 'Kitchen')
         : 'Kitchen';
-    final orderId = order['order_id']?.toString() ??
-        order['id']?.toString() ??
-        '';
+    final orderId =
+        order['order_id']?.toString() ?? order['id']?.toString() ?? '';
     final date = order['date']?.toString() ?? '';
     final timeFrom = order['time_from']?.toString() ?? '';
     final timeTo = order['time_to']?.toString() ?? '';
@@ -80,7 +93,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 2.0,
-                          color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
+                          color: MitablColors.onSurfaceVariant
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                       _StatusBadge(status: _status),
@@ -109,7 +123,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.person, color: MitablColors.primary, size: 20),
+                            Icon(Icons.person,
+                                color: MitablColors.primary, size: 20),
                             SizedBox(width: 8),
                             Text(
                               'Customer Info',
@@ -136,7 +151,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                           Row(
                             children: [
                               const Icon(Icons.calendar_today,
-                                  size: 12, color: MitablColors.onSurfaceVariant),
+                                  size: 12,
+                                  color: MitablColors.onSurfaceVariant),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -167,7 +183,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.local_shipping, color: MitablColors.primary, size: 20),
+                            Icon(Icons.local_shipping,
+                                color: MitablColors.primary, size: 20),
                             SizedBox(width: 8),
                             Flexible(
                               child: Text(
@@ -196,7 +213,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                           Row(
                             children: [
                               const Icon(Icons.schedule,
-                                  size: 12, color: MitablColors.onSurfaceVariant),
+                                  size: 12,
+                                  color: MitablColors.onSurfaceVariant),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -311,7 +329,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 2.0,
-                              color: MitablColors.onSurfaceVariant.withValues(alpha: 0.6),
+                              color: MitablColors.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -401,7 +420,35 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
             Expanded(
               child: MitablButton(
                 label: 'Track Order',
-                onPressed: () {},
+                onPressed: () {
+                  final kitchen = order['mikitchn'];
+                  final kitchenName = kitchen is Map<String, dynamic>
+                      ? (kitchen['name']?.toString() ?? 'Kitchen')
+                      : 'Kitchen';
+                  final trackingOrderId = order['order_id']?.toString() ??
+                      order['id']?.toString() ??
+                      '';
+                  if (trackingOrderId.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('Unable to open tracking for this order.'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.of(context).pushNamed(
+                    '/OrderTracking',
+                    arguments: RouteArguments(
+                      data: OrderTrackingRouteData(
+                        orderId: trackingOrderId,
+                        kitchenName: kitchenName,
+                        itemSummary: _buildItemSummary(_items),
+                      ),
+                    ),
+                  );
+                },
                 variant: MitablButtonVariant.primary,
                 icon: const Icon(Icons.check_circle,
                     color: MitablColors.onPrimary, size: 20),
@@ -460,7 +507,8 @@ class _OrderDetailsFoodiePageState extends State<OrderDetailsFoodiePage> {
             );
           },
           variant: MitablButtonVariant.primary,
-          icon: const Icon(Icons.location_on, color: MitablColors.onPrimary, size: 20),
+          icon: const Icon(Icons.location_on,
+              color: MitablColors.onPrimary, size: 20),
         ),
       );
       widgets.add(const SizedBox(height: 12));

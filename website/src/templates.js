@@ -241,10 +241,10 @@ const footer = ({ showStoreBadges }) => `
                .badge-img { object-fit: contain; width: 100%; height: 100%; border-radius: 0.5rem; }
             </style>
             ${showStoreBadges ? `
-              <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for Google Play">
+              <button type="button" class="register-interest-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Register interest for the Android app">
                 <img src="/frontend/images/google.png" alt="Get it on Google Play" class="badge-img">
               </button>
-              <button data-target="#myModal" class="modal-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Open coming soon message for App Store">
+              <button type="button" class="register-interest-trigger h-full rounded-xl overflow-hidden hover:scale-105 transition-transform shadow-sm" aria-label="Register interest for the iPhone app">
                 <img src="/frontend/images/app.png" alt="Download on the App Store" class="badge-img">
               </button>
             ` : `

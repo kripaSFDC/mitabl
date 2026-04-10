@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mitabl_user/helper/star_rating.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../helper/route_arguement.dart';
 
@@ -14,6 +15,198 @@ class UserDetails extends StatelessWidget {
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
       builder: (_) => UserDetails(routeArguments: routeArguments),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _contactCustomer(
+    BuildContext context,
+    dynamic phoneValue,
+  ) async {
+    final phone = phoneValue?.toString().trim() ?? '';
+    final normalized = phone.replaceAll(RegExp(r'[^\d+]'), '');
+    if (normalized.isEmpty) {
+      _showSnackBar(
+        context,
+        'No phone number is available for this customer yet.',
+      );
+      return;
+    }
+
+    final uri = Uri(scheme: 'tel', path: normalized);
+    try {
+      final launched = await launchUrl(uri);
+      if (!context.mounted) return;
+      if (!launched) {
+        _showSnackBar(context, 'Unable to start a call to $phone');
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(context, 'Unable to start a call to $phone');
+    }
+  }
+
+  Future<void> _showCreditsSupportDialog(
+    BuildContext context,
+    String customerName,
+  ) async {
+    final supportUri = Uri(
+      scheme: 'mailto',
+      path: 'admin@mitabl.com',
+      queryParameters: {
+        'subject': 'Customer credit adjustment for $customerName',
+      },
+    );
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Manage Credits'),
+          content: Text(
+            'Credit adjustments for $customerName are handled by Mitabl support right now.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                try {
+                  final launched = await launchUrl(supportUri);
+                  if (!context.mounted) return;
+                  if (!launched) {
+                    _showSnackBar(
+                      context,
+                      'Unable to open support email right now.',
+                    );
+                  }
+                } catch (_) {
+                  if (!context.mounted) return;
+                  _showSnackBar(
+                    context,
+                    'Unable to open support email right now.',
+                  );
+                }
+              },
+              child: const Text('Email Support'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showOrderHistoryDialog(BuildContext context) async {
+    const entries = [
+      {
+        'date': 'Yesterday, 18:30',
+        'title': 'Order #8832 - Processing',
+        'subtitle': '2x Lamb Shank, 1x Apple Tart',
+        'price': '\$42.50',
+      },
+      {
+        'date': 'Oct 12, 2023',
+        'title': 'Order #7921 - Delivered',
+        'subtitle': '1x Miso Salmon, 1x Green Tea',
+        'price': '\$28.00',
+      },
+      {
+        'date': 'Oct 05, 2023',
+        'title': 'Order #7644 - Delivered',
+        'subtitle': 'Chef selection',
+        'price': '\$35.20',
+      },
+    ];
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Full Order History',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...entries.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: MitablColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  entry['date']!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  entry['title']!,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: MitablColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  entry['subtitle']!,
+                                  style: const TextStyle(
+                                    color: MitablColors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            entry['price']!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: MitablColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -38,8 +231,7 @@ class UserDetails extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.menu,
-                        color: MitablColors.primary),
+                    icon: const Icon(Icons.menu, color: MitablColors.primary),
                   ),
                   const SizedBox(width: 4),
                   const Text(
@@ -80,8 +272,7 @@ class UserDetails extends StatelessWidget {
                     child: const Row(
                       children: [
                         Icon(Icons.arrow_back,
-                            size: 18,
-                            color: MitablColors.onSurfaceVariant),
+                            size: 18, color: MitablColors.onSurfaceVariant),
                         SizedBox(width: 4),
                         Text(
                           'Back to Orders',
@@ -104,8 +295,7 @@ class UserDetails extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: MitablColors.onSurface
-                              .withValues(alpha: 0.06),
+                          color: MitablColors.onSurface.withValues(alpha: 0.06),
                           blurRadius: 40,
                           offset: const Offset(0, 24),
                         ),
@@ -157,9 +347,8 @@ class UserDetails extends StatelessWidget {
                                             imageUrl:
                                                 '${GlobalConfiguration().getValue<String>('image_base_url')}${customer.avatar!}',
                                             fit: BoxFit.cover,
-                                            errorWidget:
-                                                (context, data, e) =>
-                                                    Container(
+                                            errorWidget: (context, data, e) =>
+                                                Container(
                                               color: MitablColors
                                                   .surfaceContainerLow,
                                               child: const Icon(
@@ -187,8 +376,7 @@ class UserDetails extends StatelessWidget {
                                             horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF506140),
-                                          borderRadius:
-                                              MitablRadius.pillBorder,
+                                          borderRadius: MitablRadius.pillBorder,
                                           boxShadow: [
                                             BoxShadow(
                                               color: MitablColors.onSurface
@@ -261,9 +449,11 @@ class UserDetails extends StatelessWidget {
                                   child: SizedBox(
                                     height: 48,
                                     child: ElevatedButton.icon(
-                                      onPressed: () {},
-                                      icon: const Icon(Icons.call,
-                                          size: 18),
+                                      onPressed: () => _contactCustomer(
+                                        context,
+                                        customer.phone,
+                                      ),
+                                      icon: const Icon(Icons.call, size: 18),
                                       label: const Text(
                                         'Contact Customer',
                                         style: TextStyle(
@@ -272,13 +462,10 @@ class UserDetails extends StatelessWidget {
                                         ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            MitablColors.primary,
-                                        foregroundColor:
-                                            MitablColors.onPrimary,
+                                        backgroundColor: MitablColors.primary,
+                                        foregroundColor: MitablColors.onPrimary,
                                         shape: const RoundedRectangleBorder(
-                                          borderRadius:
-                                              MitablRadius.pillBorder,
+                                          borderRadius: MitablRadius.pillBorder,
                                         ),
                                         elevation: 0,
                                       ),
@@ -290,15 +477,18 @@ class UserDetails extends StatelessWidget {
                                   child: SizedBox(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () =>
+                                          _showCreditsSupportDialog(
+                                        context,
+                                        customer.name?.toString() ?? 'customer',
+                                      ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: MitablColors
-                                            .surfaceContainerLow,
-                                        foregroundColor: MitablColors
-                                            .onSurfaceVariant,
+                                        backgroundColor:
+                                            MitablColors.surfaceContainerLow,
+                                        foregroundColor:
+                                            MitablColors.onSurfaceVariant,
                                         shape: const RoundedRectangleBorder(
-                                          borderRadius:
-                                              MitablRadius.pillBorder,
+                                          borderRadius: MitablRadius.pillBorder,
                                         ),
                                         elevation: 0,
                                       ),
@@ -333,12 +523,10 @@ class UserDetails extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'TOTAL ORDERS',
@@ -346,8 +534,7 @@ class UserDetails extends StatelessWidget {
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 1,
-                                      color: MitablColors
-                                          .onSecondaryContainer,
+                                      color: MitablColors.onSecondaryContainer,
                                     ),
                                   ),
                                   SizedBox(height: 4),
@@ -357,8 +544,7 @@ class UserDetails extends StatelessWidget {
                                       fontFamily: 'Nunito',
                                       fontSize: 32,
                                       fontWeight: FontWeight.w800,
-                                      color: MitablColors
-                                          .onSecondaryContainer,
+                                      color: MitablColors.onSecondaryContainer,
                                     ),
                                   ),
                                 ],
@@ -373,8 +559,7 @@ class UserDetails extends StatelessWidget {
                                 child: const Icon(
                                   Icons.restaurant,
                                   size: 28,
-                                  color:
-                                      MitablColors.onSecondaryContainer,
+                                  color: MitablColors.onSecondaryContainer,
                                 ),
                               ),
                             ],
@@ -390,12 +575,10 @@ class UserDetails extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
                                     'AVG. RATING',
@@ -403,8 +586,7 @@ class UserDetails extends StatelessWidget {
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 1,
-                                      color:
-                                          MitablColors.onSurfaceVariant,
+                                      color: MitablColors.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -460,8 +642,7 @@ class UserDetails extends StatelessWidget {
                             _PreferenceChip(label: 'Gluten-Free Only'),
                             _PreferenceChip(label: 'No Spicy Food'),
                             _PreferenceChip(label: 'Prefer Local Sourcing'),
-                            _PreferenceChip(
-                                label: 'Eco-Friendly Packaging'),
+                            _PreferenceChip(label: 'Eco-Friendly Packaging'),
                           ],
                         ),
                         const SizedBox(height: 32),
@@ -512,8 +693,7 @@ class UserDetails extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: MitablColors.onSurface
-                              .withValues(alpha: 0.06),
+                          color: MitablColors.onSurface.withValues(alpha: 0.06),
                           blurRadius: 40,
                           offset: const Offset(0, 24),
                         ),
@@ -523,8 +703,7 @@ class UserDetails extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               'Order History',
@@ -573,10 +752,9 @@ class UserDetails extends StatelessWidget {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () => _showOrderHistoryDialog(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  MitablColors.surfaceContainerLow,
+                              backgroundColor: MitablColors.surfaceContainerLow,
                               foregroundColor: MitablColors.onSurface,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -584,7 +762,7 @@ class UserDetails extends StatelessWidget {
                               elevation: 0,
                             ),
                             child: const Text(
-                              'Download Full History',
+                              'View Full History',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,

@@ -17,8 +17,7 @@ class RevenueAnalyticsPage extends StatefulWidget {
 
   static Route route({RouteArguments? routeArguments}) {
     return MaterialPageRoute<void>(
-      builder: (_) =>
-          RevenueAnalyticsPage(routeArguments: routeArguments),
+      builder: (_) => RevenueAnalyticsPage(routeArguments: routeArguments),
     );
   }
 
@@ -35,6 +34,57 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
 
   List<_DishStat> _topDishes = [];
   List<_DailyTrend> _dailyTrend = [];
+
+  Future<void> _showAllTransactions() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Revenue Timeline',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_dailyTrend.isEmpty)
+                  const Text(
+                    'Revenue data is still loading.',
+                    style: TextStyle(color: MitablColors.onSurfaceVariant),
+                  )
+                else
+                  ..._dailyTrend.map(
+                    (trend) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.receipt_long_outlined),
+                      title: Text(trend.label),
+                      subtitle: Text('${trend.orders} order(s)'),
+                      trailing: Text(
+                        '\$${trend.revenue.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: MitablColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   double get _averageOrderValue {
     if (_nBookings == 0) return 0;
@@ -64,10 +114,12 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
         includeJsonContentType: true,
       );
 
-      final response = await http.get(
-        ApiContract.uri('v2/account/dashboard'),
-        headers: headers,
-      ).timeout(ApiContract.requestTimeout);
+      final response = await http
+          .get(
+            ApiContract.uri('v2/account/dashboard'),
+            headers: headers,
+          )
+          .timeout(ApiContract.requestTimeout);
 
       if (response.statusCode == 200 && mounted) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -159,8 +211,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.menu,
-                                color: MitablColors.onSurface),
+                            Icon(Icons.menu, color: MitablColors.onSurface),
                             SizedBox(width: 16),
                             Text(
                               'Vendor Hub',
@@ -480,10 +531,8 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                       width: 56,
                                       height: 56,
                                       decoration: BoxDecoration(
-                                        color:
-                                            MitablColors.surfaceContainerLow,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        color: MitablColors.surfaceContainerLow,
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Icon(
                                         Icons.restaurant_menu,
@@ -509,8 +558,8 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                             '${dish.orders} orders  \$${dish.revenue.toStringAsFixed(2)}',
                                             style: const TextStyle(
                                               fontSize: 13,
-                                              color: MitablColors
-                                                  .onSurfaceVariant,
+                                              color:
+                                                  MitablColors.onSurfaceVariant,
                                             ),
                                           ),
                                         ],
@@ -522,8 +571,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                         vertical: 4,
                                       ),
                                       decoration: const BoxDecoration(
-                                        color:
-                                            MitablColors.secondaryContainer,
+                                        color: MitablColors.secondaryContainer,
                                         borderRadius: MitablRadius.pillBorder,
                                       ),
                                       child: Text(
@@ -587,18 +635,16 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text('ORDER ID',
-                                    style: _tableHeaderStyle),
+                                child:
+                                    Text('ORDER ID', style: _tableHeaderStyle),
                               ),
                               Expanded(
                                 flex: 3,
-                                child: Text('DATE',
-                                    style: _tableHeaderStyle),
+                                child: Text('DATE', style: _tableHeaderStyle),
                               ),
                               Expanded(
                                 flex: 3,
-                                child: Text('STATUS',
-                                    style: _tableHeaderStyle),
+                                child: Text('STATUS', style: _tableHeaderStyle),
                               ),
                               Expanded(
                                 flex: 2,
@@ -655,8 +701,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                         trend.date,
                                         style: const TextStyle(
                                           fontSize: 13,
-                                          color:
-                                              MitablColors.onSurfaceVariant,
+                                          color: MitablColors.onSurfaceVariant,
                                         ),
                                       ),
                                     ),
@@ -670,8 +715,8 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                                             vertical: 4,
                                           ),
                                           decoration: const BoxDecoration(
-                                            color: MitablColors
-                                                .secondaryContainer,
+                                            color:
+                                                MitablColors.secondaryContainer,
                                             borderRadius:
                                                 MitablRadius.pillBorder,
                                           ),
@@ -708,7 +753,7 @@ class _RevenueAnalyticsPageState extends State<RevenueAnalyticsPage> {
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton(
-                              onPressed: () {},
+                              onPressed: _showAllTransactions,
                               style: OutlinedButton.styleFrom(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),

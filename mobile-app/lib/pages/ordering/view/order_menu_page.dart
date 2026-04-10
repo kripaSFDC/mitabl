@@ -59,6 +59,7 @@ class _OrderMenuFlow extends StatefulWidget {
 
 class _OrderMenuFlowState extends State<_OrderMenuFlow> {
   late final OrderSessionController _session;
+  bool _isFavoriteKitchen = false;
 
   @override
   void initState() {
@@ -219,7 +220,20 @@ class _MenuContent extends StatelessWidget {
                     ),
                     // Heart (favorite) button
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        setState(() {
+                          _isFavoriteKitchen = !_isFavoriteKitchen;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              _isFavoriteKitchen
+                                  ? 'Kitchen saved to favourites.'
+                                  : 'Kitchen removed from favourites.',
+                            ),
+                          ),
+                        );
+                      },
                       child: Container(
                         width: 40,
                         height: 40,
@@ -227,9 +241,11 @@ class _MenuContent extends StatelessWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(
-                            Icons.favorite_border,
+                            _isFavoriteKitchen
+                                ? Icons.favorite
+                                : Icons.favorite_border,
                             size: 20,
                             color: Colors.white,
                           ),

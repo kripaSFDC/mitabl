@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/repos/authentication_repository.dart';
 import 'package:mitabl_user/repos/support_ticket_repository.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsCookPage extends StatefulWidget {
   const SettingsCookPage({super.key, this.routeArguments});
@@ -77,6 +79,61 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   Future<void> _persistNotificationPreference(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsPreferenceKey, enabled);
+  }
+
+  Future<void> _launchExternalPage(String path) async {
+    final url = Uri.parse(ApiContract.webUrl(path));
+    try {
+      final launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        _showSnackBar('Unable to open ${url.toString()}');
+      }
+    } catch (_) {
+      _showSnackBar('Unable to open ${url.toString()}');
+    }
+  }
+
+  Future<void> _showLanguageDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Language'),
+          content: const Text(
+            'English (United States) is currently the active app language. Additional languages are not available yet.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showLoginSecurityDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Login & Security'),
+          content: const Text(
+            'Password reset is available from the login screen. Biometric lock can be managed from your profile settings on supported devices.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showSnackBar(String message) {
@@ -1152,13 +1209,13 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                           icon: Icons.language,
                           title: 'Language',
                           subtitle: 'English (United States)',
-                          onTap: () {},
+                          onTap: _showLanguageDialog,
                         ),
                         _buildSettingsRow(
                           icon: Icons.security,
                           title: 'Login & Security',
                           subtitle: 'Password and two-factor auth',
-                          onTap: () {},
+                          onTap: _showLoginSecurityDialog,
                           showDivider: false,
                         ),
                       ],
@@ -1309,7 +1366,7 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
                         _buildSupportRow(
                           icon: Icons.policy_outlined,
                           title: 'Privacy Policy',
-                          onTap: () {},
+                          onTap: () => _launchExternalPage('privacy-policy'),
                           showDivider: false,
                         ),
                       ],

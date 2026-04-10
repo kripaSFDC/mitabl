@@ -73,6 +73,57 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
     Navigator.of(context).pop(_selectedDietIds.toList());
   }
 
+  Future<void> _showCuisineSelector(HomeState state) async {
+    final cuisines = state.cookingStyleList ?? const [];
+    if (cuisines.isEmpty) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'All Cuisines',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: cuisines.map((cuisine) {
+                    final isSelected =
+                        state.selectedCookingData?.id == cuisine.id;
+                    return ChoiceChip(
+                      label: Text(cuisine.name ?? ''),
+                      selected: isSelected,
+                      onSelected: (_) {
+                        context.read<HomeCubit>().onCookingStyleChanged(
+                              data: isSelected ? null : cuisine,
+                            );
+                        Navigator.of(sheetContext).pop();
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
@@ -138,7 +189,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () => _showCuisineSelector(state),
                             child: const Text(
                               'View All',
                               style: TextStyle(
@@ -176,15 +227,13 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                               itemBuilder: (context, index) {
                                 final cuisine = cuisines[index];
                                 final isSelected =
-                                    state.selectedCookingData?.id ==
-                                        cuisine.id;
+                                    state.selectedCookingData?.id == cuisine.id;
                                 return GestureDetector(
                                   onTap: () {
                                     context
                                         .read<HomeCubit>()
                                         .onCookingStyleChanged(
-                                          data:
-                                              isSelected ? null : cuisine,
+                                          data: isSelected ? null : cuisine,
                                         );
                                   },
                                   child: Column(
@@ -201,10 +250,8 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                               BorderRadius.circular(16),
                                           border: isSelected
                                               ? Border.all(
-                                                  color: MitablColors
-                                                      .primary
-                                                      .withValues(
-                                                          alpha: 0.1),
+                                                  color: MitablColors.primary
+                                                      .withValues(alpha: 0.1),
                                                   width: 4,
                                                 )
                                               : null,
@@ -215,8 +262,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                             size: 32,
                                             color: isSelected
                                                 ? MitablColors.onPrimary
-                                                : MitablColors
-                                                    .onSurfaceVariant,
+                                                : MitablColors.onSurfaceVariant,
                                           ),
                                         ),
                                       ),
@@ -228,8 +274,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                           fontWeight: FontWeight.w700,
                                           color: isSelected
                                               ? MitablColors.primary
-                                              : MitablColors
-                                                  .onSurfaceVariant,
+                                              : MitablColors.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -258,8 +303,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                         children: _dietaryOptions.entries.map((entry) {
                           final dietId = entry.key;
                           final label = entry.value;
-                          final isSelected =
-                              _selectedDietIds.contains(dietId);
+                          final isSelected = _selectedDietIds.contains(dietId);
                           final icon = _dietaryIcons[dietId] ?? Icons.eco;
                           return GestureDetector(
                             onTap: () {
@@ -287,8 +331,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                     icon,
                                     size: 18,
                                     color: isSelected
-                                        ? MitablColors
-                                            .onSecondaryContainer
+                                        ? MitablColors.onSecondaryContainer
                                         : MitablColors.onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 8),
@@ -298,10 +341,8 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: isSelected
-                                          ? MitablColors
-                                              .onSecondaryContainer
-                                          : MitablColors
-                                              .onSurfaceVariant,
+                                          ? MitablColors.onSecondaryContainer
+                                          : MitablColors.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -322,8 +363,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                         child: Column(
                           children: [
                             Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   'Distance',
@@ -338,8 +378,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                       horizontal: 12, vertical: 4),
                                   decoration: const BoxDecoration(
                                     color: MitablColors.primary,
-                                    borderRadius:
-                                        MitablRadius.pillBorder,
+                                    borderRadius: MitablRadius.pillBorder,
                                   ),
                                   child: Text(
                                     'Within ${state.selectedDistance?.toInt() ?? 15} km',
@@ -356,21 +395,18 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                             SliderTheme(
                               data: SliderThemeData(
                                 activeTrackColor: MitablColors.primary,
-                                inactiveTrackColor:
-                                    MitablColors.outlineVariant
-                                        .withValues(alpha: 0.3),
+                                inactiveTrackColor: MitablColors.outlineVariant
+                                    .withValues(alpha: 0.3),
                                 thumbColor: MitablColors.primary,
-                                overlayColor: MitablColors.primary
-                                    .withValues(alpha: 0.1),
+                                overlayColor:
+                                    MitablColors.primary.withValues(alpha: 0.1),
                                 trackHeight: 4,
-                                thumbShape:
-                                    const RoundSliderThumbShape(
+                                thumbShape: const RoundSliderThumbShape(
                                   enabledThumbRadius: 12,
                                 ),
                               ),
                               child: Slider(
-                                value:
-                                    state.selectedDistance ?? 15,
+                                value: state.selectedDistance ?? 15,
                                 min: 1,
                                 max: 20,
                                 divisions: 19,
@@ -379,14 +415,13 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                 onChanged: (value) {
                                   context
                                       .read<HomeCubit>()
-                                      .onDistanceChanged(
-                                          distance: value);
+                                      .onDistanceChanged(distance: value);
                                 },
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -396,8 +431,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: MitablColors
-                                          .onSurfaceVariant
+                                      color: MitablColors.onSurfaceVariant
                                           .withValues(alpha: 0.6),
                                     ),
                                   ),
@@ -406,8 +440,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: MitablColors
-                                          .onSurfaceVariant
+                                      color: MitablColors.onSurfaceVariant
                                           .withValues(alpha: 0.6),
                                     ),
                                   ),
@@ -430,16 +463,12 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                       ),
                       const SizedBox(height: 12),
                       Row(
-                        children: List.generate(
-                            _priceTiers.length, (index) {
-                          final isSelected =
-                              _selectedPriceIndex == index;
+                        children: List.generate(_priceTiers.length, (index) {
+                          final isSelected = _selectedPriceIndex == index;
                           return Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                right: index < _priceTiers.length - 1
-                                    ? 8.0
-                                    : 0,
+                                right: index < _priceTiers.length - 1 ? 8.0 : 0,
                               ),
                               child: GestureDetector(
                                 onTap: () {
@@ -450,27 +479,19 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                 },
                                 child: Container(
                                   padding:
-                                      const EdgeInsets.symmetric(
-                                          vertical: 14),
+                                      const EdgeInsets.symmetric(vertical: 14),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? MitablColors.primary
-                                        : MitablColors
-                                            .surfaceContainerLow,
-                                    borderRadius:
-                                        BorderRadius.circular(16),
+                                        : MitablColors.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(16),
                                     boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: MitablColors
-                                                  .primary
-                                                  .withValues(
-                                                      alpha:
-                                                          0.2),
+                                              color: MitablColors.primary
+                                                  .withValues(alpha: 0.2),
                                               blurRadius: 12,
-                                              offset:
-                                                  const Offset(
-                                                      0, 4),
+                                              offset: const Offset(0, 4),
                                             ),
                                           ]
                                         : null,
@@ -480,13 +501,10 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                       _priceTiers[index],
                                       style: TextStyle(
                                         fontSize: 15,
-                                        fontWeight:
-                                            FontWeight.w700,
+                                        fontWeight: FontWeight.w700,
                                         color: isSelected
-                                            ? MitablColors
-                                                .onPrimary
-                                            : MitablColors
-                                                .onSurfaceVariant,
+                                            ? MitablColors.onPrimary
+                                            : MitablColors.onSurfaceVariant,
                                       ),
                                     ),
                                   ),
@@ -512,8 +530,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                   color: MitablColors.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: MitablColors.onSurface
-                          .withValues(alpha: 0.05),
+                      color: MitablColors.onSurface.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, -2),
                     ),
@@ -539,8 +556,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: MitablColors
-                                        .onSurfaceVariant,
+                                    color: MitablColors.onSurfaceVariant,
                                   ),
                                 ),
                               ),
@@ -556,10 +572,8 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                           height: 52,
                           child: Container(
                             decoration: BoxDecoration(
-                              gradient:
-                                  MitablColors.primaryGradient,
-                              borderRadius:
-                                  MitablRadius.pillBorder,
+                              gradient: MitablColors.primaryGradient,
+                              borderRadius: MitablRadius.pillBorder,
                               boxShadow: [
                                 BoxShadow(
                                   color: MitablColors.primary
@@ -572,8 +586,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius:
-                                    MitablRadius.pillBorder,
+                                borderRadius: MitablRadius.pillBorder,
                                 onTap: _applyFilters,
                                 child: const Center(
                                   child: Text(
@@ -581,8 +594,7 @@ class _SearchFiltersPageState extends State<SearchFiltersPage> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
-                                      color:
-                                          MitablColors.onPrimary,
+                                      color: MitablColors.onPrimary,
                                     ),
                                   ),
                                 ),

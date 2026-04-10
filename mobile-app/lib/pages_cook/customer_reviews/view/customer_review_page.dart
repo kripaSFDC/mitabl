@@ -22,6 +22,7 @@ class CustomerReviewPage extends StatefulWidget {
 
 class _CustomerReviewPageState extends State<CustomerReviewPage> {
   static const Color _starColor = MitablColors.primary;
+  bool _sortHighestFirst = true;
 
   Map<int, int> _computeDistribution(List reviews) {
     final Map<int, int> dist = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
@@ -34,7 +35,14 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final reviews = widget.routeArguments?.kitchen?.reviewsData ?? [];
+    final reviews = [...(widget.routeArguments?.kitchen?.reviewsData ?? [])];
+    reviews.sort((left, right) {
+      final leftRating = left.rating ?? 0;
+      final rightRating = right.rating ?? 0;
+      return _sortHighestFirst
+          ? rightRating.compareTo(leftRating)
+          : leftRating.compareTo(rightRating);
+    });
     final hasReviews = reviews.isNotEmpty;
 
     double avgRating = 0;
@@ -65,8 +73,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.menu,
-                        color: MitablColors.primary),
+                    icon: const Icon(Icons.menu, color: MitablColors.primary),
                   ),
                   const SizedBox(width: 4),
                   const Text(
@@ -125,8 +132,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                             // Left: rating number + stars
                             Expanded(
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
                                     'OVERALL RATING',
@@ -157,8 +163,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                         '/ 5.0',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          color:
-                                              MitablColors.onSurfaceVariant,
+                                          color: MitablColors.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -177,8 +182,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
-                                          color:
-                                              MitablColors.onSurfaceVariant,
+                                          color: MitablColors.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -197,8 +201,8 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                       ? count / reviews.length
                                       : 0.0;
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 4),
                                     child: Row(
                                       children: [
                                         SizedBox(
@@ -208,8 +212,8 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
-                                              color: MitablColors
-                                                  .onSurfaceVariant,
+                                              color:
+                                                  MitablColors.onSurfaceVariant,
                                             ),
                                           ),
                                         ),
@@ -218,16 +222,14 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                           child: ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(4),
-                                            child:
-                                                LinearProgressIndicator(
+                                            child: LinearProgressIndicator(
                                               value: fraction,
                                               minHeight: 6,
                                               backgroundColor:
                                                   const Color(0xFFF1F5F9),
                                               valueColor:
                                                   const AlwaysStoppedAnimation<
-                                                          Color>(
-                                                      Color(0xFF506140)),
+                                                      Color>(Color(0xFF506140)),
                                             ),
                                           ),
                                         ),
@@ -244,8 +246,7 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
 
                       // Reviews List header
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             'Latest Feedback',
@@ -257,12 +258,18 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                             ),
                           ),
                           TextButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() {
+                                _sortHighestFirst = !_sortHighestFirst;
+                              });
+                            },
                             icon: const Icon(Icons.filter_list,
                                 size: 18, color: MitablColors.primary),
-                            label: const Text(
-                              'Sort by Date',
-                              style: TextStyle(
+                            label: Text(
+                              _sortHighestFirst
+                                  ? 'Sort: Highest Rating'
+                                  : 'Sort: Lowest Rating',
+                              style: const TextStyle(
                                 color: MitablColors.primary,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 13,
@@ -287,15 +294,13 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // Header row
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
@@ -309,17 +314,15 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             height: 48,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: const Color(
-                                                  0xFFFFEDD5),
+                                              color: const Color(0xFFFFEDD5),
                                               image: DecorationImage(
                                                 image: imageProvider,
                                                 fit: BoxFit.cover,
                                               ),
                                             ),
                                           ),
-                                          errorWidget:
-                                              (context, url, error) =>
-                                                  Container(
+                                          errorWidget: (context, url, error) =>
+                                              Container(
                                             width: 48,
                                             height: 48,
                                             decoration: const BoxDecoration(
@@ -328,8 +331,8 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             ),
                                             child: const Icon(
                                               Icons.person,
-                                              color: MitablColors
-                                                  .onSurfaceVariant,
+                                              color:
+                                                  MitablColors.onSurfaceVariant,
                                               size: 24,
                                             ),
                                           ),
@@ -351,22 +354,18 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                             Text(
                                               review.user!.name!,
                                               style: const TextStyle(
-                                                fontWeight:
-                                                    FontWeight.w700,
+                                                fontWeight: FontWeight.w700,
                                                 fontSize: 15,
-                                                color: MitablColors
-                                                    .onSurface,
+                                                color: MitablColors.onSurface,
                                               ),
-                                              overflow:
-                                                  TextOverflow.ellipsis,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
                                               review.reviewTag ?? '',
                                               style: const TextStyle(
                                                 fontSize: 12,
-                                                fontWeight:
-                                                    FontWeight.w500,
+                                                fontWeight: FontWeight.w500,
                                                 color: MitablColors
                                                     .onSurfaceVariant,
                                               ),
@@ -381,10 +380,10 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                         return Icon(
                                           Icons.star,
                                           size: 18,
-                                          color: i < (review.rating ?? 0).round()
-                                              ? _starColor
-                                              : MitablColors
-                                                  .outlineVariant,
+                                          color:
+                                              i < (review.rating ?? 0).round()
+                                                  ? _starColor
+                                                  : MitablColors.outlineVariant,
                                         );
                                       }),
                                     ),
@@ -402,15 +401,12 @@ class _CustomerReviewPageState extends State<CustomerReviewPage> {
                                     spacing: 8,
                                     children: [
                                       Container(
-                                        padding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 4),
                                         decoration: const BoxDecoration(
-                                          color: MitablColors
-                                              .secondaryContainer,
-                                          borderRadius:
-                                              MitablRadius.pillBorder,
+                                          color:
+                                              MitablColors.secondaryContainer,
+                                          borderRadius: MitablRadius.pillBorder,
                                         ),
                                         child: Text(
                                           review.reviewTag!,

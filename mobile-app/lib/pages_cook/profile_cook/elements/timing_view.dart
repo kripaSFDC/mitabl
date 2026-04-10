@@ -105,7 +105,7 @@ class TimingViewDialog extends StatelessWidget {
                                     ),
                                     Switch(
                                       value: state.daysTiming[index].isOn!,
-                                      onChanged: (val) {},
+                                      onChanged: null,
                                     ),
                                   ],
                                 ),
@@ -122,40 +122,36 @@ class TimingViewDialog extends StatelessWidget {
                                   // mainAxisAlignment:
                                   //     MainAxisAlignment.spaceBetween,
                                   children: [
-                                    InkWell(
-                                      onTap: () {},
-                                      child: Container(
-                                        padding: EdgeInsets.only(
-                                          left: config.AppConfig(
-                                            context,
-                                          ).appWidth(3),
-                                          right: config.AppConfig(
-                                            context,
-                                          ).appWidth(3),
-                                          top: config.AppConfig(
-                                            context,
-                                          ).appWidth(1),
-                                          bottom: config.AppConfig(
-                                            context,
-                                          ).appWidth(1),
+                                    Container(
+                                      padding: EdgeInsets.only(
+                                        left: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                        right: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                        top: config.AppConfig(
+                                          context,
+                                        ).appWidth(1),
+                                        bottom: config.AppConfig(
+                                          context,
+                                        ).appWidth(1),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xffF5F5F5),
+                                        borderRadius: BorderRadius.circular(
+                                          10,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xffF5F5F5),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          ' ${state.daysTiming[index].timing!.startTime!} ',
-                                          // '9:00',
-                                          style: GoogleFonts.gothicA1(
-                                            color: Theme.of(
-                                              context,
-                                            ).primaryColorDark,
-                                            fontSize: config.AppConfig(
-                                              context,
-                                            ).appWidth(4),
-                                          ),
+                                      ),
+                                      child: Text(
+                                        ' ${state.daysTiming[index].timing!.startTime!} ',
+                                        style: GoogleFonts.gothicA1(
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(4),
                                         ),
                                       ),
                                     ),
@@ -180,39 +176,36 @@ class TimingViewDialog extends StatelessWidget {
                                         context,
                                       ).appWidth(1),
                                     ),
-                                    InkWell(
-                                      onTap: () {},
-                                      child: Container(
-                                        padding: EdgeInsets.only(
-                                          left: config.AppConfig(
-                                            context,
-                                          ).appWidth(3),
-                                          right: config.AppConfig(
-                                            context,
-                                          ).appWidth(3),
-                                          top: config.AppConfig(
-                                            context,
-                                          ).appWidth(1),
-                                          bottom: config.AppConfig(
-                                            context,
-                                          ).appWidth(1),
+                                    Container(
+                                      padding: EdgeInsets.only(
+                                        left: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                        right: config.AppConfig(
+                                          context,
+                                        ).appWidth(3),
+                                        top: config.AppConfig(
+                                          context,
+                                        ).appWidth(1),
+                                        bottom: config.AppConfig(
+                                          context,
+                                        ).appWidth(1),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xffF5F5F5),
+                                        borderRadius: BorderRadius.circular(
+                                          10,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xffF5F5F5),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          ' ${state.daysTiming[index].timing!.endTime!} ',
-                                          style: GoogleFonts.gothicA1(
-                                            color: Theme.of(
-                                              context,
-                                            ).primaryColorDark,
-                                            fontSize: config.AppConfig(
-                                              context,
-                                            ).appWidth(4),
-                                          ),
+                                      ),
+                                      child: Text(
+                                        ' ${state.daysTiming[index].timing!.endTime!} ',
+                                        style: GoogleFonts.gothicA1(
+                                          color: Theme.of(
+                                            context,
+                                          ).primaryColorDark,
+                                          fontSize: config.AppConfig(
+                                            context,
+                                          ).appWidth(4),
                                         ),
                                       ),
                                     ),

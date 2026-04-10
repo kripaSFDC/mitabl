@@ -37,6 +37,16 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
   final List<PlatformFile> _uploadedFiles = [];
   bool _openingSavedKitchen = false;
 
+  bool get _allChecklistComplete => _checklist.values.every((value) => value);
+  bool get _hasUploadedFiles => _uploadedFiles.isNotEmpty;
+  bool get _canCompleteSetup => _allChecklistComplete && _hasUploadedFiles;
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _openSavedKitchen() async {
     if (_openingSavedKitchen) return;
 
@@ -100,13 +110,33 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
     );
 
     if (result != null && result.files.isNotEmpty) {
+      var skippedLargeFiles = 0;
+      var skippedDuplicates = 0;
       setState(() {
         for (final file in result.files) {
+          final isDuplicate = _uploadedFiles.any(
+            (existing) =>
+                existing.name == file.name && existing.size == file.size,
+          );
+          if (isDuplicate) {
+            skippedDuplicates += 1;
+            continue;
+          }
           if ((file.size) <= 10 * 1024 * 1024) {
             _uploadedFiles.add(file);
+          } else {
+            skippedLargeFiles += 1;
           }
         }
       });
+
+      if (skippedLargeFiles > 0) {
+        _showSnackBar(
+          '$skippedLargeFiles file(s) were skipped because they exceed 10MB.',
+        );
+      } else if (skippedDuplicates > 0) {
+        _showSnackBar('$skippedDuplicates duplicate file(s) were skipped.');
+      }
     }
   }
 
@@ -114,6 +144,105 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  Future<void> _showSubmissionSummary() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Submission Summary',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _allChecklistComplete
+                      ? 'All certification checklist items are complete.'
+                      : 'Complete the remaining checklist items before finishing setup.',
+                  style: const TextStyle(
+                    color: MitablColors.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ..._checklist.entries.map(
+                  (entry) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      entry.value
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: entry.value
+                          ? MitablColors.primary
+                          : MitablColors.onSurfaceVariant,
+                    ),
+                    title: Text(entry.key),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Uploaded Files',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: MitablColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_uploadedFiles.isEmpty)
+                  const Text(
+                    'No files uploaded yet.',
+                    style: TextStyle(color: MitablColors.onSurfaceVariant),
+                  )
+                else
+                  ..._uploadedFiles.map(
+                    (file) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.description_outlined),
+                      title: Text(file.name),
+                      subtitle: Text(_formatFileSize(file.size)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _onCompleteSetup() {
+    if (!_canCompleteSetup) {
+      final missingChecklistCount =
+          _checklist.values.where((value) => !value).length;
+      if (!_hasUploadedFiles) {
+        _showSnackBar(
+          'Upload at least one certification file before completing setup.',
+        );
+      } else if (missingChecklistCount > 0) {
+        _showSnackBar(
+          'Complete the remaining $missingChecklistCount checklist item(s) before continuing.',
+        );
+      }
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/DashboardCook',
+      (route) => false,
+    );
   }
 
   @override
@@ -389,7 +518,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                           width: double.infinity,
                           height: 52,
                           child: TextButton(
-                            onPressed: () {},
+                            onPressed: _showSubmissionSummary,
                             style: TextButton.styleFrom(
                               foregroundColor: MitablColors.primary,
                               shape: RoundedRectangleBorder(
@@ -436,12 +565,7 @@ class _KitchenCertificationPageState extends State<KitchenCertificationPage> {
                           color: Colors.transparent,
                           child: InkWell(
                             borderRadius: MitablRadius.pillBorder,
-                            onTap: () {
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                '/DashboardCook',
-                                (route) => false,
-                              );
-                            },
+                            onTap: _onCompleteSetup,
                             child: const Center(
                               child: Text(
                                 'Complete Setup',
@@ -611,12 +735,19 @@ class _UploadedFileRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: MitablColors.onSurfaceVariant,
-              size: 20,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'Sample',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: MitablColors.onSurfaceVariant,
+              ),
             ),
           ),
         ],

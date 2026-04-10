@@ -273,7 +273,21 @@ class _MikitchnTabViewState extends State<MikitchnTabView> {
                             hint:
                                 'Double tap to activate this kitchen account.',
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                navigatorKey.currentState!
+                                    .pushNamed(
+                                  '/EditKitchenProfile',
+                                  arguments: RouteArguments(kitchen: kitchen),
+                                )
+                                    .then((value) {
+                                  if (!context.mounted) return;
+                                  if (value == true) {
+                                    context
+                                        .read<ProfileCookCubit>()
+                                        .getCookProfile();
+                                  }
+                                });
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: MitablColors.primary,
                                 foregroundColor: MitablColors.onPrimary,

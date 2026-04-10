@@ -61,6 +61,33 @@ class _NotificationsPageState extends State<NotificationsPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  Future<void> _showWeeklyDigest() async {
+    final totalNotifications = _notifications.length;
+    final unreadNotifications =
+        _notifications.where((notification) => !notification.isRead).length;
+    final orderNotifications = _notifications
+        .where((notification) => notification.type == 'order')
+        .length;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Weekly Digest'),
+          content: Text(
+            'You have $totalNotifications notification(s), including $orderNotifications order update(s). $unreadNotifications item(s) are still unread.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,13 +138,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
           }
 
           // Map backend fields to display fields
-          final title = (data['title'] ?? data['message'] ?? 'Notification').toString();
+          final title =
+              (data['title'] ?? data['message'] ?? 'Notification').toString();
           final body2 = (data['body'] ?? data['message'] ?? '').toString();
           final typeRaw = data['type'];
           String typeStr;
           if (typeRaw is int) {
             // Backend uses numeric types: map to string
-            typeStr = const {1: 'order', 2: 'order', 3: 'order', 4: 'order', 5: 'order'}[typeRaw] ?? 'system';
+            typeStr = const {
+                  1: 'order',
+                  2: 'order',
+                  3: 'order',
+                  4: 'order',
+                  5: 'order'
+                }[typeRaw] ??
+                'system';
           } else {
             typeStr = (typeRaw ?? 'system').toString();
           }
@@ -127,9 +162,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
             title: title,
             body: title != body2 ? body2 : '',
             type: typeStr,
-            createdAt: DateTime.tryParse(
-                    (raw['created_at'] ?? '').toString()) ??
-                DateTime.now(),
+            createdAt:
+                DateTime.tryParse((raw['created_at'] ?? '').toString()) ??
+                    DateTime.now(),
             isRead: raw['read_at'] != null,
           ));
         }
@@ -335,15 +370,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 SizedBox(
                                   height: 40,
                                   child: ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: _showWeeklyDigest,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          const Color(0xFF3B4C2C),
+                                      backgroundColor: const Color(0xFF3B4C2C),
                                       foregroundColor:
                                           MitablColors.secondaryContainer,
                                       shape: const RoundedRectangleBorder(
-                                        borderRadius:
-                                            MitablRadius.pillBorder,
+                                        borderRadius: MitablRadius.pillBorder,
                                       ),
                                       elevation: 0,
                                     ),
