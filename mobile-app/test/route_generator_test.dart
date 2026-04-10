@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
+import 'package:mitabl_user/pages/favourites/view/favourites_page.dart';
+import 'package:mitabl_user/pages/miorders/view/miorders_page.dart';
+import 'package:mitabl_user/pages/payments/view/payments_page.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:mitabl_user/route_generator.dart';
 
@@ -96,7 +99,8 @@ void main() {
 
     await _pumpFor(tester, const Duration(seconds: 2));
 
-    expect(find.text('Missing route arguments for /OrderDetails'), findsNothing);
+    expect(
+        find.text('Missing route arguments for /OrderDetails'), findsNothing);
     expect(observedRoutes, isNot(contains('/OrderDetails')));
     expect(observedRoutes, isNotEmpty);
   });
@@ -112,9 +116,9 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    expect(find.text('miorders'), findsOneWidget);
+    expect(find.byType(MiOrdersPage), findsOneWidget);
   });
 
   testWidgets('Favourites named route resolves', (tester) async {
@@ -128,9 +132,9 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    expect(find.text('favourites'), findsOneWidget);
+    expect(find.byType(FavouritesPage), findsOneWidget);
   });
 
   testWidgets('Payments named route resolves', (tester) async {
@@ -144,12 +148,13 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    expect(find.text('payments'), findsOneWidget);
+    expect(find.byType(PaymentsPage), findsOneWidget);
   });
 
-  testWidgets('Order menu route without args shows route error', (tester) async {
+  testWidgets('Order menu route without args shows route error',
+      (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         onGenerateRoute: RouteGenerator.generateRoute,
@@ -165,7 +170,8 @@ void main() {
     );
   });
 
-  testWidgets('Order cart route without args shows route error', (tester) async {
+  testWidgets('Order cart route without args shows route error',
+      (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         onGenerateRoute: RouteGenerator.generateRoute,
@@ -181,7 +187,8 @@ void main() {
     );
   });
 
-  testWidgets('Order checkout route without args shows route error', (tester) async {
+  testWidgets('Order checkout route without args shows route error',
+      (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         onGenerateRoute: RouteGenerator.generateRoute,

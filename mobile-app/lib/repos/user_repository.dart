@@ -286,6 +286,20 @@ class UserRepository {
     }
   }
 
+  Future<http.Response> fetchVendorOnboardingLink() async {
+    try {
+      return _httpClient
+          .get(
+            ApiContract.uri('v2/payments/vendor/onboarding-link'),
+            headers: await authorizedHeaders(),
+          )
+          .timeout(ApiContract.requestTimeout);
+    } catch (e) {
+      AppLogger.error('Failed to fetch vendor onboarding link', e);
+      rethrow;
+    }
+  }
+
   Future<void> syncCurrentUserRoleState({
     String? roleName,
     dynamic roleId,

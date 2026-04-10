@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
-import 'package:mitabl_user/helper/api_contract.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mitabl_user/widgets/design_tokens.dart';
 
 class SetupPayoutsPage extends StatefulWidget {
@@ -92,9 +90,7 @@ class _SetupPayoutsPageState extends State<SetupPayoutsPage> {
 
     try {
       final userRepository = context.read<UserRepository>();
-      final headers = await userRepository.authorizedHeaders();
-      final uri = ApiContract.uri('vendor/onboarding-link');
-      final response = await http.get(uri, headers: headers);
+      final response = await userRepository.fetchVendorOnboardingLink();
 
       if (!mounted) return;
 

@@ -11,7 +11,8 @@ import 'package:mitabl_user/repos/user_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _SpyUserRepository extends UserRepository {
-  _SpyUserRepository({required http.Client httpClient, this.throwOnSync = false})
+  _SpyUserRepository(
+      {required http.Client httpClient, this.throwOnSync = false})
       : super(httpClient: httpClient);
 
   final bool throwOnSync;
@@ -95,7 +96,6 @@ void main() {
       expect(repository.syncedRoleId, 2);
     });
 
-
     test('syncs role from nested user payload contract fixture', () async {
       final client = MockClient((_) async {
         return http.Response(
@@ -173,6 +173,35 @@ void main() {
 
       expect(response.statusCode, 200);
       expect(repository.syncCalls, 1);
+    });
+  });
+
+  group('UserRepository vendor onboarding', () {
+    test('fetchVendorOnboardingLink hits the v2 payments endpoint', () async {
+      late http.Request capturedRequest;
+
+      final client = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(
+          jsonEncode({
+            'status': 200,
+            'data': {'url': 'https://connect.stripe.test/onboarding'},
+          }),
+          200,
+        );
+      });
+
+      final repository = _SpyUserRepository(httpClient: client);
+
+      final response = await repository.fetchVendorOnboardingLink();
+
+      expect(response.statusCode, 200);
+      expect(capturedRequest.method, 'GET');
+      expect(
+        capturedRequest.url.toString(),
+        'https://api.example.com/api/v2/payments/vendor/onboarding-link',
+      );
+      expect(capturedRequest.headers['authorization'], 'Bearer test-token');
     });
   });
 }

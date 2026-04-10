@@ -130,6 +130,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Future<void> _submitSupportTicket() async {
+    if (_supportActionInFlight) return;
+
     final email = _emailController.text.trim();
     final subject = _subjectController.text.trim();
     final description = _descriptionController.text.trim();
@@ -311,6 +313,8 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
   }
 
   Future<void> _replyToSupportTicket() async {
+    if (_supportActionInFlight) return;
+
     final selectedTicket = _selectedTicketId;
     final ticketId = selectedTicket is num
         ? selectedTicket.toInt()
