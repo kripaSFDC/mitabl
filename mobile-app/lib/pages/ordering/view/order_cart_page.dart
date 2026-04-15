@@ -234,50 +234,20 @@ class _CartBody extends StatelessWidget {
     );
   }
 
-  Future<void> _handleSubmit(BuildContext context) async {
-    final items = List<CartLineItem>.from(session.cartItems);
-    final kitchenName = session.kitchen?.name ?? '';
-    final kitchenAddress = session.kitchen?.address ?? '';
-    final totalAmount = session.estimatedTotal + 1.50;
-    final scheduledDate = session.scheduledDate;
-    final timeLabel =
-        '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
-    final isDineIn = session.serviceType == OrderServiceType.dineIn;
-    final persons = isDineIn ? session.persons : null;
-
-    try {
-      final result = await session.submit();
-
-      if (!context.mounted) return;
-
-      Navigator.of(context).pushReplacementNamed(
-        '/OrderConfirmation',
-        arguments: RouteArguments(
-          data: OrderConfirmationRouteData(
-            result: result,
-            kitchenName: kitchenName,
-            kitchenAddress: kitchenAddress,
-            items: items,
-            totalAmount: totalAmount,
-            scheduledDate: scheduledDate,
-            timeLabel: timeLabel,
-            isDineIn: isDineIn,
-            persons: persons,
-          ),
-        ),
-      );
-    } catch (_) {
-      if (!context.mounted) return;
+  void _handleSubmit(BuildContext context) {
+    if (!session.canCheckout) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _displayError(
-              session.errorMessage ?? 'Unable to place order.',
-            ),
-          ),
-        ),
+        const SnackBar(content: Text('Please complete your order details first.')),
       );
+      return;
     }
+
+    Navigator.of(context).pushNamed(
+      '/OrderCheckout',
+      arguments: RouteArguments(
+        data: OrderRouteData(session: session),
+      ),
+    );
   }
 }
 

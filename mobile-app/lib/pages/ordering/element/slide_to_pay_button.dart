@@ -89,7 +89,7 @@ class _SlideToPayButtonState extends State<SlideToPayButton>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Slide to Pay \$${widget.amount.toStringAsFixed(2)}',
+                    'Slide to Checkout \$${widget.amount.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
