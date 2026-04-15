@@ -28,6 +28,7 @@ jobs:
           flutter-version: '3.27.x'
           channel: stable
           cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('mobile-app/pubspec.lock') }}
 
       - name: Install dependencies
         working-directory: mobile-app
@@ -52,6 +53,7 @@ jobs:
           flutter-version: '3.27.x'
           channel: stable
           cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('mobile-app/pubspec.lock') }}
 
       - name: Install dependencies
         working-directory: mobile-app
