@@ -11,7 +11,6 @@ use App\Models\Order;
 use App\Models\PromoCode;
 use App\Services\AccountProfileService;
 use App\Services\OrderService;
-use App\Notifications\PushOrderNotification;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -238,8 +237,6 @@ class OrderController extends Controller
                 $actorIsFoodie ? 'customer' : 'kitchen'
             );
 
-            $this->dispatchOrderStatusNotification($order, $requestedStatus);
-
             return $this->responser(
                 new OrderResource($order->fresh($this->orderDetailResourceRelations())),
                 'Order Updated successfully.'
@@ -272,8 +269,6 @@ class OrderController extends Controller
                     $order->save();
                 });
 
-                $this->dispatchOrderStatusNotification($order, $requestedStatus);
-
                 return $this->responser(
                     new OrderResource($order->fresh($this->orderDetailResourceRelations())),
                     'Order Updated successfully.'
@@ -291,8 +286,6 @@ class OrderController extends Controller
 
         $order->status = $requestedStatus;
         $order->save();
-
-        $this->dispatchOrderStatusNotification($order, $requestedStatus);
 
         return $this->responser($order, 'Order Updated successfully.');
     }
@@ -511,25 +504,6 @@ class OrderController extends Controller
         return false;
     }
 
-    private function dispatchOrderStatusNotification(Order $order, int $requestedStatus): void
-    {
-        try {
-            $statusMessages = [
-                Order::STATUS_CONFIRMED => 'Your order #' . $order->id . ' has been confirmed!',
-                Order::STATUS_IN_PROGRESS => 'Your order #' . $order->id . ' is being prepared',
-                Order::STATUS_COMPLETED => 'Your order #' . $order->id . ' is ready!',
-                Order::STATUS_CANCELLED => 'Your order #' . $order->id . ' has been cancelled',
-            ];
-            if (isset($statusMessages[$requestedStatus])) {
-                $targetUser = $order->user;
-                if ($targetUser) {
-                    $targetUser->notify(new PushOrderNotification($order, $statusMessages[$requestedStatus], $requestedStatus));
-                }
-            }
-        } catch (\Throwable $e) {
-            report($e); // Don't fail the status update if notification fails
-        }
-    }
 
     private function resolvePaymentForAcceptance(Order $order)
     {

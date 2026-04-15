@@ -229,7 +229,7 @@ class OrderObserver
                 ]] : []),
             Order::STATUS_IN_PROGRESS => $foodie ? [[
                 'recipient' => $foodie,
-                'message' => 'Your meal is ready for '.$this->pickupOrDineIn($order).'.',
+                'message' => 'Your meal is being prepared for '.$this->pickupOrDineIn($order).'.',
                 'type' => 2,
                 'log_event' => 'orders.user_notification_failed',
             ]] : [],
