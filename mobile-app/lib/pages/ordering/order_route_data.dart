@@ -23,6 +23,8 @@ class OrderConfirmationRouteData {
     required this.totalAmount,
     required this.scheduledDate,
     required this.timeLabel,
+    this.isDineIn = false,
+    this.persons,
   });
 
   final OrderSubmissionResult result;
@@ -32,6 +34,8 @@ class OrderConfirmationRouteData {
   final double totalAmount;
   final DateTime scheduledDate;
   final String timeLabel;
+  final bool isDineIn;
+  final int? persons;
 }
 
 /// Route data for the order tracking page (mock/static for demo).

@@ -242,6 +242,8 @@ class _CartBody extends StatelessWidget {
     final scheduledDate = session.scheduledDate;
     final timeLabel =
         '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
+    final isDineIn = session.serviceType == OrderServiceType.dineIn;
+    final persons = isDineIn ? session.persons : null;
 
     try {
       final result = await session.submit();
@@ -259,6 +261,8 @@ class _CartBody extends StatelessWidget {
             totalAmount: totalAmount,
             scheduledDate: scheduledDate,
             timeLabel: timeLabel,
+            isDineIn: isDineIn,
+            persons: persons,
           ),
         ),
       );
@@ -350,7 +354,7 @@ class _FulfillmentToggle extends StatelessWidget {
                       height: 40,
                       alignment: Alignment.center,
                       child: Text(
-                        'Delivery',
+                        'Dine in',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight:
@@ -379,6 +383,7 @@ class _PickupInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final kitchen = session.kitchen;
+    final isDineIn = session.serviceType == OrderServiceType.dineIn;
     final dateLabel = DateFormat('EEE, d MMM yyyy').format(session.scheduledDate);
     final timeLabel =
         '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
@@ -397,107 +402,319 @@ class _PickupInfoSection extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Pickup time
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEA580C).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(Icons.schedule, size: 18, color: Color(0xFFEA580C)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Date picker row
+          _InfoRow(
+            icon: Icons.calendar_today,
+            title: 'Date',
+            subtitle: dateLabel,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: session.scheduledDate,
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 30)),
+              );
+              if (picked != null) {
+                session.updateScheduledDate(picked);
+              }
+            },
+          ),
+
+          _sectionDivider(),
+
+          // Dine-in specific: party size
+          if (isDineIn) ...[
+            _InfoRow(
+              icon: Icons.group,
+              title: 'Guests',
+              subtitle: '${session.persons} ${session.persons == 1 ? 'guest' : 'guests'}',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Pickup Time',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
+                  _CircleButton(
+                    icon: Icons.remove,
+                    onTap: session.persons > 1
+                        ? () => session.updatePersons(session.persons - 1)
+                        : null,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      '${session.persons}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
                   ),
-                  Text(
-                    '$dateLabel, $timeLabel',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
-                    ),
+                  _CircleButton(
+                    icon: Icons.add,
+                    onTap: session.persons < 20
+                        ? () => session.updatePersons(session.persons + 1)
+                        : null,
                   ),
                 ],
               ),
-            ],
-          ),
-
-          // Divider
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Container(
-              height: 1,
-              color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
             ),
-          ),
+
+            _sectionDivider(),
+
+            // Dine-in slot selector
+            if (session.isLoadingDineInSlots)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else if (session.dineInSlots.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  session.dineInSlotError ??
+                      'No dine-in slots available for this date.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.red.shade600,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else ...[
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'SELECT A TIME SLOT',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: session.dineInSlots.map((slot) {
+                  final isSelected = slot.id == session.selectedDineInSlotId;
+                  final startLabel = TimeOfDayRange.fromApiRange(
+                    start: slot.startTime,
+                    end: slot.endTime,
+                  );
+                  return GestureDetector(
+                    onTap: () => session.selectDineInSlot(slot.id),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFEA580C)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFEA580C)
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            '${startLabel.startLabel} - ${startLabel.endLabel}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          if (slot.remainingSeats != null)
+                            Text(
+                              '${slot.remainingSeats} seats left',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isSelected
+                                    ? Colors.white.withValues(alpha: 0.8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(growable: false),
+              ),
+              if (session.dineInSlotError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    session.dineInSlotError!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ),
+            ],
+
+            _sectionDivider(),
+          ],
+
+          // Time (for take-away, or show selected slot time for dine-in)
+          if (!isDineIn)
+            _InfoRow(
+              icon: Icons.schedule,
+              title: 'Pickup Time',
+              subtitle: timeLabel,
+            )
+          else if (session.selectedDineInSlot != null)
+            _InfoRow(
+              icon: Icons.schedule,
+              title: 'Dine-in Time',
+              subtitle: timeLabel,
+            ),
+
+          _sectionDivider(),
 
           // Location
           if (kitchen != null)
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEA580C).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.location_on, size: 18, color: Color(0xFFEA580C)),
-                  ),
+            _InfoRow(
+              icon: Icons.location_on,
+              title: kitchen.name,
+              subtitle: kitchen.address.isNotEmpty
+                  ? kitchen.address
+                  : 'Address not available',
+              trailing: const Text(
+                'Map',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFEA580C),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        kitchen.name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      Text(
-                        kitchen.address.isNotEmpty
-                            ? kitchen.address
-                            : 'Address not available',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Text(
-                  'Map',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFEA580C),
-                  ),
-                ),
-              ],
+              ),
             ),
         ],
+      ),
+    );
+  }
+
+  static Widget _sectionDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        height: 1,
+        color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEA580C).withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Icon(icon, size: 18, color: const Color(0xFFEA580C)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (trailing != null) trailing!,
+        if (onTap != null && trailing == null)
+          const Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: Color(0xFF64748B),
+          ),
+      ],
+    );
+
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: row);
+    }
+    return row;
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  const _CircleButton({required this.icon, this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: enabled
+              ? const Color(0xFFEA580C).withValues(alpha: 0.1)
+              : const Color(0xFFE2E8F0),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            size: 18,
+            color: enabled
+                ? const Color(0xFFEA580C)
+                : const Color(0xFF94A3B8),
+          ),
+        ),
       ),
     );
   }
