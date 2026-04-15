@@ -43,6 +43,25 @@ class OrderObserver
                 'event' => 'created',
             ]
         );
+
+        $foodie = $order->user;
+        if ($foodie) {
+            $this->safeSendNotification(
+                $foodie,
+                new PushOrderNotification(
+                    $order,
+                    'Your order has been placed! Waiting for '.$order->Mikitchn->name.' to confirm.',
+                    2
+                ),
+                'orders.user_notification_failed',
+                [
+                    'order_id' => $order->id,
+                    'recipient_id' => $foodie->id,
+                    'status' => $order->status,
+                    'event' => 'created',
+                ]
+            );
+        }
     }
 
     /**

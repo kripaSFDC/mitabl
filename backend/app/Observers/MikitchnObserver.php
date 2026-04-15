@@ -39,7 +39,7 @@ class MikitchnObserver
             $type = 8;
             switch ($new_status) {
                 case 1:
-                    $sMsg = 'your kitchen account is activate';
+                    $sMsg = 'Your kitchen account is now active!';
                     break;
                 
                 default:
