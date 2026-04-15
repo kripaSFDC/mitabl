@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\CompletedOrder;
 use Carbon\Carbon;
 use App\Events\MakeOrderPaymentToVendor;
-use App\Http\Controllers\Api\User\UserController;
 
 class OrderPaymentCron extends Command
 {
@@ -42,9 +41,6 @@ class OrderPaymentCron extends Command
      */
     public function handle()
     {
-        // $orders = Order::where('status',2)->get();
-        // $ob = new UserController();
-        // $ob->sendOtp(1,'maccook@yopmail.com');
         $cOrders = CompletedOrder::where('completed',0)->where('completed_date_time','<=',Carbon::now()->subDay())->get();
 
         foreach ($cOrders as $key => $cOrder) {

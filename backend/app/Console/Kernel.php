@@ -13,7 +13,6 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        // Commands\OrderPaymentCron::class,
         'App\Console\Commands\OrderPaymentCron',
         'App\Console\Commands\SupportTicketSlaScanCommand',
         'App\Console\Commands\PlatformSyntheticHealthCheckCommand',
@@ -30,9 +29,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        // $schedule->command('orderpayment:cron')->hourly();
-        // $schedule->command('orderpayment:cron')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('orderpayment:cron')->hourly()->withoutOverlapping();
         $schedule->command('support:sla:scan')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('platform:health:synthetic')->everyFiveMinutes()->withoutOverlapping();

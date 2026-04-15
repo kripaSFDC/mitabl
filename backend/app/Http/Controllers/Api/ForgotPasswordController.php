@@ -4,11 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Support\Str;
 use DB;
 use App\Models\User;
 
@@ -19,7 +16,6 @@ class ForgotPasswordController extends Controller
     }
 
     protected function sendResetResponse(Request $request){
-        //password.reset
         $input = $request->only('email','token', 'password', 'password_confirmation');
 
         $validator = Validator::make($input, [
@@ -30,15 +26,7 @@ class ForgotPasswordController extends Controller
 
         if ($validator->fails()) {
             return redirect()->back()->with('error', $validator->errors()->first());
-            // return response(['errors'=>$validator->errors()->all()], 422);
         }
-        // $response = Password::reset($input, function ($user, $password) {
-        //     $user->forceFill([
-        //     'password' => Hash::make($password)
-        //     ])->save();
-        //     //$user->setRememberToken(Str::random(60));
-        //     event(new PasswordReset($user));
-        // });
         $rstTbl = DB::table(config('auth.passwords.users.table'))
             ->where('email', $request->email)
             ->first();
@@ -66,7 +54,6 @@ class ForgotPasswordController extends Controller
         }else{
             $message = "Token not authenticated for this request";
         }
-        # return Redirect::to('/reset-password/'.$request->token)->with('message', $message);
         return redirect()->back()->with('message', $message);
         
     }

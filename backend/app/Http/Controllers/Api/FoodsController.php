@@ -117,7 +117,6 @@ class FoodsController extends Controller
             'available_from_time' => 'nullable|date_format:H:i|required_with:available_to_time',
             'available_to_time' => 'nullable|date_format:H:i|after:available_from_time|required_with:available_from_time',
         ]);
-        // |image|mimes:jpg,png,jpeg,gif,svg
         if($validator->fails()){
             return $this->responser([],$validator->errors()->first(), 422);
             
@@ -135,10 +134,6 @@ class FoodsController extends Controller
         $imagePaths = [];
         $specialdiets = json_encode(array_values(array_map('intval', (array) $request->specialDiet)));
 
-         
-         // print_r($specialdiets); 
-         // print_r($delete_files); 
-         // die();
 
         $existFood = Foods::where('id',$request->food_id)->where('restaurant_id',$restaurant->id)->first();
         if ($isUpdate && ! $existFood) {

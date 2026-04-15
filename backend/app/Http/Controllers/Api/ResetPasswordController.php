@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Mail\ResetPassword;
@@ -82,11 +80,8 @@ class ResetPasswordController extends Controller
         $token = Str::random(60);
         $hashedToken = Hash::make($token);
         
-        // $response =  Password::sendResetLink($input);
-
         try {
             $rstTbl = DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->first();
-            // print_r($rstTbl); die();
             if ($rstTbl) {
                 DB::table(config('auth.passwords.users.table'))->where('email',$user->email)->update([ 
                     'token' => $hashedToken,
@@ -101,21 +96,9 @@ class ResetPasswordController extends Controller
             }
 
             Mail::to($user->email)->send(new ResetPassword(trim($user->first_name . ' ' . $user->last_name), $token));
-            // $message = "Mail send successfully";
-            // $response = ['isSuccess'=>true,'message' => $message,'data'=>json_encode([])];
             return $this->responser(['sendmail'=>1],'Mail send successfully');
         } catch (\Throwable $e) {
-            // $message = "Email could not be sent to this email address";
-            // $response = ['isSuccess'=>false,'isError' => $message,'data'=>json_encode([])];
             return $this->responser([],'Email could not be sent to this email address', 422);
         }
-
-        // if($response == Password::RESET_LINK_SENT){
-        //     
-        // }else{
-        //     
-        // }
-        //$message = $response == Password::RESET_LINK_SENT ? 'Mail send successfully' : GLOBAL_SOMETHING_WANTS_TO_WRONG;
-        
     }
 }
