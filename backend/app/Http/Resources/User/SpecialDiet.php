@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\User;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class SpecialDiet extends JsonResource
@@ -15,8 +14,6 @@ class SpecialDiet extends JsonResource
      */
     public function toArray($request)
     {
-        // return parent::toArray($request);
-
         $return = [
                     'id' => $this->id,
                     'name' => $this->name,

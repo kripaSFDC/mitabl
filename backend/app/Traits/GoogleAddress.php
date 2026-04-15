@@ -52,8 +52,6 @@
 			}
 			// Parse the json response
 			$jsondata = json_decode($data,true);
-			// return $jsondata; die();
-			// If the json data is invalid, return empty array
 			if (!$this->check_status($jsondata))   return array();
 
 			$address = array(

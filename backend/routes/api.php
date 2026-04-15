@@ -29,10 +29,6 @@ use Illuminate\Http\Request;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 Route::get('/health', function () {
     return response('ok', 200)
                   ->header('Content-Type', 'text/plain');
@@ -137,12 +133,6 @@ $registerLegacyMobileRoutes = function (): void {
         Route::get('getcustomerprofile', [UserController::class, 'myProfile']);
     });
 };
-
-// Route::group(['prefix' => 'v1/kitchen', 'namespace' => 'Api'], function ($router) { 
-// });
-// add card to customer
-	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
-
 
 Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
 	Route::get('mob-contact', [UserController::class, 'mobileContact']);
