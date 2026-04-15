@@ -8,6 +8,7 @@ import 'package:mitabl_user/helper/formz_compat.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/common_progress.dart';
+import 'package:mitabl_user/helper/image_compressor.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
@@ -1781,7 +1782,9 @@ class _UploadbuttonState extends State<_UploadButton> {
 
     try {
       if (!context.mounted || picture == null) return;
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
           widget.loginForm!.controller!.position.maxScrollExtent,
@@ -1804,7 +1807,9 @@ class _UploadbuttonState extends State<_UploadButton> {
         Helper.showToast('No image captured.');
         return;
       }
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
           widget.loginForm!.controller!.position.maxScrollExtent,

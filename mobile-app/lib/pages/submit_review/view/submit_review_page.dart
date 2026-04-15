@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/image_compressor.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/pages/submit_review/element/interactive_star_rating.dart';
 import 'package:mitabl_user/repos/auth_headers.dart';
@@ -401,8 +402,12 @@ class _SubmitReviewPageState extends State<SubmitReviewPage> {
         maxWidth: 1200,
       );
       if (images.isNotEmpty && mounted) {
+        final compressed = await ImageCompressor.compressAll(
+          images.map((x) => File(x.path)).toList(),
+        );
+        if (!mounted) return;
         setState(() {
-          _selectedPhotos.addAll(images);
+          _selectedPhotos.addAll(compressed.map((f) => XFile(f.path)));
         });
       }
     } catch (_) {
