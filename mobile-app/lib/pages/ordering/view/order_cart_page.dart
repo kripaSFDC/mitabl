@@ -473,9 +473,26 @@ class _PickupInfoSection extends StatelessWidget {
                     start: slot.startTime,
                     end: slot.endTime,
                   );
+                  final capacity = slot.seatCapacity;
+                  final remaining = slot.remainingSeats;
+                  final fillRatio = (capacity != null &&
+                          capacity > 0 &&
+                          remaining != null)
+                      ? ((capacity - remaining) / capacity).clamp(0.0, 1.0)
+                      : 0.0;
+                  final fillColor = fillRatio >= 0.85
+                      ? const Color(0xFFDC2626)
+                      : fillRatio >= 0.6
+                          ? const Color(0xFFF59E0B)
+                          : const Color(0xFF16A34A);
+                  final hasCapacityWarning = remaining != null &&
+                      remaining > 0 &&
+                      remaining < session.persons;
+
                   return GestureDetector(
                     onTap: () => session.selectDineInSlot(slot.id),
                     child: Container(
+                      width: 150,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
@@ -488,7 +505,10 @@ class _PickupInfoSection extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFEA580C)
-                              : const Color(0xFFE2E8F0),
+                              : hasCapacityWarning
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFFE2E8F0),
+                          width: hasCapacityWarning && !isSelected ? 1.5 : 1,
                         ),
                       ),
                       child: Column(
@@ -503,16 +523,41 @@ class _PickupInfoSection extends StatelessWidget {
                                   : const Color(0xFF0F172A),
                             ),
                           ),
-                          if (slot.remainingSeats != null)
-                            Text(
-                              '${slot.remainingSeats} seats left',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isSelected
-                                    ? Colors.white.withValues(alpha: 0.8)
-                                    : const Color(0xFF64748B),
+                          if (remaining != null) ...[
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: SizedBox(
+                                height: 4,
+                                child: LinearProgressIndicator(
+                                  value: fillRatio,
+                                  backgroundColor: isSelected
+                                      ? Colors.white.withValues(alpha: 0.25)
+                                      : const Color(0xFFE2E8F0),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isSelected
+                                        ? Colors.white.withValues(alpha: 0.9)
+                                        : fillColor,
+                                  ),
+                                ),
                               ),
                             ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$remaining / ${capacity ?? '?'} seats left',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: hasCapacityWarning
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? Colors.white.withValues(alpha: 0.8)
+                                    : hasCapacityWarning
+                                        ? const Color(0xFFF59E0B)
+                                        : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -527,6 +572,50 @@ class _PickupInfoSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade700,
+                    ),
+                  ),
+                ),
+              if (session.selectedDineInSlot != null &&
+                  session.selectedDineInSlot!.remainingSeats != null &&
+                  session.selectedDineInSlot!.remainingSeats! > 0 &&
+                  session.selectedDineInSlot!.remainingSeats! <
+                      session.persons)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 16,
+                          color: Color(0xFFD97706),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Only ${session.selectedDineInSlot!.remainingSeats} '
+                            'seats available — reduce guests to '
+                            '${session.selectedDineInSlot!.remainingSeats} or '
+                            'pick another slot.',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFD97706),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
