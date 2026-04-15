@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/image_compressor.dart';
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/get_profile_model.dart';
 import 'package:mitabl_user/model/timing_model.dart';
@@ -1644,7 +1645,9 @@ class _UploadbuttonState extends State<_UploadButton> {
         return;
       }
 
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
           widget.loginForm!.controller!.position.maxScrollExtent,
@@ -1668,7 +1671,9 @@ class _UploadbuttonState extends State<_UploadButton> {
         return;
       }
 
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
       if (widget.loginForm?.controller?.hasClients ?? false) {
         widget.loginForm!.controller!.jumpTo(
           widget.loginForm!.controller!.position.maxScrollExtent,

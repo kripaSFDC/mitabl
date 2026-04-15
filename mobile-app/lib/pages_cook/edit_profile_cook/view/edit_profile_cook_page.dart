@@ -8,6 +8,7 @@ import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/image_compressor.dart';
 import '../../../helper/helper.dart';
 import '../../../helper/route_arguement.dart';
 import '../../../repos/authentication_repository.dart';
@@ -84,7 +85,9 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
         return;
       }
 
-      cubit.onAvatarImageSelect(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onAvatarImageSelect(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image selected.');
     }
@@ -103,7 +106,9 @@ class _EditProfileCookPageState extends State<EditProfileCookPage> {
         return;
       }
 
-      cubit.onAvatarImageSelect(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onAvatarImageSelect(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image captured.');
     }

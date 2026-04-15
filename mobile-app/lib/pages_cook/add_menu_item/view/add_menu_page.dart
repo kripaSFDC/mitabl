@@ -8,6 +8,7 @@ import 'package:global_configuration/global_configuration.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/app_config.dart' as config;
+import 'package:mitabl_user/helper/image_compressor.dart';
 import 'package:mitabl_user/helper/helper.dart';
 import 'package:mitabl_user/model/cooking_style.dart';
 import 'package:mitabl_user/model/special_diet.dart';
@@ -1471,7 +1472,9 @@ class _UploadbuttonState extends State<_UploadButton> {
         return;
       }
 
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image selected.');
     }
@@ -1490,7 +1493,9 @@ class _UploadbuttonState extends State<_UploadButton> {
         return;
       }
 
-      cubit.onNewImageAdded(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!context.mounted) return;
+      cubit.onNewImageAdded(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image captured.');
     }

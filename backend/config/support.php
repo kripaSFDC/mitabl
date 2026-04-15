@@ -34,7 +34,7 @@ return [
 
     'attachments' => [
         'max_files' => 5,
-        'max_size_kb' => 5120,
+        'max_size_kb' => 10240,
         'allowed_mime_types' => [
             'image/jpeg',
             'image/png',

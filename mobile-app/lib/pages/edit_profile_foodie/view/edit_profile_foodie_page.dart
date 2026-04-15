@@ -8,6 +8,7 @@ import 'package:global_configuration/global_configuration.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mitabl_user/helper/api_contract.dart';
+import 'package:mitabl_user/helper/image_compressor.dart';
 import 'package:mitabl_user/pages/profile_foodie/cubit/profile_foodie_cubit.dart';
 import 'package:mitabl_user/repos/auth_headers.dart';
 import 'package:mitabl_user/repos/user_repository.dart';
@@ -212,7 +213,9 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
         return;
       }
 
-      cubit.onAvatarImageSelect(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!mounted) return;
+      cubit.onAvatarImageSelect(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image selected.');
     }
@@ -231,7 +234,9 @@ class _EditProfileFoodiePageState extends State<EditProfileFoodiePage> {
         return;
       }
 
-      cubit.onAvatarImageSelect(path: picture.path);
+      final compressed = await ImageCompressor.compress(File(picture.path));
+      if (!mounted) return;
+      cubit.onAvatarImageSelect(path: compressed.path);
     } catch (e) {
       Helper.showToast('No image captured.');
     }
