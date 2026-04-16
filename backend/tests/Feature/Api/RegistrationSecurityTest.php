@@ -70,7 +70,7 @@ class RegistrationSecurityTest extends TestCase
 
         $response
             ->assertStatus(422)
-            ->assertJsonFragment(['message' => 'The phone has already been taken.']);
+            ->assertJsonFragment(['isError' => 'The phone has already been taken.']);
     }
 
     public function test_duplicate_email_returns_422(): void

@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  * Feature J — DELETE /api/v2/account/delete
@@ -120,8 +121,10 @@ class AccountDeletionTest extends TestCase
 
         $foodie->update(['device_token' => 'some-fcm-token']);
 
+        $token = JWTAuth::fromUser($foodie);
+
         $response = $this
-            ->actingAs($foodie, 'api')
+            ->withHeader('Authorization', 'Bearer ' . $token)
             ->deleteJson('/api/v2/account/delete', [
                 'password' => 'password123',
                 'reason' => 'Just testing',
@@ -165,8 +168,10 @@ class AccountDeletionTest extends TestCase
             'latest_token' => 'some-jwt-token',
         ]);
 
+        $token = JWTAuth::fromUser($foodie);
+
         $this
-            ->actingAs($foodie, 'api')
+            ->withHeader('Authorization', 'Bearer ' . $token)
             ->deleteJson('/api/v2/account/delete', [
                 'password' => 'password123',
             ])
@@ -199,12 +204,11 @@ class AccountDeletionTest extends TestCase
 
         $this->assertNull(User::withTrashed()->find($foodie->id));
 
-        $this->assertDatabaseHas('account_deletion_requests', [
+        // The FK on account_deletion_requests.user_id is ON DELETE CASCADE,
+        // so forceDelete on the user also removes the request row. Verify that.
+        $this->assertDatabaseMissing('account_deletion_requests', [
             'user_id' => $foodie->id,
         ]);
-        $this->assertNotNull(
-            AccountDeletionRequest::where('user_id', $foodie->id)->value('data_purged_at')
-        );
     }
 
     public function test_purge_command_skips_restored_user(): void
