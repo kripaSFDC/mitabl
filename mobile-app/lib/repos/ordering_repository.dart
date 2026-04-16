@@ -148,7 +148,7 @@ class OrderingRepository {
         )
         .timeout(ApiContract.requestTimeout);
 
-    if (response.statusCode != 200) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       throw RepositoryHttpException.fromResponse(
         statusCode: response.statusCode,
         body: response.body,

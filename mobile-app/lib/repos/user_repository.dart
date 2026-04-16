@@ -390,14 +390,24 @@ class UserRepository {
     await syncCurrentUserRoleState(roleName: roleName, roleId: roleId);
   }
 
-  Future<http.Response> deleteAccount() async {
+  Future<http.Response> deleteAccount({
+    required String password,
+    String? reason,
+  }) async {
     try {
-      final headers = await authorizedHeaders();
+      final headers = await authorizedHeaders(includeJsonContentType: true);
       final uri = ApiContract.uri('v2/account/delete');
+      final body = <String, dynamic>{'password': password};
+      if (reason != null && reason.isNotEmpty) {
+        body['reason'] = reason;
+      }
+      final encodedBody = json.encode(body);
+
       final deleteResponse = await _httpClient
           .delete(
             uri,
             headers: headers,
+            body: encodedBody,
           )
           .timeout(ApiContract.requestTimeout);
 
@@ -408,6 +418,7 @@ class UserRepository {
             .post(
               uri,
               headers: headers,
+              body: encodedBody,
             )
             .timeout(ApiContract.requestTimeout);
       }
