@@ -447,7 +447,7 @@ class OrderController extends Controller
             return $this->responser([], 'Unable to create order.', 422);
         }
         $createdOrder = new OrderResource(Order::with($this->orderDetailResourceRelations())->find($order->id));
-        return $this->responser($createdOrder, 'Food Ordered Created.');
+        return $this->responser($createdOrder, 'Food Ordered Created.', 201);
     }
 
     private function orderListResourceRelations(): array

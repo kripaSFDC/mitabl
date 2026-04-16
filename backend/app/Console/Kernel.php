@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         'App\Console\Commands\ReconcileIntakeDataCommand',
         'App\Console\Commands\ActivateDuePoliciesCommand',
         'App\Console\Commands\RepairUserRoleStateCommand',
+        'App\Console\Commands\PurgeDeletedAccountsCommand',
     ];
 
     /**
@@ -34,6 +35,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('platform:health:synthetic')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('platform:policies:activate-due')->everyMinute()->withoutOverlapping();
         $schedule->command('roles:repair-state')->hourly()->withoutOverlapping();
+        $schedule->command('app:purge-deleted-accounts')->daily()->withoutOverlapping();
     }
 
     /**

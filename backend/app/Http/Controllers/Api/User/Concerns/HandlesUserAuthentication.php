@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\User\Concerns;
 
+use App\Models\AccountDeletionRequest;
 use App\Models\Mikitchn;
+use App\Models\Order;
 use App\Models\User;
 use App\Models\UserAuthToken;
 use App\Models\UserRole;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Throwable;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -201,7 +204,7 @@ trait HandlesUserAuthentication
             'password' => 'required|string|min:6',
             'password_confirmation' => 'nullable|string|same:password',
             'role_id' => 'nullable|integer|in:2,3',
-            'phone' => ['required', 'string', 'max:30'],
+            'phone' => ['required', 'string', 'max:30', Rule::unique('users', 'phone')->whereNull('deleted_at')],
         ]);
 
         if ($validator->fails()) {
@@ -226,7 +229,15 @@ trait HandlesUserAuthentication
         ];
 
         $input['password'] = bcrypt($input['password']);
-        $user = User::create($input);
+        try {
+            $user = User::create($input);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Catch DB-level unique constraint violation (race condition between validation and insert).
+            if ($e->errorInfo[1] === 1062) {
+                return $this->responser([], 'The phone has already been taken.', 422);
+            }
+            throw $e;
+        }
 
         UserRole::query()->firstOrCreate(
             ['user_id' => $user->id, 'role_id' => (int) $user->role_id],
@@ -424,17 +435,86 @@ trait HandlesUserAuthentication
 
     public function delete(Request $request)
     {
-        $user = $this->authenticatedUser('api');
-        $userId = (int) $user->id;
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string',
+            'reason'   => 'nullable|string|max:500',
+        ]);
 
-        UserAuthToken::query()->where('user_id', $userId)->delete();
+        if ($validator->fails()) {
+            return $this->responser([], $validator->errors()->first(), 422);
+        }
+
+        /** @var \App\Models\User $user */
+        $user = $this->authenticatedUser('api');
+
+        if (! Hash::check((string) $request->input('password'), (string) $user->password)) {
+            return $this->responser([], 'Password confirmation failed.', 403);
+        }
+
+        // Block deletion if the user has any active orders (as a foodie).
+        $activeFoodieOrders = Order::query()
+            ->where('user_id', $user->id)
+            ->whereIn('status', [
+                Order::STATUS_REQUESTED,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_IN_PROGRESS,
+            ])
+            ->exists();
+
+        if ($activeFoodieOrders) {
+            return $this->responser(
+                [],
+                'Account cannot be deleted while you have active orders. Please cancel or complete them first.',
+                409
+            );
+        }
+
+        // Block deletion if the user is a cook with active orders against their kitchen.
+        if ((int) $user->role_id === 2) {
+            $kitchen = \App\Models\Mikitchn::query()->where('user_id', $user->id)->first();
+            if ($kitchen) {
+                $activeKitchenOrders = Order::query()
+                    ->where('mikitchn_id', $kitchen->id)
+                    ->whereIn('status', [
+                        Order::STATUS_REQUESTED,
+                        Order::STATUS_CONFIRMED,
+                        Order::STATUS_IN_PROGRESS,
+                    ])
+                    ->exists();
+
+                if ($activeKitchenOrders) {
+                    return $this->responser(
+                        [],
+                        'Account cannot be deleted while your kitchen has active orders. Please complete or cancel them first.',
+                        409
+                    );
+                }
+            }
+        }
+
+        $softDeletedAt = now();
+
+        DB::transaction(function () use ($user, $request, $softDeletedAt): void {
+            AccountDeletionRequest::query()->create([
+                'user_id'        => $user->id,
+                'reason'         => $request->input('reason'),
+                'soft_deleted_at' => $softDeletedAt,
+            ]);
+
+            $user->device_token = null;
+            $user->save();
+
+            $user->delete();
+        });
+
+        // Invalidate the current JWT after the transaction so the response can still be sent.
+        UserAuthToken::query()->where('user_id', $user->id)->delete();
         Auth::guard('api')->logout();
-        $user->delete();
 
         return $this->responser([
-            'id' => $userId,
-            'deleted' => true,
-        ], 'Account Deleted Successfully.');
+            'deleted_at'    => $softDeletedAt->toISOString(),
+            'data_purge_by' => $softDeletedAt->copy()->addDays(30)->toISOString(),
+        ], 'Your account has been scheduled for deletion.');
     }
 
     private function isAdminIdentityRole(int $roleId): bool

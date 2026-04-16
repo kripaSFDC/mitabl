@@ -80,7 +80,7 @@ Route::get('/app/version', [AppVersionController::class, 'show'])
 
 Route::post('login', [UserController::class, 'login'])->middleware('throttle:mobile-login');
 Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:mobile-token-refresh');
-Route::post('register', [UserController::class, 'register']);
+Route::post('register', [UserController::class, 'register'])->middleware('throttle:mobile-register');
 Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:mobile-verify-otp');
 Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:mobile-resend-otp');
 
@@ -137,7 +137,7 @@ $registerLegacyMobileRoutes = function (): void {
 Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
 	Route::get('mob-contact', [UserController::class, 'mobileContact']);
     Route::post('logout', [UserController::class, 'logout']);
-    Route::middleware('customer')->post('orders', [OrderController::class, 'store']);
+    Route::middleware(['customer', 'throttle:order-create'])->post('orders', [OrderController::class, 'store']);
     Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
 
     // Legacy-mobile compatibility aliases retained under /v2 during migration.
@@ -150,11 +150,11 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
             Route::get('favorites', [V2AccountFoodieController::class, 'favorites']);
             Route::post('favorites/toggle', [V2AccountFoodieController::class, 'toggleFavorite']);
             Route::get('payments/history', [V2AccountFoodieController::class, 'paymentHistory']);
-            Route::post('orders', [OrderController::class, 'store']);
+            Route::middleware('throttle:order-create')->post('orders', [OrderController::class, 'store']);
             });
 			Route::put('profile', [V2AccountController::class, 'update']);
-            Route::delete('delete', [UserController::class, 'delete']);
-            Route::post('delete', [UserController::class, 'delete']);
+            Route::delete('delete', [UserController::class, 'delete'])->middleware('throttle:account-delete');
+            Route::post('delete', [UserController::class, 'delete'])->middleware('throttle:account-delete');
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
             Route::post('roles/cook/activate', [V2AccountController::class, 'startCookOnboarding']);
             Route::post('onboarding/cook/start', [V2AccountController::class, 'startCookOnboarding']);
