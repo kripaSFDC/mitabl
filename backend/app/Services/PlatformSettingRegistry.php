@@ -277,6 +277,24 @@ class PlatformSettingRegistry
             'description' => 'Global sender display name for outgoing messages.',
             'value' => ['value' => 'MItabl'],
         ],
+        [
+            'key' => 'orders.new_customer_discount_threshold',
+            'value_type' => 'integer',
+            'description' => 'Number of completed orders below which the new-customer discount is applied.',
+            'value' => ['value' => 5],
+        ],
+        [
+            'key' => 'orders.new_customer_discount_cents',
+            'value_type' => 'integer',
+            'description' => 'New-customer discount amount in cents (AUD). Applied when user has fewer completed orders than the threshold.',
+            'value' => ['value' => 5000],
+        ],
+        [
+            'key' => 'tax.gst_rate',
+            'value_type' => 'integer',
+            'description' => 'GST rate as a whole-number percentage (e.g. 10 = 10%).',
+            'value' => ['value' => 10],
+        ],
     ];
 
     /**

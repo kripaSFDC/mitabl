@@ -6,6 +6,7 @@ use App\Models\WatchSubscription;
 use App\Models\Tag;
 use App\Models\DineInSlot;
 use App\Models\InternalNote;
+use App\Models\OrderMessage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -129,6 +130,11 @@ class Order extends Model
     public function refunds()
     {
         return $this->hasMany(Refund::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(OrderMessage::class);
     }
 
     public static function cancelledStatuses(): array

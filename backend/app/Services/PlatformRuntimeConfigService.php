@@ -49,6 +49,9 @@ class PlatformRuntimeConfigService
         'mail.mailers.smtp.password' => ['key' => 'email.smtp.password', 'type' => 'string', 'default' => ''],
         'mail.from.address' => ['key' => 'email.from.address', 'type' => 'string', 'default' => 'noreply@mitabl.com'],
         'mail.from.name' => ['key' => 'email.from.name', 'type' => 'string', 'default' => 'MItabl'],
+        'orders.new_customer_discount_threshold' => ['key' => 'orders.new_customer_discount_threshold', 'type' => 'integer', 'default' => 5],
+        'orders.new_customer_discount_cents' => ['key' => 'orders.new_customer_discount_cents', 'type' => 'integer', 'default' => 5000],
+        'tax.gst_rate' => ['key' => 'tax.gst_rate', 'type' => 'integer', 'default' => 10],
     ];
 
     public function apply(): void

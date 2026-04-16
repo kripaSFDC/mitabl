@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
 use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
+use App\Http\Controllers\Api\V2\OrderMessageController as V2OrderMessageController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\DineInSlotController;
@@ -206,6 +207,14 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		$kitchen = \App\Models\Mikitchn::where('user_id', auth()->id())->firstOrFail();
 		$kitchen->update(['open' => $kitchen->open ? 0 : 1]);
 		return response()->json(['open' => (bool) $kitchen->open]);
+	});
+
+	// Order messaging (registered before orders/{id} wildcard to avoid capture conflicts)
+	Route::prefix('orders')->group(function () {
+		Route::get('unread-message-counts', [V2OrderMessageController::class, 'unreadCounts']);
+		Route::get('{orderId}/messages', [V2OrderMessageController::class, 'index']);
+		Route::post('{orderId}/messages', [V2OrderMessageController::class, 'store']);
+		Route::patch('{orderId}/messages/read', [V2OrderMessageController::class, 'markRead']);
 	});
 
 	// Single order detail and no-show
