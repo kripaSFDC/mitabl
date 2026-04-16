@@ -3,11 +3,8 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Auth\Notifications\ResetPassword;
 
 class MailResetPasswordNotification extends Notification
 {
@@ -29,10 +26,8 @@ class MailResetPasswordNotification extends Notification
      */
     public function __construct($token)
     {
-        // parent::__construct($token);
         $this->token = $token;
         $this->pageUrl = env('APP_URL');
-        // we can set whatever we want here, or use .env to set environmental variables
     }
 
     /**
@@ -64,12 +59,6 @@ class MailResetPasswordNotification extends Notification
             ->action('Reset Password', $this->pageUrl."reset-password/".$this->token)
             ->line('This password reset link will expire in :count minutes.', ['count' => config('auth.passwords.users.expire')])
             ->line('If you did not request a password reset, no further action is required.');
-
-        // return (new MailMessage)
-        //             ->line('The introduction to the notification.')
-        //             ->action('Notification Action', url('/'))
-        //             ->line('Thank you for using our application!');
-
     }
 
     /**

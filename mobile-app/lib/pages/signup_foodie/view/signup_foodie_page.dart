@@ -294,11 +294,14 @@ class _SignupFoodiePageState extends State<SignupFoodiePage> {
                                                         ),
                                                       );
                                                 },
-                                                errorText: (!state
-                                                            .phone.isPure &&
-                                                        state.phone.isNotValid)
-                                                    ? 'Enter a valid phone number'
-                                                    : null,
+                                                errorText: state.phoneServerError
+                                                            .isNotEmpty
+                                                    ? state.phoneServerError
+                                                    : (!state.phone.isPure &&
+                                                            state
+                                                                .phone.isNotValid)
+                                                        ? 'Enter a valid phone number'
+                                                        : null,
                                               ),
                                             ],
                                           ),

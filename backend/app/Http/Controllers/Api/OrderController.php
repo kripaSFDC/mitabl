@@ -10,6 +10,7 @@ use App\Models\CompletedOrder;
 use App\Models\Order;
 use App\Models\PromoCode;
 use App\Services\AccountProfileService;
+use App\Services\OrderNotificationService;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use Carbon\Carbon;
@@ -24,16 +25,19 @@ class OrderController extends Controller
     private PaymentService $paymentService;
     private OrderService $orderService;
     private AccountProfileService $accountProfileService;
+    private OrderNotificationService $notificationService;
 
     public function __construct(
         PaymentService $paymentService,
         OrderService $orderService,
-        AccountProfileService $accountProfileService
+        AccountProfileService $accountProfileService,
+        OrderNotificationService $notificationService
     )
     {
         $this->paymentService = $paymentService;
         $this->orderService = $orderService;
         $this->accountProfileService = $accountProfileService;
+        $this->notificationService = $notificationService;
     }
 
     public function myUpcomingOrders(Request $request)
@@ -52,7 +56,7 @@ class OrderController extends Controller
         $orders = Order::with($this->orderListResourceRelations())
             ->where('mikitchn_id', $kitchen->id)
             ->where('delivery_date', '>=', $currntdate)
-            ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS]);
+            ->whereIn('status', [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS, Order::STATUS_READY]);
 
         if ($request->has('sortby')) {
             if ($request->sortby == 'take_away') {
@@ -106,6 +110,7 @@ class OrderController extends Controller
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_CANCELLED,
                 Order::STATUS_IN_PROGRESS,
+                Order::STATUS_READY,
             ])],
             'cancel_subject' => ['nullable', 'string', 'max:255'],
             'cancel_comment' => ['nullable', 'string', 'max:255'],
@@ -201,6 +206,19 @@ class OrderController extends Controller
             }
         }
 
+        if ($requestedStatus === Order::STATUS_READY) {
+            if (! $actorIsCook) {
+                return $this->responser([], 'Only the owning miCook can mark this order as ready.', 403);
+            }
+            if (! in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS], true)) {
+                return $this->responser([], 'Only confirmed or in-progress orders can be marked as ready.', 422);
+            }
+        }
+
+        if (in_array((int) $order->status, [Order::STATUS_READY], true) && ! in_array($requestedStatus, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED], true)) {
+            return $this->responser([], 'A ready order can only be completed or cancelled.', 422);
+        }
+
         if ($requestedStatus === Order::STATUS_CANCELLED) {
             $cancelComment = trim((string) $request->input('cancel_comment', $request->input('cancel_reason', '')));
             $cancelSubject = trim((string) $request->input('cancel_subject', ''));
@@ -237,8 +255,11 @@ class OrderController extends Controller
                 $actorIsFoodie ? 'customer' : 'kitchen'
             );
 
+            $freshOrder = $order->fresh($this->orderDetailResourceRelations());
+            $this->notificationService->notifyTransition($freshOrder, Order::STATUS_CANCELLED, $cancelSubject);
+
             return $this->responser(
-                new OrderResource($order->fresh($this->orderDetailResourceRelations())),
+                new OrderResource($freshOrder),
                 'Order Updated successfully.'
             );
         }
@@ -246,11 +267,21 @@ class OrderController extends Controller
         if ($requestedStatus === Order::STATUS_CONFIRMED) {
             try {
                 $payment = $this->resolvePaymentForAcceptance($order);
-                $paymentAlreadyConfirmed = (bool) $payment->confirm
-                    || in_array(trim((string) $payment->status), ['succeeded', 'processing', 'requires_capture'], true);
-                $confirmPayment = $paymentAlreadyConfirmed
-                    ? (object) ['status' => $payment->status ?: 'succeeded']
-                    : $this->paymentService->confirmPaymentIntent($payment);
+                $paymentAlreadySucceeded = in_array(trim((string) $payment->status), ['succeeded', 'processing'], true);
+                $requiresCapture = trim((string) $payment->status) === 'requires_capture';
+
+                if ($paymentAlreadySucceeded) {
+                    $confirmPayment = (object) ['status' => $payment->status ?: 'succeeded'];
+                } elseif ($requiresCapture) {
+                    // Manual capture: intent already confirmed, just capture it
+                    $captured = $this->paymentService->capturePaymentIntent((string) $payment->payment_id);
+                    $confirmPayment = (object) ['status' => $captured->status ?? 'succeeded'];
+                } else {
+                    $confirmPayment = (bool) $payment->confirm
+                        ? (object) ['status' => $payment->status ?: 'succeeded']
+                        : $this->paymentService->confirmPaymentIntent($payment);
+                }
+
                 DB::transaction(function () use ($order, $confirmPayment, $hasAcceptanceWindowOverride, $request): void {
                     $payment = $order->payment()->lockForUpdate()->firstOrFail();
                     $payment->confirm = 1;
@@ -269,8 +300,11 @@ class OrderController extends Controller
                     $order->save();
                 });
 
+                $freshOrder = $order->fresh($this->orderDetailResourceRelations());
+                $this->notificationService->notifyTransition($freshOrder, Order::STATUS_CONFIRMED);
+
                 return $this->responser(
-                    new OrderResource($order->fresh($this->orderDetailResourceRelations())),
+                    new OrderResource($freshOrder),
                     'Order Updated successfully.'
                 );
             } catch (Throwable $throwable) {
@@ -282,12 +316,17 @@ class OrderController extends Controller
                 ['order_id' => (int) $request->order_id],
                 ['completed_date_time' => Carbon::now()]
             );
+        } elseif ($requestedStatus === Order::STATUS_READY) {
+            $order->ready_at = Carbon::now();
         }
 
         $order->status = $requestedStatus;
         $order->save();
 
-        return $this->responser($order, 'Order Updated successfully.');
+        $freshOrder = $order->fresh($this->orderDetailResourceRelations());
+        $this->notificationService->notifyTransition($freshOrder, $requestedStatus);
+
+        return $this->responser(new OrderResource($freshOrder), 'Order Updated successfully.');
     }
 
     public function allOrders(Request $request)
@@ -446,8 +485,10 @@ class OrderController extends Controller
             report($throwable);
             return $this->responser([], 'Unable to create order.', 422);
         }
-        $createdOrder = new OrderResource(Order::with($this->orderDetailResourceRelations())->find($order->id));
-        return $this->responser($createdOrder, 'Food Ordered Created.');
+        $freshOrder = Order::with($this->orderDetailResourceRelations())->find($order->id);
+        $this->notificationService->notifyTransition($freshOrder, Order::STATUS_REQUESTED);
+
+        return $this->responser(new OrderResource($freshOrder), 'Food Ordered Created.', 201);
     }
 
     private function orderListResourceRelations(): array

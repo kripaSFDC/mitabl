@@ -54,4 +54,16 @@ class DineInSlot extends Model
     {
         return (int) $this->status === 1 && (int) $this->day_of_week === $date->dayOfWeek;
     }
+
+    public function hasActiveBookings(): bool
+    {
+        return $this->orders()
+            ->whereIn('status', [
+                Order::STATUS_REQUESTED,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_IN_PROGRESS,
+                Order::STATUS_READY,
+            ])
+            ->exists();
+    }
 }

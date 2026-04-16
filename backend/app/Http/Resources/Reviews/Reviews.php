@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Reviews;
 
-use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Reviews extends JsonResource
@@ -15,8 +14,6 @@ class Reviews extends JsonResource
      */
     public function toArray($request)
     {
-        // return parent::toArray($request);
-
         $return = [
             'id'=> $this->id,
             'rating'=> $this->rating,

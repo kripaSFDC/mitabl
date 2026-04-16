@@ -312,7 +312,7 @@ class OrderConfirmationPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Estimated Delivery
+                  // Delivery / Dine-in details
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -322,9 +322,11 @@ class OrderConfirmationPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Estimated Delivery',
-                          style: TextStyle(
+                        Text(
+                          data.isDineIn
+                              ? 'Dine-in Details'
+                              : 'Estimated Delivery',
+                          style: const TextStyle(
                             fontFamily: 'PlusJakartaSans',
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -364,6 +366,36 @@ class OrderConfirmationPage extends StatelessWidget {
                             ),
                           ],
                         ),
+                        if (data.isDineIn && data.persons != null) ...[
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: MitablColors.primary
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.group,
+                                    color: MitablColors.primary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                '${data.persons} ${data.persons == 1 ? 'guest' : 'guests'}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: MitablColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         Row(
                           children: [

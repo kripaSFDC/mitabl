@@ -1050,39 +1050,49 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
 
   Future<void> _onDeleteAccountTapped() async {
     if (_deleteInFlight) return;
-    final shouldDelete = await showDialog<bool>(
+    final password = await showDialog<String>(
           context: context,
-          builder: (dialogContext) {
-            return AlertDialog(
-              title: const Text('Delete Account'),
-              content: const Text(
-                'This action permanently deletes your account and cannot be undone. Continue?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
-    if (!mounted || !shouldDelete) return;
+          builder: (dialogContext) => _DeleteAccountDialog(),
+        );
+    if (!mounted || password == null || password.isEmpty) return;
     setState(() => _deleteInFlight = true);
     try {
       final repository = context.read<UserRepository>();
-      final response = await repository.deleteAccount();
+      final response = await repository.deleteAccount(password: password);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         await _persistNotificationPreference(true);
         _showSnackBar('Account deleted successfully.');
         if (mounted) {
           await context.read<AuthenticationRepository>().logOut();
         }
+        return;
+      }
+      if (response.statusCode == 403) {
+        _showSnackBar('Incorrect password. Please try again.');
+        return;
+      }
+      if (response.statusCode == 409) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Active Orders'),
+              content: const Text(
+                'You have active orders. Please cancel or complete them before deleting your account.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+      if (response.statusCode == 429) {
+        _showSnackBar('Too many attempts. Please try again later.');
         return;
       }
       String message = 'Unable to delete account. Please try again.';
@@ -1628,6 +1638,67 @@ class _SettingsCookPageState extends State<SettingsCookPage> {
             thickness: 0.5,
             color: MitablColors.outlineVariant.withValues(alpha: 0.1),
           ),
+      ],
+    );
+  }
+}
+
+class _DeleteAccountDialog extends StatefulWidget {
+  @override
+  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
+}
+
+class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
+  final _controller = TextEditingController();
+  bool _enabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
+      final isNonEmpty = _controller.text.isNotEmpty;
+      if (isNonEmpty != _enabled) setState(() => _enabled = isNonEmpty);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Delete Account'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'This action permanently deletes your account and cannot be undone.',
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Enter your password to confirm',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: _enabled
+              ? () => Navigator.of(context).pop(_controller.text)
+              : null,
+          child: const Text('Delete'),
+        ),
       ],
     );
   }

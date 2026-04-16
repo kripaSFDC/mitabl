@@ -7,6 +7,7 @@ import 'package:mitabl_user/helper/app_config.dart' as config;
 import 'package:mitabl_user/helper/route_arguement.dart';
 import 'package:mitabl_user/model/ordering_models.dart';
 import 'package:mitabl_user/pages/common/view/stripe_payment_method_page.dart';
+import 'package:mitabl_user/pages/ordering/order_route_data.dart';
 import 'package:mitabl_user/pages/ordering/order_session.dart';
 import 'package:mitabl_user/repos/payments_repository.dart';
 import 'package:mitabl_user/repos/repository_http_exception.dart';
@@ -384,38 +385,39 @@ class _OrderCheckoutPageState extends State<OrderCheckoutPage> {
       return;
     }
 
+    final items = List<CartLineItem>.from(session.cartItems);
+    final kitchenName = session.kitchen?.name ?? '';
+    final kitchenAddress = session.kitchen?.address ?? '';
+    final totalAmount = session.estimatedTotal + 1.50;
+    final scheduledDate = session.scheduledDate;
+    final timeLabel =
+        '${session.scheduledTime.startLabel} - ${session.scheduledTime.endLabel}';
+    final isDineIn = session.serviceType == OrderServiceType.dineIn;
+    final persons = isDineIn ? session.persons : null;
+
     try {
       final result = await session.submit();
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
 
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Order placed'),
-          content: Text(
-            'Order #${result.orderId} has been created.\n'
-            'Server total: \$${result.totalPrice}',
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/OrderConfirmation',
+        (route) => route.settings.name == '/home' || route.isFirst,
+        arguments: RouteArguments(
+          data: OrderConfirmationRouteData(
+            result: result,
+            kitchenName: kitchenName,
+            kitchenAddress: kitchenAddress,
+            items: items,
+            totalAmount: totalAmount,
+            scheduledDate: scheduledDate,
+            timeLabel: timeLabel,
+            isDineIn: isDineIn,
+            persons: persons,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('View orders'),
-            ),
-          ],
         ),
       );
-
-      if (!context.mounted) {
-        return;
-      }
-
-      Navigator.of(context).pushNamed('/MiOrders');
     } catch (_) {
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

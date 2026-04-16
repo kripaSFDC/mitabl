@@ -21,9 +21,7 @@ class CreateMikitchnsTable extends Migration
             $table->string('phone');
             $table->integer('no_of_seats')->default(0);
             $table->longText('timings')->nullable();
-            // ->default(json_encode(['mon'=>'1','tue'=>'1','wed'=>'1']));
             $table->longText('images')->nullable();
-            // ->default(json_encode(['0'=>'cover.jpeg']));
             $table->longText('description')->nullable();
             $table->string('abn',11)->default(0);
             $table->string('certificate_no')->default(0);

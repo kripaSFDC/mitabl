@@ -54,14 +54,26 @@ class SignUpCubit extends Cubit<SignUpState> {
         );
       } else {
         String message = ApiErrorParser.parseMessage(response.body);
+        String phoneError = '';
+        if (response.statusCode == 422) {
+          final lc = message.toLowerCase();
+          if (lc.contains('phone')) {
+            phoneError = message;
+          }
+        }
         emit(
           state.copyWith(
             statusApi: FormzStatus.submissionFailure,
             serverMessage: message,
+            phoneServerError: phoneError,
           ),
         );
         emit(
-          state.copyWith(statusApi: FormzStatus.pure, serverMessage: message),
+          state.copyWith(
+            statusApi: FormzStatus.pure,
+            serverMessage: message,
+            phoneServerError: phoneError,
+          ),
         );
       }
     } on Exception {
@@ -133,6 +145,7 @@ class SignUpCubit extends Cubit<SignUpState> {
     emit(
       state.copyWith(
         phone: phone,
+        phoneServerError: '',
         status: Formz.validate([
           state.nameFirst!,
           phone,

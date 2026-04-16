@@ -15,6 +15,7 @@ class SignUpState extends Equatable {
     this.confirmPassword = const ConfirmPassword.pure(),
     this.showPassword = true,
     this.serverMessage = '',
+    this.phoneServerError = '',
     this.showConfirmPassword = true,
   });
 
@@ -32,6 +33,7 @@ class SignUpState extends Equatable {
   final bool showPassword;
   final bool showConfirmPassword;
   final String serverMessage;
+  final String phoneServerError;
 
   SignUpState copyWith({
     int? selectedRole,
@@ -46,6 +48,7 @@ class SignUpState extends Equatable {
     Name? nameLast,
     Email? email,
     String? serverMessage,
+    String? phoneServerError,
     InternationalPhone? phone,
     String? countryCode,
   }) {
@@ -55,6 +58,7 @@ class SignUpState extends Equatable {
       showPassword: showPassword ?? this.showPassword,
       password: password ?? this.password,
       serverMessage: serverMessage ?? this.serverMessage,
+      phoneServerError: phoneServerError ?? this.phoneServerError,
       confirmPassword: confirmPassword ?? this.confirmPassword,
       address: address ?? this.address,
       selectedRole: selectedRole ?? this.selectedRole,
@@ -83,5 +87,6 @@ class SignUpState extends Equatable {
     email,
     countryCode,
     serverMessage,
+    phoneServerError,
   ];
 }

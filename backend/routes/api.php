@@ -14,8 +14,11 @@ use App\Http\Controllers\Api\V2\DiscoveryController as V2DiscoveryController;
 use App\Http\Controllers\Api\V2\AccountController as V2AccountController;
 use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
+use App\Http\Controllers\Api\V2\OrderMessageController as V2OrderMessageController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\DineInSlotController;
+use App\Http\Controllers\Api\CancellationPolicyController;
 use App\Services\SystemHealthService;
 use Illuminate\Http\Request;
 /*
@@ -28,10 +31,6 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
 
 Route::get('/health', function () {
     return response('ok', 200)
@@ -84,7 +83,7 @@ Route::get('/app/version', [AppVersionController::class, 'show'])
 
 Route::post('login', [UserController::class, 'login'])->middleware('throttle:mobile-login');
 Route::post('token/refresh', [UserController::class, 'refreshToken'])->middleware('throttle:mobile-token-refresh');
-Route::post('register', [UserController::class, 'register']);
+Route::post('register', [UserController::class, 'register'])->middleware('throttle:mobile-register');
 Route::post('verifyOtp', [UserController::class, 'verifyOtp'])->middleware('throttle:mobile-verify-otp');
 Route::post('resendotp', [UserController::class, 'resendOtp'])->middleware('throttle:mobile-resend-otp');
 
@@ -121,7 +120,13 @@ $registerLegacyMobileRoutes = function (): void {
         Route::post('mikitchn/editkitchen', [MikitchnController::class, 'updateKitchen']);
         Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
         Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
-        Route::get('mikitchn/dine-in-slots', [MikitchnController::class, 'getMyDineInSlots']);
+        Route::get('mikitchn/dine-in-slots', [DineInSlotController::class, 'index']);
+        Route::put('mikitchn/dine-in-slots/sync', [DineInSlotController::class, 'sync']);
+        Route::post('mikitchn/dine-in-slots', [DineInSlotController::class, 'store']);
+        Route::put('mikitchn/dine-in-slots/{id}', [DineInSlotController::class, 'update']);
+        Route::delete('mikitchn/dine-in-slots/{id}', [DineInSlotController::class, 'destroy']);
+        Route::get('mikitchn/cancellation-policy', [CancellationPolicyController::class, 'show']);
+        Route::put('mikitchn/cancellation-policy', [CancellationPolicyController::class, 'update']);
         Route::post('food/add', [FoodsController::class, 'createFood']);
         Route::post('food/editfood', [FoodsController::class, 'updateFood']);
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
@@ -138,16 +143,10 @@ $registerLegacyMobileRoutes = function (): void {
     });
 };
 
-// Route::group(['prefix' => 'v1/kitchen', 'namespace' => 'Api'], function ($router) { 
-// });
-// add card to customer
-	// Route::post('addcard', [UserController::class, 'addCardToCustomer']);
-
-
 Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']], function ($router) use ($registerLegacyMobileRoutes) {
 	Route::get('mob-contact', [UserController::class, 'mobileContact']);
     Route::post('logout', [UserController::class, 'logout']);
-    Route::middleware('customer')->post('orders', [OrderController::class, 'store']);
+    Route::middleware(['customer', 'throttle:order-create'])->post('orders', [OrderController::class, 'store']);
     Route::post('updateorderstatus', [OrderController::class, 'statusUpdate']);
 
     // Legacy-mobile compatibility aliases retained under /v2 during migration.
@@ -160,11 +159,11 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
             Route::get('favorites', [V2AccountFoodieController::class, 'favorites']);
             Route::post('favorites/toggle', [V2AccountFoodieController::class, 'toggleFavorite']);
             Route::get('payments/history', [V2AccountFoodieController::class, 'paymentHistory']);
-            Route::post('orders', [OrderController::class, 'store']);
+            Route::middleware('throttle:order-create')->post('orders', [OrderController::class, 'store']);
             });
 			Route::put('profile', [V2AccountController::class, 'update']);
-            Route::delete('delete', [UserController::class, 'delete']);
-            Route::post('delete', [UserController::class, 'delete']);
+            Route::delete('delete', [UserController::class, 'delete'])->middleware('throttle:account-delete');
+            Route::post('delete', [UserController::class, 'delete'])->middleware('throttle:account-delete');
 			Route::post('switch-role', [V2AccountController::class, 'switchRole']);
             Route::post('roles/cook/activate', [V2AccountController::class, 'startCookOnboarding']);
             Route::post('onboarding/cook/start', [V2AccountController::class, 'startCookOnboarding']);
@@ -210,7 +209,16 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		return response()->json(['open' => (bool) $kitchen->open]);
 	});
 
-	// Single order detail
+	// Order messaging (registered before orders/{id} wildcard to avoid capture conflicts)
+	Route::prefix('orders')->group(function () {
+		Route::get('unread-message-counts', [V2OrderMessageController::class, 'unreadCounts']);
+		Route::get('{orderId}/messages', [V2OrderMessageController::class, 'index']);
+		Route::post('{orderId}/messages', [V2OrderMessageController::class, 'store']);
+		Route::patch('{orderId}/messages/read', [V2OrderMessageController::class, 'markRead']);
+	});
+
+	// Single order detail and no-show
+	Route::middleware('restaurant')->post('orders/{id}/no-show', [CancellationPolicyController::class, 'noShow']);
 	Route::get('orders/{id}', function ($id) {
 		$order = \App\Models\Order::with(['mikitchn', 'user', 'orderData.food'])
 			->where(function ($q) {

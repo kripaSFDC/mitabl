@@ -36,12 +36,7 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
         $order = $cOrder->order;
 
         $kOrderCount = Order::where('mikitchn_id',$order->mikitchn_id)->where('status',1)->count();
-
-        // print_r($order->mikitchn->reviews->avg('rating')); die('listener');
-        // $kOrderCount = 301;
         $kRating = $order->mikitchn->reviews->avg('rating');
-        // $cntrlObj = new Controller();
-        // $diffInHrs = $cntrlObj->getPendingHoursInOrderD($order);
 
         if ($kOrderCount <= 5) {
             $dPercent = 0;
@@ -58,11 +53,7 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
         } else {
             $dPercent = 15;
         }
-        // print_r($dPercent); die();
-        // if ($diffInHrs < 24) {
-        //     $payment = ;
-        // $order->Mikitchn,$order->total_price,$order->id
-          $trnsfr =  $this->paymentService->safely(
+        $trnsfr =  $this->paymentService->safely(
               fn () => $this->paymentService->transferToVendor(
                   $order->Mikitchn,
                   (float) $order->total_price,
@@ -72,12 +63,9 @@ class MakeOrderPaymentToVendorListener implements ShouldQueue
                   'order_transfer_' . $order->id . '_completion'
               )
           );
-          if (is_object($trnsfr)) {
-              $cOrder->completed = 1;
-              $cOrder->save();
-          }
-          // print_r($trnsfr); die('lshsj');
-        // }
-
+        if (is_object($trnsfr)) {
+            $cOrder->completed = 1;
+            $cOrder->save();
+        }
     }
 }

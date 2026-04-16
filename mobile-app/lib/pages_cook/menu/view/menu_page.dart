@@ -53,6 +53,21 @@ class _MenuPageState extends State<MenuPage> {
                 ),
                 child: IconButton(
                   onPressed: () {
+                    navigatorKey.currentState!.pushNamed('/MenuSchedule');
+                  },
+                  icon: Icon(
+                    Icons.calendar_month,
+                    size: config.AppConfig(context).appWidth(7),
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: config.AppConfig(context).appHeight(0.2),
+                ),
+                child: IconButton(
+                  onPressed: () {
                     navigatorKey.currentState!.pushNamed(
                       '/AddMenuPage',
                       arguments: RouteArguments(isEdit: false),

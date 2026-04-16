@@ -32,7 +32,6 @@ class ReviewController extends Controller
         if($validator->fails()){
             return $this->responser([],$validator->errors()->first(), 422);
         }
-        // die('gnbgnf');
         $order = Order::query()->find((int) $request->order_id);
         if (! $order) {
             return $this->responser([], 'Order not found.', 404);
@@ -68,7 +67,6 @@ class ReviewController extends Controller
             }
         }
 
-        // auth()->user()->restaurant->reviews()->save($review);
         $rvw = new ReviewsResource($review);
         return $this->responser($rvw, 'Review Added Successfully.');
     }
@@ -91,7 +89,6 @@ class ReviewController extends Controller
     {
         $queryparams = $request->query();
         $limit = max((int) ($queryparams['limit'] ?? 10), 1);
-        // $review = Review::where('user_id', auth()->user()->id)->where('by_user','kitchen')->orderBy('id', 'desc');
         $review = Review::where('mikitchn_id', $id)->where('by_user','customer')->orderBy('id', 'desc');
         $data = [
             'total_count' => $review->count(),
@@ -119,7 +116,6 @@ class ReviewController extends Controller
         if($validator->fails()){
             return $this->responser([],$validator->errors()->first(), 422);
         }
-        // die('gnbgnf');
         $restaurant = auth()->user()->restaurant;
         if (! $restaurant) {
             return $this->responser([], 'Restaurant profile not found.', 404);
@@ -150,7 +146,6 @@ class ReviewController extends Controller
         $review->order_id = (int) $request->order_id;
         $review->by_user = 'kitchen';
         $review->save();
-        // auth()->user()->restaurant->reviews()->save($review);
         $rvw = new ReviewsResource($review);
         return $this->responser($rvw, 'Review Added Successfully.');
     }

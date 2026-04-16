@@ -50,7 +50,7 @@ class OrderService
             }
 
             $kitchen = Mikitchn::query()
-                ->select(['id', 'status', 'dine_in', 'take_away', 'no_of_seats'])
+                ->select(['id', 'status', 'dine_in', 'take_away', 'no_of_seats', 'advance_order_days'])
                 ->whereKey($kitchenId)
                 ->lockForUpdate()
                 ->first();
@@ -68,6 +68,17 @@ class OrderService
             }
 
             $deliveryDate = Carbon::parse((string) $payload['delivery_date'])->startOfDay();
+
+            $advanceDays = $kitchen->advance_order_days;
+            if ($advanceDays !== null && $advanceDays > 0) {
+                $maxDate = Carbon::today()->addDays($advanceDays)->startOfDay();
+                if ($deliveryDate->greaterThan($maxDate)) {
+                    throw new InvalidArgumentException(
+                        "This kitchen only accepts orders up to {$advanceDays} days in advance."
+                    );
+                }
+            }
+
             $slotId = $payload['dine_in_slot_id'] ?? null;
             $persons = $dineIn === 1 ? (int) ($payload['persons'] ?? 0) : 0;
             $slot = null;
@@ -176,9 +187,11 @@ class OrderService
             $order->take_away = $takeAway;
             $order->paymentmethod_id = $payload['payment_method_id'] ?? $payload['card_id'] ?? null;
 
+            $discountThreshold = (int) config('orders.new_customer_discount_threshold', 5);
+            $discountCents = (int) config('orders.new_customer_discount_cents', 5000);
             $discountAmountCents = 0;
-            if ($this->completedOrderCountForUser($user->id, true) < 5) {
-                $discountAmountCents = 5000;
+            if ($discountThreshold >= 1 && $this->completedOrderCountForUser($user->id, true) < $discountThreshold) {
+                $discountAmountCents = $discountCents;
                 $order->discounted_amount = $this->centsToMoney($discountAmountCents);
             }
             $order->total_price = $this->centsToMoney(max($itemTotalCents + $taxesCents - $discountAmountCents, 0));

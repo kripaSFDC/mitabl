@@ -101,7 +101,6 @@ class Controller extends BaseController
     }
 
     public function addImages($mediaFiles,$folderPathOrName,$model,$refId){
-        // $add = 0;
         foreach ($mediaFiles as $key => $mediaFile) {
 
             $return = $this->uploadImage($mediaFile,$folderPathOrName);
@@ -170,10 +169,6 @@ class Controller extends BaseController
         $todayCurrnt = Carbon::now()->format('Y-m-d H:i:s');
         $merge = new DateTime($order->delivery_date->format('Y-m-d') .' ' .$order->delivery_time_from->format('H:i:s'));
         $orderTime = $merge->format('Y-m-d H:i:s');
-
-        // echo $todayCurrnt;
-        // echo '------';
-        // echo $orderTime; die();
 
         $to = Carbon::createFromFormat('Y-m-d H:i:s', $todayCurrnt);
         $from = Carbon::createFromFormat('Y-m-d H:i:s', $orderTime);

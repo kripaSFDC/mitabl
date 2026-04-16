@@ -40,8 +40,6 @@ class CancelOrderRefundListener implements ShouldQueue
 
         $cObj = new Controller();
         $orderPendingHrs = $cObj->getPendingHoursInOrderD($order);
-
-        // print_r($orderPendingHrs); die();
         if ($by == 'customer') {
             if ($orderPendingHrs >= 12) {
                 if ($order->payment) {
@@ -108,9 +106,6 @@ class CancelOrderRefundListener implements ShouldQueue
             }
 
         }
-       
-        // print_r($order); 
-        // die();
     }
 
     private function safeQueueRefundMail(string $recipient, object $mailable, array $context = []): void

@@ -6,6 +6,7 @@ use App\Models\WatchSubscription;
 use App\Models\Tag;
 use App\Models\DineInSlot;
 use App\Models\InternalNote;
+use App\Models\OrderMessage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -20,6 +21,7 @@ class Order extends Model
     public const STATUS_CONFIRMED = 3;
     public const STATUS_CANCELLED = 4;
     public const STATUS_IN_PROGRESS = 5;
+    public const STATUS_READY = 6;
 
     protected $fillable = [
         'mikitchn_id',
@@ -38,6 +40,9 @@ class Order extends Model
         'total_price',
         'discounted_amount',
         'paymentmethod_id',
+        'ready_at',
+        'no_show',
+        'no_show_at',
     ];
 
     protected $casts = [
@@ -47,6 +52,9 @@ class Order extends Model
         'discounted_amount' => 'decimal:2',
         'refund_percentage' => 'integer',
         'dine_in_slot_id' => 'integer',
+        'no_show' => 'boolean',
+        'ready_at' => 'datetime',
+        'no_show_at' => 'datetime',
     ];
 
     /**
@@ -122,6 +130,11 @@ class Order extends Model
     public function refunds()
     {
         return $this->hasMany(Refund::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(OrderMessage::class);
     }
 
     public static function cancelledStatuses(): array

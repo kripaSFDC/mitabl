@@ -140,6 +140,29 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('support-reply', function (Request $request) {
             return Limit::perMinute(12)->by($this->resolveRateLimitActorKey($request, 'support-reply'));
         });
+
+        RateLimiter::for('mobile-register', function (Request $request) {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $phone = preg_replace('/\D+/', '', (string) $request->input('phone', ''));
+            $ip = (string) $request->ip();
+
+            return [
+                Limit::perMinute(5)->by('register:ip:' . $ip),
+                Limit::perHour(20)->by('register-hour:ip:' . $ip),
+                Limit::perMinute(3)->by('register:email:' . ($email !== '' ? $email : $ip)),
+                Limit::perMinute(3)->by('register:phone:' . ($phone !== '' ? $phone : $ip)),
+            ];
+        });
+
+        RateLimiter::for('account-delete', function (Request $request) {
+            $userId = optional($request->user())->id;
+
+            return Limit::perHour(3)->by('account-delete:user:' . ($userId ?? $request->ip()));
+        });
+
+        RateLimiter::for('order-create', function (Request $request) {
+            return Limit::perMinute(10)->by($this->resolveRateLimitActorKey($request, 'order-create'));
+        });
     }
 
     private function resolveRateLimitActorKey(Request $request, string $prefix): string

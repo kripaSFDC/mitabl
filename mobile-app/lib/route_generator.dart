@@ -30,6 +30,7 @@ import 'package:mitabl_user/pages_cook/dashboard_cook/view/dashboard_cook_page.d
 import 'package:mitabl_user/pages_cook/edit_kitchen_profile/view/edit_kitchen_profile.dart';
 import 'package:mitabl_user/pages_cook/edit_profile_cook/view/edit_profile_cook_page.dart';
 import 'package:mitabl_user/pages_cook/menu_detail/view/menu_detail.dart';
+import 'package:mitabl_user/pages_cook/menu_schedule/view/menu_schedule_page.dart';
 import 'package:mitabl_user/pages_cook/requests/elements/order_details_view.dart';
 import 'package:mitabl_user/pages_cook/revenue_analytics/view/revenue_analytics_page.dart';
 import 'package:mitabl_user/pages_cook/settings_page/view/settings_page_cook.dart';
@@ -176,6 +177,9 @@ class RouteGenerator {
 
       case '/UpcomingBookings':
         return UpcomingBookings.route();
+
+      case '/MenuSchedule':
+        return MenuSchedulePage.route();
 
       case '/MenuDetails':
         if (routeArguments == null) {
