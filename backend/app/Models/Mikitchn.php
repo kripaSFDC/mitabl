@@ -33,10 +33,14 @@ class Mikitchn extends Model
         'longitude',
         'status',
         'open',
+        'cancellation_window_hours',
+        'no_show_penalty_pct',
     ];
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'cancellation_window_hours' => 'integer',
+        'no_show_penalty_pct' => 'integer',
     ];
 
     /**

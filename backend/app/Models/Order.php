@@ -20,6 +20,7 @@ class Order extends Model
     public const STATUS_CONFIRMED = 3;
     public const STATUS_CANCELLED = 4;
     public const STATUS_IN_PROGRESS = 5;
+    public const STATUS_READY = 6;
 
     protected $fillable = [
         'mikitchn_id',
@@ -38,6 +39,9 @@ class Order extends Model
         'total_price',
         'discounted_amount',
         'paymentmethod_id',
+        'ready_at',
+        'no_show',
+        'no_show_at',
     ];
 
     protected $casts = [
@@ -47,6 +51,9 @@ class Order extends Model
         'discounted_amount' => 'decimal:2',
         'refund_percentage' => 'integer',
         'dine_in_slot_id' => 'integer',
+        'no_show' => 'boolean',
+        'ready_at' => 'datetime',
+        'no_show_at' => 'datetime',
     ];
 
     /**

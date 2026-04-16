@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\V2\PaymentsController as V2PaymentsController;
 use App\Http\Controllers\Api\V2\AccountFoodieController as V2AccountFoodieController;
 use App\Http\Controllers\Api\FcmController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\DineInSlotController;
+use App\Http\Controllers\Api\CancellationPolicyController;
 use App\Services\SystemHealthService;
 use Illuminate\Http\Request;
 /*
@@ -117,7 +119,13 @@ $registerLegacyMobileRoutes = function (): void {
         Route::post('mikitchn/editkitchen', [MikitchnController::class, 'updateKitchen']);
         Route::post('deleteimage', [MikitchnController::class, 'deleteImage']);
         Route::get('mymenu', [MikitchnController::class, 'getMyMenu']);
-        Route::get('mikitchn/dine-in-slots', [MikitchnController::class, 'getMyDineInSlots']);
+        Route::get('mikitchn/dine-in-slots', [DineInSlotController::class, 'index']);
+        Route::put('mikitchn/dine-in-slots/sync', [DineInSlotController::class, 'sync']);
+        Route::post('mikitchn/dine-in-slots', [DineInSlotController::class, 'store']);
+        Route::put('mikitchn/dine-in-slots/{id}', [DineInSlotController::class, 'update']);
+        Route::delete('mikitchn/dine-in-slots/{id}', [DineInSlotController::class, 'destroy']);
+        Route::get('mikitchn/cancellation-policy', [CancellationPolicyController::class, 'show']);
+        Route::put('mikitchn/cancellation-policy', [CancellationPolicyController::class, 'update']);
         Route::post('food/add', [FoodsController::class, 'createFood']);
         Route::post('food/editfood', [FoodsController::class, 'updateFood']);
         Route::delete('food/{id}', [FoodsController::class, 'destroy']);
@@ -200,7 +208,8 @@ Route::group(['prefix' => 'v2', 'middleware' => ['auth:api', 'api.user.active']]
 		return response()->json(['open' => (bool) $kitchen->open]);
 	});
 
-	// Single order detail
+	// Single order detail and no-show
+	Route::middleware('restaurant')->post('orders/{id}/no-show', [CancellationPolicyController::class, 'noShow']);
 	Route::get('orders/{id}', function ($id) {
 		$order = \App\Models\Order::with(['mikitchn', 'user', 'orderData.food'])
 			->where(function ($q) {

@@ -192,7 +192,7 @@ class PaymentService
             'amount' => (int) round(((float) $order->total_price) * 100),
             'currency' => $this->currency,
             'payment_method_types' => ['card'],
-            'capture_method' => 'automatic',
+            'capture_method' => 'manual',
             'metadata' => [
                 'order_id' => (string) $order->id,
                 'customer_user_id' => (string) $order->user_id,
@@ -219,6 +219,23 @@ class PaymentService
         }
 
         return $this->stripe()->paymentIntents->confirm($payment->payment_id, ['payment_method' => $payment->card_id]);
+    }
+
+    public function capturePaymentIntent(string $paymentIntentId): mixed
+    {
+        return $this->stripe()->paymentIntents->capture($paymentIntentId);
+    }
+
+    public function cancelPaymentIntent(string $paymentIntentId): mixed
+    {
+        return $this->stripe()->paymentIntents->cancel($paymentIntentId);
+    }
+
+    public function partialCapturePaymentIntent(string $paymentIntentId, int $amountCents): mixed
+    {
+        return $this->stripe()->paymentIntents->capture($paymentIntentId, [
+            'amount_to_capture' => $amountCents,
+        ]);
     }
 
     public function resolvePaymentMethodForIntent(User $user, ?string $cardReference = null, ?string $paymentMethodId = null): array

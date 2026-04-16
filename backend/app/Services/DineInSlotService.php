@@ -16,6 +16,7 @@ class DineInSlotService
         Order::STATUS_REQUESTED,
         Order::STATUS_CONFIRMED,
         Order::STATUS_IN_PROGRESS,
+        Order::STATUS_READY,
     ];
 
     public function syncKitchenSlots(Mikitchn $kitchen, array $slots): void
@@ -186,5 +187,91 @@ class DineInSlotService
         }
 
         return (int) $query->sum('persons');
+    }
+
+    public function createSlot(Mikitchn $kitchen, array $data): DineInSlot
+    {
+        if (! Schema::hasTable('dine_in_slots')) {
+            throw new InvalidArgumentException('Dine-in slots are not available until the dine_in_slots table has been migrated.');
+        }
+
+        $startTime = Carbon::parse((string) $data['start_time'])->format('H:i:s');
+        $endTime = Carbon::parse((string) $data['end_time'])->format('H:i:s');
+        $dayOfWeek = (int) $data['day_of_week'];
+
+        $this->validateNoOverlap($kitchen->id, $dayOfWeek, $startTime, $endTime);
+
+        return DineInSlot::create([
+            'mikitchn_id' => $kitchen->id,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'seat_capacity' => isset($data['seat_capacity']) ? (int) $data['seat_capacity'] : null,
+            'status' => (int) ($data['status'] ?? 1),
+        ]);
+    }
+
+    public function updateSlot(DineInSlot $slot, array $data): DineInSlot
+    {
+        $startTime = isset($data['start_time'])
+            ? Carbon::parse((string) $data['start_time'])->format('H:i:s')
+            : (string) $slot->start_time;
+        $endTime = isset($data['end_time'])
+            ? Carbon::parse((string) $data['end_time'])->format('H:i:s')
+            : (string) $slot->end_time;
+        $dayOfWeek = isset($data['day_of_week']) ? (int) $data['day_of_week'] : (int) $slot->day_of_week;
+
+        $timeWindowChanged = $startTime !== (string) $slot->start_time
+            || $endTime !== (string) $slot->end_time
+            || $dayOfWeek !== (int) $slot->day_of_week;
+
+        if ($timeWindowChanged && $slot->hasActiveBookings()) {
+            throw new InvalidArgumentException('Cannot change time window while active bookings exist. Disable this slot and create a new one.');
+        }
+
+        if ($timeWindowChanged) {
+            $this->validateNoOverlap((int) $slot->mikitchn_id, $dayOfWeek, $startTime, $endTime, (int) $slot->id);
+        }
+
+        $slot->fill(array_filter([
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'seat_capacity' => isset($data['seat_capacity']) ? (int) $data['seat_capacity'] : $slot->seat_capacity,
+            'status' => isset($data['status']) ? (int) $data['status'] : $slot->status,
+        ], fn ($v) => $v !== null));
+
+        $slot->save();
+        return $slot->fresh();
+    }
+
+    public function deleteSlot(DineInSlot $slot): bool
+    {
+        if ($slot->hasActiveBookings()) {
+            $slot->status = 0;
+            $slot->save();
+            return false; // soft-disabled
+        }
+
+        $slot->delete();
+        return true; // hard-deleted
+    }
+
+    private function validateNoOverlap(int $kitchenId, int $dayOfWeek, string $startTime, string $endTime, ?int $excludeSlotId = null): void
+    {
+        $query = DineInSlot::query()
+            ->where('mikitchn_id', $kitchenId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('status', 1)
+            ->where('start_time', '<', $endTime)
+            ->where('end_time', '>', $startTime);
+
+        if ($excludeSlotId !== null) {
+            $query->where('id', '!=', $excludeSlotId);
+        }
+
+        if ($query->exists()) {
+            throw new InvalidArgumentException('This slot overlaps with an existing slot on the same day.');
+        }
     }
 }
