@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Generated columns and the duplicate-phone cleanup are MySQL-only.
+        // SQLite (used in tests) does not support stored generated columns.
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Clean up duplicate phone numbers before adding the unique constraint.
         // For each duplicate phone, keep the most recently created user and nullify
         // the phone on older accounts so the unique index can be created cleanly.
@@ -44,6 +50,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             $table->dropUnique('users_phone_active_unique');
             $table->dropColumn('phone_normalized');
