@@ -192,8 +192,8 @@ class OrderController extends Controller
             if (! $actorIsCook) {
                 return $this->responser([], 'Only the owning miCook can complete this order.', 403);
             }
-            if (! in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS], true)) {
-                return $this->responser([], 'Only confirmed or in-progress orders can be completed.', 422);
+            if (! in_array((int) $order->status, [Order::STATUS_CONFIRMED, Order::STATUS_IN_PROGRESS, Order::STATUS_READY], true)) {
+                return $this->responser([], 'Only confirmed, in-progress, or ready orders can be completed.', 422);
             }
         }
 

@@ -104,7 +104,7 @@ class CancellationPolicyController extends Controller
         $order->status = Order::STATUS_COMPLETED;
         $order->save();
 
-        $this->notificationService->notifyTransition($order->fresh(['mikitchn', 'user']), Order::STATUS_CANCELLED, 'No-show');
+        $this->notificationService->notifyTransition($order->fresh(['mikitchn', 'user']), Order::STATUS_COMPLETED, 'No-show');
 
         return $this->responser([
             'order_id' => $order->id,
