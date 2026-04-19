@@ -38,7 +38,7 @@ class OrderPlacementRouteTest extends TestCase
             ]);
 
         $response
-            ->assertOk()
+            ->assertStatus(201)
             ->assertJsonPath('isSuccess', true)
             ->assertJsonPath('data.take_away', 1)
             ->assertJsonPath('data.item_total_price', '50.00');
@@ -81,7 +81,7 @@ class OrderPlacementRouteTest extends TestCase
             ]);
 
         $response
-            ->assertOk()
+            ->assertStatus(201)
             ->assertJsonPath('isSuccess', true)
             ->assertJsonPath('data.take_away', 1)
             ->assertJsonPath('data.item_total_price', '25.00');
@@ -115,7 +115,7 @@ class OrderPlacementRouteTest extends TestCase
             ]);
 
         $response
-            ->assertOk()
+            ->assertStatus(201)
             ->assertJsonPath('isSuccess', true)
             ->assertJsonPath('data.take_away', 1)
             ->assertJsonPath('data.item_total_price', '25.00');
@@ -150,7 +150,7 @@ class OrderPlacementRouteTest extends TestCase
             ]);
 
         $response
-            ->assertOk()
+            ->assertStatus(201)
             ->assertJsonPath('isSuccess', true)
             ->assertJsonPath('data.dine_in', 1)
             ->assertJsonPath('data.dine_in_slot.id', $slot->id)
