@@ -89,7 +89,7 @@ class CancellationPolicyController extends Controller
         // Delivery time must have passed
         if ($order->delivery_date && $order->delivery_time_to) {
             $deliveryEnd = Carbon::parse(
-                $order->delivery_date->toDateString() . ' ' . $order->delivery_time_to
+                Carbon::parse($order->delivery_date)->toDateString() . ' ' . $order->delivery_time_to
             );
             if ($deliveryEnd->isFuture()) {
                 return $this->responser([], 'Cannot mark no-show before the delivery window has ended.', 422);
